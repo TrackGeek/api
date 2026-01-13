@@ -1,0 +1,40 @@
+{
+  "name": "desafio-biblico-api",
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.4",
+    "@onesignal/node-onesignal": "^5.3.1-beta1",
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "bcryptjs": "^3.0.3",
+    "class-validator": "^0.14.3",
+    "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7",
+    "@types/pg": "^8.16.0",
+    "globals": "^16.0.0",
+    "prisma": "^7.2.0",
+    "source-map-support": "^0.5.21",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3"
+  }
+}

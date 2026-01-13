@@ -1,0 +1,11 @@
+{
+	"recommendations": [
+		"biomejs.biome",
+		"EditorConfig.EditorConfig",
+		"usernamehw.errorlens",
+		"christian-kohler.npm-intellisense",
+		"christian-kohler.path-intellisense",
+		"YoavBls.pretty-ts-errors",
+		"Prisma.prisma"
+	]
+}
