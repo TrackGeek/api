@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: trackverse-postgres
+    container_name: trackgeek-postgres
     image: postgres:13
     restart: always
     ports:
@@ -8,11 +8,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: trackverse
+      POSTGRES_DB: trackgeek
     volumes:
       - ./postgres:/var/lib/postgresql/data
       
 networks:
   default:
-    name: trackverse
+    name: trackgeek
     driver: bridge
