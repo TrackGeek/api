@@ -28,8 +28,6 @@ Here is a list of rules you must follow when writing your code:
 
 ## Modification
 
-> You **must** change the version in the **metadata** to be a higher value from the previous version when making changes to either the **presence.ts**, **iframe.ts** or **metadata.json**.
-
 In some situations, activities may behave unexpectedly or could use some minor changes to improve their functionality. Here is a list of rules that you **must** follow while modifiying activities.
 
 - If you make modifications to a activity and change at least a **quarter** of the activity's codebase, you are allowed to add yourself as a contributor. Contact a reviewer for more information about this subject.
@@ -37,7 +35,7 @@ In some situations, activities may behave unexpectedly or could use some minor c
 
 # Verification
 
-> **All** code contributed to the store will be licensed under the `Mozilla Public License 2.0`.
+> **All** code contributed will be licensed under the `GNU GPL 3`.
 
 > If you need to contact someone, please use our official Discord server. All reviewers will have the `Tracker Dev` role on their profile.
 
