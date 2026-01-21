@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="https://github.com/TrackVerse.png?size=2048" width="128px" style="max-width:100%;">
+    <img src="https://github.com/TrackGeek.png?size=2048" width="128px" style="max-width:100%;">
     <h3 style="font-size: 2rem; margin-bottom: 0">PR Guidelines</h3>
     <h4 style="margin-top: 0">Revision 1.1</h4>
     <br />
@@ -45,7 +45,7 @@ In some situations, activities may behave unexpectedly or could use some minor c
 
 > **Always** have an up-to-date fork before creating your pull request. This will help limit false positives from the checks.
 
-The most important process of activity development is getting your activity on the store. This is done by making a [pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) on GitHub on the `TrackVerse/TrackVerse` repository. Our reviewers will confirm that your activity is up to standards and will push it onto the store.
+The most important process of activity development is getting your activity on the store. This is done by making a [pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) on GitHub on the `TrackGeek/TrackGeek` repository. Our reviewers will confirm that your activity is up to standards and will push it onto the store.
 
 <div>
   <h2 style="font-size: 2rem; margin-bottom: 0;">Reviewers</h2>
@@ -59,7 +59,7 @@ Repetitive offenses such as breaking guidelines, spamming pull requests, threats
 
 In this scenario, the following changes will occur:
 
-- PR under your management will be transferred to the TrackVerse bot or another user (reviewer decision).
+- PR under your management will be transferred to the TrackGeek bot or another user (reviewer decision).
 - All of your issues and pull requests (activity creation, activity contribution, etc) created following the ban will be prompty closed.
 - Tickets created under your name regarding activity development will be deleted.
 
@@ -81,7 +81,7 @@ Currently, a activity goes through 2 separate stages of checks. All of these che
 
 # Suggestions
 
-If you have some suggestions about our guidelines, you should contact us @ [TrackVerse's Discord server](https://discord.trackverse.app) and we will check them!
+If you have some suggestions about our guidelines, you should contact us @ [TrackGeek's Discord server](https://discord.trackgeek.app) and we will check them!
 
 # Contributions
 

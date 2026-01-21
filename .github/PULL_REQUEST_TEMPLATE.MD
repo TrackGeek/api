@@ -2,9 +2,9 @@
 <!-- A clear and detailed description of the changes, referencing issues if applicable -->
 
 ## Acknowledgements
-- [ ] I read the [PR Guidelines](https://github.com/TrackVerse/trackverse/blob/main/.github/CONTRIBUTING.md)
+- [ ] I read the [PR Guidelines](https://github.com/TrackGeek/trackgeek/blob/main/.github/CONTRIBUTING.md)
 - [ ] I linted and formatted the code by running `npm run check`
-- [ ] The PR title follows the repo's [commit conventions](https://github.com/TrackVerse/trackverse/blob/main/.github/COMMIT_CONVENTION.md)
+- [ ] The PR title follows the repo's [commit conventions](https://github.com/TrackGeek/trackgeek/blob/main/.github/COMMIT_CONVENTION.md)
 
 ## Screenshots
 <details>

@@ -1,6 +1,6 @@
 generator client {
   provider     = "prisma-client"
-  output       = "../src/infra/prisma/generated"
+  output       = "./generated"
   moduleFormat = "cjs"
 }
 
@@ -10,11 +10,23 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
-  name      String
+  name      String?
   email     String   @unique
-  password  String
+  googleId  String?
+  discordId String?
+  githubId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("users")
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

@@ -10,38 +10,35 @@ export class AuthGuard implements CanActivate {
   ) {}
   
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const authorization = context.switchToHttp().getRequest().headers['authorization'];
+    const request = context.switchToHttp().getRequest()
     
-    if (!authorization) {
-      throw new UnauthorizedException('No authorization header provided. ');
-    }
+    const accessToken = request.cookies?.['accessToken'] ?? null;
     
-    const token = authorization.replace('Bearer ', '');
-      
-    if (!token) {
-      throw new UnauthorizedException('No token provided.');
+    if (!accessToken) {
+      throw new UnauthorizedException('No access token provided.');
     }
     
     try {
-      const decoded = await this.jwtService.verifyAsync(token);
+      const decoded = await this.jwtService.verifyAsync(accessToken, {
+        secret: process.env.JWT_ACCESS_SECRET,
+      });
+      
       const userId = decoded.userId;
       
       const user = await this.prismaService.user.findUnique({
         where: { id: userId },
-        omit: {
-          password: true,
-        }
       });
       
       if (!user) {
         throw new NotFoundException('User not found.');
       }
       
-      context.switchToHttp().getRequest().user = user;
+      request.user = user;
       
       return true;
     } catch (error) {
-      throw new UnauthorizedException()
+      console.error('AuthGuard error:', error);
+      throw new UnauthorizedException('Invalid or expired token.');
     }
   }
 }
