@@ -14,7 +14,7 @@
 		"enabled": true,
 		"indentStyle": "space",
 		"indentWidth": 2,
-    "lineWidth": 120
+		"lineWidth": 120
 	},
 	"linter": {
 		"enabled": true,
@@ -25,6 +25,9 @@
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
+		},
+		"parser": {
+			"unsafeParameterDecoratorsEnabled": true
 		}
 	},
 	"assist": {

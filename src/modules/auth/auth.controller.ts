@@ -46,7 +46,7 @@ export class AuthController {
     @Query() query: RequestEmailLoginDto,
     @Res({ passthrough: true }) response: Response
   ) {
-    await this.authService.generateEmailLoginUrl(query);
+    await this.authService.requestEmailLogin(query);
   }
   
   @Get('email/login')
@@ -66,7 +66,7 @@ export class AuthController {
   
   @Get('google/request')
   async getGoogleLoginUrl() {
-    const url = await this.authService.generateGoogleLoginUrl();
+    const url = await this.authService.requestGoogleLogin();
     
     return { url }
   }
@@ -93,7 +93,7 @@ export class AuthController {
   
   @Get('discord/request')
   async getDiscordLoginUrl() {
-    const url = await this.authService.generateDiscordLoginUrl();
+    const url = await this.authService.requestDiscordLogin();
     
     return { url }
   }
@@ -120,7 +120,7 @@ export class AuthController {
   
   @Get('github/request')
   async getGithubLoginUrl() {
-    const url = await this.authService.generateGithubLoginUrl();
+    const url = await this.authService.requestGithubLogin();
     
     return { url }
   }

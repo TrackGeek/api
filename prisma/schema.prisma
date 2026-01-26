@@ -9,14 +9,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String?
-  email     String   @unique
-  googleId  String?
-  discordId String?
-  githubId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  name       String?
+  email      String   @unique
+  avatarPath String?
+  googleId   String?
+  discordId  String?
+  githubId   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   refreshTokens RefreshToken[]
 }
