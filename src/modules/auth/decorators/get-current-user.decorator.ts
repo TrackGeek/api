@@ -1,3 +1,4 @@
+import { ERROR_CODES } from "@/config/errors.config";
 import {
 	createParamDecorator,
 	ExecutionContext,
@@ -9,7 +10,7 @@ export const GetCurrentUser = createParamDecorator(
 		const ctx = context.switchToHttp().getRequest();
 
 		if (!ctx.user?.id?.length) {
-			throw new UnauthorizedException("User not found in request context.");
+			throw new UnauthorizedException(ERROR_CODES.USER_NOT_FOUND);
 		}
 
 		return ctx.user;

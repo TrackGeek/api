@@ -9,15 +9,21 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  name       String?
-  email      String   @unique
-  avatarPath String?
-  googleId   String?
-  discordId  String?
-  githubId   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  username  String   @unique
+  email     String   @unique
+  color     String?  @default("#10b981")
+  language  String?  @default("en-US")
+  timezone  String?
+  about     String?  @default("Hello! I'm using TrackGeek.")
+  bannerUrl String?
+  avatarUrl String?
+  googleId  String?
+  discordId String?
+  githubId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   refreshTokens RefreshToken[]
 }
@@ -29,5 +35,5 @@ model RefreshToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
