@@ -1,15 +1,18 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { URLSearchParams } from "node:url";
+import { HttpService } from "@nestjs/axios";
+import { ResendService } from "nestjs-resend";
 
 import { PrismaService } from "@/infra/prisma/prisma.service";
 import { LoginWithGoogleDto } from "./dtos/login-with-google.dto";
-import { HttpService } from "@nestjs/axios";
 import { LoginWithDiscordDto } from "./dtos/login-with-discord.dto";
 import { LoginWithGithubDto } from "./dtos/login-with-github.dto";
 import { RequestEmailLoginDto } from "./dtos/request-email-login.dto";
-import { ResendService } from "nestjs-resend/dist/resend.service";
 import { LoginWithEmailDto } from "./dtos/login-with-email.dto";
+import { ERROR_CODES } from "@/config/errors.config";
+import { extractNameFromEmail } from "@/utils/email";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,7 @@ export class AuthService {
 		private readonly jwtService: JwtService,
 		private readonly prismaService: PrismaService,
 		private readonly resendService: ResendService,
+		private readonly userService: UserService,
 	) {}
 
 	private async generateAccessToken(userId: string) {
@@ -54,28 +58,6 @@ export class AuthService {
 		return refreshToken;
 	}
 
-	private async createOrGetUser(email: string, name: string) {
-		let user = await this.prismaService.user.findUnique({
-			where: { email },
-		});
-
-		if (!user) {
-			user = await this.prismaService.user.create({
-				data: { email, name },
-			});
-		}
-
-		return user;
-	}
-
-	private extractNameFromEmail(email: string): string {
-		if (!email.includes("@")) return "";
-
-		const name = email.split("@")[0].replace(/\./g, "");
-
-		return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-	}
-
 	async requestEmailLogin(emailLoginDto: RequestEmailLoginDto) {
 		const { email } = emailLoginDto;
 
@@ -99,7 +81,7 @@ export class AuthService {
             <tr>
               <td style="text-align: center;">
                 <h2 style="margin: 0 0 20px 0; color: #ffffff; font-size: 24px; font-weight: 500; line-height: 1.3;">
-                  Hello, ${this.extractNameFromEmail(email)}!
+                  Hello, ${extractNameFromEmail(email)}!
                 </h2>
                 
                 <p style="margin: 0 0 30px 0; color: #a6a09b; font-size: 18px; line-height: 1.5;">Click the button below to securely sign in to your account:</p>
@@ -107,7 +89,7 @@ export class AuthService {
             </tr>
             <tr>
               <td style="text-align: center; padding: 20px 0;">
-                <a href="${emailLoginUrl}" style="display: inline-block; background-color: #059669; color: #ffffff; font-size: 24px; font-weight: 600; padding: 20px; text-decoration: none; border-radius: 8px;">
+                <a href="${emailLoginUrl}" style="display: inline-block; background-color: #10b981; color: #ffffff; font-size: 24px; font-weight: 600; padding: 20px; text-decoration: none; border-radius: 8px;">
                   Sign in to Track Geek
                 </a>
               </td>
@@ -135,9 +117,9 @@ export class AuthService {
 
 			const email = decoded.email;
 
-			const user = await this.createOrGetUser(
+			const user = await this.userService.createOrGetUser(
 				email,
-				this.extractNameFromEmail(email),
+				extractNameFromEmail(email),
 			);
 
 			const accessToken = await this.generateAccessToken(user.id);
@@ -150,7 +132,7 @@ export class AuthService {
 		} catch (error) {
 			this.logger.error(`Failed to login with Email: ${error.message}`);
 
-			throw new BadRequestException("INVALID_OR_EXPIRED_EMAIL_LOGIN_CODE");
+			throw new BadRequestException(ERROR_CODES.INVALID_EMAIL_LOGIN_CODE);
 		}
 	}
 
@@ -197,7 +179,7 @@ export class AuthService {
 			});
 
 		if (!googleTokenResponse) {
-			throw new BadRequestException("INVALID_GOOGLE_AUTHORIZATION_CODE");
+			throw new BadRequestException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
 		}
 
 		const googleUserResponse = await this.httpService.axiosRef
@@ -213,7 +195,8 @@ export class AuthService {
 			.then((response) => ({
 				id: response.data.id,
 				email: response.data.email,
-				name: response.data.name,
+				name: response.data?.name ?? null,
+				avatarUrl: response.data?.picture ?? null,
 			}))
 			.catch((err) => {
 				this.logger.error(
@@ -225,12 +208,13 @@ export class AuthService {
 			});
 
 		if (!googleUserResponse) {
-			throw new BadRequestException("COULD_NOT_FETCH_GOOGLE_USER_INFO");
+			throw new BadRequestException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
 		}
 
-		const user = await this.createOrGetUser(
+		const user = await this.userService.createOrGetUser(
 			googleUserResponse.email,
-			googleUserResponse.name,
+			googleUserResponse?.name,
+			googleUserResponse?.avatarUrl,
 		);
 
 		if (!user?.googleId) {
@@ -294,7 +278,7 @@ export class AuthService {
 			});
 
 		if (!discordTokenResponse) {
-			throw new BadRequestException("INVALID_DISCORD_AUTHORIZATION_CODE");
+			throw new BadRequestException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
 		}
 
 		const discordUserResponse = await this.httpService.axiosRef
@@ -307,6 +291,9 @@ export class AuthService {
 				id: response.data.id,
 				email: response.data.email,
 				name: response.data.username,
+				avatarUrl: response.data?.avatar
+					? `https://cdn.discordapp.com/avatars/${response.data.id}/${response.data.avatar}.png`
+					: null,
 			}))
 			.catch((err) => {
 				this.logger.error(
@@ -318,12 +305,13 @@ export class AuthService {
 			});
 
 		if (!discordUserResponse) {
-			throw new BadRequestException("COULD_NOT_FETCH_DISCORD_USER_INFO");
+			throw new BadRequestException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
 		}
 
-		const user = await this.createOrGetUser(
+		const user = await this.userService.createOrGetUser(
 			discordUserResponse.email,
-			discordUserResponse.name,
+			discordUserResponse?.name,
+			discordUserResponse?.avatarUrl,
 		);
 
 		if (!user?.discordId) {
@@ -387,7 +375,7 @@ export class AuthService {
 			});
 
 		if (!githubTokenResponse) {
-			throw new BadRequestException("INVALID_GITHUB_AUTHORIZATION_CODE");
+			throw new BadRequestException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
 		const githubUserResponse = await this.httpService.axiosRef
@@ -401,6 +389,7 @@ export class AuthService {
 			.then((response) => ({
 				id: String(response.data.id),
 				name: response.data.name,
+				avatarUrl: response.data?.avatar_url ?? null,
 			}))
 			.catch((err) => {
 				this.logger.error(
@@ -412,7 +401,7 @@ export class AuthService {
 			});
 
 		if (!githubUserResponse) {
-			throw new BadRequestException("COULD_NOT_FETCH_GITHUB_USER_INFO");
+			throw new BadRequestException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
 		const githubEmailResponse = await this.httpService.axiosRef
@@ -440,12 +429,13 @@ export class AuthService {
 			});
 
 		if (!githubEmailResponse) {
-			throw new BadRequestException("COULD_NOT_FETCH_GITHUB_EMAIL");
+			throw new BadRequestException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
-		const user = await this.createOrGetUser(
+		const user = await this.userService.createOrGetUser(
 			githubEmailResponse,
-			githubUserResponse.name,
+			githubUserResponse?.name,
+			githubUserResponse?.avatarUrl,
 		);
 
 		if (!user?.githubId) {
@@ -470,7 +460,7 @@ export class AuthService {
 		});
 
 		if (!storedToken) {
-			throw new BadRequestException("INVALID_REFRESH_TOKEN");
+			throw new BadRequestException(ERROR_CODES.INVALID_REFRESH_TOKEN);
 		}
 
 		try {
@@ -492,7 +482,15 @@ export class AuthService {
 				refreshToken: newRefreshToken,
 			};
 		} catch (error) {
-			throw new BadRequestException("INVALID_REFRESH_TOKEN");
+			if (error instanceof TokenExpiredError) {
+				await this.prismaService.refreshToken.delete({
+					where: { token: oldRefreshToken },
+				});
+
+				throw new BadRequestException(ERROR_CODES.EXPIRED_REFRESH_TOKEN);
+			}
+
+			throw new BadRequestException(ERROR_CODES.INVALID_REFRESH_TOKEN);
 		}
 	}
 }

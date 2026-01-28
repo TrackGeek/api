@@ -1,27 +1,31 @@
-import { PrismaService } from "@/infra/prisma/prisma.service";
 import {
 	CanActivate,
 	ExecutionContext,
 	Injectable,
-	NotFoundException,
+	Logger,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, TokenExpiredError } from "@nestjs/jwt";
+
+import { ERROR_CODES } from "@/config/errors.config";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+	private readonly logger = new Logger(AuthGuard.name);
+
 	constructor(
 		private readonly jwtService: JwtService,
-		private readonly prismaService: PrismaService,
+		private readonly userService: UserService,
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest();
 
-		const accessToken = request.cookies?.["accessToken"] ?? null;
+		const accessToken = request.cookies?.["trackgeek-access-token"] ?? null;
 
 		if (!accessToken) {
-			throw new UnauthorizedException("No access token provided.");
+			throw new UnauthorizedException(ERROR_CODES.ACCESS_TOKEN_MISSING);
 		}
 
 		try {
@@ -31,21 +35,23 @@ export class AuthGuard implements CanActivate {
 
 			const userId = decoded.userId;
 
-			const user = await this.prismaService.user.findUnique({
-				where: { id: userId },
-			});
+			const user = await this.userService.getUserById(userId);
 
 			if (!user) {
-				throw new NotFoundException("User not found.");
+				throw new UnauthorizedException(ERROR_CODES.USER_NOT_FOUND);
 			}
 
 			request.user = user;
 
 			return true;
 		} catch (error) {
-			console.error("AuthGuard error:", error);
+			this.logger.error("AuthGuard error:", error);
 
-			throw new UnauthorizedException("Invalid or expired token.");
+			if (error instanceof TokenExpiredError) {
+				throw new UnauthorizedException(ERROR_CODES.ACCESS_TOKEN_EXPIRED);
+			}
+
+			throw new UnauthorizedException(ERROR_CODES.INVALID_ACCESS_TOKEN);
 		}
 	}
 }
