@@ -35,4 +35,8 @@ export const ERROR_CODES = {
 	GAME_NOT_FOUND: { message: "GAME_NOT_FOUND", status: 404 },
 	GAME_ALREADY_REFRESHED: { message: "GAME_ALREADY_REFRESHED", status: 409 },
 	INTERNAL_SERVER_ERROR: { message: "INTERNAL_SERVER_ERROR", status: 500 },
+	NOT_FOUND: { message: "NOT_FOUND", status: 404 },
+	CONFLICT: { message: "CONFLICT", status: 409 },
+	UNAUTHORIZED: { message: "UNAUTHORIZED", status: 401 },
+	UNPROCESSABLE_ENTITY: { message: "UNPROCESSABLE_ENTITY", status: 422 },
 } as const;
