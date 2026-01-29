@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { ResendModule } from "nestjs-resend";
 import { RedisModule } from "@liaoliaots/nestjs-redis";
@@ -12,13 +12,21 @@ import { GameModule } from "./modules/game/game.module";
 	imports: [
 		ConfigModule.forRoot({ isGlobal: true }),
 		JwtModule.register({ global: true }),
-		ResendModule.forRoot({ apiKey: process.env.RESEND_API_KEY! }),
-		RedisModule.forRoot({
-			config: {
-				host: process.env.REDIS_HOST!,
-				port: +process.env.REDIS_PORT!,
-				password: process.env.REDIS_PASSWORD!,
-			},
+		ResendModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        apiKey: configService.get<string>('RESEND_API_KEY')!
+      }),
+    }),
+		RedisModule.forRootAsync({
+			inject: [ConfigService],
+			useFactory: (configService: ConfigService) => ({
+				config: {
+					host: configService.get<string>('REDIS_HOST')!,
+					port: configService.get<number>('REDIS_PORT')!,
+					password: configService.get<string>('REDIS_PASSWORD')!,
+				},
+			}),
 		}),
 		AuthModule,
 		UserModule,
