@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { ResendModule } from "nestjs-resend";
-import { RedisModule } from "@liaoliaots/nestjs-redis";
 
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/auth.module";
@@ -18,16 +17,6 @@ import { GameModule } from "./modules/game/game.module";
         apiKey: configService.get<string>('RESEND_API_KEY')!
       }),
     }),
-		RedisModule.forRootAsync({
-			inject: [ConfigService],
-			useFactory: (configService: ConfigService) => ({
-				config: {
-					host: configService.get<string>('REDIS_HOST')!,
-					port: configService.get<number>('REDIS_PORT')!,
-					password: configService.get<string>('REDIS_PASSWORD')!,
-				},
-			}),
-		}),
 		AuthModule,
 		UserModule,
 		GameModule,
