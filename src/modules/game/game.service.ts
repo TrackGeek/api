@@ -64,12 +64,12 @@ export class GameService {
 		}
 	}
 
-	async searchGames(query: string) {
+	async searchGames(searchGameDto: SearchGameDto) {
 		const accessToken = await this.getIGDBAccessToken();
 
 		try {
 			const cachedGames = await this.cacheService.get<any[]>(
-				`igdb:search:${query}`,
+				`igdb:search:${searchGameDto.query}`,
 			);
 
 			if (cachedGames) {
@@ -77,7 +77,7 @@ export class GameService {
 			}
 
 			const igdbQuery = `
-				search "${query}";
+				search "${searchGameDto.query}";
 				fields 
 					slug,
 					name,
@@ -123,7 +123,7 @@ export class GameService {
 					: null,
 			}));
 
-			await this.cacheService.set(`igdb:search:${query}`, games, 3600 * 6); // 6 hours
+			await this.cacheService.set(`igdb:search:${searchGameDto.query}`, games, 3600 * 6); // 6 hours
 
 			return games;
 		} catch (error) {
