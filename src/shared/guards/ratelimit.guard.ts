@@ -1,19 +1,23 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { CacheService } from "@/shared/infra/cache/cache.service";
+import {
+	type CanActivate,
+	type ExecutionContext,
+	Injectable,
+} from "@nestjs/common";
+import type { Reflector } from "@nestjs/core";
 import {
 	RATE_LIMIT_KEY,
-	RateLimitOptions,
+	type RateLimitOptions,
 } from "@/shared/decorators/ratelimit.decorator";
-import { AppException } from "../exceptions/app.exceptions";
+import type { CacheService } from "@/shared/infra/cache/cache.service";
 import { ERROR_CODES } from "../constants/error-codes";
+import { AppException } from "../exceptions/app.exceptions";
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
 	constructor(
 		private readonly reflector: Reflector,
 		private readonly cacheService: CacheService,
-	) {}
+	) { }
 
 	private getIdentifier(request: any): string {
 		const identifier =

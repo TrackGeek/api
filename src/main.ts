@@ -1,9 +1,8 @@
+import { Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
-
 import { AppModule } from "./app.module";
-import { Logger } from "@nestjs/common";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 
 async function bootstrap() {

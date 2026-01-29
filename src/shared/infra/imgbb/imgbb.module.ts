@@ -1,5 +1,5 @@
-import { Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
+import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
 import { ImgBBService } from "./imgbb.service";
@@ -9,4 +9,4 @@ import { ImgBBService } from "./imgbb.service";
 	providers: [ImgBBService],
 	exports: [ImgBBService],
 })
-export class ImgBBModule {}
+export class ImgBBModule { }

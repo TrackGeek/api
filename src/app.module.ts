@@ -1,12 +1,12 @@
+import { RedisModule } from "@liaoliaots/nestjs-redis";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { ResendModule } from "nestjs-resend";
-import { RedisModule } from "@liaoliaots/nestjs-redis";
 
 import { AuthModule } from "./modules/auth/auth.module";
-import { UserModule } from "./modules/user/auth.module";
 import { GameModule } from "./modules/game/game.module";
+import { UserModule } from "./modules/user/auth.module";
 
 @Module({
 	imports: [
@@ -27,4 +27,4 @@ import { GameModule } from "./modules/game/game.module";
 	providers: [],
 	controllers: [],
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,6 +1,6 @@
-import { RedisService, DEFAULT_REDIS } from "@liaoliaots/nestjs-redis";
+import { DEFAULT_REDIS, type RedisService } from "@liaoliaots/nestjs-redis";
 import { Injectable } from "@nestjs/common";
-import Redis from "ioredis";
+import type Redis from "ioredis";
 
 @Injectable()
 export class CacheService {
