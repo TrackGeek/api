@@ -1,35 +1,43 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, Post, Query, Req, Res, UploadedFile, UseInterceptors, UseGuards, Body, Patch } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, Post, Query, Res, UploadedFile, UseInterceptors, UseGuards, Body, Patch } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import type { User } from '@prisma/generated/client';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
-import { GetCurrentUser } from './decorators/get-current-user.decorator';
+import { AuthGuard } from '@/shared/guards/auth.guard';
+import { GetCurrentUser } from '@/shared/decorators/get-current-user.decorator';
 import { LoginWithGoogleDto } from './dtos/login-with-google.dto';
 import { LoginWithDiscordDto } from './dtos/login-with-discord.dto';
 import { LoginWithGithubDto } from './dtos/login-with-github.dto';
 import { RequestEmailLoginDto } from './dtos/request-email-login.dto';
 import { LoginWithEmailDto } from './dtos/login-with-email.dto';
-import { ERROR_CODES } from '@/config/errors.config';
+import { ERROR_CODES } from '@/shared/constants/error-codes';
 import { UserUpdateDto } from '../user/dtos/user-update.dto';
 import { UserService } from '../user/user.service';
+import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
+import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
+import { AppException } from '@/shared/exceptions/app.exceptions';
 
 @Controller('auth')
+@UseGuards(RateLimitGuard)
+@RateLimit({ limit: 30, window: 60, blockDuration: 300 })
 export class AuthController {
+  private cookieOptions: CookieOptions;
   private readonly logger = new Logger(AuthService.name);
   
   constructor(
+    private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly userService: UserService,
-  ) {}
-  
-  private cookieOptions: CookieOptions = { 
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/'
-  };
+  ) {
+    this.cookieOptions = { 
+      httpOnly: false,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'lax',
+      path: '/'
+    };
+  }
   
   private postMessage(type: 'SUCCESS_LOGIN' | 'ERROR_LOGIN', message: string = ''): string   {
     return `
@@ -42,7 +50,7 @@ export class AuthController {
             window.opener.postMessage(JSON.stringify({
               type: '${type}',
               message: '${message}'
-            }), '${process.env.WEB_URL}');
+            }), '${this.configService.get<string>('WEB_URL')}');
 
             window.close();
           </script>
@@ -68,7 +76,7 @@ export class AuthController {
     response.cookie('trackgeek-access-token', accessToken, this.cookieOptions);
     response.cookie('trackgeek-refresh-token', refreshToken, this.cookieOptions);
     
-    response.redirect(process.env.WEB_URL!);
+    response.redirect(this.configService.get<string>('WEB_URL')!);
   }
   
   @Get('google/request')
@@ -190,10 +198,12 @@ export class AuthController {
   
   @Post('me/avatar')
   @UseGuards(AuthGuard)
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @UseInterceptors(FileInterceptor('file', {
     fileFilter: (_req, file, cb) => file.originalname.match(/\.(jpg|jpeg|png|gif)$/)
       ? cb(null, true)
-      : cb(new Error(ERROR_CODES.IMAGE_TYPE_NOT_SUPPORTED), false),
+      : cb(new AppException(ERROR_CODES.IMAGE_TYPE_NOT_SUPPORTED), false),
     limits: {
       fileSize: 1024 * 1024 * 5
     }
@@ -214,10 +224,12 @@ export class AuthController {
   
   @Post('me/banner')
   @UseGuards(AuthGuard)
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @UseInterceptors(FileInterceptor('file', {
     fileFilter: (_req, file, cb) => file.originalname.match(/\.(jpg|jpeg|png|gif)$/)
       ? cb(null, true)
-      : cb(new Error(ERROR_CODES.IMAGE_TYPE_NOT_SUPPORTED), false),
+      : cb(new AppException(ERROR_CODES.IMAGE_TYPE_NOT_SUPPORTED), false),
     limits: {
       fileSize: 1024 * 1024 * 5
     }

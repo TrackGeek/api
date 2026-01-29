@@ -37,6 +37,7 @@
 		]
 	},
 	"dependencies": {
+		"@liaoliaots/nestjs-redis": "^10.0.0",
 		"@nestjs/axios": "^4.0.1",
 		"@nestjs/common": "^11.0.1",
 		"@nestjs/config": "^4.0.2",
@@ -49,6 +50,7 @@
 		"axios": "^1.13.2",
 		"class-validator": "^0.14.3",
 		"cookie-parser": "^1.4.7",
+		"ioredis": "^5.9.2",
 		"multer": "^2.0.2",
 		"nestjs-resend": "^1.1.0",
 		"pg": "^8.16.3",

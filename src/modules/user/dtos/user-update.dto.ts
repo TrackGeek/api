@@ -9,7 +9,7 @@ export class UserUpdateDto {
 
 	@ApiProperty({ description: "User's preferred language", required: false })
 	readonly language?: string;
-	
+
 	@ApiProperty({ description: "User's preferred timezone", required: false })
 	readonly timezone?: string;
 

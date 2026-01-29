@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "@/config/errors.config";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 import {
 	createParamDecorator,
 	ExecutionContext,

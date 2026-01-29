@@ -3,18 +3,20 @@ import {
 	ExecutionContext,
 	Injectable,
 	Logger,
-	UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 
-import { ERROR_CODES } from "@/config/errors.config";
-import { UserService } from "../user/user.service";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { UserService } from "@/modules/user/user.service";
+import { AppException } from "../exceptions/app.exceptions";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
 	private readonly logger = new Logger(AuthGuard.name);
 
 	constructor(
+		private readonly configService: ConfigService,
 		private readonly jwtService: JwtService,
 		private readonly userService: UserService,
 	) {}
@@ -25,12 +27,12 @@ export class AuthGuard implements CanActivate {
 		const accessToken = request.cookies?.["trackgeek-access-token"] ?? null;
 
 		if (!accessToken) {
-			throw new UnauthorizedException(ERROR_CODES.ACCESS_TOKEN_MISSING);
+			throw new AppException(ERROR_CODES.ACCESS_TOKEN_MISSING);
 		}
 
 		try {
 			const decoded = await this.jwtService.verifyAsync(accessToken, {
-				secret: process.env.JWT_ACCESS_SECRET,
+				secret: this.configService.get<string>("JWT_ACCESS_SECRET"),
 			});
 
 			const userId = decoded.userId;
@@ -38,7 +40,7 @@ export class AuthGuard implements CanActivate {
 			const user = await this.userService.getUserById(userId);
 
 			if (!user) {
-				throw new UnauthorizedException(ERROR_CODES.USER_NOT_FOUND);
+				throw new AppException(ERROR_CODES.USER_NOT_FOUND);
 			}
 
 			request.user = user;
@@ -48,10 +50,10 @@ export class AuthGuard implements CanActivate {
 			this.logger.error("AuthGuard error:", error);
 
 			if (error instanceof TokenExpiredError) {
-				throw new UnauthorizedException(ERROR_CODES.ACCESS_TOKEN_EXPIRED);
+				throw new AppException(ERROR_CODES.ACCESS_TOKEN_EXPIRED);
 			}
 
-			throw new UnauthorizedException(ERROR_CODES.INVALID_ACCESS_TOKEN);
+			throw new AppException(ERROR_CODES.INVALID_ACCESS_TOKEN);
 		}
 	}
 }

@@ -1,11 +1,12 @@
 import { HttpService } from "@nestjs/axios";
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
 import { ImgBBService } from "@/infra/imgbb/imgbb.service";
 import { PrismaService } from "@/infra/prisma/prisma.service";
 import { extractNameFromEmail, extractUsernameFromEmail } from "@/utils/email";
-import { ERROR_CODES } from "@/config/errors.config";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { UserUpdateDto } from "./dtos/user-update.dto";
+import { AppException } from "@/shared/exceptions/app.exceptions";
 
 @Injectable()
 export class UserService {
@@ -76,7 +77,7 @@ export class UserService {
 			});
 
 			if (existingUser && existingUser.id !== userId) {
-				throw new BadRequestException(ERROR_CODES.USERNAME_ALREADY_EXISTS);
+				throw new AppException(ERROR_CODES.USERNAME_ALREADY_EXISTS);
 			}
 		}
 
@@ -97,7 +98,7 @@ export class UserService {
 		});
 
 		if (!user) {
-			throw new BadRequestException(ERROR_CODES.USER_NOT_FOUND);
+			throw new AppException(ERROR_CODES.USER_NOT_FOUND);
 		}
 
 		return user;
@@ -116,7 +117,7 @@ export class UserService {
 		});
 
 		if (!user) {
-			throw new BadRequestException(ERROR_CODES.USER_NOT_FOUND);
+			throw new AppException(ERROR_CODES.USER_NOT_FOUND);
 		}
 
 		return user;
@@ -126,7 +127,7 @@ export class UserService {
 		userId: string,
 		file: Express.Multer.File,
 	): Promise<void> {
-		const avatarUrl = await this.imgBBService.upload(file.buffer);
+		const avatarUrl = await this.imgBBService.uploadFromBuffer(file.buffer);
 
 		await this.prismaService.user.update({
 			where: { id: userId },
@@ -145,7 +146,7 @@ export class UserService {
 		userId: string,
 		file: Express.Multer.File,
 	): Promise<void> {
-		const bannerUrl = await this.imgBBService.upload(file.buffer);
+		const bannerUrl = await this.imgBBService.uploadFromBuffer(file.buffer);
 
 		await this.prismaService.user.update({
 			where: { id: userId },
