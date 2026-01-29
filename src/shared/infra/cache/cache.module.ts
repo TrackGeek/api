@@ -1,6 +1,5 @@
 import { RedisModule } from "@liaoliaots/nestjs-redis";
 import { Module } from "@nestjs/common";
-import { RedisModule } from "@liaoliaots/nestjs-redis";
 import { ConfigService } from '@nestjs/config';
 
 import { CacheService } from "./cache.service";
