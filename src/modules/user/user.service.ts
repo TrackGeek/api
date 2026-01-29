@@ -1,15 +1,14 @@
-import { HttpService } from "@nestjs/axios";
+import type { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-
-import { ImgBBService } from "@/shared/infra/imgbb/imgbb.service";
-import { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import type { ImgBBService } from "@/shared/infra/imgbb/imgbb.service";
+import type { PrismaService } from "@/shared/infra/prisma/prisma.service";
 import {
 	extractNameFromEmail,
 	extractUsernameFromEmail,
 } from "@/shared/utils/email";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { UserUpdateDto } from "./dtos/user-update.dto";
-import { AppException } from "@/shared/exceptions/app.exceptions";
+import type { UserUpdateDto } from "./dtos/user-update.dto";
 
 @Injectable()
 export class UserService {
@@ -19,7 +18,7 @@ export class UserService {
 		private readonly httpService: HttpService,
 		private readonly prismaService: PrismaService,
 		private readonly imgBBService: ImgBBService,
-	) {}
+	) { }
 
 	async createOrGetUser(
 		email: string,
@@ -74,7 +73,7 @@ export class UserService {
 			return;
 		}
 
-		if (!!updateData?.username) {
+		if (updateData?.username) {
 			const existingUser = await this.prismaService.user.findUnique({
 				where: { username: updateData.username },
 			});

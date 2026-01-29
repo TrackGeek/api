@@ -1,9 +1,9 @@
-import { ERROR_CODES } from "@/shared/constants/error-codes";
 import {
 	createParamDecorator,
-	ExecutionContext,
+	type ExecutionContext,
 	UnauthorizedException,
 } from "@nestjs/common";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 
 export const GetCurrentUser = createParamDecorator(
 	(_: any, context: ExecutionContext) => {

@@ -1,15 +1,14 @@
 import {
-	CanActivate,
-	ExecutionContext,
+	type CanActivate,
+	type ExecutionContext,
 	Injectable,
 	Logger,
 } from "@nestjs/common";
-import { JwtService, TokenExpiredError } from "@nestjs/jwt";
-
+import type { ConfigService } from "@nestjs/config";
+import { type JwtService, TokenExpiredError } from "@nestjs/jwt";
+import type { UserService } from "@/modules/user/user.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { UserService } from "@/modules/user/user.service";
 import { AppException } from "../exceptions/app.exceptions";
-import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -19,7 +18,7 @@ export class AuthGuard implements CanActivate {
 		private readonly configService: ConfigService,
 		private readonly jwtService: JwtService,
 		private readonly userService: UserService,
-	) {}
+	) { }
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest();

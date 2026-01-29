@@ -39,57 +39,49 @@ model RefreshToken {
 }
 
 model Game {
-  id                    String    @id @default(uuid())
-  igdbId                Int       @unique
-  ageRatings            Json?
-  aggregatedRating      Float?
-  aggregatedRatingCount Int?
-  alternativeNames      Json?
-  artworks              Json?
-  checksum              String?
-  bundles               Json?
-  collections           Json?
-  coverUrl              String?
-  dlcs                  Json?
-  expandedGames         Json?
-  expansions            Json?
-  externalGames         Json?
-  firstReleaseDate      DateTime?
-  forks                 Json?
-  franchise             Json?
-  franchises            Json?
-  gameEngines           Json?
-  gameLocalizations     Json?
-  gameModes             Json?
-  gameStatus            Json?
-  gameType              Json?
-  genres                Json?
-  hypes                 Int?
-  involvedCompanies     Json?
-  keywords              Json?
-  multiplayerModes      Json?
-  name                  String?
-  parentGame            Json?
-  platforms             Json?
-  playerPerspectives    Json?
-  ports                 Json?
-  rating                Float?
-  ratingCount           Int?
-  releaseDates          Json?
-  remakes               Json?
-  remasters             Json?
-  screenshots           Json?
-  similarGames          Json?
-  slug                  String    @unique
-  standaloneExpansions  Json?
-  storyline             Json?
-  summary               String?
-  totalRating           Float?
-  totalRatingCount      Int?
-  versionParent         Json?
-  versionTitle          Json?
-  videos                Json?
-  lastRefreshedAt       DateTime  @default(now())
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                   String    @id @default(uuid())
+  igdbId               Int       @unique
+  ageRatings           Json?
+  alternativeNames     Json?
+  artworks             Json?
+  checksum             String?
+  bundles              Json?
+  collections          Json?
+  coverUrl             String?
+  dlcs                 Json?
+  expandedGames        Json?
+  expansions           Json?
+  externalGames        Json?
+  firstReleaseDate     DateTime?
+  forks                Json?
+  franchise            Json?
+  franchises           Json?
+  gameEngines          Json?
+  gameLocalizations    Json?
+  gameModes            Json?
+  gameStatus           Json?
+  gameType             Json?
+  genres               Json?
+  involvedCompanies    Json?
+  keywords             Json?
+  multiplayerModes     Json?
+  name                 String?
+  parentGame           Json?
+  platforms            Json?
+  playerPerspectives   Json?
+  ports                Json?
+  releaseDates         Json?
+  remakes              Json?
+  remasters            Json?
+  screenshots          Json?
+  similarGames         Json?
+  slug                 String    @unique
+  standaloneExpansions Json?
+  summary              String?
+  versionParent        Json?
+  versionTitle         Json?
+  videos               Json?
+  lastRefreshedAt      DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }

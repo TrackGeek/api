@@ -1,14 +1,13 @@
+import type { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-import { HttpService } from "@nestjs/axios";
-import { ConfigService } from "@nestjs/config";
+import type { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
-
-import { CacheService } from "@/shared/infra/cache/cache.service";
-import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { PrismaService } from "@/shared/infra/prisma/prisma.service";
-import { RefreshGameDto } from './dtos/refresh-game.dto';
-import { SearchGameDto } from './dtos/search-game.dto';
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import type { CacheService } from "@/shared/infra/cache/cache.service";
+import type { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import type { RefreshGameDto } from "./dtos/refresh-game.dto";
+import type { SearchGameDto } from "./dtos/search-game.dto";
 
 interface IGDBTokenResponse {
 	access_token: string;
@@ -27,7 +26,7 @@ export class GameService {
 		private readonly configService: ConfigService,
 		private readonly cacheService: CacheService,
 		private readonly prismaService: PrismaService,
-	) {}
+	) { }
 
 	private async getIGDBAccessToken(): Promise<string> {
 		const cachedToken = await this.cacheService.get<string>("igdb:token");
@@ -125,7 +124,11 @@ export class GameService {
 					: null,
 			}));
 
-			await this.cacheService.set(`igdb:search:${searchGameDto.query}`, games, 3600 * 6); // 6 hours
+			await this.cacheService.set(
+				`igdb:search:${searchGameDto.query}`,
+				games,
+				3600 * 6,
+			); // 6 hours
 
 			return games;
 		} catch (error) {
@@ -148,8 +151,6 @@ export class GameService {
 				age_ratings.rating_cover_url,
 				age_ratings.synopsis,
 				age_ratings.organization.name,
-				aggregated_rating,
-				aggregated_rating_count,
 				alternative_names.checksum,
 				alternative_names.name,
 				alternative_names.comment,
@@ -217,7 +218,6 @@ export class GameService {
 				genres.name,
 				genres.slug,
 				genres.checksum,
-				hypes,
 				involved_companies.checksum,
 				involved_companies.company.name,
 				involved_companies.developer,
@@ -258,8 +258,6 @@ export class GameService {
 				ports.slug,
 				ports.checksum,
 				ports.cover.url,
-				rating,
-				rating_count,
 				release_dates.date,
 				remakes.name,
 				remakes.slug,
@@ -280,10 +278,7 @@ export class GameService {
 				standalone_expansions.slug,
 				standalone_expansions.checksum,
 				standalone_expansions.cover.url,
-				storyline,
 				summary,
-				total_rating,
-				total_rating_count,
 				version_parent.name,
 				version_parent.slug,
 				version_parent.checksum,
@@ -319,8 +314,6 @@ export class GameService {
 					synopsis: rating?.synopsis ?? null,
 					organization: rating?.organization?.name ?? null,
 				})) ?? [],
-			aggregatedRating: igdbGame?.aggregated_rating ?? null,
-			aggregatedRatingCount: igdbGame?.aggregated_rating_count ?? null,
 			alternativeNames:
 				igdbGame?.alternative_names?.map((altName: any) => ({
 					checksum: altName?.checksum ?? null,
@@ -404,10 +397,10 @@ export class GameService {
 				})) ?? [],
 			franchise: igdbGame?.franchise
 				? {
-						checksum: igdbGame.franchise.checksum ?? null,
-						name: igdbGame.franchise.name ?? null,
-						slug: igdbGame.franchise.slug ?? null,
-					}
+					checksum: igdbGame.franchise.checksum ?? null,
+					name: igdbGame.franchise.name ?? null,
+					slug: igdbGame.franchise.slug ?? null,
+				}
 				: {},
 			franchises:
 				igdbGame?.franchises?.map((franchise: any) => ({
@@ -434,15 +427,15 @@ export class GameService {
 				})) ?? [],
 			gameStatus: igdbGame?.game_status
 				? {
-						checksum: igdbGame.game_status.checksum ?? null,
-						status: igdbGame.game_status.status ?? null,
-					}
+					checksum: igdbGame.game_status.checksum ?? null,
+					status: igdbGame.game_status.status ?? null,
+				}
 				: {},
 			gameType: igdbGame?.game_type
 				? {
-						checksum: igdbGame.game_type.checksum ?? null,
-						type: igdbGame.game_type.type ?? null,
-					}
+					checksum: igdbGame.game_type.checksum ?? null,
+					type: igdbGame.game_type.type ?? null,
+				}
 				: {},
 			genres:
 				igdbGame?.genres?.map((genre: any) => ({
@@ -450,7 +443,6 @@ export class GameService {
 					name: genre?.name ?? null,
 					slug: genre?.slug ?? null,
 				})) ?? [],
-			hypes: igdbGame?.hypes ?? null,
 			involvedCompanies:
 				igdbGame?.involved_companies?.map((company: any) => ({
 					checksum: company?.checksum ?? null,
@@ -485,16 +477,16 @@ export class GameService {
 			name: igdbGame?.name ?? null,
 			parentGame: igdbGame?.parent_game
 				? {
-						checksum: igdbGame.parent_game.checksum ?? null,
-						name: igdbGame.parent_game.name ?? null,
-						slug: igdbGame.parent_game.slug ?? null,
-						coverUrl: igdbGame.parent_game.cover?.url
-							? `https:${igdbGame.parent_game.cover.url.replace(
-									"t_thumb",
-									"t_cover_big",
-								)}`
-							: null,
-					}
+					checksum: igdbGame.parent_game.checksum ?? null,
+					name: igdbGame.parent_game.name ?? null,
+					slug: igdbGame.parent_game.slug ?? null,
+					coverUrl: igdbGame.parent_game.cover?.url
+						? `https:${igdbGame.parent_game.cover.url.replace(
+							"t_thumb",
+							"t_cover_big",
+						)}`
+						: null,
+				}
 				: {},
 			platforms:
 				igdbGame?.platforms?.map((platform: any) => ({
@@ -516,8 +508,6 @@ export class GameService {
 						? `https:${port.cover.url.replace("t_thumb", "t_cover_big")}`
 						: null,
 				})) ?? [],
-			rating: igdbGame?.rating ?? null,
-			ratingCount: igdbGame?.rating_count ?? null,
 			releaseDates:
 				igdbGame?.release_dates?.map((rd: any) => ({
 					date: rd?.date ? new Date(rd.date * 1000) : null,
@@ -566,22 +556,19 @@ export class GameService {
 						? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}`
 						: null,
 				})) ?? [],
-			storyline: igdbGame?.storyline ?? null,
 			summary: igdbGame?.summary ?? null,
-			totalRating: igdbGame?.total_rating ?? null,
-			totalRatingCount: igdbGame?.total_rating_count ?? null,
 			versionParent: igdbGame?.version_parent
 				? {
-						checksum: igdbGame.version_parent.checksum ?? null,
-						name: igdbGame.version_parent.name ?? null,
-						slug: igdbGame.version_parent.slug ?? null,
-						coverUrl: igdbGame.version_parent.cover?.url
-							? `https:${igdbGame.version_parent.cover.url.replace(
-									"t_thumb",
-									"t_cover_big",
-								)}`
-							: null,
-					}
+					checksum: igdbGame.version_parent.checksum ?? null,
+					name: igdbGame.version_parent.name ?? null,
+					slug: igdbGame.version_parent.slug ?? null,
+					coverUrl: igdbGame.version_parent.cover?.url
+						? `https:${igdbGame.version_parent.cover.url.replace(
+							"t_thumb",
+							"t_cover_big",
+						)}`
+						: null,
+				}
 				: {},
 			versionTitle: igdbGame?.version_title ?? null,
 			videos:
@@ -589,7 +576,7 @@ export class GameService {
 					checksum: video?.checksum ?? null,
 					name: video?.name ?? null,
 					videoId: video?.video_id
-						? `https://www.youtube.com/watch?v=${video.video_id}`
+						? `https://www.youtube.com/embed/${video.video_id}`
 						: null,
 				})) ?? [],
 		};
@@ -598,7 +585,7 @@ export class GameService {
 
 		return game;
 	}
-	
+
 	async getGameById(id: string) {
 		const cachedGame = await this.cacheService.get<any>(`game:id:${id}`);
 
@@ -653,7 +640,7 @@ export class GameService {
 		}
 
 		if (
-			new Date().getTime() - game.lastRefreshedAt.getTime() <
+			Date.now() - game.lastRefreshedAt.getTime() <
 			24 * 60 * 60 * 1000 // 24 hours
 		) {
 			throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
