@@ -28,7 +28,7 @@ export class GameService {
 		private readonly prismaService: PrismaService,
 	) {}
 
-	private async getIGGBAccessToken(): Promise<string> {
+	private async getIGDBAccessToken(): Promise<string> {
 		const cachedToken = await this.cacheService.get<string>("igdb:token");
 
 		if (cachedToken) {
@@ -66,7 +66,7 @@ export class GameService {
 	}
 
 	async searchGames(query: string) {
-		const accessToken = await this.getIGGBAccessToken();
+		const accessToken = await this.getIGDBAccessToken();
 
 		try {
 			const cachedGames = await this.cacheService.get<any[]>(
@@ -138,7 +138,7 @@ export class GameService {
 	}
 
 	private async getGameBySlugFromIGDB(slug: string) {
-		const igdbAccessToken = await this.getIGGBAccessToken();
+		const igdbAccessToken = await this.getIGDBAccessToken();
 
 		const igdbQuery = `
 			fields 
