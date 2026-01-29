@@ -3,10 +3,10 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 
-import { CacheService } from "@/infra/cache/cache.service";
+import { CacheService } from "@/shared/infra/cache/cache.service";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { PrismaService } from "@/infra/prisma/prisma.service";
+import { PrismaService } from "@/shared/infra/prisma/prisma.service";
 
 interface IGDBTokenResponse {
 	access_token: string;
@@ -104,15 +104,17 @@ export class GameService {
 				id: igdbGame.id,
 				slug: igdbGame.slug,
 				name: igdbGame.name,
-				involvedCompanies: igdbGame?.involved_companies?.map((company: any) => ({
-					checksum: company?.checksum ?? null,
-					companyName: company?.company?.name ?? null,
-					developer: company?.developer ?? false,
-				})) ?? [],
-				platforms: igdbGame?.platforms?.map((platform: any) => ({
-					checksum: platform?.checksum ?? null,
-					name: platform?.name ?? null,
-				})) ?? [],
+				involvedCompanies:
+					igdbGame?.involved_companies?.map((company: any) => ({
+						checksum: company?.checksum ?? null,
+						companyName: company?.company?.name ?? null,
+						developer: company?.developer ?? false,
+					})) ?? [],
+				platforms:
+					igdbGame?.platforms?.map((platform: any) => ({
+						checksum: platform?.checksum ?? null,
+						name: platform?.name ?? null,
+					})) ?? [],
 				coverUrl: igdbGame.cover?.url
 					? `https:${igdbGame.cover.url.replace("t_thumb", "t_cover_big")}`
 					: null,
@@ -302,162 +304,182 @@ export class GameService {
 		);
 
 		const igdbGame = response.data[0];
-		
+
 		if (!igdbGame) {
 			throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
 		}
-		
+
 		const game = {
 			igdbId: igdbGame.id,
-			ageRatings: igdbGame?.age_ratings?.map((rating: any) => ({
-				category: rating?.rating_category?.rating ?? null,
-				synopsis: rating?.synopsis ?? null,
-				organization: rating?.organization?.name ?? null,
-			})) ?? [],
+			ageRatings:
+				igdbGame?.age_ratings?.map((rating: any) => ({
+					category: rating?.rating_category?.rating ?? null,
+					synopsis: rating?.synopsis ?? null,
+					organization: rating?.organization?.name ?? null,
+				})) ?? [],
 			aggregatedRating: igdbGame?.aggregated_rating ?? null,
 			aggregatedRatingCount: igdbGame?.aggregated_rating_count ?? null,
-			alternativeNames: igdbGame?.alternative_names?.map((altName: any) => ({
-				checksum: altName?.checksum ?? null,
-				name: altName?.name ?? null,
-				comment: altName?.comment ?? null,
-			})) ?? [],
-			artworks: igdbGame?.artworks?.map((artwork: any) => ({
-				checksum: artwork?.checksum ?? null,
-				type: artwork?.artwork_type?.name ?? null,
-				url: artwork?.url ? `https:${artwork.url.replace("t_thumb", "t_1080p")}` : null,
-			})) ?? [],
+			alternativeNames:
+				igdbGame?.alternative_names?.map((altName: any) => ({
+					checksum: altName?.checksum ?? null,
+					name: altName?.name ?? null,
+					comment: altName?.comment ?? null,
+				})) ?? [],
+			artworks:
+				igdbGame?.artworks?.map((artwork: any) => ({
+					checksum: artwork?.checksum ?? null,
+					type: artwork?.artwork_type?.name ?? null,
+					url: artwork?.url
+						? `https:${artwork.url.replace("t_thumb", "t_1080p")}`
+						: null,
+				})) ?? [],
 			checksum: igdbGame?.checksum ?? null,
-			bundles: igdbGame?.bundles?.map((bundle: any) => ({
-				name: bundle?.name ?? null,
-				slug: bundle?.slug ?? null,
-				coverUrl: bundle?.cover?.url
-					? `https:${bundle.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
-			collections: igdbGame?.collections?.map((collection: any) => ({
-				checksum: collection?.checksum ?? null,
-				name: collection?.name ?? null,
-				slug: collection?.slug ?? null,
-				type: collection?.type?.name ?? null,
-			})) ?? [],
+			bundles:
+				igdbGame?.bundles?.map((bundle: any) => ({
+					name: bundle?.name ?? null,
+					slug: bundle?.slug ?? null,
+					coverUrl: bundle?.cover?.url
+						? `https:${bundle.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
+			collections:
+				igdbGame?.collections?.map((collection: any) => ({
+					checksum: collection?.checksum ?? null,
+					name: collection?.name ?? null,
+					slug: collection?.slug ?? null,
+					type: collection?.type?.name ?? null,
+				})) ?? [],
 			coverUrl: igdbGame.cover?.url
 				? `https:${igdbGame.cover.url.replace("t_thumb", "t_cover_big")}`
 				: null,
-			dlcs: igdbGame?.dlcs?.map((dlc: any) => ({
-				checksum: dlc?.checksum ?? null,
-				name: dlc?.name ?? null,
-				slug: dlc?.slug ?? null,
-				coverUrl: dlc?.cover?.url
-					? `https:${dlc.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
-			expandedGames: igdbGame?.expanded_games?.map((expGame: any) => ({
-				checksum: expGame?.checksum ?? null,
-				name: expGame?.name ?? null,
-				slug: expGame?.slug ?? null,
-				coverUrl: expGame?.cover?.url
-					? `https:${expGame.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
-			expansions: igdbGame?.expansions?.map((expansion: any) => ({
-				checksum: expansion?.checksum ?? null,
-				name: expansion?.name ?? null,
-				slug: expansion?.slug ?? null,
-				coverUrl: expansion?.cover?.url
-					? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
-			externalGames: igdbGame?.external_games?.map((extGame: any) => ({
-				checksum: extGame?.game?.checksum ?? null,
-				name: extGame?.game?.name ?? null,
-				slug: extGame?.game?.slug ?? null,
-				coverUrl: extGame?.game?.cover?.url
-					? `https:${extGame.game.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
+			dlcs:
+				igdbGame?.dlcs?.map((dlc: any) => ({
+					checksum: dlc?.checksum ?? null,
+					name: dlc?.name ?? null,
+					slug: dlc?.slug ?? null,
+					coverUrl: dlc?.cover?.url
+						? `https:${dlc.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
+			expandedGames:
+				igdbGame?.expanded_games?.map((expGame: any) => ({
+					checksum: expGame?.checksum ?? null,
+					name: expGame?.name ?? null,
+					slug: expGame?.slug ?? null,
+					coverUrl: expGame?.cover?.url
+						? `https:${expGame.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
+			expansions:
+				igdbGame?.expansions?.map((expansion: any) => ({
+					checksum: expansion?.checksum ?? null,
+					name: expansion?.name ?? null,
+					slug: expansion?.slug ?? null,
+					coverUrl: expansion?.cover?.url
+						? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
+			externalGames:
+				igdbGame?.external_games?.map((extGame: any) => ({
+					checksum: extGame?.game?.checksum ?? null,
+					name: extGame?.game?.name ?? null,
+					slug: extGame?.game?.slug ?? null,
+					coverUrl: extGame?.game?.cover?.url
+						? `https:${extGame.game.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
 			firstReleaseDate: igdbGame.first_release_date
 				? new Date(igdbGame.first_release_date * 1000)
 				: null,
-			forks: igdbGame?.forks?.map((fork: any) => ({
-				checksum: fork?.checksum ?? null,
-				name: fork?.name ?? null,
-				slug: fork?.slug ?? null,
-				coverUrl: fork?.cover?.url
-					? `https:${fork.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
+			forks:
+				igdbGame?.forks?.map((fork: any) => ({
+					checksum: fork?.checksum ?? null,
+					name: fork?.name ?? null,
+					slug: fork?.slug ?? null,
+					coverUrl: fork?.cover?.url
+						? `https:${fork.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
 			franchise: igdbGame?.franchise
 				? {
 						checksum: igdbGame.franchise.checksum ?? null,
 						name: igdbGame.franchise.name ?? null,
 						slug: igdbGame.franchise.slug ?? null,
-				  }
+					}
 				: {},
-			franchises: igdbGame?.franchises?.map((franchise: any) => ({
-				checksum: franchise?.checksum ?? null,
-				name: franchise?.name ?? null,
-				slug: franchise?.slug ?? null,
-			})) ?? [],
-			gameEngines: igdbGame?.game_engines?.map((engine: any) => ({
-				checksum: engine?.checksum ?? null,
-				name: engine?.name ?? null,
-				slug: engine?.slug ?? null,
-			})) ?? [],
-			gameLocalizations: igdbGame?.game_localizations?.map((loc: any) => ({
-				checksum: loc?.checksum ?? null,
-				region: loc?.region ?? null,
-			})) ?? [],
-			gameModes: igdbGame?.game_modes?.map((mode: any) => ({
-				checksum: mode?.checksum ?? null,
-				name: mode?.name ?? null,
-				slug: mode?.slug ?? null,
-			})) ?? [],
+			franchises:
+				igdbGame?.franchises?.map((franchise: any) => ({
+					checksum: franchise?.checksum ?? null,
+					name: franchise?.name ?? null,
+					slug: franchise?.slug ?? null,
+				})) ?? [],
+			gameEngines:
+				igdbGame?.game_engines?.map((engine: any) => ({
+					checksum: engine?.checksum ?? null,
+					name: engine?.name ?? null,
+					slug: engine?.slug ?? null,
+				})) ?? [],
+			gameLocalizations:
+				igdbGame?.game_localizations?.map((loc: any) => ({
+					checksum: loc?.checksum ?? null,
+					region: loc?.region ?? null,
+				})) ?? [],
+			gameModes:
+				igdbGame?.game_modes?.map((mode: any) => ({
+					checksum: mode?.checksum ?? null,
+					name: mode?.name ?? null,
+					slug: mode?.slug ?? null,
+				})) ?? [],
 			gameStatus: igdbGame?.game_status
 				? {
 						checksum: igdbGame.game_status.checksum ?? null,
 						status: igdbGame.game_status.status ?? null,
-				  }
+					}
 				: {},
 			gameType: igdbGame?.game_type
 				? {
 						checksum: igdbGame.game_type.checksum ?? null,
 						type: igdbGame.game_type.type ?? null,
-				  }
+					}
 				: {},
-			genres: igdbGame?.genres?.map((genre: any) => ({
-				checksum: genre?.checksum ?? null,
-				name: genre?.name ?? null,
-				slug: genre?.slug ?? null,
-			})) ?? [],
+			genres:
+				igdbGame?.genres?.map((genre: any) => ({
+					checksum: genre?.checksum ?? null,
+					name: genre?.name ?? null,
+					slug: genre?.slug ?? null,
+				})) ?? [],
 			hypes: igdbGame?.hypes ?? null,
-			involvedCompanies: igdbGame?.involved_companies?.map((company: any) => ({
-				checksum: company?.checksum ?? null,
-				companyName: company?.company?.name ?? null,
-				developer: company?.developer ?? false,
-				porting: company?.porting ?? false,
-				publisher: company?.publisher ?? false,
-				supporting: company?.supporting ?? false,
-			})) ?? [],
-			keywords: igdbGame?.keywords?.map((keyword: any) => ({
-				checksum: keyword?.checksum ?? null,
-				name: keyword?.name ?? null,
-				slug: keyword?.slug ?? null,
-			})) ?? [],
-			multiplayerModes: igdbGame?.multiplayer_modes?.map((mode: any) => ({
-				checksum: mode?.checksum ?? null,
-				campaignCoop: mode?.campaigncoop ?? false,
-				dropIn: mode?.dropin ?? false,
-				lanCoop: mode?.lancoop ?? false,
-				offlineCoop: mode?.offlinecoop ?? false,
-				offlineCoopMax: mode?.offlinecoopmax ?? null,
-				offlineMax: mode?.offlinemax ?? null,
-				onlineCoop: mode?.onlinecoop ?? false,
-				onlineCoopMax: mode?.onlinecoopmax ?? null,
-				onlineMax: mode?.onlinemax ?? null,
-				platform: mode?.platform?.name ?? null,
-				splitScreen: mode?.splitscreen ?? false,
-				splitScreenOnline: mode?.splitscreenonline ?? false,
-			})) ?? [],
+			involvedCompanies:
+				igdbGame?.involved_companies?.map((company: any) => ({
+					checksum: company?.checksum ?? null,
+					companyName: company?.company?.name ?? null,
+					developer: company?.developer ?? false,
+					porting: company?.porting ?? false,
+					publisher: company?.publisher ?? false,
+					supporting: company?.supporting ?? false,
+				})) ?? [],
+			keywords:
+				igdbGame?.keywords?.map((keyword: any) => ({
+					checksum: keyword?.checksum ?? null,
+					name: keyword?.name ?? null,
+					slug: keyword?.slug ?? null,
+				})) ?? [],
+			multiplayerModes:
+				igdbGame?.multiplayer_modes?.map((mode: any) => ({
+					checksum: mode?.checksum ?? null,
+					campaignCoop: mode?.campaigncoop ?? false,
+					dropIn: mode?.dropin ?? false,
+					lanCoop: mode?.lancoop ?? false,
+					offlineCoop: mode?.offlinecoop ?? false,
+					offlineCoopMax: mode?.offlinecoopmax ?? null,
+					offlineMax: mode?.offlinemax ?? null,
+					onlineCoop: mode?.onlinecoop ?? false,
+					onlineCoopMax: mode?.onlinecoopmax ?? null,
+					onlineMax: mode?.onlinemax ?? null,
+					platform: mode?.platform?.name ?? null,
+					splitScreen: mode?.splitscreen ?? false,
+					splitScreenOnline: mode?.splitscreenonline ?? false,
+				})) ?? [],
 			name: igdbGame?.name ?? null,
 			parentGame: igdbGame?.parent_game
 				? {
@@ -468,69 +490,80 @@ export class GameService {
 							? `https:${igdbGame.parent_game.cover.url.replace(
 									"t_thumb",
 									"t_cover_big",
-							  )}`
+								)}`
 							: null,
-				  }
+					}
 				: {},
-			platforms: igdbGame?.platforms?.map((platform: any) => ({
-				checksum: platform?.checksum ?? null,
-				name: platform?.name ?? null,
-			})) ?? [],
-			playerPerspectives: igdbGame?.player_perspectives?.map((perspective: any) => ({
-				checksum: perspective?.checksum ?? null,
-				name: perspective?.name ?? null,
-				slug: perspective?.slug ?? null,
-			})) ?? [],
-			ports: igdbGame?.ports?.map((port: any) => ({
-				checksum: port?.checksum ?? null,
-				name: port?.name ?? null,
-				slug: port?.slug ?? null,
-				coverUrl: port?.cover?.url
-					? `https:${port.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
+			platforms:
+				igdbGame?.platforms?.map((platform: any) => ({
+					checksum: platform?.checksum ?? null,
+					name: platform?.name ?? null,
+				})) ?? [],
+			playerPerspectives:
+				igdbGame?.player_perspectives?.map((perspective: any) => ({
+					checksum: perspective?.checksum ?? null,
+					name: perspective?.name ?? null,
+					slug: perspective?.slug ?? null,
+				})) ?? [],
+			ports:
+				igdbGame?.ports?.map((port: any) => ({
+					checksum: port?.checksum ?? null,
+					name: port?.name ?? null,
+					slug: port?.slug ?? null,
+					coverUrl: port?.cover?.url
+						? `https:${port.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
 			rating: igdbGame?.rating ?? null,
 			ratingCount: igdbGame?.rating_count ?? null,
-			releaseDates: igdbGame?.release_dates?.map((rd: any) => ({
-				date: rd?.date ? new Date(rd.date * 1000) : null,
-			})) ?? [],
-			remakes: igdbGame?.remakes?.map((remake: any) => ({
-				checksum: remake?.checksum ?? null,
-				name: remake?.name ?? null,
-				slug: remake?.slug ?? null,
-				coverUrl: remake?.cover?.url
-					? `https:${remake.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
-			remasters: igdbGame?.remasters?.map((remaster: any) => ({
-				checksum: remaster?.checksum ?? null,
-				name: remaster?.name ?? null,
-				slug: remaster?.slug ?? null,
-				coverUrl: remaster?.cover?.url
-					? `https:${remaster.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
-			screenshots: igdbGame?.screenshots?.map((screenshot: any) => ({
-				checksum: screenshot?.checksum ?? null,
-				imageId: screenshot?.image_id ? `https://images.igdb.com/igdb/image/upload/t_1080p/${screenshot.image_id}.jpg` : null,
-			})) ?? [],
-			similarGames: igdbGame?.similar_games?.map((simGame: any) => ({
-				checksum: simGame?.checksum ?? null,
-				name: simGame?.name ?? null,
-				slug: simGame?.slug ?? null,
-				coverUrl: simGame?.cover?.url
-					? `https:${simGame.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
+			releaseDates:
+				igdbGame?.release_dates?.map((rd: any) => ({
+					date: rd?.date ? new Date(rd.date * 1000) : null,
+				})) ?? [],
+			remakes:
+				igdbGame?.remakes?.map((remake: any) => ({
+					checksum: remake?.checksum ?? null,
+					name: remake?.name ?? null,
+					slug: remake?.slug ?? null,
+					coverUrl: remake?.cover?.url
+						? `https:${remake.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
+			remasters:
+				igdbGame?.remasters?.map((remaster: any) => ({
+					checksum: remaster?.checksum ?? null,
+					name: remaster?.name ?? null,
+					slug: remaster?.slug ?? null,
+					coverUrl: remaster?.cover?.url
+						? `https:${remaster.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
+			screenshots:
+				igdbGame?.screenshots?.map((screenshot: any) => ({
+					checksum: screenshot?.checksum ?? null,
+					imageId: screenshot?.image_id
+						? `https://images.igdb.com/igdb/image/upload/t_1080p/${screenshot.image_id}.jpg`
+						: null,
+				})) ?? [],
+			similarGames:
+				igdbGame?.similar_games?.map((simGame: any) => ({
+					checksum: simGame?.checksum ?? null,
+					name: simGame?.name ?? null,
+					slug: simGame?.slug ?? null,
+					coverUrl: simGame?.cover?.url
+						? `https:${simGame.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
 			slug: igdbGame?.slug ?? null,
-			standaloneExpansions: igdbGame?.standalone_expansions?.map((expansion: any) => ({
-				checksum: expansion?.checksum ?? null,
-				name: expansion?.name ?? null,
-				slug: expansion?.slug ?? null,
-				coverUrl: expansion?.cover?.url
-					? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}`
-					: null,
-			})) ?? [],
+			standaloneExpansions:
+				igdbGame?.standalone_expansions?.map((expansion: any) => ({
+					checksum: expansion?.checksum ?? null,
+					name: expansion?.name ?? null,
+					slug: expansion?.slug ?? null,
+					coverUrl: expansion?.cover?.url
+						? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}`
+						: null,
+				})) ?? [],
 			storyline: igdbGame?.storyline ?? null,
 			summary: igdbGame?.summary ?? null,
 			totalRating: igdbGame?.total_rating ?? null,
@@ -544,18 +577,21 @@ export class GameService {
 							? `https:${igdbGame.version_parent.cover.url.replace(
 									"t_thumb",
 									"t_cover_big",
-							  )}`
+								)}`
 							: null,
-				  }
+					}
 				: {},
 			versionTitle: igdbGame?.version_title ?? null,
-			videos: igdbGame?.videos?.map((video: any) => ({
-				checksum: video?.checksum ?? null,
-				name: video?.name ?? null,
-				videoId: video?.video_id ? `https://www.youtube.com/watch?v=${video.video_id}` : null,
-			})) ?? [],
+			videos:
+				igdbGame?.videos?.map((video: any) => ({
+					checksum: video?.checksum ?? null,
+					name: video?.name ?? null,
+					videoId: video?.video_id
+						? `https://www.youtube.com/watch?v=${video.video_id}`
+						: null,
+				})) ?? [],
 		};
-		
+
 		// require('node:fs').writeFileSync('./game.json', JSON.stringify(game, null, 2)); // DEBUG
 
 		return game;
@@ -563,7 +599,7 @@ export class GameService {
 
 	async getGame(slug: string) {
 		const cachedGame = await this.cacheService.get<any>(`game:slug:${slug}`);
-		
+
 		if (cachedGame) {
 			return cachedGame;
 		}
@@ -600,7 +636,7 @@ export class GameService {
 		) {
 			throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
 		}
-		
+
 		if (await this.cacheService.exists(`game:slug:${slug}`)) {
 			await this.cacheService.delete(`game:slug:${slug}`);
 		}

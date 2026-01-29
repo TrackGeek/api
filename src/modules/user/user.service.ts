@@ -1,9 +1,12 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
 
-import { ImgBBService } from "@/infra/imgbb/imgbb.service";
-import { PrismaService } from "@/infra/prisma/prisma.service";
-import { extractNameFromEmail, extractUsernameFromEmail } from "@/utils/email";
+import { ImgBBService } from "@/shared/infra/imgbb/imgbb.service";
+import { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import {
+	extractNameFromEmail,
+	extractUsernameFromEmail,
+} from "@/shared/utils/email";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { UserUpdateDto } from "./dtos/user-update.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";

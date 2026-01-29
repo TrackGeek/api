@@ -4,14 +4,14 @@ import cookieParser from "cookie-parser";
 
 import { AppModule } from "./app.module";
 import { Logger } from "@nestjs/common";
-import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
+import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 
 async function bootstrap() {
 	const logger = new Logger("Bootstrap");
 
 	const app = await NestFactory.create(AppModule);
-	
-	app.useGlobalFilters(new HttpExceptionFilter())
+
+	app.useGlobalFilters(new HttpExceptionFilter());
 
 	app.enableCors({
 		origin: process.env.WEB_URL,

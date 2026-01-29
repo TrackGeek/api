@@ -4,14 +4,14 @@ import { URLSearchParams } from "node:url";
 import { HttpService } from "@nestjs/axios";
 import { ResendService } from "nestjs-resend";
 
-import { PrismaService } from "@/infra/prisma/prisma.service";
+import { PrismaService } from "@/shared/infra/prisma/prisma.service";
 import { LoginWithGoogleDto } from "./dtos/login-with-google.dto";
 import { LoginWithDiscordDto } from "./dtos/login-with-discord.dto";
 import { LoginWithGithubDto } from "./dtos/login-with-github.dto";
 import { RequestEmailLoginDto } from "./dtos/request-email-login.dto";
 import { LoginWithEmailDto } from "./dtos/login-with-email.dto";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { extractNameFromEmail } from "@/utils/email";
+import { extractNameFromEmail } from "@/shared/utils/email";
 import { UserService } from "../user/user.service";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ConfigService } from "@nestjs/config";

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { CacheService } from "@/infra/cache/cache.service";
+import { CacheService } from "@/shared/infra/cache/cache.service";
 import {
 	RATE_LIMIT_KEY,
 	RateLimitOptions,
@@ -16,22 +16,26 @@ export class RateLimitGuard implements CanActivate {
 	) {}
 
 	private getIdentifier(request: any): string {
-		const identifier = request.ip || request.connection?.remoteAddress || request.headers["x-forwarded-for"]?.split(",")[0] || "unknown";
-		
-		 if (
-				identifier.includes("localhost") ||
-				identifier.includes("127.0.0.1") ||
-        identifier.startsWith("192.168.") ||
-        identifier.startsWith("10.") ||
-        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(identifier) || // 172.16.0.0 - 172.31.255.255
-        identifier.startsWith("169.254.") || // Link-local
-				identifier.startsWith("fc") || // fc00::/7
-        identifier.startsWith("fd") || // fc00::/7
-        identifier.startsWith("fe80:") // fe80::/10 link-local
-    ) {
-        return "local";
-    }
-		
+		const identifier =
+			request.ip ||
+			request.connection?.remoteAddress ||
+			request.headers["x-forwarded-for"]?.split(",")[0] ||
+			"unknown";
+
+		if (
+			identifier.includes("localhost") ||
+			identifier.includes("127.0.0.1") ||
+			identifier.startsWith("192.168.") ||
+			identifier.startsWith("10.") ||
+			/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(identifier) || // 172.16.0.0 - 172.31.255.255
+			identifier.startsWith("169.254.") || // Link-local
+			identifier.startsWith("fc") || // fc00::/7
+			identifier.startsWith("fd") || // fc00::/7
+			identifier.startsWith("fe80:") // fe80::/10 link-local
+		) {
+			return "local";
+		}
+
 		return identifier;
 	}
 
