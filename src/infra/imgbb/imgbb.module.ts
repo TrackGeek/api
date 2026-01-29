@@ -1,9 +1,11 @@
 import { Module } from "@nestjs/common";
+import { HttpModule } from "@nestjs/axios";
+import { ConfigModule } from "@nestjs/config";
+
 import { ImgBBService } from "./imgbb.service";
-import { HttpModule } from '@nestjs/axios';
 
 @Module({
-	imports: [HttpModule],
+	imports: [HttpModule, ConfigModule],
 	providers: [ImgBBService],
 	exports: [ImgBBService],
 })

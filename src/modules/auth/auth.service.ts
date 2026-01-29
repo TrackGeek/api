@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { URLSearchParams } from "node:url";
 import { HttpService } from "@nestjs/axios";
@@ -10,15 +10,18 @@ import { LoginWithDiscordDto } from "./dtos/login-with-discord.dto";
 import { LoginWithGithubDto } from "./dtos/login-with-github.dto";
 import { RequestEmailLoginDto } from "./dtos/request-email-login.dto";
 import { LoginWithEmailDto } from "./dtos/login-with-email.dto";
-import { ERROR_CODES } from "@/config/errors.config";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { extractNameFromEmail } from "@/utils/email";
 import { UserService } from "../user/user.service";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
 	private readonly logger = new Logger(AuthService.name);
 
 	constructor(
+		private readonly configService: ConfigService,
 		private readonly httpService: HttpService,
 		private readonly jwtService: JwtService,
 		private readonly prismaService: PrismaService,
@@ -30,7 +33,7 @@ export class AuthService {
 		const accessToken = await this.jwtService.signAsync(
 			{ userId },
 			{
-				secret: process.env.JWT_ACCESS_SECRET!,
+				secret: this.configService.get<string>("JWT_ACCESS_SECRET")!,
 				expiresIn: "1d",
 			},
 		);
@@ -42,7 +45,7 @@ export class AuthService {
 		const refreshToken = await this.jwtService.signAsync(
 			{ userId },
 			{
-				secret: process.env.JWT_REFRESH_SECRET!,
+				secret: this.configService.get<string>("JWT_REFRESH_SECRET")!,
 				expiresIn: "7d",
 			},
 		);
@@ -64,15 +67,15 @@ export class AuthService {
 		const code = await this.jwtService.signAsync(
 			{ email },
 			{
-				secret: process.env.JWT_ACCESS_SECRET!,
+				secret: this.configService.get<string>("JWT_ACCESS_SECRET")!,
 				expiresIn: "3h",
 			},
 		);
 
-		const emailLoginUrl = `${process.env.API_URL}/auth/email/login?code=${code}`;
+		const emailLoginUrl = `${this.configService.get<string>("API_URL")}/auth/email/login?code=${code}`;
 
 		await this.resendService.send({
-			from: process.env.RESEND_FROM!,
+			from: this.configService.get<string>("RESEND_FROM")!,
 			to: email,
 			subject: "Sign in to TrackGeek",
 			html: `
@@ -112,7 +115,7 @@ export class AuthService {
 
 		try {
 			const decoded = await this.jwtService.verifyAsync(code, {
-				secret: process.env.JWT_ACCESS_SECRET!,
+				secret: this.configService.get<string>("JWT_ACCESS_SECRET")!,
 			});
 
 			const email = decoded.email;
@@ -132,14 +135,14 @@ export class AuthService {
 		} catch (error) {
 			this.logger.error(`Failed to login with Email: ${error.message}`);
 
-			throw new BadRequestException(ERROR_CODES.INVALID_EMAIL_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_EMAIL_LOGIN_CODE);
 		}
 	}
 
 	async requestGoogleLogin() {
 		const query = new URLSearchParams({
-			client_id: process.env.GOOGLE_CLIENT_ID!,
-			redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
+			client_id: this.configService.get<string>("GOOGLE_CLIENT_ID")!,
+			redirect_uri: this.configService.get<string>("GOOGLE_REDIRECT_URI")!,
 			response_type: "code",
 			prompt: "consent",
 			scope: [
@@ -159,11 +162,11 @@ export class AuthService {
 
 		const googleTokenResponse = await this.httpService.axiosRef
 			.post("https://oauth2.googleapis.com/token", {
-				client_id: process.env.GOOGLE_CLIENT_ID!,
-				client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+				client_id: this.configService.get<string>("GOOGLE_CLIENT_ID")!,
+				client_secret: this.configService.get<string>("GOOGLE_CLIENT_SECRET")!,
 				code,
 				grant_type: "authorization_code",
-				redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
+				redirect_uri: this.configService.get<string>("GOOGLE_REDIRECT_URI")!,
 			})
 			.then((response) => ({
 				accessToken: response.data.access_token,
@@ -179,7 +182,7 @@ export class AuthService {
 			});
 
 		if (!googleTokenResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
 		}
 
 		const googleUserResponse = await this.httpService.axiosRef
@@ -208,7 +211,7 @@ export class AuthService {
 			});
 
 		if (!googleUserResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
 		}
 
 		const user = await this.userService.createOrGetUser(
@@ -235,8 +238,8 @@ export class AuthService {
 
 	async requestDiscordLogin() {
 		const query = new URLSearchParams({
-			client_id: process.env.DISCORD_CLIENT_ID!,
-			redirect_uri: process.env.DISCORD_REDIRECT_URI!,
+			client_id: this.configService.get<string>("DISCORD_CLIENT_ID")!,
+			redirect_uri: this.configService.get<string>("DISCORD_REDIRECT_URI")!,
 			response_type: "code",
 			scope: ["identify", "email", "openid"].join(" "),
 		});
@@ -253,11 +256,13 @@ export class AuthService {
 			.post(
 				"https://discord.com/api/v10/oauth2/token",
 				new URLSearchParams({
-					client_id: process.env.DISCORD_CLIENT_ID!,
-					client_secret: process.env.DISCORD_CLIENT_SECRET!,
+					client_id: this.configService.get<string>("DISCORD_CLIENT_ID")!,
+					client_secret: this.configService.get<string>(
+						"DISCORD_CLIENT_SECRET",
+					)!,
 					code,
 					grant_type: "authorization_code",
-					redirect_uri: process.env.DISCORD_REDIRECT_URI!,
+					redirect_uri: this.configService.get<string>("DISCORD_REDIRECT_URI")!,
 				}),
 				{
 					headers: {
@@ -278,7 +283,7 @@ export class AuthService {
 			});
 
 		if (!discordTokenResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
 		}
 
 		const discordUserResponse = await this.httpService.axiosRef
@@ -305,7 +310,7 @@ export class AuthService {
 			});
 
 		if (!discordUserResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
 		}
 
 		const user = await this.userService.createOrGetUser(
@@ -332,8 +337,8 @@ export class AuthService {
 
 	async requestGithubLogin() {
 		const query = new URLSearchParams({
-			client_id: process.env.GITHUB_CLIENT_ID!,
-			redirect_uri: process.env.GITHUB_REDIRECT_URI!,
+			client_id: this.configService.get<string>("GITHUB_CLIENT_ID")!,
+			redirect_uri: this.configService.get<string>("GITHUB_REDIRECT_URI")!,
 			prompt: "consent",
 			scope: ["read:user", "user:email"].join(" "),
 		});
@@ -350,10 +355,12 @@ export class AuthService {
 			.post(
 				"https://github.com/login/oauth/access_token",
 				{
-					client_id: process.env.GITHUB_CLIENT_ID!,
-					client_secret: process.env.GITHUB_CLIENT_SECRET!,
+					client_id: this.configService.get<string>("GITHUB_CLIENT_ID")!,
+					client_secret: this.configService.get<string>(
+						"GITHUB_CLIENT_SECRET",
+					)!,
 					code,
-					redirect_uri: process.env.GITHUB_REDIRECT_URI!,
+					redirect_uri: this.configService.get<string>("GITHUB_REDIRECT_URI")!,
 				},
 				{
 					headers: {
@@ -375,7 +382,7 @@ export class AuthService {
 			});
 
 		if (!githubTokenResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
 		const githubUserResponse = await this.httpService.axiosRef
@@ -401,7 +408,7 @@ export class AuthService {
 			});
 
 		if (!githubUserResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
 		const githubEmailResponse = await this.httpService.axiosRef
@@ -429,7 +436,7 @@ export class AuthService {
 			});
 
 		if (!githubEmailResponse) {
-			throw new BadRequestException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
+			throw new AppException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
 		const user = await this.userService.createOrGetUser(
@@ -460,12 +467,12 @@ export class AuthService {
 		});
 
 		if (!storedToken) {
-			throw new BadRequestException(ERROR_CODES.INVALID_REFRESH_TOKEN);
+			throw new AppException(ERROR_CODES.INVALID_REFRESH_TOKEN);
 		}
 
 		try {
 			const decoded = await this.jwtService.verifyAsync(oldRefreshToken, {
-				secret: process.env.JWT_REFRESH_SECRET!,
+				secret: this.configService.get<string>("JWT_REFRESH_SECRET")!,
 			});
 
 			const userId = decoded.userId;
@@ -487,10 +494,10 @@ export class AuthService {
 					where: { token: oldRefreshToken },
 				});
 
-				throw new BadRequestException(ERROR_CODES.EXPIRED_REFRESH_TOKEN);
+				throw new AppException(ERROR_CODES.EXPIRED_REFRESH_TOKEN);
 			}
 
-			throw new BadRequestException(ERROR_CODES.INVALID_REFRESH_TOKEN);
+			throw new AppException(ERROR_CODES.INVALID_REFRESH_TOKEN);
 		}
 	}
 }

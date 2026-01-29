@@ -1,0 +1,42 @@
+export const ERROR_CODES = {
+	INVALID_EMAIL_LOGIN_CODE: {
+		message: "INVALID_EMAIL_LOGIN_CODE",
+		status: 400,
+	},
+	INVALID_GOOGLE_LOGIN_CODE: {
+		message: "INVALID_GOOGLE_LOGIN_CODE",
+		status: 400,
+	},
+	INVALID_DISCORD_LOGIN_CODE: {
+		message: "INVALID_DISCORD_LOGIN_CODE",
+		status: 400,
+	},
+	INVALID_GITHUB_LOGIN_CODE: {
+		message: "INVALID_GITHUB_LOGIN_CODE",
+		status: 400,
+	},
+	INVALID_REFRESH_TOKEN: { message: "INVALID_REFRESH_TOKEN", status: 401 },
+	EXPIRED_REFRESH_TOKEN: { message: "EXPIRED_REFRESH_TOKEN", status: 401 },
+	ACCESS_TOKEN_MISSING: { message: "ACCESS_TOKEN_MISSING", status: 422 },
+	ACCESS_TOKEN_EXPIRED: { message: "ACCESS_TOKEN_EXPIRED", status: 401 },
+	INVALID_ACCESS_TOKEN: { message: "INVALID_ACCESS_TOKEN", status: 401 },
+	USER_NOT_FOUND: { message: "USER_NOT_FOUND", status: 404 },
+	USERNAME_ALREADY_EXISTS: { message: "USERNAME_ALREADY_EXISTS", status: 409 },
+	IMAGE_TYPE_NOT_SUPPORTED: {
+		message: "IMAGE_TYPE_NOT_SUPPORTED",
+		status: 415,
+	},
+	FAILED_TO_UPLOAD_IMAGE: { message: "FAILED_TO_UPLOAD_IMAGE", status: 400 },
+	RATE_LIMIT_EXCEEDED: { message: "RATE_LIMIT_EXCEEDED", status: 429 },
+	GAME_SERVICE_UNAVAILABLE: {
+		message: "GAME_SERVICE_UNAVAILABLE",
+		status: 503,
+	},
+	GAME_NOT_FOUND: { message: "GAME_NOT_FOUND", status: 404 },
+	GAME_ALREADY_REFRESHED: { message: "GAME_ALREADY_REFRESHED", status: 409 },
+	INTERNAL_SERVER_ERROR: { message: "INTERNAL_SERVER_ERROR", status: 500 },
+	NOT_FOUND: { message: "NOT_FOUND", status: 404 },
+	CONFLICT: { message: "CONFLICT", status: 409 },
+	UNAUTHORIZED: { message: "UNAUTHORIZED", status: 401 },
+	UNPROCESSABLE_ENTITY: { message: "UNPROCESSABLE_ENTITY", status: 422 },
+} as const;
