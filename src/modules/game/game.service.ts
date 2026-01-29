@@ -7,6 +7,7 @@ import { CacheService } from "@/shared/infra/cache/cache.service";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import { RefreshGameDto } from './dtos/refresh-game.dto';
 
 interface IGDBTokenResponse {
 	access_token: string;
@@ -596,8 +597,28 @@ export class GameService {
 
 		return game;
 	}
+	
+	async getGameById(id: string) {
+		const cachedGame = await this.cacheService.get<any>(`game:id:${id}`);
 
-	async getGame(slug: string) {
+		if (cachedGame) {
+			return cachedGame;
+		}
+
+		const game = await this.prismaService.game.findUnique({
+			where: { id },
+		});
+
+		if (!game) {
+			throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+		}
+
+		await this.cacheService.set(`game:id:${id}`, game, 3600 * 6); // 6 hours
+
+		return game;
+	}
+
+	async getGameBySlug(slug: string) {
 		const cachedGame = await this.cacheService.get<any>(`game:slug:${slug}`);
 
 		if (cachedGame) {
@@ -621,9 +642,9 @@ export class GameService {
 		return game;
 	}
 
-	async refreshGame(slug: string) {
+	async refreshGame(refreshGameDto: RefreshGameDto) {
 		const game = await this.prismaService.game.findUnique({
-			where: { slug },
+			where: { id: refreshGameDto.id },
 		});
 
 		if (!game) {
@@ -637,17 +658,17 @@ export class GameService {
 			throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
 		}
 
-		if (await this.cacheService.exists(`game:slug:${slug}`)) {
-			await this.cacheService.delete(`game:slug:${slug}`);
+		if (await this.cacheService.exists(`game:slug:${game.slug}`)) {
+			await this.cacheService.delete(`game:slug:${game.slug}`);
 		}
 
-		const igdbGame = await this.getGameBySlugFromIGDB(slug);
+		const igdbGame = await this.getGameBySlugFromIGDB(game.slug);
 
 		await this.prismaService.game.update({
-			where: { slug },
+			where: { id: refreshGameDto.id },
 			data: igdbGame,
 		});
 
-		await this.cacheService.set(`game:slug:${slug}`, game, 3600 * 6); // 6 hours
+		await this.cacheService.set(`game:slug:${game.slug}`, game, 3600 * 6); // 6 hours
 	}
 }

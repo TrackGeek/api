@@ -1,8 +1,9 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { AuthGuard } from '@/shared/guards/auth.guard';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
+import { RefreshGameDto } from './dtos/refresh-game.dto';
 
 @UseGuards(RateLimitGuard)
 @RateLimit({ limit: 30, window: 60, blockDuration: 300 })
@@ -17,19 +18,26 @@ export class GameController {
 		return { games };
 	}
 	
-	@Get('/details/:slug')
-	async getGame(@Param('slug') slug: string) {
-		const game = await this.gameService.getGame(slug);
-		
-		return { game };
-	}
-	
-	@Get('/refresh/:slug')
+	@Post('/refresh')
 	@HttpCode(HttpStatus.OK)
 	@UseGuards(AuthGuard)
 	@UseGuards(RateLimitGuard)
 	@RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-	async refreshGame(@Param('slug') slug: string) {
-		await this.gameService.refreshGame(slug);
+	async refreshGame(@Body() refreshGameDto: RefreshGameDto) {
+		await this.gameService.refreshGame(refreshGameDto);
+	}
+	
+	@Get('/details/id/:id')
+	async getGameById(@Param('id') id: string) {
+		const game = await this.gameService.getGameById(id);
+		
+		return { game };
+	}
+	
+	@Get('/details/slug/:slug')
+	async getGameBySlug(@Param('slug') slug: string) {
+		const game = await this.gameService.getGameBySlug(slug);
+		
+		return { game };
 	}
 }
