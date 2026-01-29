@@ -8,11 +8,13 @@ import {
 	Post,
 	Query,
 	UseGuards,
+	ValidationPipe,
 } from "@nestjs/common";
 import { RateLimit } from "@/shared/decorators/ratelimit.decorator";
 import { AuthGuard } from "@/shared/guards/auth.guard";
 import { RateLimitGuard } from "@/shared/guards/ratelimit.guard";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
+import type { SearchGameDto } from "./dtos/search-game.dto";
 import type { GameService } from "./game.service";
 
 @UseGuards(RateLimitGuard)
@@ -22,8 +24,8 @@ export class GameController {
 	constructor(private readonly gameService: GameService) { }
 
 	@Get('search')
-	async searchGames(@Query('q') query: string) {
-		const games = await this.gameService.searchGames(query);
+	async searchGames(@Query(new ValidationPipe()) searchGameDto: SearchGameDto) {
+		const games = await this.gameService.searchGames(searchGameDto);
 
 		return { games };
 	}

@@ -7,6 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import type { CacheService } from "@/shared/infra/cache/cache.service";
 import type { PrismaService } from "@/shared/infra/prisma/prisma.service";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
+import type { SearchGameDto } from "./dtos/search-game.dto";
 
 interface IGDBTokenResponse {
 	access_token: string;
@@ -123,7 +124,11 @@ export class GameService {
 					: null,
 			}));
 
-			await this.cacheService.set(`igdb:search:${searchGameDto.query}`, games, 3600 * 6); // 6 hours
+			await this.cacheService.set(
+				`igdb:search:${searchGameDto.query}`,
+				games,
+				3600 * 6,
+			); // 6 hours
 
 			return games;
 		} catch (error) {
@@ -634,7 +639,8 @@ export class GameService {
 			throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
 		}
 
-		if (Date.now()- game.lastRefreshedAt.getTime() <
+		if (
+			Date.now() - game.lastRefreshedAt.getTime() <
 			24 * 60 * 60 * 1000 // 24 hours
 		) {
 			throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);

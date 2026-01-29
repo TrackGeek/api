@@ -13,18 +13,18 @@ import { UserModule } from "./modules/user/auth.module";
 		ConfigModule.forRoot({ isGlobal: true }),
 		JwtModule.register({ global: true }),
 		ResendModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        apiKey: configService.get<string>('RESEND_API_KEY')!
-      }),
-    }),
+			inject: [ConfigService],
+			useFactory: (configService: ConfigService) => ({
+				apiKey: configService.get<string>("RESEND_API_KEY")!,
+			}),
+		}),
 		RedisModule.forRootAsync({
 			inject: [ConfigService],
 			useFactory: (configService: ConfigService) => ({
 				config: {
-					host: configService.get<string>('REDIS_HOST')!,
-					port: configService.get<number>('REDIS_PORT')!,
-					password: configService.get<string>('REDIS_PASSWORD')!,
+					host: configService.get<string>("REDIS_HOST")!,
+					port: configService.get<number>("REDIS_PORT")!,
+					password: configService.get<string>("REDIS_PASSWORD")!,
 				},
 			}),
 		}),
