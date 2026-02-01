@@ -4,6 +4,9 @@ import {
 	ExecutionContext,
 	UnauthorizedException,
 } from "@nestjs/common";
+import type { Profile, User } from '@prisma/generated/client';
+
+export type UserWithProfile = User & { profile: Profile }
 
 export const GetCurrentUser = createParamDecorator(
 	(_: any, context: ExecutionContext) => {

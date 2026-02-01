@@ -1,23 +1,22 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, Post, Query, Res, UploadedFile, UseInterceptors, UseGuards, Body, Patch } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import type { User } from '@prisma/generated/client';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@/shared/guards/auth.guard';
-import { GetCurrentUser } from '@/shared/decorators/get-current-user.decorator';
+import { GetCurrentUser, type UserWithProfile } from '@/shared/decorators/get-current-user.decorator';
 import { LoginWithGoogleDto } from './dtos/login-with-google.dto';
 import { LoginWithDiscordDto } from './dtos/login-with-discord.dto';
 import { LoginWithGithubDto } from './dtos/login-with-github.dto';
 import { RequestEmailLoginDto } from './dtos/request-email-login.dto';
 import { LoginWithEmailDto } from './dtos/login-with-email.dto';
 import { ERROR_CODES } from '@/shared/constants/error-codes';
-import { UserUpdateDto } from '../user/dtos/user-update.dto';
 import { UserService } from '../user/user.service';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
 import { AppException } from '@/shared/exceptions/app.exceptions';
+import { UpdateUserDto } from '../user/dtos/update-user.dto';
 
 @Controller('auth')
 @UseGuards(RateLimitGuard)
@@ -182,7 +181,7 @@ export class AuthController {
   
   @Get('me')
   @UseGuards(AuthGuard)
-  async meGet(@GetCurrentUser() user: User) {
+  async meGet(@GetCurrentUser() user: UserWithProfile) {
     return { user };
   }
   
@@ -190,8 +189,8 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async mePatch(
-    @GetCurrentUser() user: User,
-    @Body() body: UserUpdateDto,
+    @GetCurrentUser() user: UserWithProfile,
+    @Body() body: UpdateUserDto,
   ) {
     await this.userService.updateUser(user.id, body);
   }
@@ -210,7 +209,7 @@ export class AuthController {
   }))
   @HttpCode(HttpStatus.OK)
   async meAvatarPost(
-    @GetCurrentUser() user: User,
+    @GetCurrentUser() user: UserWithProfile,
     @UploadedFile() file: Express.Multer.File
   ) {
     await this.userService.updateUserAvatar(user.id, file);
@@ -218,7 +217,7 @@ export class AuthController {
   
   @Delete('me/avatar')
   @UseGuards(AuthGuard)
-  async meAvatarDelete(@GetCurrentUser() user: User) {
+  async meAvatarDelete(@GetCurrentUser() user: UserWithProfile) {
     await this.userService.deleteUserAvatar(user.id);
   }
   
@@ -236,7 +235,7 @@ export class AuthController {
   }))
   @HttpCode(HttpStatus.OK)
   async meBannerPost(
-    @GetCurrentUser() user: User,
+    @GetCurrentUser() user: UserWithProfile,
     @UploadedFile() file: Express.Multer.File
   ) {
     await this.userService.updateUserBanner(user.id, file);
@@ -244,7 +243,7 @@ export class AuthController {
   
   @Delete('me/banner')
   @UseGuards(AuthGuard)
-  async meBannerDelete(@GetCurrentUser() user: User) {
+  async meBannerDelete(@GetCurrentUser() user: UserWithProfile) {
     await this.userService.deleteUserBanner(user.id);
   }
 }

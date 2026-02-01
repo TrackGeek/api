@@ -67,7 +67,7 @@ export class AuthService {
 		const code = await this.jwtService.signAsync(
 			{ email },
 			{
-				secret: this.configService.get<string>("JWT_ACCESS_SECRET")!,
+				secret: this.configService.get<string>("JWT_EMAIL_SECRET")!,
 				expiresIn: "3h",
 			},
 		);
@@ -115,15 +115,15 @@ export class AuthService {
 
 		try {
 			const decoded = await this.jwtService.verifyAsync(code, {
-				secret: this.configService.get<string>("JWT_ACCESS_SECRET")!,
+				secret: this.configService.get<string>("JWT_EMAIL_SECRET")!,
 			});
 
 			const email = decoded.email;
 
-			const user = await this.userService.createOrGetUser(
+			const user = await this.userService.createUser({
 				email,
-				extractNameFromEmail(email),
-			);
+				name: extractNameFromEmail(email),
+			});
 
 			const accessToken = await this.generateAccessToken(user.id);
 			const refreshToken = await this.generateRefreshToken(user.id);
@@ -214,18 +214,12 @@ export class AuthService {
 			throw new AppException(ERROR_CODES.INVALID_GOOGLE_LOGIN_CODE);
 		}
 
-		const user = await this.userService.createOrGetUser(
-			googleUserResponse.email,
-			googleUserResponse?.name,
-			googleUserResponse?.avatarUrl,
-		);
-
-		if (!user?.googleId) {
-			await this.prismaService.user.update({
-				where: { id: user.id },
-				data: { googleId: googleUserResponse.id },
-			});
-		}
+		const user = await this.userService.createUser({
+			email: googleUserResponse.email,
+			name: googleUserResponse?.name,
+			avatarUrl: googleUserResponse?.avatarUrl,
+			googleId: googleUserResponse.id,
+		});
 
 		const accessToken = await this.generateAccessToken(user.id);
 		const refreshToken = await this.generateRefreshToken(user.id);
@@ -313,18 +307,12 @@ export class AuthService {
 			throw new AppException(ERROR_CODES.INVALID_DISCORD_LOGIN_CODE);
 		}
 
-		const user = await this.userService.createOrGetUser(
-			discordUserResponse.email,
-			discordUserResponse?.name,
-			discordUserResponse?.avatarUrl,
-		);
-
-		if (!user?.discordId) {
-			await this.prismaService.user.update({
-				where: { id: user.id },
-				data: { discordId: discordUserResponse.id },
-			});
-		}
+		const user = await this.userService.createUser({
+			email: discordUserResponse.email,
+			name: discordUserResponse?.name,
+			avatarUrl: discordUserResponse?.avatarUrl,
+			discordId: discordUserResponse.id,
+		});
 
 		const accessToken = await this.generateAccessToken(user.id);
 		const refreshToken = await this.generateRefreshToken(user.id);
@@ -439,18 +427,12 @@ export class AuthService {
 			throw new AppException(ERROR_CODES.INVALID_GITHUB_LOGIN_CODE);
 		}
 
-		const user = await this.userService.createOrGetUser(
-			githubEmailResponse,
-			githubUserResponse?.name,
-			githubUserResponse?.avatarUrl,
-		);
-
-		if (!user?.githubId) {
-			await this.prismaService.user.update({
-				where: { id: user.id },
-				data: { githubId: githubUserResponse.id },
-			});
-		}
+		const user = await this.userService.createUser({
+			email: githubEmailResponse,
+			name: githubUserResponse?.name,
+			avatarUrl: githubUserResponse?.avatarUrl,
+			githubId: githubUserResponse.id,
+		});
 
 		const accessToken = await this.generateAccessToken(user.id);
 		const refreshToken = await this.generateRefreshToken(user.id);

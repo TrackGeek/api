@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { AuthGuard } from '@/shared/guards/auth.guard';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
@@ -13,7 +13,7 @@ export class GameController {
 	constructor(private readonly gameService: GameService) {}
 
 	@Get('search')
-	async searchGames(@Query(new ValidationPipe()) searchGameDto: SearchGameDto) {
+	async searchGames(@Query() searchGameDto: SearchGameDto) {
 		const games = await this.gameService.searchGames(searchGameDto);
     
 		return { games };

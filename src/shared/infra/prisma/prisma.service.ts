@@ -2,8 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { ConfigService } from "@nestjs/config";
 import { Pool } from "pg";
-
 import { PrismaClient } from "@prisma/generated/client";
+
+import { CursorPaginationParams, CursorPaginationResult, PrismaArgs } from './dtos/cursor-pagination.dto';
 
 @Injectable()
 export class PrismaService extends PrismaClient {
@@ -11,10 +12,50 @@ export class PrismaService extends PrismaClient {
 		const pool = new Pool({
 			connectionString: configService.get<string>("DATABASE_URL"),
 		});
+		
 		const adapter = new PrismaPg(pool);
 
-		super({
-			adapter,
+		super({ adapter });
+	}
+	
+	async cursorPagination<A extends PrismaArgs, R = any>(params: CursorPaginationParams<A>): Promise<CursorPaginationResult<R>> {
+		const {
+			model,
+			take = 12,
+			cursor,
+			omit = {},
+			where = {},
+			include = {},
+			orderBy = {},
+			cursorField = "id",
+		} = params;
+		
+		const data = await (this[model] as any).findMany({
+			omit,
+			where,
+			include,
+			orderBy,
+			take: take + 1,
+			...(cursor && {
+				skip: 1,
+				cursor: {
+					[cursorField]: cursor,
+				},
+			}),
 		});
+
+		const hasNextPage = data.length > take;
+		
+		const items = hasNextPage ? data.slice(0, take) : data;
+		
+		const nextCursor = hasNextPage && items.length > 0 
+			? items[items.length - 1][cursorField] 
+			: null;
+
+		return {
+			items: items as R[],
+			nextCursor,
+			hasNextPage,
+		};
 	}
 }

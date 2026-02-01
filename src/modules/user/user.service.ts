@@ -1,5 +1,4 @@
-import { HttpService } from "@nestjs/axios";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 
 import { ImgBBService } from "@/shared/infra/imgbb/imgbb.service";
 import { PrismaService } from "@/shared/infra/prisma/prisma.service";
@@ -8,31 +7,28 @@ import {
 	extractUsernameFromEmail,
 } from "@/shared/utils/email";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { UserUpdateDto } from "./dtos/user-update.dto";
+import { UpdateUserDto } from "./dtos/update-user.dto";
+import { CreateUserDto } from "./dtos/create-user.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 
 @Injectable()
 export class UserService {
-	private readonly logger = new Logger(UserService.name);
-
 	constructor(
-		private readonly httpService: HttpService,
 		private readonly prismaService: PrismaService,
 		private readonly imgBBService: ImgBBService,
 	) {}
 
-	async createOrGetUser(
-		email: string,
-		name: string | null = null,
-		avatarUrl: string | null = null,
-	) {
+	async createUser(createUserDto: CreateUserDto) {
 		let user = await this.prismaService.user.findUnique({
-			where: { email },
+			where: { email: createUserDto.email },
+			include: {
+				profile: true,
+			}
 		});
 
 		if (!user) {
-			let username = extractUsernameFromEmail(email);
-
+			let username = extractUsernameFromEmail(createUserDto.email);
+			
 			const existingUser = await this.prismaService.user.findUnique({
 				where: { username },
 			});
@@ -43,37 +39,53 @@ export class UserService {
 
 			user = await this.prismaService.user.create({
 				data: {
-					email,
-					name: name ?? extractNameFromEmail(email),
+					email: createUserDto.email,
+					name: createUserDto.name ?? extractNameFromEmail(createUserDto.email),
 					username,
+					profile: {
+						create: {}
+					}
 				},
+				include: {
+					profile: true,
+				}
 			});
 		}
 
-		if (avatarUrl && !user.avatarUrl) {
-			try {
-				const response = await this.httpService.axiosRef.get(avatarUrl, {
-					responseType: "arraybuffer",
-				});
+		if (createUserDto?.avatarUrl && !user.profile?.avatarUrl) {
+			const avatarUrl = await this.imgBBService.uploadFromUrl(createUserDto?.avatarUrl);
+			
+			await this.prismaService.profile.update({
+				where: { userId: user.id },
+				data: { avatarUrl },
+			});
+		}
+		
+		if (createUserDto.googleId && !user.googleId) {
+			await this.prismaService.user.update({
+				where: { id: user.id },
+				data: { googleId: createUserDto.googleId },
+			});
+		}
 
-				await this.updateUserAvatar(user.id, {
-					buffer: Buffer.from(response.data, "binary"),
-				} as Express.Multer.File);
-			} catch (error) {
-				this.logger.error(
-					`Failed to fetch or upload avatar for user ${user.id}: ${error.message}`,
-				);
-			}
+		if (createUserDto.discordId && !user.discordId) {
+			await this.prismaService.user.update({
+				where: { id: user.id },
+				data: { discordId: createUserDto.discordId },
+			});
+		}
+
+		if (createUserDto.githubId && !user.githubId) {
+			await this.prismaService.user.update({
+				where: { id: user.id },
+				data: { githubId: createUserDto.githubId },
+			});
 		}
 
 		return user;
 	}
 
-	async updateUser(userId: string, updateData: UserUpdateDto): Promise<void> {
-		if (Object.keys(updateData).length === 0) {
-			return;
-		}
-
+	async updateUser(userId: string, updateData: UpdateUserDto): Promise<void> {
 		if (!!updateData?.username) {
 			const existingUser = await this.prismaService.user.findUnique({
 				where: { username: updateData.username },
@@ -83,10 +95,23 @@ export class UserService {
 				throw new AppException(ERROR_CODES.USERNAME_ALREADY_EXISTS);
 			}
 		}
-
+		
 		await this.prismaService.user.update({
 			where: { id: userId },
-			data: updateData,
+			data: {
+				name: updateData?.name,
+				username: updateData?.username,
+			},
+		});
+		
+		await this.prismaService.profile.update({
+			where: { userId },
+			data: {
+				language: updateData?.language,
+				timezone: updateData?.timezone,
+				about: updateData?.about,
+				color: updateData?.color,
+			}
 		});
 	}
 
@@ -98,6 +123,13 @@ export class UserService {
 				githubId: true,
 				googleId: true,
 			},
+			include: {
+				profile: {
+					omit: {
+						userId: true,
+					}
+				},
+			}
 		});
 
 		if (!user) {
@@ -112,11 +144,17 @@ export class UserService {
 			where: { username },
 			omit: {
 				email: true,
-				language: true,
 				discordId: true,
 				githubId: true,
 				googleId: true,
 			},
+			include: {
+				profile: {
+					omit: {
+						userId: true,
+					}
+				},
+			}
 		});
 
 		if (!user) {
@@ -132,15 +170,15 @@ export class UserService {
 	): Promise<void> {
 		const avatarUrl = await this.imgBBService.uploadFromBuffer(file.buffer);
 
-		await this.prismaService.user.update({
-			where: { id: userId },
+		await this.prismaService.profile.update({
+			where: { userId },
 			data: { avatarUrl },
 		});
 	}
 
 	async deleteUserAvatar(userId: string): Promise<void> {
-		await this.prismaService.user.update({
-			where: { id: userId },
+		await this.prismaService.profile.update({
+			where: { userId },
 			data: { avatarUrl: null },
 		});
 	}
@@ -151,15 +189,15 @@ export class UserService {
 	): Promise<void> {
 		const bannerUrl = await this.imgBBService.uploadFromBuffer(file.buffer);
 
-		await this.prismaService.user.update({
-			where: { id: userId },
+		await this.prismaService.profile.update({
+			where: { userId },
 			data: { bannerUrl },
 		});
 	}
 
 	async deleteUserBanner(userId: string): Promise<void> {
-		await this.prismaService.user.update({
-			where: { id: userId },
+		await this.prismaService.profile.update({
+			where: { userId },
 			data: { bannerUrl: null },
 		});
 	}
