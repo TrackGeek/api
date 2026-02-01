@@ -39,4 +39,7 @@ export const ERROR_CODES = {
 	CONFLICT: { message: "CONFLICT", status: 409 },
 	UNAUTHORIZED: { message: "UNAUTHORIZED", status: 401 },
 	UNPROCESSABLE_ENTITY: { message: "UNPROCESSABLE_ENTITY", status: 422 },
+	PROFILE_NOT_FOUND: { message: "PROFILE_NOT_FOUND", status: 404 },
+	COMMENT_NOT_FOUND: { message: "COMMENT_NOT_FOUND", status: 404 },
+	REACTION_NOT_FOUND: { message: "REACTION_NOT_FOUND", status: 404 },
 } as const;

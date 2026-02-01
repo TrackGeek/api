@@ -5,6 +5,8 @@ import { ResendModule } from "nestjs-resend";
 
 import { AuthModule } from "./modules/auth/auth.module";
 import { GameModule } from "./modules/game/game.module";
+import { CommentModule } from './modules/comment/comment.module';
+import { ReactionModule } from './modules/reaction/reaction.module';
 import { UserModule } from "./modules/user/auth.module";
 
 @Module({
@@ -20,6 +22,8 @@ import { UserModule } from "./modules/user/auth.module";
 		AuthModule,
 		UserModule,
 		GameModule,
+		CommentModule,
+		ReactionModule,
 	],
 	providers: [],
 	controllers: [],

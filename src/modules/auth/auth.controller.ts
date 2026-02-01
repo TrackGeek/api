@@ -1,39 +1,24 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Patch,
-  Post,
-  Query,
-  Res,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
-import { FileInterceptor } from "@nestjs/platform-express";
-import type { User } from "@prisma/generated/client";
-import type { CookieOptions, Response } from "express";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { GetCurrentUser } from "@/shared/decorators/get-current-user.decorator";
-import { RateLimit } from "@/shared/decorators/ratelimit.decorator";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { AuthGuard } from "@/shared/guards/auth.guard";
-import { RateLimitGuard } from "@/shared/guards/ratelimit.guard";
-import type { UserUpdateDto } from "../user/dtos/user-update.dto";
-import type { UserService } from "../user/user.service";
-import { AuthService } from "./auth.service";
-import type { LoginWithDiscordDto } from "./dtos/login-with-discord.dto";
-import type { LoginWithEmailDto } from "./dtos/login-with-email.dto";
-import type { LoginWithGithubDto } from "./dtos/login-with-github.dto";
-import type { LoginWithGoogleDto } from "./dtos/login-with-google.dto";
-import type { RequestEmailLoginDto } from "./dtos/request-email-login.dto";
+import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, Post, Query, Res, UploadedFile, UseInterceptors, UseGuards, Body, Patch } from '@nestjs/common';
+import type { CookieOptions, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller("auth")
+import { AuthService } from './auth.service';
+import { AuthGuard } from '@/shared/guards/auth.guard';
+import { GetCurrentUser, type UserWithProfile } from '@/shared/decorators/get-current-user.decorator';
+import { LoginWithGoogleDto } from './dtos/login-with-google.dto';
+import { LoginWithDiscordDto } from './dtos/login-with-discord.dto';
+import { LoginWithGithubDto } from './dtos/login-with-github.dto';
+import { RequestEmailLoginDto } from './dtos/request-email-login.dto';
+import { LoginWithEmailDto } from './dtos/login-with-email.dto';
+import { ERROR_CODES } from '@/shared/constants/error-codes';
+import { UserService } from '../user/user.service';
+import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
+import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
+import { AppException } from '@/shared/exceptions/app.exceptions';
+import { UpdateUserDto } from '../user/dtos/update-user.dto';
+
+@Controller('auth')
 @UseGuards(RateLimitGuard)
 @RateLimit({ limit: 30, window: 60, blockDuration: 300 })
 export class AuthController {
@@ -243,14 +228,17 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard)
-  async meGet(@GetCurrentUser() user: User) {
+  async meGet(@GetCurrentUser() user: UserWithProfile) {
     return { user };
   }
 
   @Patch("me")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  async mePatch(@GetCurrentUser() user: User, @Body() body: UserUpdateDto) {
+  async mePatch(
+    @GetCurrentUser() user: UserWithProfile,
+    @Body() body: UpdateUserDto,
+  ) {
     await this.userService.updateUser(user.id, body);
   }
 
@@ -271,15 +259,15 @@ export class AuthController {
   )
   @HttpCode(HttpStatus.OK)
   async meAvatarPost(
-    @GetCurrentUser() user: User,
-    @UploadedFile() file: Express.Multer.File,
+    @GetCurrentUser() user: UserWithProfile,
+    @UploadedFile() file: Express.Multer.File
   ) {
     await this.userService.updateUserAvatar(user.id, file);
   }
 
   @Delete('me/avatar')
   @UseGuards(AuthGuard)
-  async meAvatarDelete(@GetCurrentUser() user: User) {
+  async meAvatarDelete(@GetCurrentUser() user: UserWithProfile) {
     await this.userService.deleteUserAvatar(user.id);
   }
 
@@ -300,15 +288,15 @@ export class AuthController {
   )
   @HttpCode(HttpStatus.OK)
   async meBannerPost(
-    @GetCurrentUser() user: User,
-    @UploadedFile() file: Express.Multer.File,
+    @GetCurrentUser() user: UserWithProfile,
+    @UploadedFile() file: Express.Multer.File
   ) {
     await this.userService.updateUserBanner(user.id, file);
   }
 
   @Delete('me/banner')
   @UseGuards(AuthGuard)
-  async meBannerDelete(@GetCurrentUser() user: User) {
+  async meBannerDelete(@GetCurrentUser() user: UserWithProfile) {
     await this.userService.deleteUserBanner(user.id);
   }
 }

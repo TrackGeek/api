@@ -13,19 +13,32 @@ model User {
   name      String
   username  String   @unique
   email     String   @unique
-  color     String?  @default("#10b981")
-  language  String?  @default("en-US")
-  timezone  String?
-  about     String?  @default("Hello! I'm using TrackGeek.")
-  bannerUrl String?
-  avatarUrl String?
   googleId  String?
   discordId String?
   githubId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  profile       Profile?
   refreshTokens RefreshToken[]
+  comments      Comment[]
+  reactions     Reaction[]
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  color     String?  @default("#10b981")
+  language  String?  @default("en-US")
+  timezone  String?
+  about     String?  @default("Hello! I'm using TrackGeek.")
+  bannerUrl String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profilesComments ProfileComment[]
 }
 
 model RefreshToken {
@@ -39,51 +52,117 @@ model RefreshToken {
 }
 
 model Game {
-  id                   String    @id @default(uuid())
-  igdbId               Int       @unique
-  ageRatings           Json?
-  alternativeNames     Json?
-  artworks             Json?
-  checksum             String?
-  bundles              Json?
-  collections          Json?
-  coverUrl             String?
-  dlcs                 Json?
-  expandedGames        Json?
-  expansions           Json?
-  externalGames        Json?
-  firstReleaseDate     DateTime?
-  forks                Json?
-  franchise            Json?
-  franchises           Json?
-  gameEngines          Json?
-  gameLocalizations    Json?
-  gameModes            Json?
-  gameStatus           Json?
-  gameType             Json?
-  genres               Json?
-  involvedCompanies    Json?
-  keywords             Json?
-  multiplayerModes     Json?
-  name                 String?
-  parentGame           Json?
-  platforms            Json?
-  playerPerspectives   Json?
-  ports                Json?
-  releaseDates         Json?
-  remakes              Json?
-  remasters            Json?
-  screenshots          Json?
-  similarGames         Json?
-  slug                 String    @unique
-  standaloneExpansions Json?
-  summary              String?
-  versionParent        Json?
-  versionTitle         Json?
-  videos               Json?
-  lastRefreshedAt      DateTime  @default(now())
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  igdbId                Int       @unique
+  ageRatings            Json?
+  aggregatedRating      Float?
+  aggregatedRatingCount Int?
+  alternativeNames      Json?
+  artworks              Json?
+  checksum              String?
+  bundles               Json?
+  collections           Json?
+  coverUrl              String?
+  dlcs                  Json?
+  expandedGames         Json?
+  expansions            Json?
+  externalGames         Json?
+  firstReleaseDate      DateTime?
+  forks                 Json?
+  franchise             Json?
+  franchises            Json?
+  gameEngines           Json?
+  gameLocalizations     Json?
+  gameModes             Json?
+  gameStatus            Json?
+  gameType              Json?
+  genres                Json?
+  hypes                 Int?
+  involvedCompanies     Json?
+  keywords              Json?
+  multiplayerModes      Json?
+  name                  String?
+  parentGame            Json?
+  platforms             Json?
+  playerPerspectives    Json?
+  ports                 Json?
+  rating                Float?
+  ratingCount           Int?
+  releaseDates          Json?
+  remakes               Json?
+  remasters             Json?
+  screenshots           Json?
+  similarGames          Json?
+  slug                  String    @unique
+  standaloneExpansions  Json?
+  storyline             Json?
+  summary               String?
+  totalRating           Float?
+  totalRatingCount      Int?
+  versionParent         Json?
+  versionTitle          Json?
+  videos                Json?
+  lastRefreshedAt       DateTime  @default(now())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  gamesComments GameComment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentsReactions CommentReaction[]
+  gamesComments     GameComment[]
+  profilesComments  ProfileComment[]
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  emoji     String
+  userId    String
+  createdAt DateTime @default(now())
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentsReactions CommentReaction[]
+}
+
+model CommentReaction {
+  id         String @id @default(uuid())
+  commentId  String
+  reactionId String
+
+  comment  Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reaction Reaction @relation(fields: [reactionId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, reactionId])
+}
+
+model GameComment {
+  id        String @id @default(uuid())
+  gameId    String
+  commentId String
+
+  game    Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, commentId])
+}
+
+model ProfileComment {
+  id        String @id @default(uuid())
+  profileId String
+  commentId String
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, commentId])
 }
 
 // Book needs improvements?
