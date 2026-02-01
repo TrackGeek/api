@@ -17,7 +17,7 @@ export class RateLimitGuard implements CanActivate {
 	constructor(
 		private readonly reflector: Reflector,
 		private readonly cacheService: CacheService,
-	) { }
+	) {}
 
 	private getIdentifier(request: any): string {
 		const identifier =

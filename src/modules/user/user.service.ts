@@ -16,19 +16,19 @@ export class UserService {
 	constructor(
 		private readonly prismaService: PrismaService,
 		private readonly imgBBService: ImgBBService,
-	) { }
+	) {}
 
 	async createUser(createUserDto: CreateUserDto) {
 		let user = await this.prismaService.user.findUnique({
 			where: { email: createUserDto.email },
 			include: {
 				profile: true,
-			}
+			},
 		});
 
 		if (!user) {
 			let username = extractUsernameFromEmail(createUserDto.email);
-			
+
 			const existingUser = await this.prismaService.user.findUnique({
 				where: { username },
 			});
@@ -43,24 +43,26 @@ export class UserService {
 					name: createUserDto.name ?? extractNameFromEmail(createUserDto.email),
 					username,
 					profile: {
-						create: {}
-					}
+						create: {},
+					},
 				},
 				include: {
 					profile: true,
-				}
+				},
 			});
 		}
 
 		if (createUserDto?.avatarUrl && !user.profile?.avatarUrl) {
-			const avatarUrl = await this.imgBBService.uploadFromUrl(createUserDto?.avatarUrl);
-			
+			const avatarUrl = await this.imgBBService.uploadFromUrl(
+				createUserDto?.avatarUrl,
+			);
+
 			await this.prismaService.profile.update({
 				where: { userId: user.id },
 				data: { avatarUrl },
 			});
 		}
-		
+
 		if (createUserDto.googleId && !user.googleId) {
 			await this.prismaService.user.update({
 				where: { id: user.id },
@@ -95,7 +97,7 @@ export class UserService {
 				throw new AppException(ERROR_CODES.USERNAME_ALREADY_EXISTS);
 			}
 		}
-		
+
 		await this.prismaService.user.update({
 			where: { id: userId },
 			data: {
@@ -103,7 +105,7 @@ export class UserService {
 				username: updateData?.username,
 			},
 		});
-		
+
 		await this.prismaService.profile.update({
 			where: { userId },
 			data: {
@@ -111,7 +113,7 @@ export class UserService {
 				timezone: updateData?.timezone,
 				about: updateData?.about,
 				color: updateData?.color,
-			}
+			},
 		});
 	}
 
@@ -127,9 +129,9 @@ export class UserService {
 				profile: {
 					omit: {
 						userId: true,
-					}
+					},
 				},
-			}
+			},
 		});
 
 		if (!user) {
@@ -152,9 +154,9 @@ export class UserService {
 				profile: {
 					omit: {
 						userId: true,
-					}
+					},
 				},
-			}
+			},
 		});
 
 		if (!user) {

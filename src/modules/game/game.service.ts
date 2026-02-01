@@ -26,7 +26,7 @@ export class GameService {
 		private readonly configService: ConfigService,
 		private readonly cacheService: CacheService,
 		private readonly prismaService: PrismaService,
-	) { }
+	) {}
 
 	private async getIGDBAccessToken(): Promise<string> {
 		const cachedToken = await this.cacheService.get<string>("igdb:token");
@@ -397,10 +397,10 @@ export class GameService {
 				})) ?? [],
 			franchise: igdbGame?.franchise
 				? {
-					checksum: igdbGame.franchise.checksum ?? null,
-					name: igdbGame.franchise.name ?? null,
-					slug: igdbGame.franchise.slug ?? null,
-				}
+						checksum: igdbGame.franchise.checksum ?? null,
+						name: igdbGame.franchise.name ?? null,
+						slug: igdbGame.franchise.slug ?? null,
+					}
 				: {},
 			franchises:
 				igdbGame?.franchises?.map((franchise: any) => ({
@@ -427,15 +427,15 @@ export class GameService {
 				})) ?? [],
 			gameStatus: igdbGame?.game_status
 				? {
-					checksum: igdbGame.game_status.checksum ?? null,
-					status: igdbGame.game_status.status ?? null,
-				}
+						checksum: igdbGame.game_status.checksum ?? null,
+						status: igdbGame.game_status.status ?? null,
+					}
 				: {},
 			gameType: igdbGame?.game_type
 				? {
-					checksum: igdbGame.game_type.checksum ?? null,
-					type: igdbGame.game_type.type ?? null,
-				}
+						checksum: igdbGame.game_type.checksum ?? null,
+						type: igdbGame.game_type.type ?? null,
+					}
 				: {},
 			genres:
 				igdbGame?.genres?.map((genre: any) => ({
@@ -477,16 +477,16 @@ export class GameService {
 			name: igdbGame?.name ?? null,
 			parentGame: igdbGame?.parent_game
 				? {
-					checksum: igdbGame.parent_game.checksum ?? null,
-					name: igdbGame.parent_game.name ?? null,
-					slug: igdbGame.parent_game.slug ?? null,
-					coverUrl: igdbGame.parent_game.cover?.url
-						? `https:${igdbGame.parent_game.cover.url.replace(
-							"t_thumb",
-							"t_cover_big",
-						)}`
-						: null,
-				}
+						checksum: igdbGame.parent_game.checksum ?? null,
+						name: igdbGame.parent_game.name ?? null,
+						slug: igdbGame.parent_game.slug ?? null,
+						coverUrl: igdbGame.parent_game.cover?.url
+							? `https:${igdbGame.parent_game.cover.url.replace(
+									"t_thumb",
+									"t_cover_big",
+								)}`
+							: null,
+					}
 				: {},
 			platforms:
 				igdbGame?.platforms?.map((platform: any) => ({
@@ -559,16 +559,16 @@ export class GameService {
 			summary: igdbGame?.summary ?? null,
 			versionParent: igdbGame?.version_parent
 				? {
-					checksum: igdbGame.version_parent.checksum ?? null,
-					name: igdbGame.version_parent.name ?? null,
-					slug: igdbGame.version_parent.slug ?? null,
-					coverUrl: igdbGame.version_parent.cover?.url
-						? `https:${igdbGame.version_parent.cover.url.replace(
-							"t_thumb",
-							"t_cover_big",
-						)}`
-						: null,
-				}
+						checksum: igdbGame.version_parent.checksum ?? null,
+						name: igdbGame.version_parent.name ?? null,
+						slug: igdbGame.version_parent.slug ?? null,
+						coverUrl: igdbGame.version_parent.cover?.url
+							? `https:${igdbGame.version_parent.cover.url.replace(
+									"t_thumb",
+									"t_cover_big",
+								)}`
+							: null,
+					}
 				: {},
 			versionTitle: igdbGame?.version_title ?? null,
 			videos:

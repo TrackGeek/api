@@ -26,7 +26,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
 					.json({ code: ERROR_CODES.NOT_FOUND.message, status });
 			}
 
-			return response.status(status).json({ code: message?.["message"] ?? message, status });
+			return response
+				.status(status)
+				.json({ code: message?.["message"] ?? message, status });
 		}
 
 		this.logger.error(

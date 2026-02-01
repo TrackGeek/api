@@ -10,21 +10,21 @@ async function bootstrap() {
 	const logger = new Logger("Bootstrap");
 
 	const app = await NestFactory.create(AppModule);
-	
+
 	app.enableCors({
 		origin: process.env.WEB_URL,
 		credentials: true,
 	});
 
 	app.use(cookieParser());
-	
+
 	app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
+		new ValidationPipe({
+			whitelist: true,
+			transform: true,
 			errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-    }),
-  );
+		}),
+	);
 
 	app.useGlobalFilters(new HttpExceptionFilter());
 

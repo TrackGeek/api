@@ -26,7 +26,7 @@ export class AuthService {
 		private readonly prismaService: PrismaService,
 		private readonly resendService: ResendService,
 		private readonly userService: UserService,
-	) { }
+	) {}
 
 	private async generateAccessToken(userId: string) {
 		const accessToken = await this.jwtService.signAsync(

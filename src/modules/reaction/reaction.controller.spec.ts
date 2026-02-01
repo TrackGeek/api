@@ -3,4 +3,3 @@ describe("ReactionController", () => {
 		expect(true).toBe(true);
 	});
 });
-

@@ -5,8 +5,8 @@ import { ResendModule } from "nestjs-resend";
 
 import { AuthModule } from "./modules/auth/auth.module";
 import { GameModule } from "./modules/game/game.module";
-import { CommentModule } from './modules/comment/comment.module';
-import { ReactionModule } from './modules/reaction/reaction.module';
+import { CommentModule } from "./modules/comment/comment.module";
+import { ReactionModule } from "./modules/reaction/reaction.module";
 import { UserModule } from "./modules/user/auth.module";
 
 @Module({
@@ -14,11 +14,11 @@ import { UserModule } from "./modules/user/auth.module";
 		ConfigModule.forRoot({ isGlobal: true }),
 		JwtModule.register({ global: true }),
 		ResendModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        apiKey: configService.get<string>('RESEND_API_KEY')!
-      }),
-    }),
+			inject: [ConfigService],
+			useFactory: (configService: ConfigService) => ({
+				apiKey: configService.get<string>("RESEND_API_KEY")!,
+			}),
+		}),
 		AuthModule,
 		UserModule,
 		GameModule,
@@ -28,4 +28,4 @@ import { UserModule } from "./modules/user/auth.module";
 	providers: [],
 	controllers: [],
 })
-export class AppModule { }
+export class AppModule {}

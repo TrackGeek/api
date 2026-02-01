@@ -14,7 +14,7 @@ export class ImgBBService {
 	constructor(
 		private readonly configService: ConfigService,
 		private readonly httpService: HttpService,
-	) { }
+	) {}
 
 	async uploadFromUrl(imageUrl: string) {
 		const response = await firstValueFrom(

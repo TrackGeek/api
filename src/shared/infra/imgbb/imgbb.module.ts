@@ -9,4 +9,4 @@ import { ImgBBService } from "./imgbb.service";
 	providers: [ImgBBService],
 	exports: [ImgBBService],
 })
-export class ImgBBModule { }
+export class ImgBBModule {}
