@@ -1,10 +1,9 @@
-import { HttpService } from "@nestjs/axios";
+import type { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-
+import type { ConfigService } from "@nestjs/config";
+import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ConfigService } from "@nestjs/config";
-import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class ImgBBService {
@@ -15,7 +14,7 @@ export class ImgBBService {
 	constructor(
 		private readonly configService: ConfigService,
 		private readonly httpService: HttpService,
-	) {}
+	) { }
 
 	async uploadFromUrl(imageUrl: string) {
 		const response = await firstValueFrom(

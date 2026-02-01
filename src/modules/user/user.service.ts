@@ -16,7 +16,7 @@ export class UserService {
 	constructor(
 		private readonly prismaService: PrismaService,
 		private readonly imgBBService: ImgBBService,
-	) {}
+	) { }
 
 	async createUser(createUserDto: CreateUserDto) {
 		let user = await this.prismaService.user.findUnique({

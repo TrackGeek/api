@@ -1,20 +1,19 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { URLSearchParams } from "node:url";
-import { HttpService } from "@nestjs/axios";
-import { ResendService } from "nestjs-resend";
-
-import { PrismaService } from "@/shared/infra/prisma/prisma.service";
-import { LoginWithGoogleDto } from "./dtos/login-with-google.dto";
-import { LoginWithDiscordDto } from "./dtos/login-with-discord.dto";
-import { LoginWithGithubDto } from "./dtos/login-with-github.dto";
-import { RequestEmailLoginDto } from "./dtos/request-email-login.dto";
-import { LoginWithEmailDto } from "./dtos/login-with-email.dto";
+import type { HttpService } from "@nestjs/axios";
+import { Injectable, Logger } from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import { type JwtService, TokenExpiredError } from "@nestjs/jwt";
+import type { ResendService } from "nestjs-resend";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { extractNameFromEmail } from "@/shared/utils/email";
-import { UserService } from "../user/user.service";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ConfigService } from "@nestjs/config";
+import type { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import { extractNameFromEmail } from "@/shared/utils/email";
+import type { UserService } from "../user/user.service";
+import type { LoginWithDiscordDto } from "./dtos/login-with-discord.dto";
+import type { LoginWithEmailDto } from "./dtos/login-with-email.dto";
+import type { LoginWithGithubDto } from "./dtos/login-with-github.dto";
+import type { LoginWithGoogleDto } from "./dtos/login-with-google.dto";
+import type { RequestEmailLoginDto } from "./dtos/request-email-login.dto";
 
 @Injectable()
 export class AuthService {
@@ -27,7 +26,7 @@ export class AuthService {
 		private readonly prismaService: PrismaService,
 		private readonly resendService: ResendService,
 		private readonly userService: UserService,
-	) {}
+	) { }
 
 	private async generateAccessToken(userId: string) {
 		const accessToken = await this.jwtService.signAsync(

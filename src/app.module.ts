@@ -4,10 +4,10 @@ import { JwtModule } from "@nestjs/jwt";
 import { ResendModule } from "nestjs-resend";
 
 import { AuthModule } from "./modules/auth/auth.module";
-import { UserModule } from "./modules/user/auth.module";
 import { GameModule } from "./modules/game/game.module";
 import { CommentModule } from './modules/comment/comment.module';
 import { ReactionModule } from './modules/reaction/reaction.module';
+import { UserModule } from "./modules/user/auth.module";
 
 @Module({
 	imports: [
@@ -28,4 +28,4 @@ import { ReactionModule } from './modules/reaction/reaction.module';
 	providers: [],
 	controllers: [],
 })
-export class AppModule {}
+export class AppModule { }

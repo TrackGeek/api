@@ -164,3 +164,225 @@ model ProfileComment {
 
   @@unique([profileId, commentId])
 }
+
+// Book needs improvements?
+
+model Book {
+  id                       String    @id @default(uuid())
+  alternativeTitles        Json?
+  audio_seconds            Int?
+  bookCategoryId           Int?
+  bookStatus               Json?
+  bookStatusId             Int?
+  canonical                Json?
+  canonicalId              Int?
+  compilation              Boolean?
+  curationStatus           Int?
+  defaultAudioEdition      Json?
+  defaultAudioEditionId    Int?
+  defaultCoverEedition     Json?
+  defaultCoverEditionId    Int?
+  defaultEbookEdition      Json?
+  defaultEbookEditionId    Int?
+  defaultPhysicalEdition   Json?
+  defaultPhysicalEditionId Int?
+  description              String?
+  editionsCount            Int?
+  featuredBookSeries       Json?
+  featuredBookSeriesId     Int?
+  headerImageId            Int?
+  headline                 String?
+  hardcoverId              Int       @unique
+  image                    Json?
+  imageId                  Int?
+  links                    Json?
+  literary_typeId          Int?
+  pages                    Int?
+  release_date             DateTime?
+  release_year             Int?
+  slug                     String
+  state                    String?
+  title                    String
+  lastRefreshedAt          DateTime  @default(now())
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+enum AnimeType {
+  TV
+  ONA
+  Movie
+  Special
+  OVA
+  Music
+}
+
+enum AnimeStatus {
+  FinishedAiring  @map("Finished Airing")
+  CurrentlyAiring @map("Currently Airing")
+  NotYetAired     @map("Not yet aired")
+}
+
+enum AnimeRating {
+  G     @map("G - All Ages")
+  PG    @map("PG - Children")
+  PG13  @map("PG-13 - Teens 13 or older")
+  R     @map("R - 17+ (violence & profanity)")
+  RPlus @map("R+ - Mild Nudity")
+  Rx    @map("Rx - Hentai")
+}
+
+enum AnimeSeason {
+  summer
+  winter
+  spring
+  fall
+}
+
+model Anime {
+  id              String       @id @default(uuid())
+  malId           Int          @unique
+  url             String
+  images          Json?
+  trailer         Json?
+  titles          Json?
+  type            AnimeType?
+  source          String?
+  episodes        Int?
+  status          AnimeStatus?
+  aired           Json?
+  duration        String?
+  rating          AnimeRating?
+  rank            Int?
+  popularity      Int?
+  synopsis        String?
+  background      String?
+  season          AnimeSeason?
+  year            Int?
+  broadcast       Json?
+  producers       Json?
+  licensors       Json?
+  studios         Json?
+  genres          Json?
+  explicitGenres  Json?
+  themes          Json?
+  demographics    Json?
+  relations       Json?
+  theme           Json?
+  external        Json?
+  characters      Json?
+  cast            Json?
+  lastRefreshedAt DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+enum MangaType {
+  Manga
+  Novel
+  LightNovel @map("Light Novel")
+  OneShot    @map("One-shot")
+  Doujinshi
+  Manhua
+  Manhwa
+  OEL
+}
+
+enum MangaStatus {
+  Finished
+  Publishing
+  OnHiatus        @map("On Hiatus")
+  Discontinued
+  NotYetPublished @map("Not yet published")
+}
+
+model Manga {
+  id              String       @id @default(uuid())
+  malId           Int
+  url             String
+  images          Json?
+  titles          Json?
+  type            MangaType?
+  chapters        Int?
+  volumes         Int?
+  status          MangaStatus?
+  publishing      Boolean?
+  published       Json?
+  rank            Int?
+  popularity      Int?
+  synopsis        String?
+  authors         Json?
+  serializations  Json?
+  genres          Json?
+  explicitGenres  Json?
+  themes          Json?
+  demographics    Json?
+  relations       Json?
+  external        Json?
+  characters      Json?
+  lastRefreshedAt DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model TVShow {
+  id                  String   @id @default(uuid())
+  tmdbId              Int      @unique
+  createdBy           Json?
+  episodeRuntime      Int[]
+  firstAirDate        String?
+  genres              Json?
+  homepage            String?
+  inProduction        Boolean?
+  languages           String[]
+  LastAirDate         String?
+  lastEpisodeToAir    Json?
+  name                String?
+  nextEpisodeToAir    String?
+  networks            Json?
+  episodes            Int?
+  seasonsNumber       Int?
+  originCountry       String[]
+  originalLanguage    String?
+  originalName        String?
+  popularity          Int?
+  posterPath          String?
+  productionCompanies Json?
+  productionCountries Json?
+  seasons             Json?
+  status              String?
+  tagline             String?
+  type                String?
+  cast                Json?
+  lastRefreshedAt     DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Movie {
+  id                  String   @id @default(uuid())
+  tmdbId              Int      @unique
+  imdbId              String?
+  belongsToCollection String?
+  budget              Int?
+  genres              Json?
+  homepage            String?
+  originalLanguage    String?
+  originalTitle       String?
+  overview            String?
+  popularity          Int?
+  posterPath          String?
+  productionCompanies Json?
+  productionCountries Json?
+  releaseDate         String?
+  revenue             Int?
+  runtime             Int?
+  spokenLanguages     Json?
+  status              String?
+  title               String?
+  video               Boolean?
+  cast                Json?
+  lastRefreshedAt     DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}

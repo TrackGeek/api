@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { ConfigService } from "@nestjs/config";
-import { Pool } from "pg";
 import { PrismaClient } from "@prisma/generated/client";
+import { Pool } from "pg";
 
 import { CursorPaginationParams, CursorPaginationResult, PrismaArgs } from './dtos/cursor-pagination.dto';
 

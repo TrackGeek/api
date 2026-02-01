@@ -8,17 +8,17 @@ import { SearchGameDto } from './dtos/search-game.dto';
 
 @UseGuards(RateLimitGuard)
 @RateLimit({ limit: 30, window: 60, blockDuration: 300 })
-@Controller('game')
+@Controller("game")
 export class GameController {
-	constructor(private readonly gameService: GameService) {}
+	constructor(private readonly gameService: GameService) { }
 
 	@Get('search')
 	async searchGames(@Query() searchGameDto: SearchGameDto) {
 		const games = await this.gameService.searchGames(searchGameDto);
-    
+
 		return { games };
 	}
-	
+
 	@Post('/refresh')
 	@HttpCode(HttpStatus.OK)
 	@UseGuards(AuthGuard)
@@ -27,18 +27,18 @@ export class GameController {
 	async refreshGame(@Body() refreshGameDto: RefreshGameDto) {
 		await this.gameService.refreshGame(refreshGameDto);
 	}
-	
+
 	@Get('/details/id/:id')
 	async getGameById(@Param('id') id: string) {
 		const game = await this.gameService.getGameById(id);
-		
+
 		return { game };
 	}
-	
+
 	@Get('/details/slug/:slug')
 	async getGameBySlug(@Param('slug') slug: string) {
 		const game = await this.gameService.getGameBySlug(slug);
-		
+
 		return { game };
 	}
 }
