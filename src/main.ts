@@ -1,7 +1,6 @@
-import { Logger } from "@nestjs/common";
+import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
