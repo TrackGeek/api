@@ -8,10 +8,10 @@ import { GameModule } from "./modules/game/game.module";
 import { CommentModule } from "./modules/comment/comment.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
 import { UserModule } from "./modules/user/user.module";
-import { CacheModule } from './shared/infra/cache/cache.module';
-import { ImgBBModule } from './shared/infra/imgbb/imgbb.module';
-import { PrismaModule } from './shared/infra/prisma/prisma.module';
-import { HttpModule } from '@nestjs/axios';
+import { CacheModule } from "./shared/infra/cache/cache.module";
+import { ImgBBModule } from "./shared/infra/imgbb/imgbb.module";
+import { PrismaModule } from "./shared/infra/prisma/prisma.module";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
 	imports: [
@@ -35,6 +35,6 @@ import { HttpModule } from '@nestjs/axios';
 	],
 	providers: [],
 	controllers: [],
-	exports: []
+	exports: [],
 })
 export class AppModule {}

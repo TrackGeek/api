@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ReactionController } from "./reaction.controller";
 import { ReactionService } from "./reaction.service";
-import { UserModule } from '../user/user.module';
+import { UserModule } from "../user/user.module";
 
 @Module({
 	imports: [UserModule],
