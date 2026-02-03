@@ -7,7 +7,11 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { GameModule } from "./modules/game/game.module";
 import { CommentModule } from "./modules/comment/comment.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
-import { UserModule } from "./modules/user/auth.module";
+import { UserModule } from "./modules/user/user.module";
+import { CacheModule } from './shared/infra/cache/cache.module';
+import { ImgBBModule } from './shared/infra/imgbb/imgbb.module';
+import { PrismaModule } from './shared/infra/prisma/prisma.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
 	imports: [
@@ -19,6 +23,10 @@ import { UserModule } from "./modules/user/auth.module";
 				apiKey: configService.get<string>("RESEND_API_KEY")!,
 			}),
 		}),
+		HttpModule.register({ global: true }),
+		CacheModule,
+		ImgBBModule,
+		PrismaModule,
 		AuthModule,
 		UserModule,
 		GameModule,
@@ -27,5 +35,6 @@ import { UserModule } from "./modules/user/auth.module";
 	],
 	providers: [],
 	controllers: [],
+	exports: []
 })
 export class AppModule {}

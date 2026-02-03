@@ -1,19 +1,18 @@
-import { RedisModule } from "@liaoliaots/nestjs-redis";
-import { Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Global, Module } from "@nestjs/common";
+import { RedisModule } from '@nestjs-redis/client';
+import { ConfigService } from '@nestjs/config';
 
 import { CacheService } from "./cache.service";
 
+@Global()
 @Module({
 	imports: [
 		RedisModule.forRootAsync({
 			inject: [ConfigService],
 			useFactory: (configService: ConfigService) => ({
-				config: {
-					host: configService.get<string>("REDIS_HOST")!,
-					port: configService.get<number>("REDIS_PORT")!,
-					password: configService.get<string>("REDIS_PASSWORD")!,
-				},
+				options: {
+					url: configService.get<string>("REDIS_URL")!,
+				}
 			}),
 		}),
 	],

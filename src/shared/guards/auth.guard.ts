@@ -4,9 +4,9 @@ import {
 	Injectable,
 	Logger,
 } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
-import { type JwtService, TokenExpiredError } from "@nestjs/jwt";
-import type { UserService } from "@/modules/user/user.service";
+import { ConfigService } from "@nestjs/config";
+import { JwtService, TokenExpiredError } from "@nestjs/jwt";
+import { UserService } from "@/modules/user/user.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "../exceptions/app.exceptions";
 
