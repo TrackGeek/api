@@ -1,17 +1,16 @@
-import { DEFAULT_REDIS, type RedisService } from "@liaoliaots/nestjs-redis";
 import { Injectable } from "@nestjs/common";
-import type Redis from "ioredis";
+import { InjectRedis } from '@nestjs-redis/client';
+import type { RedisClientType } from 'redis';
 
 @Injectable()
 export class CacheService {
-	private readonly redis: Redis;
-
-	constructor(private readonly redisService: RedisService) {
-		this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
-	}
+	constructor(
+		@InjectRedis()
+		private readonly redis: RedisClientType
+	) {}
 
 	async set<T>(key: string, data: T, exp: number = 180): Promise<void> {
-		await this.redis.set(key, JSON.stringify(data), "EX", exp);
+		await this.redis.set(key, JSON.stringify(data), { EX: exp });
 	}
 
 	async get<T>(key: string): Promise<T | null> {
@@ -45,7 +44,7 @@ export class CacheService {
 		value: string,
 		seconds: number,
 	): Promise<void> {
-		await this.redis.setex(key, seconds, value);
+		await this.redis.setEx(key, seconds, value);
 	}
 
 	async exists(key: string): Promise<boolean> {

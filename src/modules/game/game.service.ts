@@ -1,11 +1,11 @@
-import type { HttpService } from "@nestjs/axios";
+import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import type { CacheService } from "@/shared/infra/cache/cache.service";
-import type { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import { CacheService } from "@/shared/infra/cache/cache.service";
+import { PrismaService } from "@/shared/infra/prisma/prisma.service";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
 import type { SearchGameDto } from "./dtos/search-game.dto";
 

@@ -1,6 +1,6 @@
-import type { HttpService } from "@nestjs/axios";
+import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -16,7 +16,7 @@ export class ImgBBService {
 		private readonly httpService: HttpService,
 	) {}
 
-	async uploadFromUrl(imageUrl: string) {
+	async uploadFromUrl(imageUrl: string): Promise<string> {
 		const response = await firstValueFrom(
 			this.httpService.get(imageUrl, {
 				responseType: "arraybuffer",
@@ -28,7 +28,7 @@ export class ImgBBService {
 		return this.uploadFromBuffer(buffer);
 	}
 
-	async uploadFromBuffer(buffer: Buffer) {
+	async uploadFromBuffer(buffer: Buffer): Promise<string> {
 		try {
 			const formData = new FormData();
 
@@ -42,7 +42,7 @@ export class ImgBBService {
 				}),
 			);
 
-			return response.data?.data?.image?.url;
+			return response.data?.data?.image?.url as string;
 		} catch (error) {
 			this.logger.error("Failed to upload image to ImgBB", error);
 

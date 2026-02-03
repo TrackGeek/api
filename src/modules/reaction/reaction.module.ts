@@ -1,12 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ReactionController } from "./reaction.controller";
 import { ReactionService } from "./reaction.service";
-import { PrismaModule } from "@/shared/infra/prisma/prisma.module";
-import { CacheModule } from "@/shared/infra/cache/cache.module";
-import { UserModule } from "../user/auth.module";
+import { UserModule } from "../user/user.module";
 
 @Module({
-	imports: [PrismaModule, CacheModule, UserModule],
+	imports: [UserModule],
 	controllers: [ReactionController],
 	providers: [ReactionService],
 	exports: [ReactionService],
