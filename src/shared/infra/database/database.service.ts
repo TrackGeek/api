@@ -7,11 +7,11 @@ import { Pool } from "pg";
 import {
 	CursorPaginationParams,
 	CursorPaginationResult,
-	PrismaArgs,
+	DatabaseArgs,
 } from "./dtos/cursor-pagination.dto";
 
 @Injectable()
-export class PrismaService extends PrismaClient {
+export class DatabaseService extends PrismaClient {
 	constructor(configService: ConfigService) {
 		const pool = new Pool({
 			connectionString: configService.get<string>("DATABASE_URL"),
@@ -22,7 +22,7 @@ export class PrismaService extends PrismaClient {
 		super({ adapter });
 	}
 
-	async cursorPagination<A extends PrismaArgs, R = any>(
+	async cursorPagination<A extends DatabaseArgs, R = any>(
 		params: CursorPaginationParams<A>,
 	): Promise<CursorPaginationResult<R>> {
 		const {

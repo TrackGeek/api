@@ -9,20 +9,26 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  username  String   @unique
-  email     String   @unique
-  googleId  String?
-  discordId String?
-  githubId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id
+  name          String
+  email         String
+  emailVerified Boolean  @default(false)
+  username      String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  profile       Profile?
-  refreshTokens RefreshToken[]
-  comments      Comment[]
-  reactions     Reaction[]
+  profile   Profile?
+  sessions  Session[]
+  accounts  Account[]
+  comments  Comment[]
+  reactions Reaction[]
+
+  // Followers relations
+  followers Following[] @relation("UserFollowers")
+  following Following[] @relation("UserFollowing")
+
+  @@unique([email])
+  @@map("users")
 }
 
 model Profile {
@@ -39,16 +45,136 @@ model Profile {
 
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   profilesComments ProfileComment[]
+
+  @@map("profiles")
 }
 
-model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String
+model Following {
+  id          String   @id @default(uuid())
+  followerId  String // Who is following
+  followingId String // Who is being followed
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("followings")
+}
+
+model Session {
+  id        String   @id
   expiresAt DateTime
+  token     String
+  ipAddress String?
+  userAgent String?
+  userId    String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentsReactions CommentReaction[]
+  gamesComments     GameComment[]
+  profilesComments  ProfileComment[]
+
+  @@map("comments")
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  emoji     String
+  userId    String
+  createdAt DateTime @default(now())
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentsReactions CommentReaction[]
+
+  @@map("reactions")
+}
+
+model CommentReaction {
+  id         String @id @default(uuid())
+  commentId  String
+  reactionId String
+
+  comment  Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reaction Reaction @relation(fields: [reactionId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, reactionId])
+  @@map("comments_reactions")
+}
+
+model GameComment {
+  id        String @id @default(uuid())
+  gameId    String
+  commentId String
+
+  game    Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, commentId])
+  @@map("games_comments")
+}
+
+model ProfileComment {
+  id        String @id @default(uuid())
+  profileId String
+  commentId String
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, commentId])
+  @@map("profiles_comments")
 }
 
 model Game {
@@ -107,65 +233,9 @@ model Game {
   updatedAt             DateTime  @updatedAt
 
   gamesComments GameComment[]
+
+  @@map("games")
 }
-
-model Comment {
-  id        String   @id @default(uuid())
-  content   String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  commentsReactions CommentReaction[]
-  gamesComments     GameComment[]
-  profilesComments  ProfileComment[]
-}
-
-model Reaction {
-  id        String   @id @default(uuid())
-  emoji     String
-  userId    String
-  createdAt DateTime @default(now())
-
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  commentsReactions CommentReaction[]
-}
-
-model CommentReaction {
-  id         String @id @default(uuid())
-  commentId  String
-  reactionId String
-
-  comment  Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  reaction Reaction @relation(fields: [reactionId], references: [id], onDelete: Cascade)
-
-  @@unique([commentId, reactionId])
-}
-
-model GameComment {
-  id        String @id @default(uuid())
-  gameId    String
-  commentId String
-
-  game    Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([gameId, commentId])
-}
-
-model ProfileComment {
-  id        String @id @default(uuid())
-  profileId String
-  commentId String
-
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([profileId, commentId])
-}
-
-// Book needs improvements?
 
 model Book {
   id                       String    @id @default(uuid())
@@ -206,6 +276,8 @@ model Book {
   lastRefreshedAt          DateTime  @default(now())
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
+
+  @@map("books")
 }
 
 enum AnimeType {
@@ -275,6 +347,8 @@ model Anime {
   lastRefreshedAt DateTime     @default(now())
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  @@map("animes")
 }
 
 enum MangaType {
@@ -323,6 +397,8 @@ model Manga {
   lastRefreshedAt DateTime     @default(now())
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  @@map("mangas")
 }
 
 model TVShow {
@@ -357,6 +433,8 @@ model TVShow {
   lastRefreshedAt     DateTime @default(now())
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  @@map("tv_shows")
 }
 
 model Movie {
@@ -385,4 +463,6 @@ model Movie {
   lastRefreshedAt     DateTime @default(now())
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  @@map("movies")
 }

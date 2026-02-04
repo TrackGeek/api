@@ -5,7 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
-import { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import { DatabaseService } from "@/shared/infra/database/database.service";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
 import type { SearchGameDto } from "./dtos/search-game.dto";
 
@@ -25,7 +25,7 @@ export class GameService {
 		private readonly httpService: HttpService,
 		private readonly configService: ConfigService,
 		private readonly cacheService: CacheService,
-		private readonly prismaService: PrismaService,
+		private readonly databaseService: DatabaseService,
 	) {}
 
 	private async getIGDBAccessToken(): Promise<string> {
@@ -593,7 +593,7 @@ export class GameService {
 			return cachedGame;
 		}
 
-		const game = await this.prismaService.game.findUnique({
+		const game = await this.databaseService.game.findUnique({
 			where: { id },
 		});
 
@@ -613,14 +613,14 @@ export class GameService {
 			return cachedGame;
 		}
 
-		let game = await this.prismaService.game.findUnique({
+		let game = await this.databaseService.game.findUnique({
 			where: { slug },
 		});
 
 		if (!game) {
 			const igdbGame = await this.getGameBySlugFromIGDB(slug);
 
-			game = await this.prismaService.game.create({
+			game = await this.databaseService.game.create({
 				data: igdbGame,
 			});
 		}
@@ -631,7 +631,7 @@ export class GameService {
 	}
 
 	async refreshGame(refreshGameDto: RefreshGameDto) {
-		const game = await this.prismaService.game.findUnique({
+		const game = await this.databaseService.game.findUnique({
 			where: { id: refreshGameDto.id },
 		});
 
@@ -652,7 +652,7 @@ export class GameService {
 
 		const igdbGame = await this.getGameBySlugFromIGDB(game.slug);
 
-		await this.prismaService.game.update({
+		await this.databaseService.game.update({
 			where: { id: refreshGameDto.id },
 			data: igdbGame,
 		});

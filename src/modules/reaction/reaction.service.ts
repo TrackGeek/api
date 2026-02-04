@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
-import { PrismaService } from "@/shared/infra/prisma/prisma.service";
+import { DatabaseService } from "@/shared/infra/database/database.service";
 import { CreateReactionDto } from "./dtos/create-reaction.dto";
 import { AddReactionToCommentDto } from "./dtos/add-reaction-to-comment.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -9,10 +9,10 @@ import { CommentReactionFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class ReactionService {
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(private readonly databaseService: DatabaseService) {}
 
 	async createReaction(createReactionDto: CreateReactionDto) {
-		return this.prismaService.reaction.create({
+		return this.databaseService.reaction.create({
 			data: {
 				emoji: createReactionDto.emoji,
 				userId: createReactionDto.userId,
@@ -21,7 +21,7 @@ export class ReactionService {
 	}
 
 	async addReactionToComment(addReactionToCommentDto: AddReactionToCommentDto) {
-		const commentAlreadyExists = await this.prismaService.comment.findUnique({
+		const commentAlreadyExists = await this.databaseService.comment.findUnique({
 			where: { id: addReactionToCommentDto.commentId },
 		});
 
@@ -34,7 +34,7 @@ export class ReactionService {
 			userId: addReactionToCommentDto.userId,
 		});
 
-		await this.prismaService.commentReaction.create({
+		await this.databaseService.commentReaction.create({
 			data: {
 				commentId: addReactionToCommentDto.commentId,
 				reactionId: reaction.id,
@@ -43,7 +43,7 @@ export class ReactionService {
 	}
 
 	async getReactionsByCommentId(commentId: string) {
-		const commentAlreadyExists = await this.prismaService.comment.findUnique({
+		const commentAlreadyExists = await this.databaseService.comment.findUnique({
 			where: { id: commentId },
 		});
 
@@ -52,7 +52,7 @@ export class ReactionService {
 		}
 
 		const pagination =
-			await this.prismaService.cursorPagination<CommentReactionFindManyArgs>({
+			await this.databaseService.cursorPagination<CommentReactionFindManyArgs>({
 				model: "commentReaction",
 				where: { commentId },
 				include: {
@@ -62,7 +62,6 @@ export class ReactionService {
 								select: {
 									id: true,
 									name: true,
-									username: true,
 									profile: {
 										select: {
 											avatarUrl: true,

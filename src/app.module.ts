@@ -1,17 +1,21 @@
+import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
-import { ResendModule } from "nestjs-resend";
+import { ResendModule, ResendService } from "nestjs-resend";
+import { AuthModule } from '@thallesp/nestjs-better-auth';
+import { betterAuth } from 'better-auth';
 
-import { AuthModule } from "./modules/auth/auth.module";
-import { GameModule } from "./modules/game/game.module";
 import { CommentModule } from "./modules/comment/comment.module";
+import { GameModule } from "./modules/game/game.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
-import { UserModule } from "./modules/user/user.module";
+import { ProfileModule } from "./modules/profile/profile.module";
 import { CacheModule } from "./shared/infra/cache/cache.module";
-import { ImgBBModule } from "./shared/infra/imgbb/imgbb.module";
-import { PrismaModule } from "./shared/infra/prisma/prisma.module";
-import { HttpModule } from "@nestjs/axios";
+import { UploadModule } from "./shared/infra/upload/upload.module";
+import { DatabaseModule } from "./shared/infra/database/database.module";
+import { DatabaseService } from './shared/infra/database/database.service';
+import { getAuthConfig } from './shared/config/auth.config';
+import { UploadService } from './shared/infra/upload/upload.service';
 
 @Module({
 	imports: [
@@ -24,11 +28,27 @@ import { HttpModule } from "@nestjs/axios";
 			}),
 		}),
 		HttpModule.register({ global: true }),
+		DatabaseModule,
 		CacheModule,
-		ImgBBModule,
-		PrismaModule,
-		AuthModule,
-		UserModule,
+		UploadModule,
+		AuthModule.forRootAsync({
+			isGlobal: true,
+			inject: [ConfigService, DatabaseService, UploadService, ResendService],
+			useFactory: async (
+				configService: ConfigService,
+				databaseService: DatabaseService,
+				uploadService: UploadService,
+				resendService: ResendService
+			) => ({
+				auth: betterAuth(getAuthConfig({
+					configService,
+					databaseService,
+					uploadService,
+					resendService
+				}))
+			})
+		}),
+		ProfileModule,
 		GameModule,
 		CommentModule,
 		ReactionModule,
