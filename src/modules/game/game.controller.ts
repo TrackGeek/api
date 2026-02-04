@@ -1,6 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@thallesp/nestjs-better-auth';
+
 import { GameService } from './game.service';
-import { AuthGuard } from '@/shared/guards/auth.guard';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
 import { RefreshGameDto } from './dtos/refresh-game.dto';

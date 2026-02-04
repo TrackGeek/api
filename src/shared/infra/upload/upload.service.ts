@@ -6,8 +6,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 
 @Injectable()
-export class ImgBBService {
-	private readonly logger = new Logger(ImgBBService.name);
+export class UploadService {
+	private readonly logger = new Logger(UploadService.name);
 
 	private readonly IMGBB_API_URL = "https://api.imgbb.com/1";
 

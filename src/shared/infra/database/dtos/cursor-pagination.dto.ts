@@ -1,16 +1,16 @@
 import { PrismaClient } from "@prisma/generated/client";
 
-type PrismaModel = Exclude<keyof PrismaClient, `$${string}` | symbol>;
+type DatabaseModel = Exclude<keyof PrismaClient, `$${string}` | symbol>;
 
-export type PrismaArgs = {
+export type DatabaseArgs = {
 	where?: any;
 	omit?: any;
 	include?: any;
 	orderBy?: any;
 };
 
-export class CursorPaginationParams<Args extends PrismaArgs> {
-	readonly model: PrismaModel;
+export class CursorPaginationParams<Args extends DatabaseArgs> {
+	readonly model: DatabaseModel;
 
 	readonly take?: number;
 

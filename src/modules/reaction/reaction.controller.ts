@@ -1,10 +1,9 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard, Session, type UserSession } from '@thallesp/nestjs-better-auth';
 
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
 import { ReactionService } from './reaction.service';
-import { AuthGuard } from '@/shared/guards/auth.guard';
-import { GetCurrentUser, type UserWithProfile } from '@/shared/decorators/get-current-user.decorator';
 import { AddReactionToCommentDto } from './dtos/add-reaction-to-comment.dto';
 
 @UseGuards(RateLimitGuard)
@@ -21,12 +20,12 @@ export class ReactionController {
   @RateLimit({ limit: 10, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.CREATED)
   async addReactionToComment(
-    @GetCurrentUser() user: UserWithProfile,
+    @Session() session: UserSession,
     @Body() body: AddReactionToCommentDto
   ) {
     await this.reactionService.addReactionToComment({
       ...body,
-      userId: user.id
+      userId: session.user.id
     });
   }
   
