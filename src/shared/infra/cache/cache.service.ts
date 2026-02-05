@@ -2,6 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { InjectRedis } from '@nestjs-redis/client';
 import type { RedisClientType } from 'redis';
 
+export interface CacheKeys {
+	[key: string]: {
+		prefix: ((...args: any[]) => string);
+		expiration: number;
+	};
+}
+
 @Injectable()
 export class CacheService {
 	constructor(

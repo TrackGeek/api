@@ -16,6 +16,7 @@ import { DatabaseModule } from "./shared/infra/database/database.module";
 import { DatabaseService } from './shared/infra/database/database.service';
 import { getAuthConfig } from './shared/config/auth.config';
 import { UploadService } from './shared/infra/upload/upload.service';
+import { IntegrationsModule } from './shared/infra/integrations/integrations.module';
 
 @Module({
 	imports: [
@@ -30,6 +31,7 @@ import { UploadService } from './shared/infra/upload/upload.service';
 		HttpModule.register({ global: true }),
 		DatabaseModule,
 		CacheModule,
+		IntegrationsModule,
 		UploadModule,
 		AuthModule.forRootAsync({
 			isGlobal: true,
