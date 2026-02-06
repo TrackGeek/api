@@ -2,7 +2,7 @@ import { Controller, Delete, HttpCode, HttpStatus, Post, UploadedFile, UseGuards
 import { AuthGuard, Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { ProfileService } from "./profile";
+import { ProfileService } from "./profile.service";
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
 import { AppException } from '@/shared/exceptions/app.exceptions';
