@@ -25,4 +25,16 @@ export const ERROR_CODES = {
 		message: "TMDB_SERVICE_UNAVAILABLE",
 		status: 503,
 	},
+	USER_CANNOT_FOLLOW_SELF: {
+		message: "USER_CANNOT_FOLLOW_SELF",
+		status: 400,
+	},
+	USER_ALREADY_FOLLOWING: {
+		message: "USER_ALREADY_FOLLOWING",
+		status: 400,
+	},
+	USER_NOT_FOLLOWING: {
+		message: "USER_NOT_FOLLOWING",
+		status: 400,
+	},
 } as const;

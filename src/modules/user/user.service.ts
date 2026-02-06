@@ -75,4 +75,54 @@ export class UserService {
       },
     });
   }
+  
+  async followUser(userId: string, targetUserId: string) {
+    if (userId === targetUserId) {
+      throw new AppException(ERROR_CODES.USER_CANNOT_FOLLOW_SELF);
+    }
+
+    const existingFollow = await this.databaseService.following.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      },
+    });
+
+    if (existingFollow) {
+      throw new AppException(ERROR_CODES.USER_ALREADY_FOLLOWING);
+    }
+
+    await this.databaseService.following.create({
+      data: {
+        followerId: userId,
+        followingId: targetUserId,
+      },
+    });
+  }
+  
+  async unfollowUser(userId: string, targetUserId: string) {
+    const existingFollow = await this.databaseService.following.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      },
+    });
+
+    if (!existingFollow) {
+      throw new AppException(ERROR_CODES.USER_NOT_FOLLOWING);
+    }
+
+    await this.databaseService.following.delete({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      },
+    });
+  }
 }
