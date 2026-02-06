@@ -5,19 +5,19 @@ import type { ConfigService } from "@nestjs/config";
 import type { BetterAuthOptions } from "@better-auth/core";
 import type { ResendService } from "nestjs-resend";
 
-import type { DatabaseService } from "../infra/database/database.service";
-import type { UploadService } from "../infra/upload/upload.service";
-import { extractNameFromEmail } from "../utils/email";
+import type { DatabaseService } from "@/shared/infra/database/database.service";
+import { extractNameFromEmail } from "@/shared/utils/email";
+import { UserService } from '@/modules/user/user.service';
 
 interface AuthConfigParams {
 	configService?: ConfigService;
 	databaseService?: DatabaseService;
-	uploadService?: UploadService;
+	userService?: UserService;
 	resendService?: ResendService;
 }
 
 export function getAuthConfig(params: AuthConfigParams) {
-	const { configService, databaseService, uploadService, resendService } =
+	const { configService, databaseService, userService, resendService } =
 		params as Required<AuthConfigParams>;
 
 	return {
@@ -46,10 +46,7 @@ export function getAuthConfig(params: AuthConfigParams) {
 		},
 		plugins: [
 			customSession(async (data) => {
-				const user = await databaseService.user.findUnique({
-					where: { id: data.session.userId },
-					include: { profile: true },
-				});
+				const user = await userService.getUserById(data.session.userId);
 
 				return {
 					session: data.session,
@@ -105,61 +102,16 @@ export function getAuthConfig(params: AuthConfigParams) {
 			user: {
 				create: {
 					before: async (data) => {
-						let existingUser = await databaseService.user.findUnique({
-							where: { email: data.email },
-						});
-
-						if (existingUser) {
-							return;
-						}
-
-						const emailPrefix = data.email.split("@")[0];
-
-						let baseUsername = emailPrefix
-							.toLowerCase()
-							.replace(/[^a-z0-9]/g, "");
-
-						const usernameExists = await databaseService.user.findUnique({
-							where: { username: baseUsername },
-						});
-
-						const username = usernameExists
-							? `${baseUsername}${Math.floor(Math.random() * 10000)}`
-							: baseUsername;
-
-						const avatarUrl = data.image
-							? await uploadService.uploadFromUrl(data.image)
-							: undefined;
-
-						await databaseService.user.create({
-							data: {
-								id: data.id,
-								email: data.email,
-								name:
-									data.name?.length > 0
-										? data.name
-										: extractNameFromEmail(data.email),
-								username,
-								emailVerified: data.emailVerified ?? false,
-								profile: {
-									create: {
-										avatarUrl,
-									},
-								},
-							},
-							include: {
-								profile: true,
-							},
-						});
+						await userService.createUser({
+							id: data.id,
+							email: data.email,
+							emailVerified: data.emailVerified,
+							name: data.name,
+							image: data.image,
+						})
 					},
 				},
 			},
 		},
 	} as BetterAuthOptions;
 }
-
-// export const auth = betterAuth(getAuthConfig({
-//   configService: new ConfigService(),
-//   databaseService: {} as DatabaseService,
-//   uploadService: {} as UploadService,
-// }))
