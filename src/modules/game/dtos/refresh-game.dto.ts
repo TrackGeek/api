@@ -4,7 +4,7 @@ import { IsUUID } from "class-validator";
 export class RefreshGameDto {
 	@IsUUID()
 	@ApiProperty({
-		description: "The unique identifier of the game to be refreshed",
+		description: "IGDB ID of the game to refresh",
 	})
-	readonly id: string;
+	readonly id: number;
 }

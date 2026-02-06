@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
 
-import { IntegrationsService } from '../integrations/integrations.service';
+import { IntegrationsService } from "../integrations/integrations.service";
 
 @Injectable()
 export class UploadService {

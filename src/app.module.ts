@@ -3,8 +3,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { ResendModule, ResendService } from "nestjs-resend";
-import { AuthModule } from '@thallesp/nestjs-better-auth';
-import { betterAuth } from 'better-auth';
+import { AuthModule } from "@thallesp/nestjs-better-auth";
+import { betterAuth } from "better-auth";
 
 import { CommentModule } from "./modules/comment/comment.module";
 import { GameModule } from "./modules/game/game.module";
@@ -13,10 +13,12 @@ import { ProfileModule } from "./modules/profile/profile.module";
 import { CacheModule } from "./shared/infra/cache/cache.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { DatabaseModule } from "./shared/infra/database/database.module";
-import { DatabaseService } from './shared/infra/database/database.service';
-import { getAuthConfig } from './shared/config/auth.config';
-import { UploadService } from './shared/infra/upload/upload.service';
-import { IntegrationsModule } from './shared/infra/integrations/integrations.module';
+import { DatabaseService } from "./shared/infra/database/database.service";
+import { getAuthConfig } from "./shared/config/auth.config";
+import { UploadService } from "./shared/infra/upload/upload.service";
+import { IntegrationsModule } from "./shared/infra/integrations/integrations.module";
+import { MovieModule } from "./modules/movie/movie.module";
+import { TVShowModule } from "./modules/tv-show/tv-show.module";
 
 @Module({
 	imports: [
@@ -34,26 +36,31 @@ import { IntegrationsModule } from './shared/infra/integrations/integrations.mod
 		IntegrationsModule,
 		UploadModule,
 		AuthModule.forRootAsync({
+			disableGlobalAuthGuard: true,
 			isGlobal: true,
 			inject: [ConfigService, DatabaseService, UploadService, ResendService],
 			useFactory: async (
 				configService: ConfigService,
 				databaseService: DatabaseService,
 				uploadService: UploadService,
-				resendService: ResendService
+				resendService: ResendService,
 			) => ({
-				auth: betterAuth(getAuthConfig({
-					configService,
-					databaseService,
-					uploadService,
-					resendService
-				}))
-			})
+				auth: betterAuth(
+					getAuthConfig({
+						configService,
+						databaseService,
+						uploadService,
+						resendService,
+					}),
+				),
+			}),
 		}),
 		ProfileModule,
-		GameModule,
 		CommentModule,
 		ReactionModule,
+		GameModule,
+		MovieModule,
+		TVShowModule,
 	],
 	providers: [],
 	controllers: [],

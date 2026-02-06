@@ -46,6 +46,16 @@ CREATE TABLE "profiles" (
 );
 
 -- CreateTable
+CREATE TABLE "followings" (
+    "id" TEXT NOT NULL,
+    "followerId" TEXT NOT NULL,
+    "followingId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "followings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "sessions" (
     "id" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
@@ -392,6 +402,15 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX "profiles_userId_key" ON "profiles"("userId");
 
 -- CreateIndex
+CREATE INDEX "followings_followerId_idx" ON "followings"("followerId");
+
+-- CreateIndex
+CREATE INDEX "followings_followingId_idx" ON "followings"("followingId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "followings_followerId_followingId_key" ON "followings"("followerId", "followingId");
+
+-- CreateIndex
 CREATE INDEX "sessions_userId_idx" ON "sessions"("userId");
 
 -- CreateIndex
@@ -432,6 +451,12 @@ CREATE UNIQUE INDEX "movies_tmdbId_key" ON "movies"("tmdbId");
 
 -- AddForeignKey
 ALTER TABLE "profiles" ADD CONSTRAINT "profiles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "followings" ADD CONSTRAINT "followings_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "followings" ADD CONSTRAINT "followings_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

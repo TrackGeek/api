@@ -23,7 +23,6 @@ model User {
   comments  Comment[]
   reactions Reaction[]
 
-  // Followers relations
   followers Following[] @relation("UserFollowers")
   following Following[] @relation("UserFollowing")
 
