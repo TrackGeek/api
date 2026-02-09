@@ -523,10 +523,10 @@ model TVShow {
 }
 
 model Movie {
-  id                  String   @id @default(uuid())
-  tmdbId              Int      @unique
+  id                  String    @id @default(uuid())
+  tmdbId              Int       @unique
   imdbId              String?
-  belongsToCollection String?
+  belongsToCollection Json?
   budget              Int?
   genres              Json?
   homepage            String?
@@ -537,17 +537,19 @@ model Movie {
   posterPath          String?
   productionCompanies Json?
   productionCountries Json?
-  releaseDate         String?
+  releaseDate         DateTime?
   revenue             Int?
   runtime             Int?
   spokenLanguages     Json?
   status              String?
   title               String?
-  video               Boolean?
+  videos              Json?
   cast                Json?
-  lastRefreshedAt     DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  crew                Json?
+  posterUrl           String?
+  lastRefreshedAt     DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   movieComments MovieComment[]
 

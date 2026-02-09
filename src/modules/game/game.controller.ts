@@ -31,8 +31,6 @@ export class GameController {
 
 	@Get('/details/:id')
 	async getGameById(@Param('id') id: number) {
-		console.log(typeof id)
-		
 		const game = await this.gameService.getGameById(id);
 
 		return { game };
