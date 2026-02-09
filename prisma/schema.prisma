@@ -17,14 +17,14 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  profile   Profile?
-  sessions  Session[]
-  accounts  Account[]
-  comments  Comment[]
-  reactions Reaction[]
-
-  followers Following[] @relation("UserFollowers")
-  following Following[] @relation("UserFollowing")
+  profile    Profile?
+  sessions   Session[]
+  accounts   Account[]
+  comments   Comment[]
+  reactions  Reaction[]
+  followers  Following[] @relation("UserFollowers")
+  following  Following[] @relation("UserFollowing")
+  feedEvents FeedEvent[]
 
   @@unique([email])
   @@map("users")
@@ -50,8 +50,8 @@ model Profile {
 
 model Following {
   id          String   @id @default(uuid())
-  followerId  String // Who is following
-  followingId String // Who is being followed
+  followerId  String
+  followingId String
   createdAt   DateTime @default(now())
 
   follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
@@ -124,6 +124,11 @@ model Comment {
   commentsReactions CommentReaction[]
   gamesComments     GameComment[]
   profilesComments  ProfileComment[]
+  bookComments      BookComment[]
+  animeComments     AnimeComment[]
+  mangaComments     MangaComment[]
+  tvshowComments    TVShowComment[]
+  movieComments     MovieComment[]
 
   @@map("comments")
 }
@@ -164,6 +169,66 @@ model GameComment {
   @@map("games_comments")
 }
 
+model BookComment {
+  id        String @id @default(uuid())
+  bookId    String
+  commentId String
+
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, commentId])
+  @@map("books_comments")
+}
+
+model AnimeComment {
+  id        String @id @default(uuid())
+  animeId   String
+  commentId String
+
+  anime   Anime   @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([animeId, commentId])
+  @@map("animes_comments")
+}
+
+model MangaComment {
+  id        String @id @default(uuid())
+  mangaId   String
+  commentId String
+
+  manga   Manga   @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([mangaId, commentId])
+  @@map("mangas_comments")
+}
+
+model TVShowComment {
+  id        String @id @default(uuid())
+  tvShowId  String
+  commentId String
+
+  tvShow  TVShow  @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([tvShowId, commentId])
+  @@map("tvshows_comments")
+}
+
+model MovieComment {
+  id        String @id @default(uuid())
+  movieId   String
+  commentId String
+
+  movie   Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, commentId])
+  @@map("movies_comments")
+}
+
 model ProfileComment {
   id        String @id @default(uuid())
   profileId String
@@ -174,6 +239,19 @@ model ProfileComment {
 
   @@unique([profileId, commentId])
   @@map("profiles_comments")
+}
+
+model FeedEvent {
+  id        String   @id @default(uuid())
+  type      String
+  userId    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("feed_events")
 }
 
 model Game {
@@ -239,7 +317,7 @@ model Game {
 model Book {
   id                       String    @id @default(uuid())
   alternativeTitles        Json?
-  audio_seconds            Int?
+  audioSeconds             Int?
   bookCategoryId           Int?
   bookStatus               Json?
   bookStatusId             Int?
@@ -265,16 +343,18 @@ model Book {
   image                    Json?
   imageId                  Int?
   links                    Json?
-  literary_typeId          Int?
+  literaryTypeId           Int?
   pages                    Int?
-  release_date             DateTime?
-  release_year             Int?
+  releaseDate              DateTime?
+  releaseYear              Int?
   slug                     String
   state                    String?
   title                    String
   lastRefreshedAt          DateTime  @default(now())
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
+
+  bookComments BookComment[]
 
   @@map("books")
 }
@@ -347,6 +427,8 @@ model Anime {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
+  animeComments AnimeComment[]
+
   @@map("animes")
 }
 
@@ -397,6 +479,8 @@ model Manga {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
+  mangaComments MangaComment[]
+
   @@map("mangas")
 }
 
@@ -433,7 +517,9 @@ model TVShow {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  @@map("tv_shows")
+  tvshowComments TVShowComment[]
+
+  @@map("tvshows")
 }
 
 model Movie {
@@ -462,6 +548,8 @@ model Movie {
   lastRefreshedAt     DateTime @default(now())
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  movieComments MovieComment[]
 
   @@map("movies")
 }

@@ -140,12 +140,68 @@ CREATE TABLE "games_comments" (
 );
 
 -- CreateTable
+CREATE TABLE "books_comments" (
+    "id" TEXT NOT NULL,
+    "bookId" TEXT NOT NULL,
+    "commentId" TEXT NOT NULL,
+
+    CONSTRAINT "books_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "animes_comments" (
+    "id" TEXT NOT NULL,
+    "animeId" TEXT NOT NULL,
+    "commentId" TEXT NOT NULL,
+
+    CONSTRAINT "animes_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "mangas_comments" (
+    "id" TEXT NOT NULL,
+    "mangaId" TEXT NOT NULL,
+    "commentId" TEXT NOT NULL,
+
+    CONSTRAINT "mangas_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "tvshows_comments" (
+    "id" TEXT NOT NULL,
+    "tvShowId" TEXT NOT NULL,
+    "commentId" TEXT NOT NULL,
+
+    CONSTRAINT "tvshows_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "movies_comments" (
+    "id" TEXT NOT NULL,
+    "movieId" TEXT NOT NULL,
+    "commentId" TEXT NOT NULL,
+
+    CONSTRAINT "movies_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "profiles_comments" (
     "id" TEXT NOT NULL,
     "profileId" TEXT NOT NULL,
     "commentId" TEXT NOT NULL,
 
     CONSTRAINT "profiles_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "feed_events" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "feed_events_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -211,7 +267,7 @@ CREATE TABLE "games" (
 CREATE TABLE "books" (
     "id" TEXT NOT NULL,
     "alternativeTitles" JSONB,
-    "audio_seconds" INTEGER,
+    "audioSeconds" INTEGER,
     "bookCategoryId" INTEGER,
     "bookStatus" JSONB,
     "bookStatusId" INTEGER,
@@ -237,10 +293,10 @@ CREATE TABLE "books" (
     "image" JSONB,
     "imageId" INTEGER,
     "links" JSONB,
-    "literary_typeId" INTEGER,
+    "literaryTypeId" INTEGER,
     "pages" INTEGER,
-    "release_date" TIMESTAMP(3),
-    "release_year" INTEGER,
+    "releaseDate" TIMESTAMP(3),
+    "releaseYear" INTEGER,
     "slug" TEXT NOT NULL,
     "state" TEXT,
     "title" TEXT NOT NULL,
@@ -325,7 +381,7 @@ CREATE TABLE "mangas" (
 );
 
 -- CreateTable
-CREATE TABLE "tv_shows" (
+CREATE TABLE "tvshows" (
     "id" TEXT NOT NULL,
     "tmdbId" INTEGER NOT NULL,
     "createdBy" JSONB,
@@ -358,7 +414,7 @@ CREATE TABLE "tv_shows" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "tv_shows_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tvshows_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -429,7 +485,25 @@ CREATE UNIQUE INDEX "comments_reactions_commentId_reactionId_key" ON "comments_r
 CREATE UNIQUE INDEX "games_comments_gameId_commentId_key" ON "games_comments"("gameId", "commentId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "books_comments_bookId_commentId_key" ON "books_comments"("bookId", "commentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "animes_comments_animeId_commentId_key" ON "animes_comments"("animeId", "commentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "mangas_comments_mangaId_commentId_key" ON "mangas_comments"("mangaId", "commentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "tvshows_comments_tvShowId_commentId_key" ON "tvshows_comments"("tvShowId", "commentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "movies_comments_movieId_commentId_key" ON "movies_comments"("movieId", "commentId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "profiles_comments_profileId_commentId_key" ON "profiles_comments"("profileId", "commentId");
+
+-- CreateIndex
+CREATE INDEX "feed_events_userId_createdAt_idx" ON "feed_events"("userId", "createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "games_igdbId_key" ON "games"("igdbId");
@@ -444,7 +518,7 @@ CREATE UNIQUE INDEX "books_hardcoverId_key" ON "books"("hardcoverId");
 CREATE UNIQUE INDEX "animes_malId_key" ON "animes"("malId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "tv_shows_tmdbId_key" ON "tv_shows"("tmdbId");
+CREATE UNIQUE INDEX "tvshows_tmdbId_key" ON "tvshows"("tmdbId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "movies_tmdbId_key" ON "movies"("tmdbId");
@@ -483,7 +557,40 @@ ALTER TABLE "games_comments" ADD CONSTRAINT "games_comments_gameId_fkey" FOREIGN
 ALTER TABLE "games_comments" ADD CONSTRAINT "games_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "books_comments" ADD CONSTRAINT "books_comments_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "books"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "books_comments" ADD CONSTRAINT "books_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "animes_comments" ADD CONSTRAINT "animes_comments_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "animes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "animes_comments" ADD CONSTRAINT "animes_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "mangas_comments" ADD CONSTRAINT "mangas_comments_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "mangas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "mangas_comments" ADD CONSTRAINT "mangas_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tvshows_comments" ADD CONSTRAINT "tvshows_comments_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "tvshows"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tvshows_comments" ADD CONSTRAINT "tvshows_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "movies_comments" ADD CONSTRAINT "movies_comments_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "movies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "movies_comments" ADD CONSTRAINT "movies_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "profiles_comments" ADD CONSTRAINT "profiles_comments_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "profiles_comments" ADD CONSTRAINT "profiles_comments_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "feed_events" ADD CONSTRAINT "feed_events_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

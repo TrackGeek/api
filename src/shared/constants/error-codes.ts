@@ -37,4 +37,24 @@ export const ERROR_CODES = {
 		message: "USER_NOT_FOLLOWING",
 		status: 400,
 	},
+	BOOK_NOT_FOUND: {
+		message: "BOOK_NOT_FOUND",
+		status: 404,
+	},
+	TVSHOW_NOT_FOUND: {
+		message: "TVSHOW_NOT_FOUND",
+		status: 404,
+	},
+	MOVIE_NOT_FOUND: {
+		message: "MOVIE_NOT_FOUND",
+		status: 404,
+	},
+	MANGA_NOT_FOUND: {
+		message: "MANGA_NOT_FOUND",
+		status: 404,
+	},
+	ANIME_NOT_FOUND: {
+		message: "ANIME_NOT_FOUND",
+		status: 404,
+	},
 } as const;

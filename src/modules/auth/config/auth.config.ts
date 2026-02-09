@@ -1,23 +1,22 @@
 import crypto from "node:crypto";
 import { customSession, lastLoginMethod, magicLink } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import type { BetterAuthOptions } from "@better-auth/core";
-import type { ResendService } from "nestjs-resend";
 
-import type { DatabaseService } from "@/shared/infra/database/database.service";
-import { extractNameFromEmail } from "@/shared/utils/email";
-import { UserService } from '@/modules/user/user.service';
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { UserService } from "@/modules/user/user.service";
+import { QueueService } from '@/shared/infra/queue/queue.service';
 
 interface AuthConfigParams {
 	configService?: ConfigService;
 	databaseService?: DatabaseService;
 	userService?: UserService;
-	resendService?: ResendService;
+	queueService?: QueueService;
 }
 
 export function getAuthConfig(params: AuthConfigParams) {
-	const { configService, databaseService, userService, resendService } =
+	const { configService, databaseService, userService, queueService } =
 		params as Required<AuthConfigParams>;
 
 	return {
@@ -56,40 +55,7 @@ export function getAuthConfig(params: AuthConfigParams) {
 			lastLoginMethod(),
 			magicLink({
 				sendMagicLink: async ({ email, url }) => {
-					await resendService.send({
-						from: configService.get<string>("RESEND_FROM")!,
-						to: email,
-						subject: "Sign in to TrackGeek",
-						html: `
-              <body style="margin: 0; padding: 40px 20px; font-family: Arial, sans-serif; background-color: #1c1917;">
-                <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #1c1917; border: 1px solid #ffffff1a; border-radius: 8px; padding: 60px 40px;">
-                  <tr>
-                    <td style="text-align: center;">
-                      <h2 style="margin: 0 0 20px 0; color: #ffffff; font-size: 24px; font-weight: 500; line-height: 1.3;">
-                        Hello, ${extractNameFromEmail(email)}!
-                      </h2>
-                      
-                      <p style="margin: 0 0 30px 0; color: #a6a09b; font-size: 18px; line-height: 1.5;">Click the button below to securely sign in to your account:</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="text-align: center; padding: 20px 0;">
-                      <a href="${url}" style="display: inline-block; background-color: #10b981; color: #ffffff; font-size: 24px; font-weight: 600; padding: 20px; text-decoration: none; border-radius: 8px;">
-                        Sign in to TrackGeek
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="text-align: center; padding-top: 20px;">
-                      <p style="margin: 0; color: #a6a09b; font-size: 16px; line-height: 1.5;">
-                        If you did not request this link, please ignore this email.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </body>
-            `,
-					});
+					await queueService.sendMagicLinkQueue({ email, url });
 				},
 			}),
 		],
@@ -101,16 +67,28 @@ export function getAuthConfig(params: AuthConfigParams) {
 		databaseHooks: {
 			user: {
 				create: {
-					before: async (data) => {
+					before: async ({ email, emailVerified, name, image }) => {
 						await userService.createUser({
-							id: data.id,
-							email: data.email,
-							emailVerified: data.emailVerified,
-							name: data.name,
-							image: data.image,
-						})
+							email,
+							emailVerified,
+							name,
+							image,
+						});
+						
+						return false;
 					},
 				},
+				update: {
+					before: async ({ id, name, image }) => {
+						await userService.updateUser({
+							id: id!,
+							name,
+							image,
+						});
+						
+						return false;
+					}
+				}
 			},
 		},
 	} as BetterAuthOptions;

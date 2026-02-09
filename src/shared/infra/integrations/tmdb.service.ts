@@ -110,4 +110,30 @@ export class TMDBService {
 			throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
 		}
 	}
+
+	async getMovieById(id: number): Promise<any> {
+		try {
+			const response = await firstValueFrom(
+				this.httpService.get(`${this.TMDB_API_URL}/movie/${id}`, {
+					headers: {
+						Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+					},
+				}),
+			);
+
+			const movie = response.data;
+
+			return {
+				tmdbId: movie.id,
+				name: movie.title,
+				releaseDate: movie.release_date ? new Date(movie.release_date) : null,
+				posterUrl: movie.poster_path
+					? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+					: null,
+				overview: movie.overview,
+			};
+		} catch (error) {
+			throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+		}
+	}
 }
