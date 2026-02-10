@@ -19,7 +19,6 @@
   <br>
   <img src="https://img.shields.io/badge/Docker-000000?style=for-the-badge&logo=docker&logoColor=2496ED">
   <img src="https://img.shields.io/badge/Swagger-000000?style=for-the-badge&logo=swagger&logoColor=85EA2D">
-  <img src="https://img.shields.io/badge/License%20GPL%203.0-000000?style=for-the-badge&logo=gnu&logoColor=ffffff">
   <a href="https://crowdin.com/project/trackgeek"><img src="https://img.shields.io/badge/Crowdin-000000?style=for-the-badge&logo=crowdin&logoColor=ffffff"></a>
 </p>
 
