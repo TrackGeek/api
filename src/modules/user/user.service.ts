@@ -7,9 +7,9 @@ import { UploadService } from "@/shared/infra/upload/upload.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { UpdateUserDto } from './dto/update-user.dto';
-import { QueueService } from '@/shared/infra/queue/queue.service';
-import { FeedEventType } from '@prisma/generated/enums';
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { FeedEventType } from "@prisma/generated/enums";
 
 @Injectable()
 export class UserService {
@@ -44,7 +44,7 @@ export class UserService {
 		const emailPrefix = createUserDto.email.split("@")[0];
 
 		let baseUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, "");
-		
+
 		const usernameExists = await this.databaseService.user.findUnique({
 			where: { username: baseUsername },
 		});
@@ -75,7 +75,7 @@ export class UserService {
 			},
 		});
 	}
-	
+
 	async updateUser(updateUserDto: UpdateUserDto) {
 		const { id, name, image } = updateUserDto;
 
@@ -134,16 +134,16 @@ export class UserService {
 				follower: {
 					include: {
 						profile: true,
-					}
+					},
 				},
 				following: {
 					include: {
 						profile: true,
-					}
+					},
 				},
-			}
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewFollower,
 			userId,
@@ -155,7 +155,7 @@ export class UserService {
 					profile: {
 						id: following.follower.profile?.id,
 						avatarUrl: following.follower.profile?.avatarUrl,
-					}
+					},
 				},
 				following: {
 					id: following.following.id,
@@ -164,10 +164,10 @@ export class UserService {
 					profile: {
 						id: following.following.profile?.id,
 						avatarUrl: following.following.profile?.avatarUrl,
-					}
+					},
 				},
 			},
-		})
+		});
 	}
 
 	async unfollowUser(userId: string, targetUserId: string) {

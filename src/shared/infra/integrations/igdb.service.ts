@@ -30,7 +30,7 @@ export class IGDBService {
 				prefix: (id: number) => `igdb:game:id:${id}`,
 				expiration: 3600 * 6, // 6 hours
 			},
-		}
+		};
 	}
 
 	private async getAccessToken(): Promise<string> {
@@ -105,7 +105,7 @@ export class IGDBService {
 					},
 				}),
 			);
-			
+
 			const gamesData = gamesResponse.data;
 
 			const games = gamesData.map((game: any) => ({
@@ -154,7 +154,7 @@ export class IGDBService {
 			if (cachedGame) {
 				return cachedGame;
 			}
-			
+
 			const igdbQuery = `
 				fields 
 					age_ratings.checksum,
@@ -591,7 +591,7 @@ export class IGDBService {
 							: null,
 					})) ?? [],
 			};
-			
+
 			await this.cacheService.set(
 				this.cacheKeys.getGameById.prefix(id),
 				game,

@@ -16,8 +16,8 @@ import { TVShowModule } from "./modules/tv-show/tv-show.module";
 import { UserModule } from "./modules/user/user.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { EmailModule } from "./shared/infra/email/email.module";
-import { AuthModule } from './modules/auth/auth.module';
-import { FeedEventModule } from './modules/feed-event/feed-event.module';
+import { AuthModule } from "./modules/auth/auth.module";
+import { FeedEventModule } from "./modules/feed-event/feed-event.module";
 
 @Module({
 	imports: [

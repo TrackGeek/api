@@ -15,13 +15,13 @@ import {
 	ProfileCommentFindManyArgs,
 	TVShowCommentFindManyArgs,
 } from "@prisma/generated/models";
-import { QueueService } from '@/shared/infra/queue/queue.service';
-import { AddCommentToBookDto } from './dtos/add-comment-to-book.dto';
-import { AddCommentToAnimeDto } from './dtos/add-comment-to-anime.dto';
-import { AddCommentToMovieDto } from './dtos/add-comment-to-movie.dto';
-import { AddCommentToTVShowDto } from './dtos/add-comment-to-tv-show.dto';
-import { AddCommentToMangaDto } from './dtos/add-comment-to-manga.dto';
-import { FeedEventType } from '@prisma/generated/enums';
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { AddCommentToBookDto } from "./dtos/add-comment-to-book.dto";
+import { AddCommentToAnimeDto } from "./dtos/add-comment-to-anime.dto";
+import { AddCommentToMovieDto } from "./dtos/add-comment-to-movie.dto";
+import { AddCommentToTVShowDto } from "./dtos/add-comment-to-tv-show.dto";
+import { AddCommentToMangaDto } from "./dtos/add-comment-to-manga.dto";
+import { FeedEventType } from "@prisma/generated/enums";
 
 @Injectable()
 export class CommentService {
@@ -72,18 +72,18 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
 				profile: {
 					include: {
-						user: true
-					}
-				}
-			}
+						user: true,
+					},
+				},
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToProfileDto.userId,
@@ -98,7 +98,7 @@ export class CommentService {
 						profile: {
 							id: profileComment.comment.user.profile?.id,
 							avatarUrl: profileComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
@@ -112,7 +112,7 @@ export class CommentService {
 					},
 				},
 			},
-		})
+		});
 	}
 
 	async addCommentToGame(addCommentToGameDto: AddCommentToGameDto) {
@@ -129,7 +129,7 @@ export class CommentService {
 			userId: addCommentToGameDto.userId,
 		});
 
-		const gameComment =await this.databaseService.gameComment.create({
+		const gameComment = await this.databaseService.gameComment.create({
 			data: {
 				gameId: addCommentToGameDto.gameId,
 				commentId: comment.id,
@@ -140,14 +140,14 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
-				game: true
-			}
+				game: true,
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToGameDto.userId,
@@ -162,7 +162,7 @@ export class CommentService {
 						profile: {
 							id: gameComment.comment.user.profile?.id,
 							avatarUrl: gameComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
@@ -170,11 +170,11 @@ export class CommentService {
 					igdbId: gameComment.game.igdbId,
 					name: gameComment.game.name,
 					coverUrl: gameComment.game.coverUrl,
-				}
+				},
 			},
-		})
+		});
 	}
-	
+
 	async addCommentToBook(addCommentToBookDto: AddCommentToBookDto) {
 		const bookAlreadyExists = await this.databaseService.book.findUnique({
 			where: { id: addCommentToBookDto.bookId },
@@ -189,7 +189,7 @@ export class CommentService {
 			userId: addCommentToBookDto.userId,
 		});
 
-		const bookComment =await this.databaseService.bookComment.create({
+		const bookComment = await this.databaseService.bookComment.create({
 			data: {
 				bookId: addCommentToBookDto.bookId,
 				commentId: comment.id,
@@ -200,14 +200,14 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
-				book: true
-			}
+				book: true,
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToBookDto.userId,
@@ -222,18 +222,18 @@ export class CommentService {
 						profile: {
 							id: bookComment.comment.user.profile?.id,
 							avatarUrl: bookComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
 				book: {
 					hardcoverId: bookComment.book.hardcoverId,
 					title: bookComment.book.title,
-				}
+				},
 			},
-		})
+		});
 	}
-	
+
 	async addCommentToAnime(addCommentToAnimeDto: AddCommentToAnimeDto) {
 		const animeAlreadyExists = await this.databaseService.anime.findUnique({
 			where: { id: addCommentToAnimeDto.animeId },
@@ -248,7 +248,7 @@ export class CommentService {
 			userId: addCommentToAnimeDto.userId,
 		});
 
-		const animeComment =await this.databaseService.animeComment.create({
+		const animeComment = await this.databaseService.animeComment.create({
 			data: {
 				animeId: addCommentToAnimeDto.animeId,
 				commentId: comment.id,
@@ -259,14 +259,14 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
-				anime: true
-			}
+				anime: true,
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToAnimeDto.userId,
@@ -281,17 +281,17 @@ export class CommentService {
 						profile: {
 							id: animeComment.comment.user.profile?.id,
 							avatarUrl: animeComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
 				anime: {
 					malId: animeComment.anime.malId,
-				}
+				},
 			},
-		})
+		});
 	}
-	
+
 	async addCommentToManga(addCommentToMangaDto: AddCommentToMangaDto) {
 		const mangaAlreadyExists = await this.databaseService.manga.findUnique({
 			where: { id: addCommentToMangaDto.mangaId },
@@ -306,7 +306,7 @@ export class CommentService {
 			userId: addCommentToMangaDto.userId,
 		});
 
-		const mangaComment =await this.databaseService.mangaComment.create({
+		const mangaComment = await this.databaseService.mangaComment.create({
 			data: {
 				mangaId: addCommentToMangaDto.mangaId,
 				commentId: comment.id,
@@ -317,14 +317,14 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
-				manga: true
-			}
+				manga: true,
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToMangaDto.userId,
@@ -339,17 +339,17 @@ export class CommentService {
 						profile: {
 							id: mangaComment.comment.user.profile?.id,
 							avatarUrl: mangaComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
 				manga: {
 					malId: mangaComment.manga.malId,
-				}
+				},
 			},
-		})
+		});
 	}
-	
+
 	async addCommentToMovie(addCommentToMovieDto: AddCommentToMovieDto) {
 		const movieAlreadyExists = await this.databaseService.movie.findUnique({
 			where: { id: addCommentToMovieDto.movieId },
@@ -364,7 +364,7 @@ export class CommentService {
 			userId: addCommentToMovieDto.userId,
 		});
 
-		const movieComment =await this.databaseService.movieComment.create({
+		const movieComment = await this.databaseService.movieComment.create({
 			data: {
 				movieId: addCommentToMovieDto.movieId,
 				commentId: comment.id,
@@ -375,14 +375,14 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
-				movie: true
-			}
+				movie: true,
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToMovieDto.userId,
@@ -397,17 +397,17 @@ export class CommentService {
 						profile: {
 							id: movieComment.comment.user.profile?.id,
 							avatarUrl: movieComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
 				movie: {
 					tmdbId: movieComment.movie.tmdbId,
-				}
+				},
 			},
-		})
+		});
 	}
-	
+
 	async addCommentToTVShow(addCommentToTVShowDto: AddCommentToTVShowDto) {
 		const tvShowAlreadyExists = await this.databaseService.tVShow.findUnique({
 			where: { id: addCommentToTVShowDto.tvShowId },
@@ -422,7 +422,7 @@ export class CommentService {
 			userId: addCommentToTVShowDto.userId,
 		});
 
-		const tvShowComment =await this.databaseService.tVShowComment.create({
+		const tvShowComment = await this.databaseService.tVShowComment.create({
 			data: {
 				tvShowId: addCommentToTVShowDto.tvShowId,
 				commentId: comment.id,
@@ -433,14 +433,14 @@ export class CommentService {
 						user: {
 							include: {
 								profile: true,
-							}
+							},
 						},
-					}
+					},
 				},
-				tvShow: true
-			}
+				tvShow: true,
+			},
 		});
-		
+
 		await this.queueService.addFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToTVShowDto.userId,
@@ -455,15 +455,15 @@ export class CommentService {
 						profile: {
 							id: tvShowComment.comment.user.profile?.id,
 							avatarUrl: tvShowComment.comment.user.profile?.avatarUrl,
-						}
+						},
 					},
 					createdAt: comment.createdAt,
 				},
 				tvShow: {
 					tmdbId: tvShowComment.tvShow.tmdbId,
-				}
+				},
 			},
-		})
+		});
 	}
 
 	async deleteComment(commentId: string) {
@@ -571,7 +571,7 @@ export class CommentService {
 			items: pagination.items.map(({ comment }) => comment),
 		};
 	}
-	
+
 	async getCommentsByBookId(bookId: string) {
 		const bookAlreadyExists = await this.databaseService.book.findUnique({
 			where: { id: bookId },
@@ -617,7 +617,7 @@ export class CommentService {
 			items: pagination.items.map(({ comment }) => comment),
 		};
 	}
-	
+
 	async getCommentsByAnimeId(animeId: string) {
 		const animeAlreadyExists = await this.databaseService.anime.findUnique({
 			where: { id: animeId },
@@ -663,7 +663,7 @@ export class CommentService {
 			items: pagination.items.map(({ comment }) => comment),
 		};
 	}
-	
+
 	async getCommentsByMangaId(mangaId: string) {
 		const mangaAlreadyExists = await this.databaseService.manga.findUnique({
 			where: { id: mangaId },
@@ -709,7 +709,7 @@ export class CommentService {
 			items: pagination.items.map(({ comment }) => comment),
 		};
 	}
-	
+
 	async getCommentsByMovieId(movieId: string) {
 		const movieAlreadyExists = await this.databaseService.movie.findUnique({
 			where: { id: movieId },
@@ -755,7 +755,7 @@ export class CommentService {
 			items: pagination.items.map(({ comment }) => comment),
 		};
 	}
-	
+
 	async getCommentsByTVShowId(tvShowId: string) {
 		const tvShowAlreadyExists = await this.databaseService.tVShow.findUnique({
 			where: { id: tvShowId },

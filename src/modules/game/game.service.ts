@@ -11,7 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
 import type { SearchGameDto } from "./dtos/search-game.dto";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import { REFRESH_INTERVAL_MS } from '@/shared/constants/refresh-interval';
+import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 
 @Injectable()
 export class GameService {
@@ -78,9 +78,13 @@ export class GameService {
 		}
 
 		if (
-			await this.cacheService.exists(this.cacheKeys.gameById.prefix(game.igdbId))
+			await this.cacheService.exists(
+				this.cacheKeys.gameById.prefix(game.igdbId),
+			)
 		) {
-			await this.cacheService.delete(this.cacheKeys.gameById.prefix(game.igdbId));
+			await this.cacheService.delete(
+				this.cacheKeys.gameById.prefix(game.igdbId),
+			);
 		}
 
 		const igdbGame = await this.integrationsService.igdb.getGameById(

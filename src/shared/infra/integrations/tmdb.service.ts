@@ -55,7 +55,7 @@ export class TMDBService {
 					},
 				}),
 			);
-			
+
 			const moviesData = movieResponse.data;
 
 			const movies = moviesData.results.map((movie: any) => ({
@@ -97,7 +97,7 @@ export class TMDBService {
 					},
 				}),
 			);
-			
+
 			const tvShowsData = tvShowsResponse.data;
 
 			const tvShows = tvShowsData.results.map((show: any) => ({
@@ -132,7 +132,7 @@ export class TMDBService {
 			if (cachedMovie) {
 				return cachedMovie;
 			}
-			
+
 			const movieResponse = await firstValueFrom(
 				this.httpService.get(`${this.TMDB_API_URL}/movie/${id}`, {
 					headers: {
@@ -140,7 +140,7 @@ export class TMDBService {
 					},
 				}),
 			);
-			
+
 			const creditsResponse = await firstValueFrom(
 				this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/credits`, {
 					headers: {
@@ -148,32 +148,36 @@ export class TMDBService {
 					},
 				}),
 			);
-			
+
 			const movieData = movieResponse.data;
 			const creditsData = creditsResponse.data;
-			
-			const videosResponse = movieData?.video ? await firstValueFrom(
-				this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/videos`, {
-					headers: {
-						Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-					},
-				}),
-			) : null;
-			
+
+			const videosResponse = movieData?.video
+				? await firstValueFrom(
+						this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/videos`, {
+							headers: {
+								Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+							},
+						}),
+					)
+				: null;
+
 			const videosData = videosResponse ? videosResponse.data.results : [];
 
 			const movie = {
 				tmdbId: movieData.id,
 				imdbId: movieData.imdb_id,
-				belongsToCollection: movieData.belongs_to_collection ? {
-					name: movieData.belongs_to_collection.name,
-					posterUrl: movieData.belongs_to_collection.poster_path
-						? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.poster_path}`
-						: null,
-					backdropUrl: movieData.belongs_to_collection.backdrop_path
-						? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.backdrop_path}`
-						: null,
-				} : {},
+				belongsToCollection: movieData.belongs_to_collection
+					? {
+							name: movieData.belongs_to_collection.name,
+							posterUrl: movieData.belongs_to_collection.poster_path
+								? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.poster_path}`
+								: null,
+							backdropUrl: movieData.belongs_to_collection.backdrop_path
+								? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.backdrop_path}`
+								: null,
+						}
+					: {},
 				budget: movieData.budget,
 				genres: movieData.genres.map((genre: any) => genre.name),
 				homepage: movieData.homepage,
@@ -184,13 +188,21 @@ export class TMDBService {
 				posterUrl: movieData.poster_path
 					? `https://image.tmdb.org/t/p/w500${movieData.poster_path}`
 					: null,
-				productionCompanies: movieData.production_companies.map((company: any) => ({
-					logoUrl: company.logo_path ? `https://image.tmdb.org/t/p/w500${company.logo_path}` : null,
-					name: company.name,
-					originCountry: company.origin_country,
-				})),
-				productionCountries: movieData.production_countries.map((country: any) => country.name),
-				releaseDate: movieData.release_date ? new Date(movieData.release_date) : null,
+				productionCompanies: movieData.production_companies.map(
+					(company: any) => ({
+						logoUrl: company.logo_path
+							? `https://image.tmdb.org/t/p/w500${company.logo_path}`
+							: null,
+						name: company.name,
+						originCountry: company.origin_country,
+					}),
+				),
+				productionCountries: movieData.production_countries.map(
+					(country: any) => country.name,
+				),
+				releaseDate: movieData.release_date
+					? new Date(movieData.release_date)
+					: null,
 				revenue: movieData.revenue,
 				runtime: movieData.runtime,
 				spokenLanguages: movieData.spoken_languages.map((lang: any) => ({
@@ -225,7 +237,7 @@ export class TMDBService {
 					publishedAt: video.published_at ? new Date(video.published_at) : null,
 				})),
 			};
-			
+
 			await this.cacheService.set(
 				this.cacheKeys.getMovieById.prefix(id),
 				movie,
@@ -237,7 +249,7 @@ export class TMDBService {
 			throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
 		}
 	}
-	
+
 	async getTVShowById(id: number): Promise<any> {
 		try {
 			const cachedTVShow = await this.cacheService.get(
@@ -247,7 +259,7 @@ export class TMDBService {
 			if (cachedTVShow) {
 				return cachedTVShow;
 			}
-			
+
 			const tvShowResponse = await firstValueFrom(
 				this.httpService.get(`${this.TMDB_API_URL}/tv/${id}`, {
 					headers: {
@@ -255,7 +267,7 @@ export class TMDBService {
 					},
 				}),
 			);
-			
+
 			const creditsResponse = await firstValueFrom(
 				this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/credits`, {
 					headers: {
@@ -266,20 +278,23 @@ export class TMDBService {
 
 			const tvShowData = tvShowResponse.data;
 			const creditsData = creditsResponse.data;
-			
+
 			const seasons: any[] = [];
-			
+
 			for (const season of tvShowData.seasons) {
 				const seasonResponse = await firstValueFrom(
-					this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/season/${season.season_number}`, {
-						headers: {
-							Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+					this.httpService.get(
+						`${this.TMDB_API_URL}/tv/${id}/season/${season.season_number}`,
+						{
+							headers: {
+								Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+							},
 						},
-					}),
+					),
 				);
-				
+
 				const seasonData = seasonResponse.data;
-				
+
 				seasons.push({
 					id: seasonData.id,
 					name: seasonData.name,
@@ -310,35 +325,47 @@ export class TMDBService {
 						: null,
 				})),
 				episodeRuntime: tvShowData.episode_run_time,
-				firstAirDate: tvShowData.first_air_date ? new Date(tvShowData.first_air_date) : null,
+				firstAirDate: tvShowData.first_air_date
+					? new Date(tvShowData.first_air_date)
+					: null,
 				genres: tvShowData.genres.map((genre: any) => genre.name),
 				homepage: tvShowData.homepage,
 				inProduction: tvShowData.in_production,
 				languages: tvShowData.languages,
-				lastAirDate: tvShowData.last_air_date ? new Date(tvShowData.last_air_date) : null,
-				lastEpisodeToAir: tvShowData.last_episode_to_air ? {
-					airDate: tvShowData.last_episode_to_air.air_date ? new Date(tvShowData.last_episode_to_air.air_date) : null,
-					episodeNumber: tvShowData.last_episode_to_air.episode_number,
-					id: tvShowData.last_episode_to_air.id,
-					name: tvShowData.last_episode_to_air.name,
-					overview: tvShowData.last_episode_to_air.overview,
-					seasonNumber: tvShowData.last_episode_to_air.season_number,
-					stillUrl: tvShowData.last_episode_to_air.still_path
-						? `https://image.tmdb.org/t/p/w500${tvShowData.last_episode_to_air.still_path}`
-						: null,
-				} : null,
+				lastAirDate: tvShowData.last_air_date
+					? new Date(tvShowData.last_air_date)
+					: null,
+				lastEpisodeToAir: tvShowData.last_episode_to_air
+					? {
+							airDate: tvShowData.last_episode_to_air.air_date
+								? new Date(tvShowData.last_episode_to_air.air_date)
+								: null,
+							episodeNumber: tvShowData.last_episode_to_air.episode_number,
+							id: tvShowData.last_episode_to_air.id,
+							name: tvShowData.last_episode_to_air.name,
+							overview: tvShowData.last_episode_to_air.overview,
+							seasonNumber: tvShowData.last_episode_to_air.season_number,
+							stillUrl: tvShowData.last_episode_to_air.still_path
+								? `https://image.tmdb.org/t/p/w500${tvShowData.last_episode_to_air.still_path}`
+								: null,
+						}
+					: null,
 				name: tvShowData.name,
-				nextEpisodeToAir: tvShowData.next_episode_to_air ? {
-					airDate: tvShowData.next_episode_to_air.air_date ? new Date(tvShowData.next_episode_to_air.air_date) : null,
-					episodeNumber: tvShowData.next_episode_to_air.episode_number,
-					id: tvShowData.next_episode_to_air.id,
-					name: tvShowData.next_episode_to_air.name,
-					overview: tvShowData.next_episode_to_air.overview,
-					seasonNumber: tvShowData.next_episode_to_air.season_number,
-					stillUrl: tvShowData.next_episode_to_air.still_path
-						? `https://image.tmdb.org/t/p/w500${tvShowData.next_episode_to_air.still_path}`
-						: null,
-				} : null,
+				nextEpisodeToAir: tvShowData.next_episode_to_air
+					? {
+							airDate: tvShowData.next_episode_to_air.air_date
+								? new Date(tvShowData.next_episode_to_air.air_date)
+								: null,
+							episodeNumber: tvShowData.next_episode_to_air.episode_number,
+							id: tvShowData.next_episode_to_air.id,
+							name: tvShowData.next_episode_to_air.name,
+							overview: tvShowData.next_episode_to_air.overview,
+							seasonNumber: tvShowData.next_episode_to_air.season_number,
+							stillUrl: tvShowData.next_episode_to_air.still_path
+								? `https://image.tmdb.org/t/p/w500${tvShowData.next_episode_to_air.still_path}`
+								: null,
+						}
+					: null,
 				networks: tvShowData.networks.map((network: any) => ({
 					id: network.id,
 					name: network.name,
@@ -353,13 +380,21 @@ export class TMDBService {
 				originalLanguage: tvShowData.original_language,
 				originalName: tvShowData.original_name,
 				popularity: tvShowData.popularity,
-				posterPath: tvShowData.poster_path ? `https://image.tmdb.org/t/p/w500${tvShowData.poster_path}` : null,
-				productionCompanies: tvShowData.production_companies.map((company: any) => ({
-					logoUrl: company.logo_path ? `https://image.tmdb.org/t/p/w500${company.logo_path}` : null,
-					name: company.name,
-					originCountry: company.origin_country,
-				})),
-				productionCountries: tvShowData.production_countries.map((country: any) => country.name),
+				posterPath: tvShowData.poster_path
+					? `https://image.tmdb.org/t/p/w500${tvShowData.poster_path}`
+					: null,
+				productionCompanies: tvShowData.production_companies.map(
+					(company: any) => ({
+						logoUrl: company.logo_path
+							? `https://image.tmdb.org/t/p/w500${company.logo_path}`
+							: null,
+						name: company.name,
+						originCountry: company.origin_country,
+					}),
+				),
+				productionCountries: tvShowData.production_countries.map(
+					(country: any) => country.name,
+				),
 				status: tvShowData.status,
 				tagline: tvShowData.tagline,
 				type: tvShowData.type,
@@ -381,7 +416,7 @@ export class TMDBService {
 				})),
 				seasons,
 			};
-			
+
 			await this.cacheService.set(
 				this.cacheKeys.getTVShowById.prefix(id),
 				tvShow,

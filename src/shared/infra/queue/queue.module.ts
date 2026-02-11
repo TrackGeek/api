@@ -6,7 +6,7 @@ import { FeedEventProcessor } from "./processors/feed-event.processor";
 import { EmailProcessor } from "./processors/email.processor";
 import { QueueService } from "./queue.service";
 import { EmailModule } from "../email/email.module";
-import { FeedEventModule } from '@/modules/feed-event/feed-event.module';
+import { FeedEventModule } from "@/modules/feed-event/feed-event.module";
 
 @Global()
 @Module({

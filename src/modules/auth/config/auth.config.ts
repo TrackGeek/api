@@ -6,7 +6,7 @@ import type { BetterAuthOptions } from "@better-auth/core";
 
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { UserService } from "@/modules/user/user.service";
-import { QueueService } from '@/shared/infra/queue/queue.service';
+import { QueueService } from "@/shared/infra/queue/queue.service";
 
 interface AuthConfigParams {
 	configService?: ConfigService;
@@ -74,7 +74,7 @@ export function getAuthConfig(params: AuthConfigParams) {
 							name,
 							image,
 						});
-						
+
 						return false;
 					},
 				},
@@ -85,10 +85,10 @@ export function getAuthConfig(params: AuthConfigParams) {
 							name,
 							image,
 						});
-						
+
 						return false;
-					}
-				}
+					},
+				},
 			},
 		},
 	} as BetterAuthOptions;

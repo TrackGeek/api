@@ -2,13 +2,13 @@ import { Injectable } from "@nestjs/common";
 
 import type { SearchTVShowDto } from "./dtos/search-tv-show.dto";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import { CacheKeys, CacheService } from '@/shared/infra/cache/cache.service';
-import { DatabaseService } from '@/shared/infra/database/database.service';
-import { TVShow } from '@prisma/generated/client';
-import { RefreshTVShowDto } from './dtos/refresh-tv-show.dto';
-import { AppException } from '@/shared/exceptions/app.exceptions';
-import { ERROR_CODES } from '@/shared/constants/error-codes';
-import { REFRESH_INTERVAL_MS } from '@/shared/constants/refresh-interval';
+import { CacheKeys, CacheService } from "@/shared/infra/cache/cache.service";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { TVShow } from "@prisma/generated/client";
+import { RefreshTVShowDto } from "./dtos/refresh-tv-show.dto";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 
 @Injectable()
 export class TVShowService {
@@ -17,7 +17,7 @@ export class TVShowService {
 		private readonly databaseService: DatabaseService,
 		private readonly integrationsService: IntegrationsService,
 	) {}
-	
+
 	private get cacheKeys(): CacheKeys {
 		return {
 			tvShowById: {
@@ -30,7 +30,7 @@ export class TVShowService {
 	async searchTVShows(searchTVShowDto: SearchTVShowDto) {
 		return this.integrationsService.tmdb.searchTVShows(searchTVShowDto.query);
 	}
-	
+
 	async getTVShowById(id: number) {
 		const cachedTVShow = await this.cacheService.get<TVShow>(
 			this.cacheKeys.tvShowById.prefix(id),
@@ -75,9 +75,13 @@ export class TVShowService {
 		}
 
 		if (
-			await this.cacheService.exists(this.cacheKeys.tvShowById.prefix(tvShow.tmdbId))
+			await this.cacheService.exists(
+				this.cacheKeys.tvShowById.prefix(tvShow.tmdbId),
+			)
 		) {
-			await this.cacheService.delete(this.cacheKeys.tvShowById.prefix(tvShow.tmdbId));
+			await this.cacheService.delete(
+				this.cacheKeys.tvShowById.prefix(tvShow.tmdbId),
+			);
 		}
 
 		const tmdbTVShow = await this.integrationsService.tmdb.getTVShowById(
