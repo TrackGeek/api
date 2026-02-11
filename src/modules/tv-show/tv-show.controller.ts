@@ -1,9 +1,11 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
 
 import { TVShowService } from './tv-show.service';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
 import { SearchTVShowDto } from './dtos/search-tv-show.dto';
+import { AuthGuard } from '@thallesp/nestjs-better-auth';
+import { RefreshTVShowDto } from './dtos/refresh-tv-show.dto';
 
 @UseGuards(RateLimitGuard)
 @RateLimit({ limit: 30, window: 60, blockDuration: 300 })
@@ -16,5 +18,21 @@ export class TVShowController {
 		const tvShows = await this.tvShowService.searchTVShows(searchTVShowDto);
 
 		return { tvShows };
+	}
+	
+	@Post('/refresh')
+	@HttpCode(HttpStatus.OK)
+	@UseGuards(AuthGuard)
+	@UseGuards(RateLimitGuard)
+	@RateLimit({ limit: 4, window: 60, blockDuration: 300 })
+	async refreshTVShow(@Body() refreshTVShowDto: RefreshTVShowDto) {
+		await this.tvShowService.refreshTVShow(refreshTVShowDto);
+	}
+
+	@Get('/details/:id')
+	async getTVShowById(@Param('id') id: number) {
+		const tvShow = await this.tvShowService.getTVShowById(id);
+
+		return { tvShow };
 	}
 }

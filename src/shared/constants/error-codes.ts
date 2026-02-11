@@ -45,9 +45,17 @@ export const ERROR_CODES = {
 		message: "TVSHOW_NOT_FOUND",
 		status: 404,
 	},
+	TVSHOW_ALREADY_REFRESHED: {
+		message: "TVSHOW_ALREADY_REFRESHED",
+		status: 409,
+	},
 	MOVIE_NOT_FOUND: {
 		message: "MOVIE_NOT_FOUND",
 		status: 404,
+	},
+	MOVIE_ALREADY_REFRESHED: {
+		message: "MOVIE_ALREADY_REFRESHED",
+		status: 409,
 	},
 	MANGA_NOT_FOUND: {
 		message: "MANGA_NOT_FOUND",

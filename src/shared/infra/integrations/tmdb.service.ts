@@ -238,7 +238,7 @@ export class TMDBService {
 		}
 	}
 	
-	async getTVShowById(id: number) {
+	async getTVShowById(id: number): Promise<any> {
 		try {
 			const cachedTVShow = await this.cacheService.get(
 				this.cacheKeys.getTVShowById.prefix(id),
@@ -255,17 +255,131 @@ export class TMDBService {
 					},
 				}),
 			);
+			
+			const creditsResponse = await firstValueFrom(
+				this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/credits`, {
+					headers: {
+						Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+					},
+				}),
+			);
 
 			const tvShowData = tvShowResponse.data;
+			const creditsData = creditsResponse.data;
+			
+			const seasons: any[] = [];
+			
+			for (const season of tvShowData.seasons) {
+				const seasonResponse = await firstValueFrom(
+					this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/season/${season.season_number}`, {
+						headers: {
+							Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+						},
+					}),
+				);
+				
+				const seasonData = seasonResponse.data;
+				
+				seasons.push({
+					id: seasonData.id,
+					name: seasonData.name,
+					seasonNumber: seasonData.season_number,
+					airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
+					posterUrl: seasonData.poster_path
+						? `https://image.tmdb.org/t/p/w500${seasonData.poster_path}`
+						: null,
+					episodes: seasonData.episodes.map((episode: any) => ({
+						episodeNumber: episode.episode_number,
+						name: episode.name,
+						overview: episode.overview,
+						airDate: episode.air_date ? new Date(episode.air_date) : null,
+						stillUrl: episode.still_path
+							? `https://image.tmdb.org/t/p/w500${episode.still_path}`
+							: null,
+					})),
+				});
+			}
 
 			const tvShow = {
 				tmdbId: tvShowData.id,
-				name: tvShowData.name,
+				createdBy: tvShowData.created_by.map((creator: any) => ({
+					id: creator.id,
+					name: creator.name,
+					profileUrl: creator.profile_path
+						? `https://image.tmdb.org/t/p/w500${creator.profile_path}`
+						: null,
+				})),
+				episodeRuntime: tvShowData.episode_run_time,
 				firstAirDate: tvShowData.first_air_date ? new Date(tvShowData.first_air_date) : null,
-				posterUrl: tvShowData.poster_path
-					? `https://image.tmdb.org/t/p/w500${tvShowData.poster_path}`
-					: null,
-				overview: tvShowData.overview,
+				genres: tvShowData.genres.map((genre: any) => genre.name),
+				homepage: tvShowData.homepage,
+				inProduction: tvShowData.in_production,
+				languages: tvShowData.languages,
+				lastAirDate: tvShowData.last_air_date ? new Date(tvShowData.last_air_date) : null,
+				lastEpisodeToAir: tvShowData.last_episode_to_air ? {
+					airDate: tvShowData.last_episode_to_air.air_date ? new Date(tvShowData.last_episode_to_air.air_date) : null,
+					episodeNumber: tvShowData.last_episode_to_air.episode_number,
+					id: tvShowData.last_episode_to_air.id,
+					name: tvShowData.last_episode_to_air.name,
+					overview: tvShowData.last_episode_to_air.overview,
+					seasonNumber: tvShowData.last_episode_to_air.season_number,
+					stillUrl: tvShowData.last_episode_to_air.still_path
+						? `https://image.tmdb.org/t/p/w500${tvShowData.last_episode_to_air.still_path}`
+						: null,
+				} : null,
+				name: tvShowData.name,
+				nextEpisodeToAir: tvShowData.next_episode_to_air ? {
+					airDate: tvShowData.next_episode_to_air.air_date ? new Date(tvShowData.next_episode_to_air.air_date) : null,
+					episodeNumber: tvShowData.next_episode_to_air.episode_number,
+					id: tvShowData.next_episode_to_air.id,
+					name: tvShowData.next_episode_to_air.name,
+					overview: tvShowData.next_episode_to_air.overview,
+					seasonNumber: tvShowData.next_episode_to_air.season_number,
+					stillUrl: tvShowData.next_episode_to_air.still_path
+						? `https://image.tmdb.org/t/p/w500${tvShowData.next_episode_to_air.still_path}`
+						: null,
+				} : null,
+				networks: tvShowData.networks.map((network: any) => ({
+					id: network.id,
+					name: network.name,
+					originCountry: network.origin_country,
+					logoUrl: network.logo_path
+						? `https://image.tmdb.org/t/p/w500${network.logo_path}`
+						: null,
+				})),
+				numberOfEpisodes: tvShowData.number_of_episodes,
+				numberOfSeasons: tvShowData.number_of_seasons,
+				originCountry: tvShowData.origin_country,
+				originalLanguage: tvShowData.original_language,
+				originalName: tvShowData.original_name,
+				popularity: tvShowData.popularity,
+				posterPath: tvShowData.poster_path ? `https://image.tmdb.org/t/p/w500${tvShowData.poster_path}` : null,
+				productionCompanies: tvShowData.production_companies.map((company: any) => ({
+					logoUrl: company.logo_path ? `https://image.tmdb.org/t/p/w500${company.logo_path}` : null,
+					name: company.name,
+					originCountry: company.origin_country,
+				})),
+				productionCountries: tvShowData.production_countries.map((country: any) => country.name),
+				status: tvShowData.status,
+				tagline: tvShowData.tagline,
+				type: tvShowData.type,
+				cast: creditsData.cast.map((castMember: any) => ({
+					id: castMember.id,
+					name: castMember.name,
+					character: castMember.character,
+					profileUrl: castMember.profile_path
+						? `https://image.tmdb.org/t/p/w500${castMember.profile_path}`
+						: null,
+				})),
+				crew: creditsData.crew.map((crewMember: any) => ({
+					id: crewMember.id,
+					name: crewMember.name,
+					job: crewMember.job,
+					profileUrl: crewMember.profile_path
+						? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}`
+						: null,
+				})),
+				seasons,
 			};
 			
 			await this.cacheService.set(

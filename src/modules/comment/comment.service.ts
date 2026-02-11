@@ -16,12 +16,12 @@ import {
 	TVShowCommentFindManyArgs,
 } from "@prisma/generated/models";
 import { QueueService } from '@/shared/infra/queue/queue.service';
-import { FeedEventType } from '../feed-event/constants/feed-event-type';
 import { AddCommentToBookDto } from './dtos/add-comment-to-book.dto';
 import { AddCommentToAnimeDto } from './dtos/add-comment-to-anime.dto';
 import { AddCommentToMovieDto } from './dtos/add-comment-to-movie.dto';
 import { AddCommentToTVShowDto } from './dtos/add-comment-to-tv-show.dto';
 import { AddCommentToMangaDto } from './dtos/add-comment-to-manga.dto';
+import { FeedEventType } from '@prisma/generated/enums';
 
 @Injectable()
 export class CommentService {
@@ -85,7 +85,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToProfileDto.userId,
 			metadata: {
 				comment: {
@@ -149,7 +149,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToGameDto.userId,
 			metadata: {
 				comment: {
@@ -209,7 +209,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToBookDto.userId,
 			metadata: {
 				comment: {
@@ -268,7 +268,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToAnimeDto.userId,
 			metadata: {
 				comment: {
@@ -326,7 +326,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToMangaDto.userId,
 			metadata: {
 				comment: {
@@ -384,7 +384,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToMovieDto.userId,
 			metadata: {
 				comment: {
@@ -442,7 +442,7 @@ export class CommentService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newComment,
+			type: FeedEventType.NewComment,
 			userId: addCommentToTVShowDto.userId,
 			metadata: {
 				comment: {

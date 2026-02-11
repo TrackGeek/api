@@ -31,6 +31,9 @@ CREATE TYPE "ProgressStatus" AS ENUM ('Watching', 'Playing', 'Reading', 'Complet
 -- CreateEnum
 CREATE TYPE "ListType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book');
 
+-- CreateEnum
+CREATE TYPE "FavoriteType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -406,13 +409,13 @@ CREATE TABLE "TVShow" (
     "homepage" TEXT,
     "inProduction" BOOLEAN,
     "languages" TEXT[],
-    "LastAirDate" TEXT,
+    "lastAirDate" TEXT,
     "lastEpisodeToAir" JSONB,
     "name" TEXT,
     "nextEpisodeToAir" TEXT,
     "networks" JSONB,
-    "episodes" INTEGER,
-    "seasonsNumber" INTEGER,
+    "numberOfEpisodes" INTEGER,
+    "numberOfSeasons" INTEGER,
     "originCountry" TEXT[],
     "originalLanguage" TEXT,
     "originalName" TEXT,
@@ -425,6 +428,7 @@ CREATE TABLE "TVShow" (
     "tagline" TEXT,
     "type" TEXT,
     "cast" JSONB,
+    "crew" JSONB,
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -779,69 +783,20 @@ CREATE TABLE "ListBook" (
 );
 
 -- CreateTable
-CREATE TABLE "FavoriteAnime" (
+CREATE TABLE "Favorite" (
     "id" TEXT NOT NULL,
+    "type" "FavoriteType" NOT NULL,
     "userId" TEXT NOT NULL,
-    "animeId" TEXT NOT NULL,
+    "animeId" TEXT,
+    "mangaId" TEXT,
+    "tVShowId" TEXT,
+    "movieId" TEXT,
+    "gameId" TEXT,
+    "bookId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "FavoriteAnime_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FavoriteManga" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "mangaId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "FavoriteManga_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FavoriteTVShow" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "tvShowId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "FavoriteTVShow_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FavoriteMovie" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "movieId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "FavoriteMovie_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FavoriteGame" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "gameId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "FavoriteGame_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FavoriteBook" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "bookId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "FavoriteBook_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Favorite_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -1020,24 +975,6 @@ CREATE UNIQUE INDEX "ListGame_listId_gameId_key" ON "ListGame"("listId", "gameId
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ListBook_listId_bookId_key" ON "ListBook"("listId", "bookId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FavoriteAnime_userId_animeId_key" ON "FavoriteAnime"("userId", "animeId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FavoriteManga_userId_mangaId_key" ON "FavoriteManga"("userId", "mangaId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FavoriteTVShow_userId_tvShowId_key" ON "FavoriteTVShow"("userId", "tvShowId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FavoriteMovie_userId_movieId_key" ON "FavoriteMovie"("userId", "movieId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FavoriteGame_userId_gameId_key" ON "FavoriteGame"("userId", "gameId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FavoriteBook_userId_bookId_key" ON "FavoriteBook"("userId", "bookId");
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1253,37 +1190,22 @@ ALTER TABLE "ListBook" ADD CONSTRAINT "ListBook_listId_fkey" FOREIGN KEY ("listI
 ALTER TABLE "ListBook" ADD CONSTRAINT "ListBook_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteAnime" ADD CONSTRAINT "FavoriteAnime_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteAnime" ADD CONSTRAINT "FavoriteAnime_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteManga" ADD CONSTRAINT "FavoriteManga_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "Manga"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteManga" ADD CONSTRAINT "FavoriteManga_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "Manga"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_tVShowId_fkey" FOREIGN KEY ("tVShowId") REFERENCES "TVShow"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteTVShow" ADD CONSTRAINT "FavoriteTVShow_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteTVShow" ADD CONSTRAINT "FavoriteTVShow_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FavoriteMovie" ADD CONSTRAINT "FavoriteMovie_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FavoriteMovie" ADD CONSTRAINT "FavoriteMovie_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FavoriteGame" ADD CONSTRAINT "FavoriteGame_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FavoriteGame" ADD CONSTRAINT "FavoriteGame_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FavoriteBook" ADD CONSTRAINT "FavoriteBook_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FavoriteBook" ADD CONSTRAINT "FavoriteBook_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE SET NULL ON UPDATE CASCADE;

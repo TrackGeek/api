@@ -66,11 +66,11 @@ export class MovieService {
 		});
 
 		if (!movie) {
-			throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+			throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
 		}
 
 		if (Date.now() - movie.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
-			throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
+			throw new AppException(ERROR_CODES.MOVIE_ALREADY_REFRESHED);
 		}
 
 		if (

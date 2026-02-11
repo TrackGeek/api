@@ -500,22 +500,22 @@ model Manga {
 }
 
 model TVShow {
-  id                  String   @id @default(uuid())
-  tmdbId              Int      @unique
+  id                  String    @id @default(uuid())
+  tmdbId              Int       @unique
   createdBy           Json?
   episodeRuntime      Int[]
-  firstAirDate        String?
+  firstAirDate        DateTime?
   genres              Json?
   homepage            String?
   inProduction        Boolean?
   languages           String[]
-  LastAirDate         String?
+  lastAirDate         DateTime?
   lastEpisodeToAir    Json?
   name                String?
   nextEpisodeToAir    String?
   networks            Json?
-  episodes            Int?
-  seasonsNumber       Int?
+  numberOfEpisodes    Int?
+  numberOfSeasons     Int?
   originCountry       String[]
   originalLanguage    String?
   originalName        String?
@@ -528,9 +528,10 @@ model TVShow {
   tagline             String?
   type                String?
   cast                Json?
-  lastRefreshedAt     DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  crew                Json?
+  lastRefreshedAt     DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   tvShowComments   TVShowComment[]
   listTVShows      ListTVShow[]

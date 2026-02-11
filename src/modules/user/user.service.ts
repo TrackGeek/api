@@ -9,7 +9,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueueService } from '@/shared/infra/queue/queue.service';
-import { FeedEventType } from '../feed-event/constants/feed-event-type';
+import { FeedEventType } from '@prisma/generated/enums';
 
 @Injectable()
 export class UserService {
@@ -145,7 +145,7 @@ export class UserService {
 		});
 		
 		await this.queueService.addFeedEventQueue({
-			type: FeedEventType.newFollower,
+			type: FeedEventType.NewFollower,
 			userId,
 			metadata: {
 				follower: {
