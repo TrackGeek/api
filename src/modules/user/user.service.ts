@@ -1,28 +1,28 @@
 import { Injectable } from "@nestjs/common";
-import crypto from "node:crypto";
 
-import { CreateUserDto } from "./dto/create-user.dto";
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { UploadService } from "@/shared/infra/upload/upload.service";
-import { extractNameFromEmail } from "@/shared/utils/email";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { UpdateUserDto } from "./dto/update-user.dto";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { FeedEventType } from "@prisma/generated/enums";
+import { extractNameFromEmail } from '@/shared/utils/email';
 
 @Injectable()
 export class UserService {
 	constructor(
 		private readonly databaseService: DatabaseService,
-		private readonly uploadService: UploadService,
 		private readonly queueService: QueueService,
 	) {}
 
 	async getUserById(id: string) {
 		const user = this.databaseService.user.findUnique({
 			where: { id },
-			include: { profile: true },
+			include: {
+				profile: true
+			},
+			omit: {
+				image: true,
+			}
 		});
 
 		if (!user) {
@@ -31,17 +31,15 @@ export class UserService {
 
 		return user;
 	}
-
-	async createUser(createUserDto: CreateUserDto) {
-		let existingUser = await this.databaseService.user.findUnique({
-			where: { email: createUserDto.email },
-		});
-
-		if (existingUser) {
-			return;
-		}
-
-		const emailPrefix = createUserDto.email.split("@")[0];
+	
+	getName(name: string, email: string) {
+		return name && name?.length > 0
+			? name
+			: extractNameFromEmail(email)
+	}
+	
+	async getUsername(email: string) {
+		const emailPrefix = email.split("@")[0];
 
 		let baseUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, "");
 
@@ -52,59 +50,8 @@ export class UserService {
 		const username = usernameExists
 			? `${baseUsername}${Math.floor(Math.random() * 10000)}`
 			: baseUsername;
-
-		const avatarUrl = createUserDto.image
-			? await this.uploadService.uploadFromUrl(createUserDto.image)
-			: undefined;
-
-		await this.databaseService.user.create({
-			data: {
-				id: crypto.randomUUID(),
-				email: createUserDto.email,
-				name:
-					createUserDto.name && createUserDto.name?.length > 0
-						? createUserDto.name
-						: extractNameFromEmail(createUserDto.email),
-				username,
-				emailVerified: createUserDto.emailVerified ?? false,
-				profile: {
-					create: {
-						avatarUrl,
-					},
-				},
-			},
-		});
-	}
-
-	async updateUser(updateUserDto: UpdateUserDto) {
-		const { id, name, image } = updateUserDto;
-
-		const user = await this.databaseService.user.findUnique({
-			where: { id },
-			include: { profile: true },
-		});
-
-		if (!user) {
-			throw new AppException(ERROR_CODES.USER_NOT_FOUND);
-		}
-
-		let avatarUrl = user.profile?.avatarUrl;
-
-		if (image) {
-			avatarUrl = await this.uploadService.uploadFromUrl(image);
-		}
-
-		await this.databaseService.user.update({
-			where: { id },
-			data: {
-				name,
-				profile: {
-					update: {
-						avatarUrl,
-					},
-				},
-			},
-		});
+			
+		return username
 	}
 
 	async followUser(userId: string, targetUserId: string) {
@@ -144,7 +91,7 @@ export class UserService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewFollower,
 			userId,
 			metadata: {
