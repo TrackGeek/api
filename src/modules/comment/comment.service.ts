@@ -84,7 +84,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToProfileDto.userId,
 			metadata: {
@@ -148,7 +148,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToGameDto.userId,
 			metadata: {
@@ -208,7 +208,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToBookDto.userId,
 			metadata: {
@@ -267,7 +267,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToAnimeDto.userId,
 			metadata: {
@@ -325,7 +325,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToMangaDto.userId,
 			metadata: {
@@ -383,7 +383,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToMovieDto.userId,
 			metadata: {
@@ -441,7 +441,7 @@ export class CommentService {
 			},
 		});
 
-		await this.queueService.addFeedEventQueue({
+		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewComment,
 			userId: addCommentToTVShowDto.userId,
 			metadata: {
