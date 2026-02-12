@@ -1,37 +1,16 @@
 export const ERROR_CODES = {
-	INVALID_EMAIL_LOGIN_CODE: {
-		message: "INVALID_EMAIL_LOGIN_CODE",
-		status: 400,
-	},
-	INVALID_GOOGLE_LOGIN_CODE: {
-		message: "INVALID_GOOGLE_LOGIN_CODE",
-		status: 400,
-	},
-	INVALID_DISCORD_LOGIN_CODE: {
-		message: "INVALID_DISCORD_LOGIN_CODE",
-		status: 400,
-	},
-	INVALID_GITHUB_LOGIN_CODE: {
-		message: "INVALID_GITHUB_LOGIN_CODE",
-		status: 400,
-	},
-	INVALID_REFRESH_TOKEN: { message: "INVALID_REFRESH_TOKEN", status: 401 },
-	EXPIRED_REFRESH_TOKEN: { message: "EXPIRED_REFRESH_TOKEN", status: 401 },
-	ACCESS_TOKEN_MISSING: { message: "ACCESS_TOKEN_MISSING", status: 422 },
-	ACCESS_TOKEN_EXPIRED: { message: "ACCESS_TOKEN_EXPIRED", status: 401 },
-	INVALID_ACCESS_TOKEN: { message: "INVALID_ACCESS_TOKEN", status: 401 },
 	USER_NOT_FOUND: { message: "USER_NOT_FOUND", status: 404 },
-	USERNAME_ALREADY_EXISTS: { message: "USERNAME_ALREADY_EXISTS", status: 409 },
 	IMAGE_TYPE_NOT_SUPPORTED: {
 		message: "IMAGE_TYPE_NOT_SUPPORTED",
 		status: 415,
 	},
 	FAILED_TO_UPLOAD_IMAGE: { message: "FAILED_TO_UPLOAD_IMAGE", status: 400 },
 	RATE_LIMIT_EXCEEDED: { message: "RATE_LIMIT_EXCEEDED", status: 429 },
-	GAME_SERVICE_UNAVAILABLE: {
+	IGDB_SERVICE_UNAVAILABLE: {
 		message: "GAME_SERVICE_UNAVAILABLE",
 		status: 503,
 	},
+	IGDB_GAME_NOT_FOUND: { message: "IGDB_GAME_NOT_FOUND", status: 404 },
 	GAME_NOT_FOUND: { message: "GAME_NOT_FOUND", status: 404 },
 	GAME_ALREADY_REFRESHED: { message: "GAME_ALREADY_REFRESHED", status: 409 },
 	INTERNAL_SERVER_ERROR: { message: "INTERNAL_SERVER_ERROR", status: 500 },
@@ -42,4 +21,48 @@ export const ERROR_CODES = {
 	PROFILE_NOT_FOUND: { message: "PROFILE_NOT_FOUND", status: 404 },
 	COMMENT_NOT_FOUND: { message: "COMMENT_NOT_FOUND", status: 404 },
 	REACTION_NOT_FOUND: { message: "REACTION_NOT_FOUND", status: 404 },
+	TMDB_SERVICE_UNAVAILABLE: {
+		message: "TMDB_SERVICE_UNAVAILABLE",
+		status: 503,
+	},
+	USER_CANNOT_FOLLOW_SELF: {
+		message: "USER_CANNOT_FOLLOW_SELF",
+		status: 400,
+	},
+	USER_ALREADY_FOLLOWING: {
+		message: "USER_ALREADY_FOLLOWING",
+		status: 400,
+	},
+	USER_NOT_FOLLOWING: {
+		message: "USER_NOT_FOLLOWING",
+		status: 400,
+	},
+	BOOK_NOT_FOUND: {
+		message: "BOOK_NOT_FOUND",
+		status: 404,
+	},
+	TVSHOW_NOT_FOUND: {
+		message: "TVSHOW_NOT_FOUND",
+		status: 404,
+	},
+	TVSHOW_ALREADY_REFRESHED: {
+		message: "TVSHOW_ALREADY_REFRESHED",
+		status: 409,
+	},
+	MOVIE_NOT_FOUND: {
+		message: "MOVIE_NOT_FOUND",
+		status: 404,
+	},
+	MOVIE_ALREADY_REFRESHED: {
+		message: "MOVIE_ALREADY_REFRESHED",
+		status: 409,
+	},
+	MANGA_NOT_FOUND: {
+		message: "MANGA_NOT_FOUND",
+		status: 404,
+	},
+	ANIME_NOT_FOUND: {
+		message: "ANIME_NOT_FOUND",
+		status: 404,
+	},
 } as const;

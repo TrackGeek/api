@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@thallesp/nestjs-better-auth';
 
 import { GameService } from './game.service';
@@ -29,16 +29,9 @@ export class GameController {
 		await this.gameService.refreshGame(refreshGameDto);
 	}
 
-	@Get('/details/id/:id')
-	async getGameById(@Param('id') id: string) {
+	@Get('/details/:id')
+	async getGameById(@Param('id') id: number) {
 		const game = await this.gameService.getGameById(id);
-
-		return { game };
-	}
-
-	@Get('/details/slug/:slug')
-	async getGameBySlug(@Param('slug') slug: string) {
-		const game = await this.gameService.getGameBySlug(slug);
 
 		return { game };
 	}
