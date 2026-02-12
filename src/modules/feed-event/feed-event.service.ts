@@ -4,6 +4,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { FeedEventDto } from "./dtos/feed-event.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { FeedEventFindManyArgs } from '@prisma/generated/models';
 
 @Injectable()
 export class FeedEventService {
@@ -30,9 +31,20 @@ export class FeedEventService {
 			throw new AppException(ERROR_CODES.USER_NOT_FOUND);
 		}
 
-		const pagination = await this.databaseService.cursorPagination({
+		const following = await this.databaseService.following.findMany({
+			where: { followerId: userId },
+			select: { followingId: true },
+		});
+
+		const friendIds = following.map((item) => item.followingId);
+
+		const pagination = await this.databaseService.cursorPagination<FeedEventFindManyArgs>({
 			model: "feedEvent",
-			where: { userId },
+			where: {
+				userId: {
+					in: friendIds,
+				},
+			},
 			orderBy: { createdAt: "desc" },
 		});
 
