@@ -65,4 +65,24 @@ export const ERROR_CODES = {
 		message: "ANIME_NOT_FOUND",
 		status: 404,
 	},
+	JIKAN_SERVICE_UNAVAILABLE: {
+		message: "JIKAN_SERVICE_UNAVAILABLE",
+		status: 503,
+	},
+	JIKAN_ANIME_NOT_FOUND: {
+		message: "JIKAN_ANIME_NOT_FOUND",
+		status: 404,
+	},
+	ANIME_ALREADY_REFRESHED: {
+		message: "ANIME_ALREADY_REFRESHED",
+		status: 409,
+	},
+	BOOK_ALREADY_REFRESHED: {
+		message: "BOOK_ALREADY_REFRESHED",
+		status: 409,
+	},
+	MANGA_ALREADY_REFRESHED: {
+		message: "MANGA_ALREADY_REFRESHED",
+		status: 409,
+	},
 } as const;
