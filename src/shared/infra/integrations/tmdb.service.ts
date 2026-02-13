@@ -1,8 +1,9 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { CacheKeys, CacheService } from "../cache/cache.service";
 import { firstValueFrom } from "rxjs";
+
+import { CacheKeys, CacheService } from "../cache/cache.service";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 
@@ -20,18 +21,18 @@ export class TMDBService {
 		return {
 			searchMovies: {
 				prefix: (query: string) => `tmdb:search:movies:${query}`,
-				expiration: 3600 * 12, // 12 hours
+				expiration: 3600 * 24, // 24 hours
 			},
 			searchTVShows: {
 				prefix: (query: string) => `tmdb:search:tv:${query}`,
-				expiration: 3600 * 12, // 12 hours
+				expiration: 3600 * 24, // 24 hours
 			},
 			getMovieById: {
-				prefix: (id: number) => `tmdb:movie:id:${id}`,
+				prefix: (id: number) => `tmdb:detailsmovie:id:${id}`,
 				expiration: 3600 * 24, // 24 hours
 			},
 			getTVShowById: {
-				prefix: (id: number) => `tmdb:tv:id:${id}`,
+				prefix: (id: number) => `tmdb:detailstv:id:${id}`,
 				expiration: 3600 * 24, // 24 hours
 			},
 		};

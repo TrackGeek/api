@@ -14,11 +14,11 @@ export class QueueService {
     private readonly feedEventQueue: Queue,
   ) {}
 
-  async sendMagicLinkQueue(emailDto: SendMagicLinkDto) {
+  async toSendMagicLinkQueue(emailDto: SendMagicLinkDto) {
     await this.emailQueue.add('send-magic-link', emailDto);
   }
   
-  async addFeedEventQueue(feedEventDto: FeedEventDto) {
+  async toFeedEventQueue(feedEventDto: FeedEventDto) {
     await this.feedEventQueue.add('feed-event', feedEventDto);
   }
 }

@@ -2,19 +2,42 @@ import { Injectable } from "@nestjs/common";
 
 import { UploadService } from "@/shared/infra/upload/upload.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { CreateProfileDto } from './dtos/create-profile.dto';
+import { UpdateProfileDto } from './dtos/update-profile.dto';
 
 @Injectable()
 export class ProfileService {
 	constructor(
 		private readonly databaseService: DatabaseService,
-		private readonly imgBBService: UploadService,
+		private readonly uploadService: UploadService,
 	) {}
+	
+	async createProfile(createProfileDto: CreateProfileDto) {
+		return this.databaseService.profile.create({
+			data: {
+				userId: createProfileDto.userId,
+				avatarUrl: createProfileDto.avatarUrl,
+			}
+		})
+	}
+	
+	async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+		await this.databaseService.profile.update({
+			where: { userId },
+			data: {
+				color: updateProfileDto.color,
+				language: updateProfileDto.language,
+				timezone: updateProfileDto.timezone,
+				about: updateProfileDto.about,
+			},
+		});
+	}
 
 	async updateProfileAvatar(
 		userId: string,
 		file: Express.Multer.File,
 	): Promise<void> {
-		const avatarUrl = await this.imgBBService.uploadFromBuffer(file.buffer);
+		const avatarUrl = await this.uploadService.uploadFromBuffer(file.buffer);
 
 		await this.databaseService.profile.update({
 			where: { userId },
@@ -33,7 +56,7 @@ export class ProfileService {
 		userId: string,
 		file: Express.Multer.File,
 	): Promise<void> {
-		const bannerUrl = await this.imgBBService.uploadFromBuffer(file.buffer);
+		const bannerUrl = await this.uploadService.uploadFromBuffer(file.buffer);
 
 		await this.databaseService.profile.update({
 			where: { userId },

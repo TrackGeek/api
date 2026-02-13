@@ -18,6 +18,9 @@ import { QueueModule } from "./shared/infra/queue/queue.module";
 import { EmailModule } from "./shared/infra/email/email.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { FeedEventModule } from "./modules/feed-event/feed-event.module";
+import { MangaModule } from './modules/manga/manga.module';
+import { BookModule } from './modules/book/book.module';
+import { AnimeModule } from './modules/anime/anime.module';
 
 @Module({
 	imports: [
@@ -39,6 +42,9 @@ import { FeedEventModule } from "./modules/feed-event/feed-event.module";
 		GameModule,
 		MovieModule,
 		TVShowModule,
+		MangaModule,
+		BookModule,
+		AnimeModule
 	],
 	providers: [],
 	controllers: [],

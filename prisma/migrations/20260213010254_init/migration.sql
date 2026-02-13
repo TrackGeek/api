@@ -2,24 +2,6 @@
 CREATE TYPE "FeedEventType" AS ENUM ('NewComment', 'NewFollower');
 
 -- CreateEnum
-CREATE TYPE "AnimeType" AS ENUM ('TV', 'ONA', 'Movie', 'Special', 'OVA', 'Music');
-
--- CreateEnum
-CREATE TYPE "AnimeStatus" AS ENUM ('Finished Airing', 'Currently Airing', 'Not yet aired');
-
--- CreateEnum
-CREATE TYPE "AnimeRating" AS ENUM ('G - All Ages', 'PG - Children', 'PG-13 - Teens 13 or older', 'R - 17+ (violence & profanity)', 'R+ - Mild Nudity', 'Rx - Hentai');
-
--- CreateEnum
-CREATE TYPE "AnimeSeason" AS ENUM ('summer', 'winter', 'spring', 'fall');
-
--- CreateEnum
-CREATE TYPE "MangaType" AS ENUM ('Manga', 'Novel', 'Light Novel', 'One-shot', 'Doujinshi', 'Manhua', 'Manhwa', 'OEL');
-
--- CreateEnum
-CREATE TYPE "MangaStatus" AS ENUM ('Finished', 'Publishing', 'On Hiatus', 'Discontinued', 'Not yet published');
-
--- CreateEnum
 CREATE TYPE "WatchStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
@@ -40,6 +22,7 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "image" TEXT,
     "username" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -64,11 +47,35 @@ CREATE TABLE "Profile" (
 );
 
 -- CreateTable
+CREATE TABLE "Medal" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Medal_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserMedal" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "medalId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserMedal_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Following" (
     "id" TEXT NOT NULL,
     "followerId" TEXT NOT NULL,
     "followingId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Following_pkey" PRIMARY KEY ("id")
 );
@@ -330,21 +337,21 @@ CREATE TABLE "Anime" (
     "id" TEXT NOT NULL,
     "malId" INTEGER NOT NULL,
     "url" TEXT NOT NULL,
-    "images" JSONB,
+    "imageUrl" TEXT,
     "trailer" JSONB,
     "titles" JSONB,
-    "type" "AnimeType",
+    "type" TEXT,
     "source" TEXT,
-    "episodes" INTEGER,
-    "status" "AnimeStatus",
+    "numberOfEpisodes" INTEGER,
+    "status" TEXT,
     "aired" JSONB,
     "duration" TEXT,
-    "rating" "AnimeRating",
+    "rating" TEXT,
     "rank" INTEGER,
     "popularity" INTEGER,
     "synopsis" TEXT,
     "background" TEXT,
-    "season" "AnimeSeason",
+    "season" TEXT,
     "year" INTEGER,
     "broadcast" JSONB,
     "producers" JSONB,
@@ -359,6 +366,7 @@ CREATE TABLE "Anime" (
     "external" JSONB,
     "characters" JSONB,
     "cast" JSONB,
+    "videos" JSONB,
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -371,12 +379,12 @@ CREATE TABLE "Manga" (
     "id" TEXT NOT NULL,
     "malId" INTEGER NOT NULL,
     "url" TEXT NOT NULL,
-    "images" JSONB,
+    "imageUrl" TEXT,
     "titles" JSONB,
-    "type" "MangaType",
-    "chapters" INTEGER,
-    "volumes" INTEGER,
-    "status" "MangaStatus",
+    "type" TEXT,
+    "numberOfChapters" INTEGER,
+    "numberOfVolumes" INTEGER,
+    "status" TEXT,
     "publishing" BOOLEAN,
     "published" JSONB,
     "rank" INTEGER,
@@ -404,12 +412,12 @@ CREATE TABLE "TVShow" (
     "tmdbId" INTEGER NOT NULL,
     "createdBy" JSONB,
     "episodeRuntime" INTEGER[],
-    "firstAirDate" TEXT,
+    "firstAirDate" TIMESTAMP(3),
     "genres" JSONB,
     "homepage" TEXT,
     "inProduction" BOOLEAN,
     "languages" TEXT[],
-    "lastAirDate" TEXT,
+    "lastAirDate" TIMESTAMP(3),
     "lastEpisodeToAir" JSONB,
     "name" TEXT,
     "nextEpisodeToAir" TEXT,
@@ -809,6 +817,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "UserMedal_userId_medalId_key" ON "UserMedal"("userId", "medalId");
+
+-- CreateIndex
 CREATE INDEX "Following_followerId_idx" ON "Following"("followerId");
 
 -- CreateIndex
@@ -867,6 +878,9 @@ CREATE UNIQUE INDEX "Book_hardcoverId_key" ON "Book"("hardcoverId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Anime_malId_key" ON "Anime"("malId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Manga_malId_key" ON "Manga"("malId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "TVShow_tmdbId_key" ON "TVShow"("tmdbId");
@@ -978,6 +992,12 @@ CREATE UNIQUE INDEX "ListBook_listId_bookId_key" ON "ListBook"("listId", "bookId
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserMedal" ADD CONSTRAINT "UserMedal_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserMedal" ADD CONSTRAINT "UserMedal_medalId_fkey" FOREIGN KEY ("medalId") REFERENCES "Medal"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Following" ADD CONSTRAINT "Following_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

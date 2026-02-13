@@ -24,11 +24,11 @@ export class IGDBService {
 			},
 			searchGames: {
 				prefix: (query: string) => `igdb:search:games:${query}`,
-				expiration: 3600 * 6, // 6 hours
+				expiration: 3600 * 24, // 24 hours
 			},
 			getGameById: {
-				prefix: (id: number) => `igdb:game:id:${id}`,
-				expiration: 3600 * 6, // 6 hours
+				prefix: (id: number) => `igdb:details:game:id:${id}`,
+				expiration: 3600 * 24, // 24 hours
 			},
 		};
 	}

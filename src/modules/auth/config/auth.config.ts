@@ -4,19 +4,21 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { ConfigService } from "@nestjs/config";
 import type { BetterAuthOptions } from "@better-auth/core";
 
-import { DatabaseService } from "@/shared/infra/database/database.service";
-import { UserService } from "@/modules/user/user.service";
-import { QueueService } from "@/shared/infra/queue/queue.service";
+import type { DatabaseService } from "@/shared/infra/database/database.service";
+import type { UserService } from "@/modules/user/user.service";
+import type { QueueService } from "@/shared/infra/queue/queue.service";
+import type { ProfileService } from '@/modules/profile/profile.service';
 
 interface AuthConfigParams {
 	configService?: ConfigService;
 	databaseService?: DatabaseService;
 	userService?: UserService;
+	profileService?: ProfileService;
 	queueService?: QueueService;
 }
 
 export function getAuthConfig(params: AuthConfigParams) {
-	const { configService, databaseService, userService, queueService } =
+	const { configService, databaseService, userService, profileService, queueService } =
 		params as Required<AuthConfigParams>;
 
 	return {
@@ -30,7 +32,6 @@ export function getAuthConfig(params: AuthConfigParams) {
 		trustedOrigins: [configService.get<string>("WEB_URL")],
 		socialProviders: {
 			google: {
-				prompt: "consent",
 				clientId: configService.get<string>("GOOGLE_CLIENT_ID"),
 				clientSecret: configService.get<string>("GOOGLE_CLIENT_SECRET"),
 			},
@@ -41,6 +42,17 @@ export function getAuthConfig(params: AuthConfigParams) {
 			discord: {
 				clientId: configService.get<string>("DISCORD_CLIENT_ID"),
 				clientSecret: configService.get<string>("DISCORD_CLIENT_SECRET"),
+			},
+		},
+		user: {
+			additionalFields: {
+				username: {
+					type: "string",
+					required: true,
+				},
+				profile: {
+					type: "json",
+				},
 			},
 		},
 		plugins: [
@@ -55,7 +67,7 @@ export function getAuthConfig(params: AuthConfigParams) {
 			lastLoginMethod(),
 			magicLink({
 				sendMagicLink: async ({ email, url }) => {
-					await queueService.sendMagicLinkQueue({ email, url });
+					await queueService.toSendMagicLinkQueue({ email, url });
 				},
 			}),
 		],
@@ -67,27 +79,23 @@ export function getAuthConfig(params: AuthConfigParams) {
 		databaseHooks: {
 			user: {
 				create: {
-					before: async ({ email, emailVerified, name, image }) => {
-						await userService.createUser({
-							email,
-							emailVerified,
-							name,
-							image,
-						});
+					before: async (user) => {
+						const name = userService.getName(user.name, user.email);
+						const username = await userService.getUsername(user.email);
 
-						return false;
+						return {
+							data: {
+								name,
+								username
+							}
+						}
 					},
-				},
-				update: {
-					before: async ({ id, name, image }) => {
-						await userService.updateUser({
-							id: id!,
-							name,
-							image,
+					after: async (user) => {
+						await profileService.createProfile({
+							userId: user.id,
+							avatarUrl: user.image,
 						});
-
-						return false;
-					},
+					}
 				},
 			},
 		},
