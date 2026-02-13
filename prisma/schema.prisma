@@ -348,44 +348,37 @@ model Game {
 }
 
 model Book {
-  id                       String    @id @default(uuid())
-  alternativeTitles        Json?
-  audioSeconds             Int?
-  bookCategoryId           Int?
-  bookStatus               Json?
-  bookStatusId             Int?
-  canonical                Json?
-  canonicalId              Int?
-  compilation              Boolean?
-  curationStatus           Int?
-  defaultAudioEdition      Json?
-  defaultAudioEditionId    Int?
-  defaultCoverEedition     Json?
-  defaultCoverEditionId    Int?
-  defaultEbookEdition      Json?
-  defaultEbookEditionId    Int?
-  defaultPhysicalEdition   Json?
-  defaultPhysicalEditionId Int?
-  description              String?
-  editionsCount            Int?
-  featuredBookSeries       Json?
-  featuredBookSeriesId     Int?
-  headerImageId            Int?
-  headline                 String?
-  hardcoverId              Int       @unique
-  image                    Json?
-  imageId                  Int?
-  links                    Json?
-  literaryTypeId           Int?
-  pages                    Int?
-  releaseDate              DateTime?
-  releaseYear              Int?
-  slug                     String
-  state                    String?
-  title                    String
-  lastRefreshedAt          DateTime  @default(now())
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
+  id                     String    @id @default(uuid())
+  hardcoverId            Int       @unique
+  title                  String
+  alternativeTitles      Json?
+  audioSeconds           Int?
+  bookCategoryId         Int?
+  bookStatus             Json?
+  canonical              Json?
+  compilation            Boolean?
+  curationStatus         Int?
+  defaultAudioEdition    Json?
+  defaultCoverEdition    Json?
+  defaultEbookEdition    Json?
+  defaultPhysicalEdition Json?
+  description            String?
+  editionsCount          Int?
+  featuredBookSeries     Json?
+  headline               String?
+  imageUrl               Json?
+  links                  Json?
+  subtitle               String?
+  literaryTypeId         Int?
+  numberOfPages          Int?
+  releaseDate            DateTime?
+  releaseYear            Int?
+  slug                   String
+  state                  String?
+  editions               Json?
+  lastRefreshedAt        DateTime  @default(now())
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   bookComments   BookComment[]
   listBooks      ListBook[]
