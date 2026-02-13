@@ -68,6 +68,7 @@ export class HardcoverService {
 			const books = hits.map((hit) => ({
 				id: hit.document.id,
 				title: hit.document.title,
+				alternativeTitles: hit.document.alternative_titles,
 				authors: hit.document.author_names,
 				imageUrl: hit.document.image.url,
 			}));
