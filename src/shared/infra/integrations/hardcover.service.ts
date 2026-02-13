@@ -9,6 +9,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 
 @Injectable()
 export class HardcoverService {
+	private readonly HARDCOVER_API_URL = 'https://api.hardcover.app/v1/graphql';
+	
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
@@ -28,7 +30,53 @@ export class HardcoverService {
 		};
 	}
   
-  async searchBooks(query: string) {}
+  async searchBooks(query: string) {
+		try {
+			const cachedBooks = await this.cacheService.get(
+				this.cacheKeys.searchBooks.prefix(query)
+			);
+
+			if (cachedBooks) {
+				return cachedBooks;
+			}
+			
+			const searchResponse = await firstValueFrom(
+				this.httpService.post(this.HARDCOVER_API_URL, {
+					query: `
+						{
+							search(
+								query: "${query}",
+								query_type: "book",
+								per_page: 10
+							) {
+								results
+							}
+						}
+					`
+				}, {
+					headers: {
+						Authorization: `Bearer ${this.configService.get<string>('HARDCOVER_API_KEY')}`,
+						'Content-Type': 'application/json',
+					}
+				})
+			);
+			
+			const searchData = searchResponse.data.data.search;
+			
+			const hits = searchData.results.hits
+			
+			const books = hits.map((hit) => ({
+				id: hit.document.id,
+				title: hit.document.title,
+				authors: hit.document.author_names,
+				imageUrl: hit.document.image.url,
+			}));
+			
+			return books
+		} catch (error) {
+			throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+		}
+	}
   
   async getBookById(id: number): Promise<any> {}
 }

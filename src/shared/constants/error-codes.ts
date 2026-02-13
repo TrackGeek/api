@@ -69,10 +69,6 @@ export const ERROR_CODES = {
 		message: "JIKAN_SERVICE_UNAVAILABLE",
 		status: 503,
 	},
-	JIKAN_ANIME_NOT_FOUND: {
-		message: "JIKAN_ANIME_NOT_FOUND",
-		status: 404,
-	},
 	ANIME_ALREADY_REFRESHED: {
 		message: "ANIME_ALREADY_REFRESHED",
 		status: 409,
@@ -84,5 +80,13 @@ export const ERROR_CODES = {
 	MANGA_ALREADY_REFRESHED: {
 		message: "MANGA_ALREADY_REFRESHED",
 		status: 409,
+	},
+	HARDCOVER_SERVICE_UNAVAILABLE: {
+		message: "HARDCOVER_SERVICE_UNAVAILABLE",
+		status: 503,
+	},
+	HARDCOVER_BOOK_NOT_FOUND: {
+		message: "HARDCOVER_BOOK_NOT_FOUND",
+		status: 404,
 	},
 } as const;
