@@ -15,7 +15,7 @@ export class FeedEventController {
 	async getFeedEvents() {
 		const feedEvents = await this.feedEventService.getFeedEvents();
 		
-		return feedEvents;
+		return { feedEvents };
 	}
 	
 	@Get('/user')
@@ -25,6 +25,6 @@ export class FeedEventController {
 	) {
 		const feedEvents = await this.feedEventService.getFeedEventsByUserId(session.user.id);
 		
-		return feedEvents;
+		return { feedEvents };
 	}
 }

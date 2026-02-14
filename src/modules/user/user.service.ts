@@ -79,13 +79,29 @@ export class UserService {
 			},
 			include: {
 				follower: {
-					include: {
-						profile: true,
+					select: {
+						id: true,
+						name: true,
+						username: true,
+						profile: {
+							select: {
+								id: true,
+								avatarUrl: true,
+							}
+						}
 					},
 				},
 				following: {
-					include: {
-						profile: true,
+					select: {
+						id: true,
+						name: true,
+						username: true,
+						profile: {
+							select: {
+								id: true,
+								avatarUrl: true,
+							}
+						}
 					},
 				},
 			},
@@ -94,26 +110,7 @@ export class UserService {
 		await this.queueService.toFeedEventQueue({
 			type: FeedEventType.NewFollower,
 			userId,
-			metadata: {
-				follower: {
-					id: following.follower.id,
-					name: following.follower.name,
-					username: following.follower.username,
-					profile: {
-						id: following.follower.profile?.id,
-						avatarUrl: following.follower.profile?.avatarUrl,
-					},
-				},
-				following: {
-					id: following.following.id,
-					name: following.following.name,
-					username: following.following.username,
-					profile: {
-						id: following.following.profile?.id,
-						avatarUrl: following.following.profile?.avatarUrl,
-					},
-				},
-			},
+			metadata: { following },
 		});
 	}
 

@@ -37,13 +37,37 @@ export class FeedEventService {
 		});
 
 		const friendIds = following.map((item) => item.followingId);
-
+		
 		const pagination = await this.databaseService.cursorPagination<FeedEventFindManyArgs>({
 			model: "feedEvent",
 			where: {
 				userId: {
-					in: friendIds,
+					in: [...friendIds, userId],
 				},
+			},
+			include: {
+				_count: {
+					select: {
+						feedEventReactions: true,
+					}
+				},
+				feedEventReactions: {
+					take: 3,
+					select: {
+						reaction: {
+							select: {
+								id: true,
+								emoji: true,
+								createdAt: true,
+								user: {
+									select: {
+										username: true,
+									}
+								}
+							}
+						}
+					}
+				}
 			},
 			orderBy: { createdAt: "desc" },
 		});

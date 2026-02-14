@@ -32,7 +32,10 @@ export class ProfileController {
     @Session() session: UserSession,
     @Body() body: UpdateProfileDto
   ) {
-    await this.profileService.updateProfile(session.user.id, body);
+    await this.profileService.updateProfile({
+      ...body,
+      userId: session.user.id,
+    });
   }
   
   @Patch("avatar")

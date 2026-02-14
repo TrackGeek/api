@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "FeedEventType" AS ENUM ('NewComment', 'NewFollower');
+CREATE TYPE "FeedEventType" AS ENUM ('NewComment', 'NewFollower', 'NewFavorite', 'NewList', 'NewReview', 'NewWatch', 'NewProgress');
 
 -- CreateEnum
 CREATE TYPE "WatchStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
@@ -230,6 +230,15 @@ CREATE TABLE "FeedEvent" (
 );
 
 -- CreateTable
+CREATE TABLE "FeedEventReaction" (
+    "id" TEXT NOT NULL,
+    "feedEventId" TEXT NOT NULL,
+    "reactionId" TEXT NOT NULL,
+
+    CONSTRAINT "FeedEventReaction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Game" (
     "id" TEXT NOT NULL,
     "igdbId" INTEGER NOT NULL,
@@ -332,6 +341,7 @@ CREATE TABLE "Anime" (
     "url" TEXT NOT NULL,
     "imageUrl" TEXT,
     "trailer" JSONB,
+    "title" TEXT NOT NULL,
     "titles" JSONB,
     "type" TEXT,
     "source" TEXT,
@@ -373,6 +383,7 @@ CREATE TABLE "Manga" (
     "malId" INTEGER NOT NULL,
     "url" TEXT NOT NULL,
     "imageUrl" TEXT,
+    "title" TEXT NOT NULL,
     "titles" JSONB,
     "type" TEXT,
     "numberOfChapters" INTEGER,
@@ -421,7 +432,7 @@ CREATE TABLE "TVShow" (
     "originalLanguage" TEXT,
     "originalName" TEXT,
     "popularity" INTEGER,
-    "posterPath" TEXT,
+    "posterUrl" TEXT,
     "productionCompanies" JSONB,
     "productionCountries" JSONB,
     "seasons" JSONB,
@@ -790,7 +801,7 @@ CREATE TABLE "Favorite" (
     "userId" TEXT NOT NULL,
     "animeId" TEXT,
     "mangaId" TEXT,
-    "tVShowId" TEXT,
+    "tvShowId" TEXT,
     "movieId" TEXT,
     "gameId" TEXT,
     "bookId" TEXT,
@@ -859,6 +870,9 @@ CREATE UNIQUE INDEX "ProfileComment_profileId_commentId_key" ON "ProfileComment"
 
 -- CreateIndex
 CREATE INDEX "FeedEvent_userId_createdAt_idx" ON "FeedEvent"("userId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FeedEventReaction_feedEventId_reactionId_key" ON "FeedEventReaction"("feedEventId", "reactionId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Game_igdbId_key" ON "Game"("igdbId");
@@ -1062,6 +1076,12 @@ ALTER TABLE "ProfileComment" ADD CONSTRAINT "ProfileComment_commentId_fkey" FORE
 ALTER TABLE "FeedEvent" ADD CONSTRAINT "FeedEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "FeedEventReaction" ADD CONSTRAINT "FeedEventReaction_feedEventId_fkey" FOREIGN KEY ("feedEventId") REFERENCES "FeedEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FeedEventReaction" ADD CONSTRAINT "FeedEventReaction_reactionId_fkey" FOREIGN KEY ("reactionId") REFERENCES "Reaction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "AnimeWatch" ADD CONSTRAINT "AnimeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1212,7 +1232,7 @@ ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_animeId_fkey" FOREIGN KEY ("anim
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "Manga"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_tVShowId_fkey" FOREIGN KEY ("tVShowId") REFERENCES "TVShow"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE SET NULL ON UPDATE CASCADE;

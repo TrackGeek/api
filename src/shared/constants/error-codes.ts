@@ -89,4 +89,16 @@ export const ERROR_CODES = {
 		message: "HARDCOVER_BOOK_NOT_FOUND",
 		status: 404,
 	},
+	FAVORITE_ALREADY_EXISTS: {
+		message: "FAVORITE_ALREADY_EXISTS",
+		status: 409,
+	},
+	FAVORITE_NOT_FOUND: {
+		message: "FAVORITE_NOT_FOUND",
+		status: 404,
+	},
+	FEED_EVENT_NOT_FOUND: {
+		message: "FEED_EVENT_NOT_FOUND",
+		status: 404,
+	},
 } as const;

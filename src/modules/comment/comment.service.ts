@@ -515,6 +515,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},
@@ -561,6 +578,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},
@@ -607,6 +641,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},
@@ -653,6 +704,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},
@@ -699,6 +767,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},
@@ -745,6 +830,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},
@@ -791,6 +893,23 @@ export class CommentService {
 									},
 								},
 							},
+							commentsReactions: {
+								take: 3,
+								select: {
+									reaction: {
+										select: {
+											id: true,
+											emoji: true,
+											createdAt: true,
+											user: {
+												select: {
+													username: true,
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 					},
 				},

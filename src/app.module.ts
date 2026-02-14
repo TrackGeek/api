@@ -21,6 +21,7 @@ import { FeedEventModule } from "./modules/feed-event/feed-event.module";
 import { MangaModule } from './modules/manga/manga.module';
 import { BookModule } from './modules/book/book.module';
 import { AnimeModule } from './modules/anime/anime.module';
+import { FavoriteModule } from './modules/favorite/favorite.module';
 
 @Module({
 	imports: [
@@ -44,7 +45,8 @@ import { AnimeModule } from './modules/anime/anime.module';
 		TVShowModule,
 		MangaModule,
 		BookModule,
-		AnimeModule
+		AnimeModule,
+		FavoriteModule
 	],
 	providers: [],
 	controllers: [],

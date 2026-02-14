@@ -176,8 +176,9 @@ model Reaction {
   userId    String
   createdAt DateTime @default(now())
 
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  commentsReactions CommentReaction[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentsReactions  CommentReaction[]
+  feedEventReactions FeedEventReaction[]
 }
 
 model CommentReaction {
@@ -271,6 +272,11 @@ model ProfileComment {
 enum FeedEventType {
   NewComment
   NewFollower
+  NewFavorite
+  NewList
+  NewReview
+  NewWatch
+  NewProgress
 }
 
 model FeedEvent {
@@ -280,9 +286,21 @@ model FeedEvent {
   metadata  Json?
   createdAt DateTime      @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedEventReactions FeedEventReaction[]
 
   @@index([userId, createdAt])
+}
+
+model FeedEventReaction {
+  id          String @id @default(uuid())
+  feedEventId String
+  reactionId  String
+
+  feedEvent FeedEvent @relation(fields: [feedEventId], references: [id], onDelete: Cascade)
+  reaction  Reaction  @relation(fields: [reactionId], references: [id], onDelete: Cascade)
+
+  @@unique([feedEventId, reactionId])
 }
 
 model Game {
@@ -394,6 +412,7 @@ model Anime {
   url              String
   imageUrl         String?
   trailer          Json?
+  title            String
   titles           Json?
   type             String?
   source           String?
@@ -439,6 +458,7 @@ model Manga {
   malId            Int      @unique
   url              String
   imageUrl         String?
+  title            String
   titles           Json?
   type             String?
   numberOfChapters Int?
@@ -491,7 +511,7 @@ model TVShow {
   originalLanguage    String?
   originalName        String?
   popularity          Int?
-  posterPath          String?
+  posterUrl           String?
   productionCompanies Json?
   productionCountries Json?
   seasons             Json?
@@ -974,7 +994,7 @@ model Favorite {
   userId    String
   animeId   String?
   mangaId   String?
-  tVShowId  String?
+  tvShowId  String?
   movieId   String?
   gameId    String?
   bookId    String?
@@ -984,7 +1004,7 @@ model Favorite {
   user   User    @relation(fields: [userId], references: [id])
   anime  Anime?  @relation(fields: [animeId], references: [id])
   manga  Manga?  @relation(fields: [mangaId], references: [id])
-  tvShow TVShow? @relation(fields: [tVShowId], references: [id])
+  tvShow TVShow? @relation(fields: [tvShowId], references: [id])
   movie  Movie?  @relation(fields: [movieId], references: [id])
   game   Game?   @relation(fields: [gameId], references: [id])
   book   Book?   @relation(fields: [bookId], references: [id])

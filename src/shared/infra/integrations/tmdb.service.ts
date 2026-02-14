@@ -381,7 +381,7 @@ export class TMDBService {
 				originalLanguage: tvShowData.original_language,
 				originalName: tvShowData.original_name,
 				popularity: tvShowData.popularity,
-				posterPath: tvShowData.poster_path
+				posterUrl: tvShowData.poster_path
 					? `https://image.tmdb.org/t/p/w500${tvShowData.poster_path}`
 					: null,
 				productionCompanies: tvShowData.production_companies.map(

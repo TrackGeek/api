@@ -179,8 +179,6 @@ export class HardcoverService {
 				})
 			);
 			
-			console.log(bookResponse.data)
-			
 			const bookData = bookResponse.data.data.books_by_pk;
 			
 			const book = {
