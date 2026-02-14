@@ -5,7 +5,8 @@ import { CreateReactionDto } from "./dtos/create-reaction.dto";
 import { AddReactionToCommentDto } from "./dtos/add-reaction-to-comment.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { CommentReactionFindManyArgs } from "@prisma/generated/models";
+import { CommentReactionFindManyArgs, FeedEventReactionFindManyArgs } from "@prisma/generated/models";
+import { AddReactionToFeedEventDto } from './dtos/add-reaction-to-feed-event.dto';
 
 @Injectable()
 export class ReactionService {
@@ -41,6 +42,28 @@ export class ReactionService {
 			},
 		});
 	}
+	
+	async addReactionToFeedEvent(addReactionToFeedEventDto: AddReactionToFeedEventDto) {
+		const feedEventAlreadyExists = await this.databaseService.feedEvent.findUnique({
+			where: { id: addReactionToFeedEventDto.feedEventId },
+		});
+
+		if (!feedEventAlreadyExists) {
+			throw new AppException(ERROR_CODES.FEED_EVENT_NOT_FOUND);
+		}
+
+		const reaction = await this.createReaction({
+			emoji: addReactionToFeedEventDto.emoji,
+			userId: addReactionToFeedEventDto.userId,
+		});
+
+		await this.databaseService.feedEventReaction.create({
+			data: {
+				feedEventId: addReactionToFeedEventDto.feedEventId,
+				reactionId: reaction.id,
+			},
+		});
+	}
 
 	async getReactionsByCommentId(commentId: string) {
 		const commentAlreadyExists = await this.databaseService.comment.findUnique({
@@ -55,6 +78,44 @@ export class ReactionService {
 			await this.databaseService.cursorPagination<CommentReactionFindManyArgs>({
 				model: "commentReaction",
 				where: { commentId },
+				include: {
+					reaction: {
+						include: {
+							user: {
+								select: {
+									id: true,
+									name: true,
+									profile: {
+										select: {
+											avatarUrl: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			});
+
+		return {
+			...pagination,
+			items: pagination.items.map(({ reaction }) => reaction),
+		};
+	}
+	
+	async getReactionsByFeedEventId(feedEventId: string) {
+		const feedEventAlreadyExists = await this.databaseService.feedEvent.findUnique({
+			where: { id: feedEventId },
+		});
+
+		if (!feedEventAlreadyExists) {
+			throw new AppException(ERROR_CODES.FEED_EVENT_NOT_FOUND);
+		}
+
+		const pagination =
+			await this.databaseService.cursorPagination<FeedEventReactionFindManyArgs>({
+				model: "feedEventReaction",
+				where: { feedEventId },
 				include: {
 					reaction: {
 						include: {

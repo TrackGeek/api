@@ -21,9 +21,9 @@ export class ProfileService {
 		})
 	}
 	
-	async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+	async updateProfile(updateProfileDto: UpdateProfileDto) {
 		await this.databaseService.profile.update({
-			where: { userId },
+			where: { userId: updateProfileDto.userId },
 			data: {
 				color: updateProfileDto.color,
 				language: updateProfileDto.language,
