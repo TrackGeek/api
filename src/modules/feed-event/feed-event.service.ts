@@ -54,6 +54,7 @@ export class FeedEventService {
 					},
 					feedEventReactions: {
 						take: 3,
+						orderBy: { reaction: { createdAt: "desc" } },
 						select: {
 							reaction: {
 								select: {

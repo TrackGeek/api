@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@thallesp/nestjs-better-auth';
 
 import { MangaService } from './manga.service';
@@ -29,9 +29,9 @@ export class MangaController {
 		await this.mangaService.refreshManga(refreshMangaDto);
 	}
 
-	@Get('/details/:id')
-	async getMangaById(@Param('id') id: number) {
-		const manga = await this.mangaService.getMangaById(id);
+	@Get('/details/:mangaId')
+	async getMangaById(@Param('mangaId', new ParseIntPipe()) mangaId: number) {
+		const manga = await this.mangaService.getMangaById(mangaId);
 
 		return { manga };
 	}

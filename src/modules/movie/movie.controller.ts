@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 
 import { MovieService } from './movie.service';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
@@ -29,9 +29,9 @@ export class MovieController {
 		await this.movieService.refreshMovie(refreshMovieDto);
 	}
 
-	@Get('/details/:id')
-	async getMovieById(@Param('id') id: number) {
-		const movie = await this.movieService.getMovieById(id);
+	@Get('/details/:movieId')
+	async getMovieById(@Param('movieId', new ParseIntPipe()) movieId: number) {
+		const movie = await this.movieService.getMovieById(movieId);
 
 		return { movie };
 	}

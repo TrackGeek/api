@@ -7,7 +7,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AddFavoriteDto } from "./dtos/add-favorite.dto";
-import { RemoveFavoriteDto } from "./dtos/remote-favorite.dto";
+import { RemoveFavoriteDto } from "./dtos/remove-favorite.dto";
 import { GetFavoritesByUserIdDto } from "./dtos/get-favorites-by-user-id.dto";
 
 jest.mock("@prisma/generated/client", () => ({}));
@@ -61,7 +61,7 @@ describe("FavoriteService", () => {
 		const dto: AddFavoriteDto = {
 			type: FavoriteType.Anime,
 			userId: "user-uuid-1",
-			animeId: "anime-uuid-1",
+			item: { animeId: "anime-uuid-1" },
 		};
 
 		it("should add a favorite successfully", async () => {
@@ -115,7 +115,7 @@ describe("FavoriteService", () => {
 			const movieDto: AddFavoriteDto = {
 				type: FavoriteType.Movie,
 				userId: "user-uuid-1",
-				movieId: "movie-uuid-1",
+				item: { movieId: "movie-uuid-1" },
 			};
 
 			database.favorite.findFirst.mockResolvedValue(null);
@@ -150,7 +150,7 @@ describe("FavoriteService", () => {
 			const gameDto: AddFavoriteDto = {
 				type: FavoriteType.Game,
 				userId: "user-uuid-1",
-				gameId: "game-uuid-1",
+				item: { gameId: "game-uuid-1" },
 			};
 
 			database.favorite.findFirst.mockResolvedValue(null);
@@ -177,7 +177,7 @@ describe("FavoriteService", () => {
 			const bookDto: AddFavoriteDto = {
 				type: FavoriteType.Book,
 				userId: "user-uuid-1",
-				bookId: "book-uuid-1",
+				item: { bookId: "book-uuid-1" },
 			};
 
 			database.favorite.findFirst.mockResolvedValue(null);
@@ -204,9 +204,7 @@ describe("FavoriteService", () => {
 			const dtoWithUndefined: AddFavoriteDto = {
 				type: FavoriteType.Manga,
 				userId: "user-uuid-1",
-				mangaId: "manga-uuid-1",
-				animeId: undefined,
-				movieId: undefined,
+				item: { mangaId: "manga-uuid-1" },
 			};
 
 			database.favorite.findFirst.mockResolvedValue(null);
@@ -340,7 +338,7 @@ describe("FavoriteService", () => {
 		const dto: RemoveFavoriteDto = {
 			type: FavoriteType.Anime,
 			userId: "user-uuid-1",
-			animeId: "anime-uuid-1",
+			item: { animeId: "anime-uuid-1" },
 		};
 
 		it("should remove a favorite successfully", async () => {
@@ -380,9 +378,7 @@ describe("FavoriteService", () => {
 			const dtoWithUndefined: RemoveFavoriteDto = {
 				type: FavoriteType.TVShow,
 				userId: "user-uuid-1",
-				tvShowId: "tvshow-uuid-1",
-				animeId: undefined,
-				mangaId: undefined,
+				item: { tvShowId: "tvshow-uuid-1" },
 			};
 
 			database.favorite.findFirst.mockResolvedValue({ id: "fav-uuid-2" });
@@ -403,7 +399,7 @@ describe("FavoriteService", () => {
 			const movieDto: RemoveFavoriteDto = {
 				type: FavoriteType.Movie,
 				userId: "user-uuid-1",
-				movieId: "movie-uuid-1",
+				item: { movieId: "movie-uuid-1" },
 			};
 
 			database.favorite.findFirst.mockResolvedValue({ id: "fav-uuid-3" });

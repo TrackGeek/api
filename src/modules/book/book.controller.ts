@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@thallesp/nestjs-better-auth';
 
 import { BookService } from './book.service';
@@ -29,9 +29,9 @@ export class BookController {
 		await this.bookService.refreshBook(refreshBookDto);
 	}
 
-	@Get('/details/:id')
-	async getBookById(@Param('id') id: number) {
-		const book = await this.bookService.getBookById(id);
+	@Get('/details/:bookId')
+	async getBookById(@Param('bookId', new ParseIntPipe()) bookId: number) {
+		const book = await this.bookService.getBookById(bookId);
 
 		return { book };
 	}

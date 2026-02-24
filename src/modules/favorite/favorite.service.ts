@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import _ from "lodash";
 import { FavoriteFindManyArgs } from "@prisma/generated/models";
 import { FeedEventType } from "@prisma/generated/enums";
 
@@ -8,7 +7,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { AddFavoriteDto } from "./dtos/add-favorite.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { RemoveFavoriteDto } from "./dtos/remote-favorite.dto";
+import { RemoveFavoriteDto } from "./dtos/remove-favorite.dto";
 import { GetFavoritesByUserIdDto } from "./dtos/get-favorites-by-user-id.dto";
 
 @Injectable()
@@ -19,12 +18,9 @@ export class FavoriteService {
 	) {}
 
 	async addFavorite(addFavoriteDto: AddFavoriteDto) {
-		const { type, userId, ...entityIdsData } = addFavoriteDto;
+		const { type, userId, item } = addFavoriteDto;
 
-		const entityId = _.omitBy(entityIdsData, _.isUndefined) as Record<
-			string,
-			any
-		>;
+		const entityId = { ...item } as Record<string, any>;
 
 		const favoriteAlreadyExists = await this.databaseService.favorite.findFirst(
 			{
@@ -205,12 +201,9 @@ export class FavoriteService {
 	}
 
 	async removeFavorite(removeFavoriteDto: RemoveFavoriteDto) {
-		const { type, userId, ...entityIdsData } = removeFavoriteDto;
+		const { type, userId, item } = removeFavoriteDto;
 
-		const entityId = _.omitBy(entityIdsData, _.isUndefined) as Record<
-			string,
-			any
-		>;
+		const entityId = { ...item } as Record<string, any>;
 
 		const favorite = await this.databaseService.favorite.findFirst({
 			where: {

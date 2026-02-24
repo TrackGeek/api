@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 
 
@@ -30,7 +30,7 @@ export class ListController {
   
   @Get('/user/:userId')
   @HttpCode(HttpStatus.OK)
-  async getListsByUserId(@Param('userId') userId: string, @Query() query: GetListsByUserIdDto) {
+  async getListsByUserId(@Param('userId', new ParseUUIDPipe()) userId: string, @Query() query: GetListsByUserIdDto) {
     const lists = await this.listService.getListsByUserId({
       userId,
       itemsPerPage: query.itemsPerPage,
@@ -44,7 +44,7 @@ export class ListController {
   @UseGuards(RateLimitGuard)
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.OK)
-  async getListById(@Param('listId') listId: string) {
+  async getListById(@Param('listId', new ParseUUIDPipe()) listId: string) {
     const list = await this.listService.getListById(listId);
     
     return { list };
@@ -52,7 +52,7 @@ export class ListController {
   
   @Get('/:listId/item')
   @HttpCode(HttpStatus.OK)
-  async getItemsByListId(@Param('listId') listId: string, @Query() query: GetItemsByListIdDto) {
+  async getItemsByListId(@Param('listId', new ParseUUIDPipe()) listId: string, @Query() query: GetItemsByListIdDto) {
     const listItems = await this.listService.getItemsByListId({
       listId,
       itemsPerPage: query.itemsPerPage,
@@ -67,7 +67,7 @@ export class ListController {
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.OK)
   async addItemToList(
-    @Param('listId') listId: string, 
+    @Param('listId', new ParseUUIDPipe()) listId: string, 
     @Session() session: UserSession,
     @Body() body: AddItemToListDto
   ) {
@@ -83,7 +83,7 @@ export class ListController {
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.OK)
   async removeItemFromList(
-    @Param('listId') listId: string, 
+    @Param('listId', new ParseUUIDPipe()) listId: string, 
     @Session() session: UserSession,
     @Body() body: RemoveItemFromListDto
 ) {
