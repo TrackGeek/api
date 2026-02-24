@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@thallesp/nestjs-better-auth';
 
 import { AnimeService } from './anime.service';
@@ -29,9 +29,9 @@ export class AnimeController {
 		await this.animeService.refreshAnime(refreshAnimeDto);
 	}
 
-	@Get('/details/:id')
-	async getAnimeById(@Param('id') id: number) {
-		const anime = await this.animeService.getAnimeById(id);
+	@Get('/details/:animeId')
+	async getAnimeById(@Param('animeId', new ParseIntPipe()) animeId: number) {
+		const anime = await this.animeService.getAnimeById(animeId);
 
 		return { anime };
 	}

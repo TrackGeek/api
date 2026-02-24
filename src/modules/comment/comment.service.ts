@@ -517,6 +517,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {
@@ -580,6 +581,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {
@@ -643,6 +645,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {
@@ -706,6 +709,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {
@@ -769,6 +773,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {
@@ -832,6 +837,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {
@@ -895,6 +901,7 @@ export class CommentService {
 							},
 							commentsReactions: {
 								take: 3,
+								orderBy: { reaction: { createdAt: "desc" } },
 								select: {
 									reaction: {
 										select: {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 
 import { TVShowService } from './tv-show.service';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
@@ -29,9 +29,9 @@ export class TVShowController {
 		await this.tvShowService.refreshTVShow(refreshTVShowDto);
 	}
 
-	@Get('/details/:id')
-	async getTVShowById(@Param('id') id: number) {
-		const tvShow = await this.tvShowService.getTVShowById(id);
+	@Get('/details/:tvShowId')
+	async getTVShowById(@Param('tvShowId', new ParseIntPipe()) tvShowId: number) {
+		const tvShow = await this.tvShowService.getTVShowById(tvShowId);
 
 		return { tvShow };
 	}

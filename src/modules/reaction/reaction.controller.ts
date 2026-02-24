@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard, Session, type UserSession } from '@thallesp/nestjs-better-auth';
 
 import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
@@ -45,16 +45,16 @@ export class ReactionController {
     });
   }
   
-  @Get('/comment/:id')
-  async getReactionsByCommentId(@Param('id') id: string) {
-    const reactions = await this.reactionService.getReactionsByCommentId(id);
+  @Get('/comment/:commentId')
+  async getReactionsByCommentId(@Param('commentId', new ParseUUIDPipe()) commentId: string) {
+    const reactions = await this.reactionService.getReactionsByCommentId(commentId);
     
     return { reactions };
   }
   
-  @Get('/feed/:id')
-  async getReactionsByFeedEventId(@Param('id') id: string) {
-    const reactions = await this.reactionService.getReactionsByFeedEventId(id);
+  @Get('/feed/:feedEventId')
+  async getReactionsByFeedEventId(@Param('feedEventId', new ParseUUIDPipe()) feedEventId: string) {
+    const reactions = await this.reactionService.getReactionsByFeedEventId(feedEventId);
     
     return { reactions };
   }

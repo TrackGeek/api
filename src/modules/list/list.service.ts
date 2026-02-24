@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { FeedEventType } from "@prisma/generated/enums";
-import _ from "lodash";
 
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -72,12 +71,20 @@ export class ListService {
 	}
 
 	async addItemToList(addItemToListDto: AddItemToListDto) {
-		const { listId, userId, ...entityIdsData } = addItemToListDto;
+		const { listId, userId, item } = addItemToListDto;
 
-		const entityId = _.omitBy(entityIdsData, _.isUndefined) as Record<
-			string,
-			any
-		>;
+		const listAlreadyExists = await this.databaseService.list.findFirst({
+			where: {
+				id: listId,
+				userId,
+			},
+		});
+
+		if (!listAlreadyExists) {
+			throw new AppException(ERROR_CODES.LIST_NOT_FOUND);
+		}
+
+		const entityId = { ...item } as Record<string, any>;
 
 		const listItemAlreadyExists = await this.databaseService.listItem.findFirst(
 			{
@@ -238,7 +245,7 @@ export class ListService {
 	}
 
 	async removeItemFromList(removeItemFromListDto: RemoveItemFromListDto) {
-		const { listId, userId, ...entityIdsData } = removeItemFromListDto;
+		const { listId, userId, item } = removeItemFromListDto;
 
 		const list = await this.databaseService.list.findFirst({
 			where: {
@@ -251,10 +258,7 @@ export class ListService {
 			throw new AppException(ERROR_CODES.LIST_NOT_FOUND);
 		}
 
-		const entityId = _.omitBy(entityIdsData, _.isUndefined) as Record<
-			string,
-			any
-		>;
+		const entityId = { ...item } as Record<string, any>;
 
 		const listItem = await this.databaseService.listItem.findFirst({
 			where: {

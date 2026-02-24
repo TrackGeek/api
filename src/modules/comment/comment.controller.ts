@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard, Session, type UserSession } from '@thallesp/nestjs-better-auth';
 
 import { CommentService } from './comment.service';
@@ -35,9 +35,9 @@ export class CommentController {
     });
   }
   
-  @Get('/profile/:id')
-  async getCommentsByProfileId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByProfileId(id);
+  @Get('/profile/:profileId')
+  async getCommentsByProfileId(@Param('profileId', new ParseUUIDPipe()) profileId: string) {
+    const comments = await this.commentService.getCommentsByProfileId(profileId);
     
     return { comments };
   }
@@ -57,9 +57,9 @@ export class CommentController {
     });
   }
   
-  @Get('/game/:id')
-  async getCommentsByGameId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByGameId(id);
+  @Get('/game/:gameId')
+  async getCommentsByGameId(@Param('gameId', new ParseUUIDPipe()) gameId: string) {
+    const comments = await this.commentService.getCommentsByGameId(gameId);
     
     return { comments };
   }
@@ -79,9 +79,9 @@ export class CommentController {
     });
   }
   
-  @Get('/manga/:id')
-  async getCommentsByMangaId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByMangaId(id);
+  @Get('/manga/:mangaId')
+  async getCommentsByMangaId(@Param('mangaId', new ParseUUIDPipe()) mangaId: string) {
+    const comments = await this.commentService.getCommentsByMangaId(mangaId);
     
     return { comments };
   }
@@ -101,9 +101,9 @@ export class CommentController {
     });
   }
   
-  @Get('/anime/:id')
-  async getCommentsByAnimeId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByAnimeId(id);
+  @Get('/anime/:animeId')
+  async getCommentsByAnimeId(@Param('animeId', new ParseUUIDPipe()) animeId: string) {
+    const comments = await this.commentService.getCommentsByAnimeId(animeId);
     
     return { comments };
   }
@@ -123,9 +123,9 @@ export class CommentController {
     });
   }
   
-  @Get('/tv/:id')
-  async getCommentsByTVShowId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByTVShowId(id);
+  @Get('/tv/:tvShowId')
+  async getCommentsByTVShowId(@Param('tvShowId', new ParseUUIDPipe()) tvShowId: string) {
+    const comments = await this.commentService.getCommentsByTVShowId(tvShowId);
     
     return { comments };
   }
@@ -145,9 +145,9 @@ export class CommentController {
     });
   }
   
-  @Get('/book/:id')
-  async getCommentsByBookId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByBookId(id);
+  @Get('/book/:bookId')
+  async getCommentsByBookId(@Param('bookId', new ParseUUIDPipe()) bookId: string) {
+    const comments = await this.commentService.getCommentsByBookId(bookId);
     
     return { comments };
   }
@@ -167,9 +167,9 @@ export class CommentController {
     });
   }
   
-  @Get('/movie/:id')
-  async getCommentsByMovieId(@Param('id') id: string) {
-    const comments = await this.commentService.getCommentsByMovieId(id);
+  @Get('/movie/:movieId')
+  async getCommentsByMovieId(@Param('movieId', new ParseUUIDPipe()) movieId: string) {
+    const comments = await this.commentService.getCommentsByMovieId(movieId);
     
     return { comments };
   }
