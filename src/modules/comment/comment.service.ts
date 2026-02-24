@@ -526,12 +526,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -589,12 +589,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -652,12 +652,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -715,12 +715,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -778,12 +778,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -841,12 +841,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -904,12 +904,12 @@ export class CommentService {
 											user: {
 												select: {
 													username: true,
-												}
-											}
-										}
-									}
-								}
-							}
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},

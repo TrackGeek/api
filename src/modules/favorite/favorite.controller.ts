@@ -36,11 +36,11 @@ export class FavoriteController {
     });
   }
   
-  @Get('/user/:id')
+  @Get('/user/:userId')
   @HttpCode(HttpStatus.OK)
-  async getFavoritesByUserId(@Param('id') id: string, @Query() query: GetFavoritesByUserIdDto) {
+  async getFavoritesByUserId(@Param('userId') userId: string, @Query() query: GetFavoritesByUserIdDto) {
     const favorites = await this.favoriteService.getFavoritesByUserId({
-      userId: id,
+      userId,
       itemsPerPage: query.itemsPerPage,
       page: query.page,
     });

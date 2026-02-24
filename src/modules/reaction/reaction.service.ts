@@ -5,8 +5,11 @@ import { CreateReactionDto } from "./dtos/create-reaction.dto";
 import { AddReactionToCommentDto } from "./dtos/add-reaction-to-comment.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { CommentReactionFindManyArgs, FeedEventReactionFindManyArgs } from "@prisma/generated/models";
-import { AddReactionToFeedEventDto } from './dtos/add-reaction-to-feed-event.dto';
+import {
+	CommentReactionFindManyArgs,
+	FeedEventReactionFindManyArgs,
+} from "@prisma/generated/models";
+import { AddReactionToFeedEventDto } from "./dtos/add-reaction-to-feed-event.dto";
 
 @Injectable()
 export class ReactionService {
@@ -42,11 +45,14 @@ export class ReactionService {
 			},
 		});
 	}
-	
-	async addReactionToFeedEvent(addReactionToFeedEventDto: AddReactionToFeedEventDto) {
-		const feedEventAlreadyExists = await this.databaseService.feedEvent.findUnique({
-			where: { id: addReactionToFeedEventDto.feedEventId },
-		});
+
+	async addReactionToFeedEvent(
+		addReactionToFeedEventDto: AddReactionToFeedEventDto,
+	) {
+		const feedEventAlreadyExists =
+			await this.databaseService.feedEvent.findUnique({
+				where: { id: addReactionToFeedEventDto.feedEventId },
+			});
 
 		if (!feedEventAlreadyExists) {
 			throw new AppException(ERROR_CODES.FEED_EVENT_NOT_FOUND);
@@ -102,30 +108,33 @@ export class ReactionService {
 			items: pagination.items.map(({ reaction }) => reaction),
 		};
 	}
-	
+
 	async getReactionsByFeedEventId(feedEventId: string) {
-		const feedEventAlreadyExists = await this.databaseService.feedEvent.findUnique({
-			where: { id: feedEventId },
-		});
+		const feedEventAlreadyExists =
+			await this.databaseService.feedEvent.findUnique({
+				where: { id: feedEventId },
+			});
 
 		if (!feedEventAlreadyExists) {
 			throw new AppException(ERROR_CODES.FEED_EVENT_NOT_FOUND);
 		}
 
 		const pagination =
-			await this.databaseService.cursorPagination<FeedEventReactionFindManyArgs>({
-				model: "feedEventReaction",
-				where: { feedEventId },
-				include: {
-					reaction: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									name: true,
-									profile: {
-										select: {
-											avatarUrl: true,
+			await this.databaseService.cursorPagination<FeedEventReactionFindManyArgs>(
+				{
+					model: "feedEventReaction",
+					where: { feedEventId },
+					include: {
+						reaction: {
+							include: {
+								user: {
+									select: {
+										id: true,
+										name: true,
+										profile: {
+											select: {
+												avatarUrl: true,
+											},
 										},
 									},
 								},
@@ -133,7 +142,7 @@ export class ReactionService {
 						},
 					},
 				},
-			});
+			);
 
 		return {
 			...pagination,

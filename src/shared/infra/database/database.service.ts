@@ -4,8 +4,14 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaClient } from "@prisma/generated/client";
 import { Pool } from "pg";
 
-import { CursorPaginationParamsDto, CursorPaginationResultDto } from "./dtos/cursor-pagination.dto";
-import { OffsetPaginationParamsDto, OffsetPaginationResultDto } from "./dtos/offset-pagination.dto";
+import {
+	CursorPaginationParamsDto,
+	CursorPaginationResultDto,
+} from "./dtos/cursor-pagination.dto";
+import {
+	OffsetPaginationParamsDto,
+	OffsetPaginationResultDto,
+} from "./dtos/offset-pagination.dto";
 
 export type DatabaseModel = Exclude<keyof PrismaClient, `$${string}` | symbol>;
 
@@ -19,7 +25,7 @@ export type DatabaseArgs = {
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_ITEMS_PER_PAGE = 12;
-const DEFAULT_CURSOR_FIELD = "id"
+const DEFAULT_CURSOR_FIELD = "id";
 
 @Injectable()
 export class DatabaseService extends PrismaClient {
@@ -32,7 +38,7 @@ export class DatabaseService extends PrismaClient {
 
 		super({ adapter });
 	}
-	
+
 	async offsetPagination<A extends DatabaseArgs, R = any>(
 		params: OffsetPaginationParamsDto<A>,
 	): Promise<OffsetPaginationResultDto<R>> {
@@ -70,7 +76,7 @@ export class DatabaseService extends PrismaClient {
 			items: items as R[],
 		};
 	}
-	
+
 	async cursorPagination<A extends DatabaseArgs, R = any>(
 		params: CursorPaginationParamsDto<A>,
 	): Promise<CursorPaginationResultDto<R>> {

@@ -101,4 +101,20 @@ export const ERROR_CODES = {
 		message: "FEED_EVENT_NOT_FOUND",
 		status: 404,
 	},
+	LIST_ALREADY_EXISTS: {
+		message: "LIST_ALREADY_EXISTS",
+		status: 409,
+	},
+	LIST_NOT_FOUND: {
+		message: "LIST_NOT_FOUND",
+		status: 404,
+	},
+	LIST_ITEM_ALREADY_EXISTS: {
+		message: "LIST_ITEM_ALREADY_EXISTS",
+		status: 409,
+	},
+	LIST_ITEM_NOT_FOUND: {
+		message: "LIST_ITEM_NOT_FOUND",
+		status: 404,
+	},
 } as const;

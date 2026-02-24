@@ -48,7 +48,8 @@ export class BookService {
 		});
 
 		if (!book) {
-			const jikanBook = await this.integrationsService.hardcover.getBookById(id);
+			const jikanBook =
+				await this.integrationsService.hardcover.getBookById(id);
 
 			book = await this.databaseService.book.create({
 				data: jikanBook,

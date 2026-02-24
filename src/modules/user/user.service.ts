@@ -5,7 +5,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { FeedEventType } from "@prisma/generated/enums";
-import { extractNameFromEmail } from '@/shared/utils/email';
+import { extractNameFromEmail } from "@/shared/utils/email";
 
 @Injectable()
 export class UserService {
@@ -18,11 +18,11 @@ export class UserService {
 		const user = this.databaseService.user.findUnique({
 			where: { id },
 			include: {
-				profile: true
+				profile: true,
 			},
 			omit: {
 				image: true,
-			}
+			},
 		});
 
 		if (!user) {
@@ -31,13 +31,11 @@ export class UserService {
 
 		return user;
 	}
-	
+
 	getName(name: string, email: string) {
-		return name && name?.length > 0
-			? name
-			: extractNameFromEmail(email)
+		return name && name?.length > 0 ? name : extractNameFromEmail(email);
 	}
-	
+
 	async getUsername(email: string) {
 		const emailPrefix = email.split("@")[0];
 
@@ -50,8 +48,8 @@ export class UserService {
 		const username = usernameExists
 			? `${baseUsername}${Math.floor(Math.random() * 10000)}`
 			: baseUsername;
-			
-		return username
+
+		return username;
 	}
 
 	async followUser(userId: string, targetUserId: string) {
@@ -87,8 +85,8 @@ export class UserService {
 							select: {
 								id: true,
 								avatarUrl: true,
-							}
-						}
+							},
+						},
 					},
 				},
 				following: {
@@ -100,8 +98,8 @@ export class UserService {
 							select: {
 								id: true,
 								avatarUrl: true,
-							}
-						}
+							},
+						},
 					},
 				},
 			},

@@ -4,7 +4,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { FeedEventDto } from "./dtos/feed-event.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { FeedEventFindManyArgs } from '@prisma/generated/models';
+import { FeedEventFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class FeedEventService {
@@ -37,40 +37,41 @@ export class FeedEventService {
 		});
 
 		const friendIds = following.map((item) => item.followingId);
-		
-		const pagination = await this.databaseService.cursorPagination<FeedEventFindManyArgs>({
-			model: "feedEvent",
-			where: {
-				userId: {
-					in: [...friendIds, userId],
+
+		const pagination =
+			await this.databaseService.cursorPagination<FeedEventFindManyArgs>({
+				model: "feedEvent",
+				where: {
+					userId: {
+						in: [...friendIds, userId],
+					},
 				},
-			},
-			include: {
-				_count: {
-					select: {
-						feedEventReactions: true,
-					}
+				include: {
+					_count: {
+						select: {
+							feedEventReactions: true,
+						},
+					},
+					feedEventReactions: {
+						take: 3,
+						select: {
+							reaction: {
+								select: {
+									id: true,
+									emoji: true,
+									createdAt: true,
+									user: {
+										select: {
+											username: true,
+										},
+									},
+								},
+							},
+						},
+					},
 				},
-				feedEventReactions: {
-					take: 3,
-					select: {
-						reaction: {
-							select: {
-								id: true,
-								emoji: true,
-								createdAt: true,
-								user: {
-									select: {
-										username: true,
-									}
-								}
-							}
-						}
-					}
-				}
-			},
-			orderBy: { createdAt: "desc" },
-		});
+				orderBy: { createdAt: "desc" },
+			});
 
 		return pagination;
 	}

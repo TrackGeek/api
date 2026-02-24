@@ -18,10 +18,11 @@ import { QueueModule } from "./shared/infra/queue/queue.module";
 import { EmailModule } from "./shared/infra/email/email.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { FeedEventModule } from "./modules/feed-event/feed-event.module";
-import { MangaModule } from './modules/manga/manga.module';
-import { BookModule } from './modules/book/book.module';
-import { AnimeModule } from './modules/anime/anime.module';
-import { FavoriteModule } from './modules/favorite/favorite.module';
+import { MangaModule } from "./modules/manga/manga.module";
+import { BookModule } from "./modules/book/book.module";
+import { AnimeModule } from "./modules/anime/anime.module";
+import { FavoriteModule } from "./modules/favorite/favorite.module";
+import { ListModule } from "./modules/list/list.module";
 
 @Module({
 	imports: [
@@ -46,7 +47,8 @@ import { FavoriteModule } from './modules/favorite/favorite.module';
 		MangaModule,
 		BookModule,
 		AnimeModule,
-		FavoriteModule
+		FavoriteModule,
+		ListModule,
 	],
 	providers: [],
 	controllers: [],

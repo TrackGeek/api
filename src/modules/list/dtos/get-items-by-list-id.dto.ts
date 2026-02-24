@@ -1,5 +1,5 @@
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
-export class GetFavoritesByUserIdDto extends OffsetPaginationParamsDto {
-	readonly userId: string;
+export class GetItemsByListIdDto extends OffsetPaginationParamsDto {
+	readonly listId: string;
 }
