@@ -32,15 +32,17 @@ async function bootstrap() {
 
 	app.useGlobalFilters(new HttpExceptionFilter());
 
-	const config = new DocumentBuilder()
-		.setTitle("Track Geek")
-		.setDescription("The Track Geek API documentation")
-		.setVersion("1.0.0")
-		.build();
+	if (process.env.NODE_ENV === "development") {
+		const config = new DocumentBuilder()
+			.setTitle("Track Geek")
+			.setDescription("The Track Geek API documentation")
+			.setVersion("1.0.0")
+			.build();
 
-	const documentFactory = () => SwaggerModule.createDocument(app, config);
+		const documentFactory = () => SwaggerModule.createDocument(app, config);
 
-	SwaggerModule.setup("docs", app, documentFactory); // Path: /docs
+		SwaggerModule.setup("docs", app, documentFactory); // Path: /docs
+	}
 
 	await app.listen(process.env.PORT!, () =>
 		logger.log(`Server is running on http://0.0.0.0:${process.env.PORT}`),
