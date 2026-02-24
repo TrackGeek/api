@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 
 import { UploadService } from "@/shared/infra/upload/upload.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { CreateProfileDto } from './dtos/create-profile.dto';
-import { UpdateProfileDto } from './dtos/update-profile.dto';
+import { CreateProfileDto } from "./dtos/create-profile.dto";
+import { UpdateProfileDto } from "./dtos/update-profile.dto";
 
 @Injectable()
 export class ProfileService {
@@ -11,16 +11,16 @@ export class ProfileService {
 		private readonly databaseService: DatabaseService,
 		private readonly uploadService: UploadService,
 	) {}
-	
+
 	async createProfile(createProfileDto: CreateProfileDto) {
 		return this.databaseService.profile.create({
 			data: {
 				userId: createProfileDto.userId,
 				avatarUrl: createProfileDto.avatarUrl,
-			}
-		})
+			},
+		});
 	}
-	
+
 	async updateProfile(updateProfileDto: UpdateProfileDto) {
 		await this.databaseService.profile.update({
 			where: { userId: updateProfileDto.userId },

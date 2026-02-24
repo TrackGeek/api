@@ -2,7 +2,7 @@ import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
-import helmet from 'helmet';
+import helmet from "helmet";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
@@ -15,13 +15,13 @@ async function bootstrap() {
 		cors: {
 			origin: process.env.WEB_URL,
 			credentials: true,
-		}
+		},
 	});
-	
+
 	app.use(helmet());
-	
+
 	app.use(cookieParser());
-	
+
 	app.useGlobalPipes(
 		new ValidationPipe({
 			whitelist: true,

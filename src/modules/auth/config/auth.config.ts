@@ -7,7 +7,7 @@ import type { BetterAuthOptions } from "@better-auth/core";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { UserService } from "@/modules/user/user.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
-import type { ProfileService } from '@/modules/profile/profile.service';
+import type { ProfileService } from "@/modules/profile/profile.service";
 
 interface AuthConfigParams {
 	configService?: ConfigService;
@@ -18,8 +18,13 @@ interface AuthConfigParams {
 }
 
 export function getAuthConfig(params: AuthConfigParams) {
-	const { configService, databaseService, userService, profileService, queueService } =
-		params as Required<AuthConfigParams>;
+	const {
+		configService,
+		databaseService,
+		userService,
+		profileService,
+		queueService,
+	} = params as Required<AuthConfigParams>;
 
 	return {
 		appName: "TrackGeek",
@@ -86,16 +91,16 @@ export function getAuthConfig(params: AuthConfigParams) {
 						return {
 							data: {
 								name,
-								username
-							}
-						}
+								username,
+							},
+						};
 					},
 					after: async (user) => {
 						await profileService.createProfile({
 							userId: user.id,
 							avatarUrl: user.image,
 						});
-					}
+					},
 				},
 			},
 		},

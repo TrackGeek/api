@@ -274,6 +274,7 @@ enum FeedEventType {
   NewFollower
   NewFavorite
   NewList
+  NewListItem
   NewReview
   NewWatch
   NewProgress
@@ -359,10 +360,10 @@ model Game {
   updatedAt             DateTime  @updatedAt
 
   gamesComments  GameComment[]
-  listGames      ListGame[]
   gameProgresses GameProgress[]
   gameReviews    GameReview[]
   favorites      Favorite[]
+  listItems      ListItem[]
 }
 
 model Book {
@@ -399,11 +400,11 @@ model Book {
   updatedAt              DateTime  @updatedAt
 
   bookComments   BookComment[]
-  listBooks      ListBook[]
   bookReads      BookRead[]
   bookProgresses BookProgress[]
   bookReviews    BookReview[]
   favorites      Favorite[]
+  listItems      ListItem[]
 }
 
 model Anime {
@@ -447,10 +448,10 @@ model Anime {
 
   animeComments   AnimeComment[]
   animeWatches    AnimeWatch[]
-  listAnimes      ListAnime[]
   animeProgresses AnimeProgress[]
   animeReviews    AnimeReview[]
   favorites       Favorite[]
+  listItems       ListItem[]
 }
 
 model Manga {
@@ -483,11 +484,11 @@ model Manga {
   updatedAt        DateTime @updatedAt
 
   mangaComments   MangaComment[]
-  listMangas      ListManga[]
   mangaReads      MangaRead[]
   mangaProgresses MangaProgress[]
   mangaReviews    MangaReview[]
   favorites       Favorite[]
+  listItems       ListItem[]
 }
 
 model TVShow {
@@ -525,11 +526,11 @@ model TVShow {
   updatedAt           DateTime  @updatedAt
 
   tvShowComments   TVShowComment[]
-  listTVShows      ListTVShow[]
   tvshowWatches    TVShowWatch[]
   tvshowProgresses TVShowProgress[]
   tvshowReviews    TVShowReview[]
   favorites        Favorite[]
+  listItems        ListItem[]
 }
 
 model Movie {
@@ -562,11 +563,11 @@ model Movie {
   updatedAt           DateTime  @updatedAt
 
   movieComments   MovieComment[]
-  listMovies      ListMovie[]
   movieWatches    MovieWatch[]
   movieProgresses MovieProgress[]
   movieReviews    MovieReview[]
   favorites       Favorite[]
+  listItems       ListItem[]
 }
 
 enum WatchStatus {
@@ -892,91 +893,27 @@ model List {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user        User         @relation(fields: [userId], references: [id])
-  listAnimes  ListAnime[]
-  listMangas  ListManga[]
-  listTVShows ListTVShow[]
-  listMovies  ListMovie[]
-  listGames   ListGame[]
-  listBooks   ListBook[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listItems ListItem[]
 }
 
-model ListAnime {
-  id        String   @id @default(uuid())
-  listId    String
-  animeId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ListItem {
+  id       String  @id @default(uuid())
+  listId   String
+  animeId  String?
+  mangaId  String?
+  tvShowId String?
+  movieId  String?
+  gameId   String?
+  bookId   String?
 
-  list  List  @relation(fields: [listId], references: [id])
-  anime Anime @relation(fields: [animeId], references: [id])
-
-  @@unique([listId, animeId])
-}
-
-model ListManga {
-  id        String   @id @default(uuid())
-  listId    String
-  mangaId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  list  List  @relation(fields: [listId], references: [id])
-  manga Manga @relation(fields: [mangaId], references: [id])
-
-  @@unique([listId, mangaId])
-}
-
-model ListTVShow {
-  id        String   @id @default(uuid())
-  listId    String
-  tvShowId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  list   List   @relation(fields: [listId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
-
-  @@unique([listId, tvShowId])
-}
-
-model ListMovie {
-  id        String   @id @default(uuid())
-  listId    String
-  movieId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  list  List  @relation(fields: [listId], references: [id])
-  movie Movie @relation(fields: [movieId], references: [id])
-
-  @@unique([listId, movieId])
-}
-
-model ListGame {
-  id        String   @id @default(uuid())
-  listId    String
-  gameId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  list List @relation(fields: [listId], references: [id])
-  game Game @relation(fields: [gameId], references: [id])
-
-  @@unique([listId, gameId])
-}
-
-model ListBook {
-  id        String   @id @default(uuid())
-  listId    String
-  bookId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  list List @relation(fields: [listId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
-
-  @@unique([listId, bookId])
+  list   List    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  anime  Anime?  @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  tvShow TVShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 enum FavoriteType {
@@ -1001,11 +938,11 @@ model Favorite {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  user   User    @relation(fields: [userId], references: [id])
-  anime  Anime?  @relation(fields: [animeId], references: [id])
-  manga  Manga?  @relation(fields: [mangaId], references: [id])
-  tvShow TVShow? @relation(fields: [tvShowId], references: [id])
-  movie  Movie?  @relation(fields: [movieId], references: [id])
-  game   Game?   @relation(fields: [gameId], references: [id])
-  book   Book?   @relation(fields: [bookId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime  Anime?  @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  tvShow TVShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
