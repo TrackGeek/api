@@ -46,7 +46,9 @@ type FavoriteItemDto =
 	| GameFavoriteItemDto
 	| BookFavoriteItemDto;
 
-const favoriteItemTypeMap: Partial<Record<FavoriteType, new () => FavoriteItemDto>> = {
+const favoriteItemTypeMap: Partial<
+	Record<FavoriteType, new () => FavoriteItemDto>
+> = {
 	[FavoriteType.Anime]: AnimeFavoriteItemDto,
 	[FavoriteType.Manga]: MangaFavoriteItemDto,
 	[FavoriteType.TVShow]: TVShowFavoriteItemDto,
@@ -62,6 +64,9 @@ export class AddFavoriteDto {
 	readonly userId: string;
 
 	@ValidateNested()
-	@Type((options) => favoriteItemTypeMap[(options?.object as AddFavoriteDto).type] ?? Object)
+	@Type(
+		(options) =>
+			favoriteItemTypeMap[(options?.object as AddFavoriteDto).type] ?? Object,
+	)
 	readonly item: FavoriteItemDto;
 }

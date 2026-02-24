@@ -38,7 +38,13 @@ export class BookItemDto {
 	readonly bookId: string;
 }
 
-type ItemDto = AnimeItemDto | MangaItemDto | TVShowItemDto | MovieItemDto | GameItemDto | BookItemDto;
+type ItemDto =
+	| AnimeItemDto
+	| MangaItemDto
+	| TVShowItemDto
+	| MovieItemDto
+	| GameItemDto
+	| BookItemDto;
 
 const itemTypeMap: Partial<Record<ListType, new () => ItemDto>> = {
 	[ListType.Anime]: AnimeItemDto,
@@ -58,6 +64,9 @@ export class AddItemToListDto {
 	readonly userId: string;
 
 	@ValidateNested()
-	@Type((options) => itemTypeMap[(options?.object as AddItemToListDto).type] ?? Object)
+	@Type(
+		(options) =>
+			itemTypeMap[(options?.object as AddItemToListDto).type] ?? Object,
+	)
 	readonly item: ItemDto;
 }

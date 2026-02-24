@@ -1,10 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsUUID } from "class-validator";
+import { IsInt } from "class-validator";
 
 export class RefreshBookDto {
-	@IsUUID()
-	@ApiProperty({
-		description: "Hardcover ID of the book to refresh",
-	})
+	@IsInt()
 	readonly id: number;
 }

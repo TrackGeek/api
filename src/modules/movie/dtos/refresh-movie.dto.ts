@@ -1,10 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsUUID } from "class-validator";
+import { IsInt } from "class-validator";
 
 export class RefreshMovieDto {
-	@IsUUID()
-	@ApiProperty({
-		description: "TMDB ID of the movie to refresh",
-	})
+	@IsInt()
 	readonly id: number;
 }
