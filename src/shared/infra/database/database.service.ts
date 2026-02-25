@@ -21,7 +21,7 @@ export interface DatabaseArgs {
 	include?: any;
 	orderBy?: any;
 	select?: any;
-};
+}
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_ITEMS_PER_PAGE = 12;

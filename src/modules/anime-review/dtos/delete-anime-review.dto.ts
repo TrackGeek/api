@@ -1,5 +1,5 @@
 export class DeleteAnimeReviewDto {
-  readonly animeReviewId: string;
-  
-  readonly userId: string;
+	readonly animeReviewId: string;
+
+	readonly userId: string;
 }
