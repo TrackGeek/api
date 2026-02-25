@@ -1,56 +1,59 @@
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsPositive, Max, Min } from 'class-validator';
+import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsPositive, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateAnimeReviewDto {
   @IsDecimal()
-  @IsNotEmpty()
   @Max(10)
   @Min(0)
   readonly overall: number;
   
   @IsDecimal()
-  @IsNotEmpty()
+  @IsOptional()
   @Max(10)
   @Min(0)
-  readonly story: number;
+  readonly story?: number;
   
   @IsDecimal()
-  @IsNotEmpty()
+  @IsOptional()
   @Max(10)
   @Min(0)
-  readonly characters: number;
+  readonly characters?: number;
   
   @IsDecimal()
-  @IsNotEmpty()
+  @IsOptional()
   @Max(10)
   @Min(0)
-  readonly animation: number;
+  readonly animation?: number;
   
   @IsDecimal()
-  @IsNotEmpty()
+  @IsOptional()
   @Max(10)
   @Min(0)
-  readonly sound: number;
+  readonly sound?: number;
   
   @IsDecimal()
-  @IsNotEmpty()
+  @IsOptional()
   @Max(10)
   @Min(0)
-  readonly enjoyment: number;
+  readonly enjoyment?: number;
   
   @IsOptional()
-  readonly summary: string;
+  @MaxLength(50)
+  readonly summary?: string;
   
   @IsOptional()
-  readonly pros: string;
+  @MaxLength(500)
+  readonly pros?: string;
   
   @IsOptional()
-  readonly cons: string;
+  @MaxLength(500)
+  readonly cons?: string;
   
   @IsOptional()
-  readonly notes: string;
+  readonly notes?: string;
   
   @IsBoolean()
-  readonly recommended: boolean;
+  @IsOptional()
+  readonly recommended?: boolean;
   
   @IsNotEmpty()
   readonly animeId: string;

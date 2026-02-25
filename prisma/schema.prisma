@@ -782,15 +782,15 @@ model BookProgress {
 model AnimeReview {
   id          String   @id @default(uuid())
   overall     Int
-  story       Int
-  characters  Int
-  animation   Int
-  sound       Int
-  enjoyment   Int
+  story       Int?
+  characters  Int?
+  animation   Int?
+  sound       Int?
+  enjoyment   Int?
   summary     String?
+  notes       String?
   pros        String?
   cons        String?
-  notes       String?
   recommended Boolean?
   userId      String
   animeId     String
@@ -804,14 +804,18 @@ model AnimeReview {
 }
 
 model MangaReview {
-  id          String   @id @default(uuid())
-  rating      Int
-  notes       String?
-  screenshots String[] @default([])
-  userId      String
-  mangaId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  overall       Int
+  art           Int?
+  worldbuilding Int?
+  summary       String?
+  notes         String?
+  story         String?
+  characters    String?
+  userId        String
+  mangaId       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   manga Manga @relation(fields: [mangaId], references: [id])
@@ -820,14 +824,18 @@ model MangaReview {
 }
 
 model TVShowReview {
-  id          String   @id @default(uuid())
-  rating      Int
-  notes       String?
-  screenshots String[] @default([])
-  userId      String
-  tvShowId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  overall    Int
+  direction  Int?
+  production Int?
+  acting     Int?
+  summary    String?
+  notes      String?
+  story      String?
+  userId     String
+  tvShowId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
   tvShow TVShow @relation(fields: [tvShowId], references: [id])
@@ -836,14 +844,18 @@ model TVShowReview {
 }
 
 model MovieReview {
-  id          String   @id @default(uuid())
-  rating      Int
-  notes       String?
-  screenshots String[] @default([])
-  userId      String
-  movieId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  overall    Int
+  direction  Int?
+  production Int?
+  acting     Int?
+  summary    String?
+  notes      String?
+  story      String?
+  userId     String
+  movieId    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   movie Movie @relation(fields: [movieId], references: [id])
@@ -853,7 +865,12 @@ model MovieReview {
 
 model GameReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Int
+  graphics    Int?
+  sound       Int?
+  story       Int?
+  gameplay    Int?
+  summary     String?
   notes       String?
   screenshots String[] @default([])
   userId      String
@@ -869,7 +886,11 @@ model GameReview {
 
 model BookReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Int
+  characters  Int?
+  language    Int?
+  theme       Int?
+  summary     String?
   notes       String?
   screenshots String[] @default([])
   userId      String
