@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
-
+import { AuthGuard, Session, type UserSession } from '@thallesp/nestjs-better-auth';
 
 import { ListService } from './list.service';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
@@ -19,8 +18,9 @@ export class ListController {
   
   @Post()
   @UseGuards(RateLimitGuard)
+  @UseGuards(AuthGuard)
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   async createList(@Session() session: UserSession, @Body() body: CreateListDto) {
     await this.listService.createList({
       ...body,
@@ -64,6 +64,7 @@ export class ListController {
   
   @Post('/:listId/item')
   @UseGuards(RateLimitGuard)
+  @UseGuards(AuthGuard)
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.OK)
   async addItemToList(
@@ -80,6 +81,7 @@ export class ListController {
   
   @Delete('/:listId/item')
   @UseGuards(RateLimitGuard)
+  @UseGuards(AuthGuard)
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.OK)
   async removeItemFromList(

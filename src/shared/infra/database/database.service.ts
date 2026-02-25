@@ -15,7 +15,7 @@ import {
 
 export type DatabaseModel = Exclude<keyof PrismaClient, `$${string}` | symbol>;
 
-export type DatabaseArgs = {
+export interface DatabaseArgs {
 	where?: any;
 	omit?: any;
 	include?: any;
@@ -118,9 +118,9 @@ export class DatabaseService extends PrismaClient {
 				: null;
 
 		return {
-			items: items as R[],
 			nextCursor,
 			hasNextPage,
+			items: items as R[],
 		};
 	}
 }

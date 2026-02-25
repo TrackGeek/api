@@ -781,9 +781,17 @@ model BookProgress {
 
 model AnimeReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Int
+  story       Int
+  characters  Int
+  animation   Int
+  sound       Int
+  enjoyment   Int
+  summary     String?
+  pros        String?
+  cons        String?
   notes       String?
-  screenshots String[] @default([])
+  recommended Boolean?
   userId      String
   animeId     String
   createdAt   DateTime @default(now())

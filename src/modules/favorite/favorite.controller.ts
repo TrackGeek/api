@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import { AuthGuard, Session, type UserSession } from '@thallesp/nestjs-better-auth';
 
 import { FavoriteService } from './favorite.service';
 import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
@@ -16,8 +16,9 @@ export class FavoriteController {
   
   @Post()
   @UseGuards(RateLimitGuard)
+  @UseGuards(AuthGuard)
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   async addFavorite(@Session() session: UserSession, @Body() body: AddFavoriteDto) {
     await this.favoriteService.addFavorite({
       ...body,
@@ -27,6 +28,7 @@ export class FavoriteController {
   
   @Delete()
   @UseGuards(RateLimitGuard)
+  @UseGuards(AuthGuard)
   @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.OK)
   async removeFavorite(@Session() session: UserSession, @Body() body: RemoveFavoriteDto) {

@@ -12,7 +12,7 @@
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./e2e/jest-e2e.json",
-		"dev": "nest start --watch",
+		"dev": "NODE_ENV=development nest start --watch",
 		"build": "nest build",
 		"start": "NODE_ENV=production node dist/main"
 	},

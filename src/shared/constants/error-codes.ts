@@ -159,4 +159,12 @@ export const ERROR_CODES = {
 		message: "LIST_ITEM_NOT_FOUND",
 		status: 404,
 	},
+	REVIEW_NOT_FOUND: {
+		message: "REVIEW_NOT_FOUND",
+		status: 404,
+	},
+	REVIEW_ALREADY_EXISTS: {
+		message: "REVIEW_ALREADY_EXISTS",
+		status: 409,
+	},
 } as const;

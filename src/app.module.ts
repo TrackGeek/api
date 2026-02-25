@@ -23,6 +23,7 @@ import { BookModule } from "./modules/book/book.module";
 import { AnimeModule } from "./modules/anime/anime.module";
 import { FavoriteModule } from "./modules/favorite/favorite.module";
 import { ListModule } from "./modules/list/list.module";
+import { AnimeReviewModule } from './modules/anime-review/anime-review.module';
 
 @Module({
 	imports: [
@@ -49,6 +50,7 @@ import { ListModule } from "./modules/list/list.module";
 		AnimeModule,
 		FavoriteModule,
 		ListModule,
+		AnimeReviewModule
 	],
 	providers: [],
 	controllers: [],
