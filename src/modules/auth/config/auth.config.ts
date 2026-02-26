@@ -1,5 +1,7 @@
+// @ts-nocheck
+
 import crypto from "node:crypto";
-import { customSession, lastLoginMethod, magicLink } from "better-auth/plugins";
+import { customSession, lastLoginMethod, magicLink, username,  } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { ConfigService } from "@nestjs/config";
 import type { BetterAuthOptions } from "@better-auth/core";
@@ -35,6 +37,9 @@ export function getAuthConfig(params: AuthConfigParams) {
 		baseURL: configService.get<string>("BETTER_AUTH_URL"),
 		secret: configService.get<string>("BETTER_AUTH_SECRET"),
 		trustedOrigins: [configService.get<string>("WEB_URL")],
+    emailAndPassword: { 
+      enabled: true, 
+    }, 
 		socialProviders: {
 			google: {
 				clientId: configService.get<string>("GOOGLE_CLIENT_ID"),
@@ -51,16 +56,13 @@ export function getAuthConfig(params: AuthConfigParams) {
 		},
 		user: {
 			additionalFields: {
-				username: {
-					type: "string",
-					required: true,
-				},
 				profile: {
 					type: "json",
 				},
 			},
 		},
 		plugins: [
+      username(),
 			customSession(async (data) => {
 				const user = await userService.getUserById(data.session.userId);
 

@@ -9,14 +9,15 @@ datasource db {
 }
 
 model User {
-  id            String   @id
-  name          String
-  email         String
-  emailVerified Boolean  @default(false)
-  image         String?
-  username      String   @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id
+  name            String
+  email           String
+  emailVerified   Boolean  @default(false)
+  image           String?
+  username        String?
+  displayUsername String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   profile          Profile?
   sessions         Session[]
@@ -48,6 +49,54 @@ model User {
   userMedals       UserMedal[]
 
   @@unique([email])
+  @@unique([username])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  ipAddress String?
+  userAgent String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
 }
 
 model Profile {
@@ -103,53 +152,6 @@ model Following {
   @@unique([followerId, followingId])
   @@index([followerId])
   @@index([followingId])
-}
-
-model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  ipAddress String?
-  userAgent String?
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([token])
-  @@index([userId])
-}
-
-model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model Verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([identifier])
 }
 
 model Comment {

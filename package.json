@@ -6,7 +6,6 @@
 		"format": "biome format --write",
 		"prisma:generate": "prisma generate",
 		"prisma:migrate": "prisma migrate dev",
-		"auth:generate": "npx @better-auth/cli generate --config src/shared/config/auth.config.ts",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
