@@ -812,6 +812,7 @@ model MangaReview {
   notes         String?
   story         String?
   characters    String?
+  recommended   Boolean?
   userId        String
   mangaId       String
   createdAt     DateTime @default(now())
@@ -824,18 +825,19 @@ model MangaReview {
 }
 
 model TVShowReview {
-  id         String   @id @default(uuid())
-  overall    Int
-  direction  Int?
-  production Int?
-  acting     Int?
-  summary    String?
-  notes      String?
-  story      String?
-  userId     String
-  tvShowId   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(uuid())
+  overall     Int
+  direction   Int?
+  production  Int?
+  acting      Int?
+  summary     String?
+  notes       String?
+  story       String?
+  recommended Boolean?
+  userId      String
+  tvShowId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
   tvShow TVShow @relation(fields: [tvShowId], references: [id])
@@ -844,18 +846,19 @@ model TVShowReview {
 }
 
 model MovieReview {
-  id         String   @id @default(uuid())
-  overall    Int
-  direction  Int?
-  production Int?
-  acting     Int?
-  summary    String?
-  notes      String?
-  story      String?
-  userId     String
-  movieId    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(uuid())
+  overall     Int
+  direction   Int?
+  production  Int?
+  acting      Int?
+  summary     String?
+  notes       String?
+  story       String?
+  recommended Boolean?
+  userId      String
+  movieId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   movie Movie @relation(fields: [movieId], references: [id])
@@ -872,6 +875,7 @@ model GameReview {
   gameplay    Int?
   summary     String?
   notes       String?
+  recommended Boolean?
   screenshots String[] @default([])
   userId      String
   gameId      String
@@ -892,6 +896,7 @@ model BookReview {
   theme       Int?
   summary     String?
   notes       String?
+  recommended Boolean?
   screenshots String[] @default([])
   userId      String
   bookId      String

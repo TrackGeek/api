@@ -8,7 +8,7 @@ import {
 	Min,
 } from "class-validator";
 
-export class CreateAnimeReviewDto {
+export class CreateMangaReviewDto {
 	@IsDecimal()
 	@Max(10)
 	@Min(0)
@@ -18,31 +18,13 @@ export class CreateAnimeReviewDto {
 	@IsOptional()
 	@Max(10)
 	@Min(0)
-	readonly story?: number;
+	readonly art?: number;
 
 	@IsDecimal()
 	@IsOptional()
 	@Max(10)
 	@Min(0)
-	readonly characters?: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly animation?: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly sound?: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly enjoyment?: number;
+	readonly worldbuilding?: number;
 
 	@IsOptional()
 	@MaxLength(50)
@@ -50,21 +32,21 @@ export class CreateAnimeReviewDto {
 
 	@IsOptional()
 	@MaxLength(500)
-	readonly pros?: string;
+	readonly notes?: string;
 
 	@IsOptional()
 	@MaxLength(500)
-	readonly cons?: string;
+	readonly story?: string;
 
 	@IsOptional()
-	readonly notes?: string;
+	readonly characters?: string;
 
 	@IsBoolean()
 	@IsOptional()
 	readonly recommended?: boolean;
 
 	@IsNotEmpty()
-	readonly animeId: string;
+	readonly mangaId: string;
 
 	readonly userId: string;
 }
