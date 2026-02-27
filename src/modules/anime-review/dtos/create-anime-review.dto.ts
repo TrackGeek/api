@@ -45,7 +45,7 @@ export class CreateAnimeReviewDto {
 	readonly enjoyment?: number;
 
 	@IsOptional()
-	@MaxLength(50)
+	@MaxLength(250)
 	readonly summary?: string;
 
 	@IsOptional()
@@ -57,6 +57,7 @@ export class CreateAnimeReviewDto {
 	readonly cons?: string;
 
 	@IsOptional()
+  @MaxLength(1000)
 	readonly notes?: string;
 
 	@IsBoolean()
