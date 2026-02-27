@@ -8,8 +8,8 @@ export async function buildMergedDocument(
   betterAuthInstance: any,
 ): Promise<OpenAPIObject> {
   const swaggerConfig = new DocumentBuilder()
-    .setTitle("Track Geek")
-    .setDescription("The Track Geek API documentation")
+    .setTitle("TrackGeek")
+    .setDescription("The TrackGeek API documentation")
     .setVersion("1.0.0")
     .build();
 

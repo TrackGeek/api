@@ -15,11 +15,14 @@ export function buildScalarConfig(
     expandAllModelSections: true,
     hideTestRequestButton: true,
     showDeveloperTools: "never",
-    forceDarkModeState: "light",
+    forceDarkModeState: "dark",
     hideDarkModeToggle: true,
     layout: "modern",
     darkMode: false,
     defaultOpenAllTags: true,
     documentDownloadType: "none",
+    agent: {
+      disabled: true,
+    },
   }
 }
