@@ -1,5 +1,5 @@
 export class DeleteMovieReviewDto {
-	readonly movieReviewId: string;
+  readonly movieReviewId: string;
 
-	readonly userId: string;
+  readonly userId: string;
 }

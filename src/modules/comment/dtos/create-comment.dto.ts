@@ -1,8 +1,8 @@
 import { IsNotEmpty } from "class-validator";
 
 export class CreateCommentDto {
-	readonly userId: string;
+  readonly userId: string;
 
-	@IsNotEmpty()
-	readonly content: string;
+  @IsNotEmpty()
+  readonly content: string;
 }

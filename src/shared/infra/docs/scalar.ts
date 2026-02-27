@@ -1,9 +1,7 @@
-import { ApiReferenceOptions } from "@scalar/nestjs-api-reference";
 import { OpenAPIObject } from "@nestjs/swagger";
+import { ApiReferenceOptions } from "@scalar/nestjs-api-reference";
 
-export function buildScalarConfig(
-  document: OpenAPIObject,
-): ApiReferenceOptions & { content: OpenAPIObject } {
+export function buildScalarConfig(document: OpenAPIObject): ApiReferenceOptions & { content: OpenAPIObject } {
   return {
     content: document,
     hiddenClients: true,
@@ -24,5 +22,5 @@ export function buildScalarConfig(
     agent: {
       disabled: true,
     },
-  }
+  };
 }

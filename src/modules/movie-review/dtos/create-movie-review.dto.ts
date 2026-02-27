@@ -1,55 +1,47 @@
-import {
-	IsBoolean,
-	IsDecimal,
-	IsNotEmpty,
-	IsOptional,
-	Max,
-	MaxLength,
-	Min,
-} from "class-validator";
+import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateMovieReviewDto {
-	@IsDecimal()
-	@Max(10)
-	@Min(0)
-	readonly overall: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly direction?: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly production?: number;
-  
   @IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly acting?: number;
+  @Max(10)
+  @Min(0)
+  readonly overall: number;
 
-	@IsOptional()
-	@MaxLength(250)
-	readonly summary?: string;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly direction?: number;
 
-	@IsOptional()
-	@MaxLength(1000)
-	readonly notes?: string;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly production?: number;
 
-	@IsOptional()
-	@MaxLength(500)
-	readonly story?: string;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly acting?: number;
 
-	@IsBoolean()
-	@IsOptional()
-	readonly recommended?: boolean;
+  @IsOptional()
+  @MaxLength(250)
+  readonly summary?: string;
 
-	@IsNotEmpty()
-	readonly movieId: string;
+  @IsOptional()
+  @MaxLength(1000)
+  readonly notes?: string;
 
-	readonly userId: string;
+  @IsOptional()
+  @MaxLength(500)
+  readonly story?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly recommended?: boolean;
+
+  @IsNotEmpty()
+  readonly movieId: string;
+
+  readonly userId: string;
 }

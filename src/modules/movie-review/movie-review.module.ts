@@ -4,9 +4,9 @@ import { MovieReviewController } from "./movie-review.controller";
 import { MovieReviewService } from "./movie-review.service";
 
 @Module({
-	imports: [],
-	controllers: [MovieReviewController],
-	providers: [MovieReviewService],
-	exports: [MovieReviewService],
+  imports: [],
+  controllers: [MovieReviewController],
+  providers: [MovieReviewService],
+  exports: [MovieReviewService],
 })
 export class MovieReviewModule {}

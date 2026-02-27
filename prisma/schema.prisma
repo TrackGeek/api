@@ -788,12 +788,12 @@ model BookProgress {
 
 model AnimeReview {
   id          String   @id @default(uuid())
-  overall     Int
-  story       Int?
-  characters  Int?
-  animation   Int?
-  sound       Int?
-  enjoyment   Int?
+  overall     Decimal
+  story       Decimal?
+  characters  Decimal?
+  animation   Decimal?
+  sound       Decimal?
+  enjoyment   Decimal?
   summary     String?
   notes       String?
   pros        String?
@@ -812,9 +812,9 @@ model AnimeReview {
 
 model MangaReview {
   id            String   @id @default(uuid())
-  overall       Int
-  art           Int?
-  worldbuilding Int?
+  overall       Decimal
+  art           Decimal?
+  worldbuilding Decimal?
   summary       String?
   notes         String?
   story         String?
@@ -833,10 +833,10 @@ model MangaReview {
 
 model TvShowReview {
   id          String   @id @default(uuid())
-  overall     Int
-  direction   Int?
-  production  Int?
-  acting      Int?
+  overall     Decimal
+  direction   Decimal?
+  production  Decimal?
+  acting      Decimal?
   summary     String?
   notes       String?
   story       String?
@@ -855,10 +855,10 @@ model TvShowReview {
 
 model MovieReview {
   id          String   @id @default(uuid())
-  overall     Int
-  direction   Int?
-  production  Int?
-  acting      Int?
+  overall     Decimal
+  direction   Decimal?
+  production  Decimal?
+  acting      Decimal?
   summary     String?
   notes       String?
   story       String?
@@ -876,11 +876,11 @@ model MovieReview {
 
 model GameReview {
   id          String   @id @default(uuid())
-  overall     Int
-  graphics    Int?
-  sound       Int?
-  story       Int?
-  gameplay    Int?
+  overall     Decimal
+  graphics    Decimal?
+  sound       Decimal?
+  story       Decimal?
+  gameplay    Decimal?
   platform    String?
   summary     String?
   notes       String?
@@ -899,10 +899,10 @@ model GameReview {
 
 model BookReview {
   id          String   @id @default(uuid())
-  overall     Int
-  characters  Int?
-  language    Int?
-  theme       Int?
+  overall     Decimal
+  characters  Decimal?
+  language    Decimal?
+  theme       Decimal?
   summary     String?
   notes       String?
   recommended Boolean?

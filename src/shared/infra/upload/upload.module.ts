@@ -4,8 +4,8 @@ import { UploadService } from "./upload.service";
 
 @Global()
 @Module({
-	imports: [],
-	providers: [UploadService],
-	exports: [UploadService],
+  imports: [],
+  providers: [UploadService],
+  exports: [UploadService],
 })
 export class UploadModule {}

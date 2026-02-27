@@ -1,6 +1,6 @@
 {
-	"editor.formatOnSave": true,
-	"biome.enabled": true,
-	"biome.requireConfiguration": true,
-	"editor.defaultFormatter": "biomejs.biome"
+  "editor.formatOnSave": true,
+  "biome.enabled": true,
+  "biome.requireConfiguration": true,
+  "editor.defaultFormatter": "biomejs.biome"
 }

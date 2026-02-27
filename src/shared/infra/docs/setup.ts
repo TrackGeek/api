@@ -1,9 +1,8 @@
 import { INestApplication } from "@nestjs/common";
 import { apiReference as scalarApiReference } from "@scalar/nestjs-api-reference";
 import { AuthService } from "@thallesp/nestjs-better-auth";
-
-import { buildMergedDocument } from "./swagger";
 import { buildScalarConfig } from "./scalar";
+import { buildMergedDocument } from "./swagger";
 
 export async function setupDocs(app: INestApplication): Promise<void> {
   const authService = app.get(AuthService);

@@ -1,12 +1,9 @@
-import { DocumentBuilder, OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
 import { INestApplication } from "@nestjs/common";
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
 
 const HIDDEN_TAGS = new Set(["Default", "Magic-link", "Username"]);
 
-export async function buildMergedDocument(
-  app: INestApplication,
-  betterAuthInstance: any,
-): Promise<OpenAPIObject> {
+export async function buildMergedDocument(app: INestApplication, betterAuthInstance: any): Promise<OpenAPIObject> {
   const swaggerConfig = new DocumentBuilder()
     .setTitle("TrackGeek")
     .setDescription("The TrackGeek API documentation")

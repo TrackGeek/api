@@ -1,5 +1,5 @@
 describe("JikanService", () => {
-	it("true is true", () => {
-		expect(true).toBe(true);
-	});
+  it("true is true", () => {
+    expect(true).toBe(true);
+  });
 });

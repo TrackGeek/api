@@ -1,23 +1,29 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@thallesp/nestjs-better-auth';
-import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { CreateMangaReviewDto } from "./dtos/create-manga-review.dto";
+import { GetMangaReviewsDto } from "./dtos/get-manga-reviews.dto";
+import { UpdateMangaReviewDto } from "./dtos/update-manga-review.dto";
+import { MangaReviewService } from "./manga-review.service";
 
-import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
-import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
-import { MangaReviewService } from './manga-review.service';
-import { CreateMangaReviewDto } from './dtos/create-manga-review.dto';
-import { GetMangaReviewsDto } from './dtos/get-manga-reviews.dto';
-
-@UseGuards(RateLimitGuard)
-@RateLimit({ limit: 30, window: 60, blockDuration: 300 })
 @Controller("manga/review")
 export class MangaReviewController {
-  constructor(private readonly mangaReviewService: MangaReviewService) { }
-  
+  constructor(private readonly mangaReviewService: MangaReviewService) {}
+
   @Post()
-  @UseGuards(RateLimitGuard)
   @UseGuards(AuthGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.CREATED)
   async createMangaReview(@Session() session: UserSession, @Body() body: CreateMangaReviewDto) {
     await this.mangaReviewService.createMangaReview({
@@ -25,34 +31,27 @@ export class MangaReviewController {
       userId: session.user.id,
     });
   }
-  
+
   @Get()
-  @HttpCode(HttpStatus.OK)
   async getMangaReviews(@Query() query: GetMangaReviewsDto) {
     const mangaReviews = await this.mangaReviewService.getMangaReviews(query);
-    
-    return { mangaReviews }
+
+    return { mangaReviews };
   }
-  
-  @Get('/:mangaReviewId')
-  @UseGuards(RateLimitGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
-  async getMangaReviewById(@Param('mangaReviewId', new ParseUUIDPipe()) mangaReviewId: string) {
+
+  @Get("/:mangaReviewId")
+  async getMangaReviewById(@Param("mangaReviewId", new ParseUUIDPipe()) mangaReviewId: string) {
     const mangaReview = await this.mangaReviewService.getMangaReviewById(mangaReviewId);
-    
+
     return { mangaReview };
   }
-  
-  @Patch('/:mangaReviewId')
-  @UseGuards(RateLimitGuard)
+
+  @Patch("/:mangaReviewId")
   @UseGuards(AuthGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
   async updateMangaReview(
-    @Param('mangaReviewId', new ParseUUIDPipe()) mangaReviewId: string,
+    @Param("mangaReviewId", new ParseUUIDPipe()) mangaReviewId: string,
     @Session() session: UserSession,
-    @Body() body: CreateMangaReviewDto,
+    @Body() body: UpdateMangaReviewDto,
   ) {
     await this.mangaReviewService.updateMangaReview({
       ...body,
@@ -60,14 +59,12 @@ export class MangaReviewController {
       userId: session.user.id,
     });
   }
-  
-  @Delete('/:mangaReviewId')
-  @UseGuards(RateLimitGuard)
+
+  @Delete("/:mangaReviewId")
   @UseGuards(AuthGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMangaReview(
-    @Param('mangaReviewId', new ParseUUIDPipe()) mangaReviewId: string,
+    @Param("mangaReviewId", new ParseUUIDPipe()) mangaReviewId: string,
     @Session() session: UserSession,
   ) {
     await this.mangaReviewService.deleteMangaReview({

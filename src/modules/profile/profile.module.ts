@@ -4,9 +4,9 @@ import { ProfileService } from "./profile.service";
 
 @Global()
 @Module({
-	imports: [],
-	controllers: [ProfileController],
-	providers: [ProfileService],
-	exports: [ProfileService],
+  imports: [],
+  controllers: [ProfileController],
+  providers: [ProfileService],
+  exports: [ProfileService],
 })
 export class ProfileModule {}

@@ -1,51 +1,43 @@
-import {
-	IsBoolean,
-	IsDecimal,
-	IsNotEmpty,
-	IsOptional,
-	Max,
-	MaxLength,
-	Min,
-} from "class-validator";
+import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateBookReviewDto {
-	@IsDecimal()
-	@Max(10)
-	@Min(0)
-	readonly overall: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly characters?: number;
-
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly language?: number;
-  
   @IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly theme?: number;
+  @Max(10)
+  @Min(0)
+  readonly overall: number;
 
-	@IsOptional()
-	@MaxLength(250)
-	readonly summary?: string;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly characters?: number;
 
-	@IsOptional()
-	@MaxLength(1000)
-	readonly notes?: string;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly language?: number;
 
-	@IsBoolean()
-	@IsOptional()
-	readonly recommended?: boolean;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly theme?: number;
 
-	@IsNotEmpty()
-	readonly bookId: string;
+  @IsOptional()
+  @MaxLength(250)
+  readonly summary?: string;
 
-	readonly userId: string;
+  @IsOptional()
+  @MaxLength(1000)
+  readonly notes?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly recommended?: boolean;
+
+  @IsNotEmpty()
+  readonly bookId: string;
+
+  readonly userId: string;
 }

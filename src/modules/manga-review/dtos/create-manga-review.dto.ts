@@ -1,53 +1,45 @@
-import {
-	IsBoolean,
-	IsDecimal,
-	IsNotEmpty,
-	IsOptional,
-	Max,
-	MaxLength,
-	Min,
-} from "class-validator";
+import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateMangaReviewDto {
-	@IsDecimal()
-	@Max(10)
-	@Min(0)
-	readonly overall: number;
+  @IsDecimal()
+  @Max(10)
+  @Min(0)
+  readonly overall: number;
 
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly art?: number;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly art?: number;
 
-	@IsDecimal()
-	@IsOptional()
-	@Max(10)
-	@Min(0)
-	readonly worldbuilding?: number;
+  @IsDecimal()
+  @IsOptional()
+  @Max(10)
+  @Min(0)
+  readonly worldbuilding?: number;
 
-	@IsOptional()
-	@MaxLength(250)
-	readonly summary?: string;
+  @IsOptional()
+  @MaxLength(250)
+  readonly summary?: string;
 
-	@IsOptional()
-	@MaxLength(1000)
-	readonly notes?: string;
+  @IsOptional()
+  @MaxLength(1000)
+  readonly notes?: string;
 
-	@IsOptional()
-	@MaxLength(500)
-	readonly story?: string;
-
-	@IsOptional()
+  @IsOptional()
   @MaxLength(500)
-	readonly characters?: string;
+  readonly story?: string;
 
-	@IsBoolean()
-	@IsOptional()
-	readonly recommended?: boolean;
+  @IsOptional()
+  @MaxLength(500)
+  readonly characters?: string;
 
-	@IsNotEmpty()
-	readonly mangaId: string;
+  @IsBoolean()
+  @IsOptional()
+  readonly recommended?: boolean;
 
-	readonly userId: string;
+  @IsNotEmpty()
+  readonly mangaId: string;
+
+  readonly userId: string;
 }

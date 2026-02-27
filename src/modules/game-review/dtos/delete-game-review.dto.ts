@@ -1,5 +1,5 @@
 export class DeleteGameReviewDto {
-	readonly gameReviewId: string;
+  readonly gameReviewId: string;
 
-	readonly userId: string;
+  readonly userId: string;
 }

@@ -1,5 +1,5 @@
 export class DeleteBookReviewDto {
-	readonly bookReviewId: string;
+  readonly bookReviewId: string;
 
-	readonly userId: string;
+  readonly userId: string;
 }

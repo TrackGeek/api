@@ -1,23 +1,29 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@thallesp/nestjs-better-auth';
-import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { BookReviewService } from "./book-review.service";
+import { CreateBookReviewDto } from "./dtos/create-book-review.dto";
+import { GetBookReviewsDto } from "./dtos/get-book-reviews.dto";
+import { UpdateBookReviewDto } from "./dtos/update-book-review.dto";
 
-import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
-import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
-import { BookReviewService } from './book-review.service';
-import { CreateBookReviewDto } from './dtos/create-book-review.dto';
-import { GetBookReviewsDto } from './dtos/get-book-reviews.dto';
-
-@UseGuards(RateLimitGuard)
-@RateLimit({ limit: 30, window: 60, blockDuration: 300 })
 @Controller("book/review")
 export class BookReviewController {
-  constructor(private readonly bookReviewService: BookReviewService) { }
-  
+  constructor(private readonly bookReviewService: BookReviewService) {}
+
   @Post()
-  @UseGuards(RateLimitGuard)
   @UseGuards(AuthGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
   @HttpCode(HttpStatus.CREATED)
   async createBookReview(@Session() session: UserSession, @Body() body: CreateBookReviewDto) {
     await this.bookReviewService.createBookReview({
@@ -25,34 +31,27 @@ export class BookReviewController {
       userId: session.user.id,
     });
   }
-  
+
   @Get()
-  @HttpCode(HttpStatus.OK)
   async getBookReviews(@Query() query: GetBookReviewsDto) {
     const bookReviews = await this.bookReviewService.getBookReviews(query);
-    
-    return { bookReviews }
+
+    return { bookReviews };
   }
-  
-  @Get('/:bookReviewId')
-  @UseGuards(RateLimitGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
-  async getBookReviewById(@Param('bookReviewId', new ParseUUIDPipe()) bookReviewId: string) {
+
+  @Get("/:bookReviewId")
+  async getBookReviewById(@Param("bookReviewId", new ParseUUIDPipe()) bookReviewId: string) {
     const bookReview = await this.bookReviewService.getBookReviewById(bookReviewId);
-    
+
     return { bookReview };
   }
-  
-  @Patch('/:bookReviewId')
-  @UseGuards(RateLimitGuard)
+
+  @Patch("/:bookReviewId")
   @UseGuards(AuthGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
   async updateBookReview(
-    @Param('bookReviewId', new ParseUUIDPipe()) bookReviewId: string,
+    @Param("bookReviewId", new ParseUUIDPipe()) bookReviewId: string,
     @Session() session: UserSession,
-    @Body() body: CreateBookReviewDto,
+    @Body() body: UpdateBookReviewDto,
   ) {
     await this.bookReviewService.updateBookReview({
       ...body,
@@ -60,14 +59,12 @@ export class BookReviewController {
       userId: session.user.id,
     });
   }
-  
-  @Delete('/:bookReviewId')
-  @UseGuards(RateLimitGuard)
+
+  @Delete("/:bookReviewId")
   @UseGuards(AuthGuard)
-  @RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBookReview(
-    @Param('bookReviewId', new ParseUUIDPipe()) bookReviewId: string,
+    @Param("bookReviewId", new ParseUUIDPipe()) bookReviewId: string,
     @Session() session: UserSession,
   ) {
     await this.bookReviewService.deleteBookReview({

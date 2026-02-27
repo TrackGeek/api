@@ -1,5 +1,5 @@
 export class CreateReactionDto {
-	readonly emoji: string;
+  readonly emoji: string;
 
-	readonly userId: string;
+  readonly userId: string;
 }

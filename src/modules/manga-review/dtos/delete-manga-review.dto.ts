@@ -1,5 +1,5 @@
 export class DeleteMangaReviewDto {
-	readonly mangaReviewId: string;
+  readonly mangaReviewId: string;
 
-	readonly userId: string;
+  readonly userId: string;
 }
