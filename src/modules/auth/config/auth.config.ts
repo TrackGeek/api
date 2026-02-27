@@ -1,7 +1,5 @@
-// @ts-nocheck
-
 import crypto from "node:crypto";
-import { customSession, lastLoginMethod, magicLink, username,  } from "better-auth/plugins";
+import { customSession, lastLoginMethod, magicLink, username, bearer, openAPI } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { ConfigService } from "@nestjs/config";
 import type { BetterAuthOptions } from "@better-auth/core";
@@ -36,7 +34,27 @@ export function getAuthConfig(params: AuthConfigParams) {
 		basePath: "/auth",
 		baseURL: configService.get<string>("BETTER_AUTH_URL"),
 		secret: configService.get<string>("BETTER_AUTH_SECRET"),
-		trustedOrigins: [configService.get<string>("WEB_URL")],
+		trustedOrigins: [
+      configService.get<string>("WEB_URL"),
+      "com.trackgeek.net.mobile.ios://auth/callback",
+      "com.trackgeek.net.mobile.android://auth/callback",
+      "trackgeek://callback",
+    ],
+    advanced: {
+			database: {
+				generateId: () => crypto.randomUUID(),
+			},
+		},
+    account: {
+      skipStateCookieCheck: true,
+    },
+    user: {
+			additionalFields: {
+				profile: {
+					type: "json",
+				},
+			},
+		},
     emailAndPassword: { 
       enabled: true, 
     }, 
@@ -54,14 +72,9 @@ export function getAuthConfig(params: AuthConfigParams) {
 				clientSecret: configService.get<string>("DISCORD_CLIENT_SECRET"),
 			},
 		},
-		user: {
-			additionalFields: {
-				profile: {
-					type: "json",
-				},
-			},
-		},
 		plugins: [
+      openAPI({ path: "/docs" }),
+      bearer(),
       username(),
 			customSession(async (data) => {
 				const user = await userService.getUserById(data.session.userId);
@@ -78,11 +91,6 @@ export function getAuthConfig(params: AuthConfigParams) {
 				},
 			}),
 		],
-		advanced: {
-			database: {
-				generateId: () => crypto.randomUUID(),
-			},
-		},
 		databaseHooks: {
 			user: {
 				create: {
