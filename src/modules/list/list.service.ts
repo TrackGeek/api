@@ -22,17 +22,6 @@ export class ListService {
   async createList(createListDto: CreateListDto) {
     const { name, type, userId, description } = createListDto;
 
-    const listAlreadyExists = await this.databaseService.list.findFirst({
-      where: {
-        name,
-        userId,
-      },
-    });
-
-    if (listAlreadyExists) {
-      throw new AppException(ERROR_CODES.LIST_ALREADY_EXISTS);
-    }
-
     const list = await this.databaseService.list.create({
       data: {
         name,

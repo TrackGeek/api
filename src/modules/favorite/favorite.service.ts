@@ -21,18 +21,6 @@ export class FavoriteService {
 
     const entityId = { ...item } as Record<string, any>;
 
-    const favoriteAlreadyExists = await this.databaseService.favorite.findFirst({
-      where: {
-        type,
-        userId,
-        ...entityId,
-      },
-    });
-
-    if (favoriteAlreadyExists) {
-      throw new AppException(ERROR_CODES.FAVORITE_ALREADY_EXISTS);
-    }
-
     const favorite = await this.databaseService.favorite.create({
       data: {
         type,

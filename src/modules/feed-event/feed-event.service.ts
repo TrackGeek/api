@@ -51,23 +51,19 @@ export class FeedEventService {
       include: {
         _count: {
           select: {
-            feedEventReactions: true,
+            reactions: true,
           },
         },
-        feedEventReactions: {
+        reactions: {
           take: 3,
-          orderBy: { reaction: { createdAt: "desc" } },
+          orderBy: { createdAt: "desc" },
           select: {
-            reaction: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
               select: {
-                id: true,
-                emoji: true,
-                createdAt: true,
-                user: {
-                  select: {
-                    username: true,
-                  },
-                },
+                username: true,
               },
             },
           },

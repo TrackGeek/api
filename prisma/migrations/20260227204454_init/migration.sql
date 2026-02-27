@@ -1,5 +1,14 @@
 -- CreateEnum
-CREATE TYPE "FeedEventType" AS ENUM ('NewComment', 'NewFollower', 'NewFavorite', 'NewList', 'NewListItem', 'NewReview', 'NewWatch', 'NewProgress');
+CREATE TYPE "UserRole" AS ENUM ('User', 'Moderator', 'Administrator');
+
+-- CreateEnum
+CREATE TYPE "CommentType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book', 'Profile');
+
+-- CreateEnum
+CREATE TYPE "ReactionType" AS ENUM ('Comment', 'FeedEvent');
+
+-- CreateEnum
+CREATE TYPE "FeedEventType" AS ENUM ('NewFollower', 'NewFavorite', 'NewList', 'NewListItem', 'NewReview', 'NewWatch', 'NewProgress');
 
 -- CreateEnum
 CREATE TYPE "WatchStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
@@ -25,6 +34,7 @@ CREATE TABLE "User" (
     "image" TEXT,
     "username" TEXT,
     "displayUsername" TEXT,
+    "role" "UserRole" NOT NULL DEFAULT 'User',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -130,7 +140,15 @@ CREATE TABLE "Following" (
 CREATE TABLE "Comment" (
     "id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
+    "type" "CommentType" NOT NULL,
     "userId" TEXT NOT NULL,
+    "animeId" TEXT,
+    "mangaId" TEXT,
+    "tvShowId" TEXT,
+    "movieId" TEXT,
+    "gameId" TEXT,
+    "bookId" TEXT,
+    "profileId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -141,82 +159,13 @@ CREATE TABLE "Comment" (
 CREATE TABLE "Reaction" (
     "id" TEXT NOT NULL,
     "emoji" TEXT NOT NULL,
+    "type" "ReactionType" NOT NULL,
     "userId" TEXT NOT NULL,
+    "commentId" TEXT,
+    "feedEventId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Reaction_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CommentReaction" (
-    "id" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-    "reactionId" TEXT NOT NULL,
-
-    CONSTRAINT "CommentReaction_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GameComment" (
-    "id" TEXT NOT NULL,
-    "gameId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "GameComment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "BookComment" (
-    "id" TEXT NOT NULL,
-    "bookId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "BookComment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "AnimeComment" (
-    "id" TEXT NOT NULL,
-    "animeId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "AnimeComment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MangaComment" (
-    "id" TEXT NOT NULL,
-    "mangaId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "MangaComment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "TVShowComment" (
-    "id" TEXT NOT NULL,
-    "tvShowId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "TVShowComment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MovieComment" (
-    "id" TEXT NOT NULL,
-    "movieId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "MovieComment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ProfileComment" (
-    "id" TEXT NOT NULL,
-    "profileId" TEXT NOT NULL,
-    "commentId" TEXT NOT NULL,
-
-    CONSTRAINT "ProfileComment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -228,15 +177,6 @@ CREATE TABLE "FeedEvent" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "FeedEvent_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FeedEventReaction" (
-    "id" TEXT NOT NULL,
-    "feedEventId" TEXT NOT NULL,
-    "reactionId" TEXT NOT NULL,
-
-    CONSTRAINT "FeedEventReaction_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -422,6 +362,7 @@ CREATE TABLE "TVShow" (
     "homepage" TEXT,
     "inProduction" BOOLEAN,
     "languages" TEXT[],
+    "backdropUrl" TEXT,
     "lastAirDate" TIMESTAMP(3),
     "lastEpisodeToAir" JSONB,
     "name" TEXT,
@@ -457,6 +398,7 @@ CREATE TABLE "Movie" (
     "belongsToCollection" JSONB,
     "budget" INTEGER,
     "genres" JSONB,
+    "backdropUrl" TEXT,
     "homepage" TEXT,
     "originalLanguage" TEXT,
     "originalTitle" TEXT,
@@ -635,12 +577,12 @@ CREATE TABLE "BookProgress" (
 -- CreateTable
 CREATE TABLE "AnimeReview" (
     "id" TEXT NOT NULL,
-    "overall" INTEGER NOT NULL,
-    "story" INTEGER,
-    "characters" INTEGER,
-    "animation" INTEGER,
-    "sound" INTEGER,
-    "enjoyment" INTEGER,
+    "overall" DECIMAL(65,30) NOT NULL,
+    "story" DECIMAL(65,30),
+    "characters" DECIMAL(65,30),
+    "animation" DECIMAL(65,30),
+    "sound" DECIMAL(65,30),
+    "enjoyment" DECIMAL(65,30),
     "summary" TEXT,
     "notes" TEXT,
     "pros" TEXT,
@@ -657,9 +599,9 @@ CREATE TABLE "AnimeReview" (
 -- CreateTable
 CREATE TABLE "MangaReview" (
     "id" TEXT NOT NULL,
-    "overall" INTEGER NOT NULL,
-    "art" INTEGER,
-    "worldbuilding" INTEGER,
+    "overall" DECIMAL(65,30) NOT NULL,
+    "art" DECIMAL(65,30),
+    "worldbuilding" DECIMAL(65,30),
     "summary" TEXT,
     "notes" TEXT,
     "story" TEXT,
@@ -676,10 +618,10 @@ CREATE TABLE "MangaReview" (
 -- CreateTable
 CREATE TABLE "TVShowReview" (
     "id" TEXT NOT NULL,
-    "overall" INTEGER NOT NULL,
-    "direction" INTEGER,
-    "production" INTEGER,
-    "acting" INTEGER,
+    "overall" DECIMAL(65,30) NOT NULL,
+    "direction" DECIMAL(65,30),
+    "production" DECIMAL(65,30),
+    "acting" DECIMAL(65,30),
     "summary" TEXT,
     "notes" TEXT,
     "story" TEXT,
@@ -695,10 +637,10 @@ CREATE TABLE "TVShowReview" (
 -- CreateTable
 CREATE TABLE "MovieReview" (
     "id" TEXT NOT NULL,
-    "overall" INTEGER NOT NULL,
-    "direction" INTEGER,
-    "production" INTEGER,
-    "acting" INTEGER,
+    "overall" DECIMAL(65,30) NOT NULL,
+    "direction" DECIMAL(65,30),
+    "production" DECIMAL(65,30),
+    "acting" DECIMAL(65,30),
     "summary" TEXT,
     "notes" TEXT,
     "story" TEXT,
@@ -714,11 +656,11 @@ CREATE TABLE "MovieReview" (
 -- CreateTable
 CREATE TABLE "GameReview" (
     "id" TEXT NOT NULL,
-    "overall" INTEGER NOT NULL,
-    "graphics" INTEGER,
-    "sound" INTEGER,
-    "story" INTEGER,
-    "gameplay" INTEGER,
+    "overall" DECIMAL(65,30) NOT NULL,
+    "graphics" DECIMAL(65,30),
+    "sound" DECIMAL(65,30),
+    "story" DECIMAL(65,30),
+    "gameplay" DECIMAL(65,30),
     "platform" TEXT,
     "summary" TEXT,
     "notes" TEXT,
@@ -735,10 +677,10 @@ CREATE TABLE "GameReview" (
 -- CreateTable
 CREATE TABLE "BookReview" (
     "id" TEXT NOT NULL,
-    "overall" INTEGER NOT NULL,
-    "characters" INTEGER,
-    "language" INTEGER,
-    "theme" INTEGER,
+    "overall" DECIMAL(65,30) NOT NULL,
+    "characters" DECIMAL(65,30),
+    "language" DECIMAL(65,30),
+    "theme" DECIMAL(65,30),
     "summary" TEXT,
     "notes" TEXT,
     "recommended" BOOLEAN,
@@ -828,34 +770,34 @@ CREATE INDEX "Following_followingId_idx" ON "Following"("followingId");
 CREATE UNIQUE INDEX "Following_followerId_followingId_key" ON "Following"("followerId", "followingId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CommentReaction_commentId_reactionId_key" ON "CommentReaction"("commentId", "reactionId");
+CREATE UNIQUE INDEX "Comment_userId_animeId_key" ON "Comment"("userId", "animeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "GameComment_gameId_commentId_key" ON "GameComment"("gameId", "commentId");
+CREATE UNIQUE INDEX "Comment_userId_mangaId_key" ON "Comment"("userId", "mangaId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BookComment_bookId_commentId_key" ON "BookComment"("bookId", "commentId");
+CREATE UNIQUE INDEX "Comment_userId_tvShowId_key" ON "Comment"("userId", "tvShowId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AnimeComment_animeId_commentId_key" ON "AnimeComment"("animeId", "commentId");
+CREATE UNIQUE INDEX "Comment_userId_movieId_key" ON "Comment"("userId", "movieId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MangaComment_mangaId_commentId_key" ON "MangaComment"("mangaId", "commentId");
+CREATE UNIQUE INDEX "Comment_userId_gameId_key" ON "Comment"("userId", "gameId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TVShowComment_tvShowId_commentId_key" ON "TVShowComment"("tvShowId", "commentId");
+CREATE UNIQUE INDEX "Comment_userId_bookId_key" ON "Comment"("userId", "bookId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MovieComment_movieId_commentId_key" ON "MovieComment"("movieId", "commentId");
+CREATE UNIQUE INDEX "Comment_userId_profileId_key" ON "Comment"("userId", "profileId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProfileComment_profileId_commentId_key" ON "ProfileComment"("profileId", "commentId");
+CREATE UNIQUE INDEX "Reaction_userId_commentId_key" ON "Reaction"("userId", "commentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Reaction_userId_feedEventId_key" ON "Reaction"("userId", "feedEventId");
 
 -- CreateIndex
 CREATE INDEX "FeedEvent_userId_createdAt_idx" ON "FeedEvent"("userId", "createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "FeedEventReaction_feedEventId_reactionId_key" ON "FeedEventReaction"("feedEventId", "reactionId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Game_igdbId_key" ON "Game"("igdbId");
@@ -962,6 +904,45 @@ CREATE UNIQUE INDEX "GameReview_userId_gameId_key" ON "GameReview"("userId", "ga
 -- CreateIndex
 CREATE UNIQUE INDEX "BookReview_userId_bookId_key" ON "BookReview"("userId", "bookId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "List_userId_name_key" ON "List"("userId", "name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ListItem_listId_animeId_key" ON "ListItem"("listId", "animeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ListItem_listId_mangaId_key" ON "ListItem"("listId", "mangaId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ListItem_listId_tvShowId_key" ON "ListItem"("listId", "tvShowId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ListItem_listId_movieId_key" ON "ListItem"("listId", "movieId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ListItem_listId_gameId_key" ON "ListItem"("listId", "gameId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ListItem_listId_bookId_key" ON "ListItem"("listId", "bookId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_animeId_key" ON "Favorite"("userId", "animeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_mangaId_key" ON "Favorite"("userId", "mangaId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_tvShowId_key" ON "Favorite"("userId", "tvShowId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_movieId_key" ON "Favorite"("userId", "movieId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_gameId_key" ON "Favorite"("userId", "gameId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_bookId_key" ON "Favorite"("userId", "bookId");
+
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -987,64 +968,37 @@ ALTER TABLE "Following" ADD CONSTRAINT "Following_followingId_fkey" FOREIGN KEY 
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "Manga"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CommentReaction" ADD CONSTRAINT "CommentReaction_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CommentReaction" ADD CONSTRAINT "CommentReaction_reactionId_fkey" FOREIGN KEY ("reactionId") REFERENCES "Reaction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GameComment" ADD CONSTRAINT "GameComment_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GameComment" ADD CONSTRAINT "GameComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BookComment" ADD CONSTRAINT "BookComment_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BookComment" ADD CONSTRAINT "BookComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AnimeComment" ADD CONSTRAINT "AnimeComment_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AnimeComment" ADD CONSTRAINT "AnimeComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MangaComment" ADD CONSTRAINT "MangaComment_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "Manga"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MangaComment" ADD CONSTRAINT "MangaComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TVShowComment" ADD CONSTRAINT "TVShowComment_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TVShowComment" ADD CONSTRAINT "TVShowComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MovieComment" ADD CONSTRAINT "MovieComment_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MovieComment" ADD CONSTRAINT "MovieComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProfileComment" ADD CONSTRAINT "ProfileComment_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProfileComment" ADD CONSTRAINT "ProfileComment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_feedEventId_fkey" FOREIGN KEY ("feedEventId") REFERENCES "FeedEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "FeedEvent" ADD CONSTRAINT "FeedEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FeedEventReaction" ADD CONSTRAINT "FeedEventReaction_feedEventId_fkey" FOREIGN KEY ("feedEventId") REFERENCES "FeedEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "FeedEventReaction" ADD CONSTRAINT "FeedEventReaction_reactionId_fkey" FOREIGN KEY ("reactionId") REFERENCES "Reaction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnimeWatch" ADD CONSTRAINT "AnimeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

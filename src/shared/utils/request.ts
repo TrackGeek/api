@@ -1,5 +1,5 @@
 import type { HttpService } from "@nestjs/axios";
-import { Request } from 'express';
+import { Request } from "express";
 import { from, lastValueFrom, timer } from "rxjs";
 import { concatMap, delayWhen, toArray } from "rxjs/operators";
 
@@ -22,7 +22,10 @@ export async function manyRequestWithDelay({
 
 export function getIp(request: Request): string {
   const identifier =
-    request.ip || request.connection?.remoteAddress || (request.headers?.["x-forwarded-for"] as string)?.split(",")?.[0] || "unknown";
+    request.ip ||
+    request.connection?.remoteAddress ||
+    (request.headers?.["x-forwarded-for"] as string)?.split(",")?.[0] ||
+    "unknown";
 
   if (
     ["localhost", "127.0.0.1"].includes(identifier) ||

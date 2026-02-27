@@ -155,6 +155,7 @@ export class TMDBService {
       const movie = {
         tmdbId: movieData.id,
         imdbId: movieData.imdb_id,
+        backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/w500${movieData.backdrop_path}` : null,
         belongsToCollection: movieData.belongs_to_collection
           ? {
               name: movieData.belongs_to_collection.name,
@@ -282,6 +283,7 @@ export class TMDBService {
 
       const tvShow = {
         tmdbId: tvShowData.id,
+        backdropPath: tvShowData.backdrop_path ? `https://image.tmdb.org/t/p/w500${tvShowData.backdrop_path}` : null,
         createdBy: tvShowData.created_by.map((creator: any) => ({
           id: creator.id,
           name: creator.name,
