@@ -4,7 +4,7 @@ import type { SearchTVShowDto } from "./dtos/search-tv-show.dto";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { CacheKeys, CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { TVShow } from "@prisma/generated/client";
+import { TvShow } from "@prisma/generated/client";
 import { RefreshTVShowDto } from "./dtos/refresh-tv-show.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -32,7 +32,7 @@ export class TVShowService {
 	}
 
 	async getTVShowById(id: number) {
-		const cachedTVShow = await this.cacheService.get<TVShow>(
+		const cachedTVShow = await this.cacheService.get<TvShow>(
 			this.cacheKeys.tvShowById.prefix(id),
 		);
 
@@ -40,14 +40,14 @@ export class TVShowService {
 			return cachedTVShow;
 		}
 
-		let tvShow = await this.databaseService.tVShow.findUnique({
+		let tvShow = await this.databaseService.tvShow.findUnique({
 			where: { tmdbId: id },
 		});
 
 		if (!tvShow) {
 			const tmdbTVShow = await this.integrationsService.tmdb.getTVShowById(id);
 
-			tvShow = await this.databaseService.tVShow.create({
+			tvShow = await this.databaseService.tvShow.create({
 				data: tmdbTVShow,
 			});
 		}
@@ -62,7 +62,7 @@ export class TVShowService {
 	}
 
 	async refreshTVShow(refreshTVShowDto: RefreshTVShowDto) {
-		const tvShow = await this.databaseService.tVShow.findUnique({
+		const tvShow = await this.databaseService.tvShow.findUnique({
 			where: { tmdbId: refreshTVShowDto.id },
 		});
 
@@ -88,7 +88,7 @@ export class TVShowService {
 			tvShow.tmdbId,
 		);
 
-		await this.databaseService.tVShow.update({
+		await this.databaseService.tvShow.update({
 			where: { tmdbId: refreshTVShowDto.id },
 			data: tmdbTVShow,
 		});

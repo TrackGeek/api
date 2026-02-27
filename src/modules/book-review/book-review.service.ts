@@ -18,18 +18,6 @@ export class BookReviewService {
 	) {}
 
 	async createBookReview(createBookReviewDto: CreateBookReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.bookReview.findFirst({
-				where: {
-					bookId: createBookReviewDto.bookId,
-					userId: createBookReviewDto.userId,
-				},
-			});
-
-		if (reviewAlreadyExists) {
-			throw new AppException(ERROR_CODES.REVIEW_ALREADY_EXISTS);
-		}
-
 		const bookReview = await this.databaseService.bookReview.create({
 			data: {
 				overall: createBookReviewDto.overall,
@@ -67,9 +55,9 @@ export class BookReviewService {
 		});
 	}
 
-	async getBookReviewById(reviewId: string) {
-		const review = await this.databaseService.bookReview.findUnique({
-			where: { id: reviewId },
+	async getBookReviewById(bookReviewId: string) {
+		const bookReview = await this.databaseService.bookReview.findUnique({
+			where: { id: bookReviewId },
 			include: {
 				book: true,
 				user: {
@@ -88,11 +76,11 @@ export class BookReviewService {
 			},
 		});
 
-		if (!review) {
+		if (!bookReview) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		return review;
+		return bookReview;
 	}
 
 	async getBookReviews(getBookReviewsDto: GetBookReviewsDto) {
@@ -127,20 +115,20 @@ export class BookReviewService {
 	}
 
 	async updateBookReview(updateBookReviewDto: UpdateBookReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.bookReview.findFirst({
-				where: {
-					id: updateBookReviewDto.bookReviewId,
-					userId: updateBookReviewDto.userId,
-				},
-			});
+    const bookReview = await this.databaseService.bookReview.findUnique({
+      where: {
+        id: updateBookReviewDto.bookReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!bookReview || bookReview.userId !== updateBookReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
-
+    
 		await this.databaseService.bookReview.update({
-			where: { id: reviewAlreadyExists.id },
+			where: {
+        id: bookReview.id,
+      },
 			data: {
 				overall: updateBookReviewDto.overall,
 				characters: updateBookReviewDto.characters,
@@ -154,20 +142,20 @@ export class BookReviewService {
 	}
 
 	async deleteBookReview(deleteBookReviewDto: DeleteBookReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.bookReview.findFirst({
-				where: {
-					id: deleteBookReviewDto.bookReviewId,
-					userId: deleteBookReviewDto.userId,
-				},
-			});
+    const bookReview = await this.databaseService.bookReview.findUnique({
+      where: {
+        id: deleteBookReviewDto.bookReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!bookReview || bookReview.userId !== deleteBookReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
-
+    
 		await this.databaseService.bookReview.delete({
-			where: { id: reviewAlreadyExists.id },
+			where: {
+        id: bookReview.id,
+      },
 		});
 	}
 }

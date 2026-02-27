@@ -13,7 +13,7 @@ import {
 	MangaCommentFindManyArgs,
 	MovieCommentFindManyArgs,
 	ProfileCommentFindManyArgs,
-	TVShowCommentFindManyArgs,
+	TvShowCommentFindManyArgs,
 } from "@prisma/generated/models";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { AddCommentToBookDto } from "./dtos/add-comment-to-book.dto";
@@ -409,7 +409,7 @@ export class CommentService {
 	}
 
 	async addCommentToTVShow(addCommentToTVShowDto: AddCommentToTVShowDto) {
-		const tvShowAlreadyExists = await this.databaseService.tVShow.findUnique({
+		const tvShowAlreadyExists = await this.databaseService.tvShow.findUnique({
 			where: { id: addCommentToTVShowDto.tvShowId },
 		});
 
@@ -422,7 +422,7 @@ export class CommentService {
 			userId: addCommentToTVShowDto.userId,
 		});
 
-		const tvShowComment = await this.databaseService.tVShowComment.create({
+		const tvShowComment = await this.databaseService.tvShowComment.create({
 			data: {
 				tvShowId: addCommentToTVShowDto.tvShowId,
 				commentId: comment.id,
@@ -865,7 +865,7 @@ export class CommentService {
 	}
 
 	async getCommentsByTVShowId(tvShowId: string) {
-		const tvShowAlreadyExists = await this.databaseService.tVShow.findUnique({
+		const tvShowAlreadyExists = await this.databaseService.tvShow.findUnique({
 			where: { id: tvShowId },
 		});
 
@@ -874,8 +874,8 @@ export class CommentService {
 		}
 
 		const pagination =
-			await this.databaseService.cursorPagination<TVShowCommentFindManyArgs>({
-				model: "tVShowComment",
+			await this.databaseService.cursorPagination<TvShowCommentFindManyArgs>({
+				model: "tvShowComment",
 				where: { tvShowId },
 				include: {
 					comment: {

@@ -29,19 +29,19 @@ model User {
   feedEvents       FeedEvent[]
   animeWatches     AnimeWatch[]
   lists            List[]
-  tvshowWatches    TVShowWatch[]
+  tvshowWatches    TvShowWatch[]
   movieWatches     MovieWatch[]
   bookReads        BookRead[]
   mangaReads       MangaRead[]
   animeProgresses  AnimeProgress[]
   mangaProgresses  MangaProgress[]
-  tvshowProgresses TVShowProgress[]
+  tvshowProgresses TvShowProgress[]
   movieProgresses  MovieProgress[]
   gameProgresses   GameProgress[]
   bookProgresses   BookProgress[]
   animeReviews     AnimeReview[]
   mangaReviews     MangaReview[]
-  tvshowReviews    TVShowReview[]
+  tvshowReviews    TvShowReview[]
   movieReviews     MovieReview[]
   gameReviews      GameReview[]
   bookReviews      BookReview[]
@@ -168,7 +168,7 @@ model Comment {
   bookComments      BookComment[]
   animeComments     AnimeComment[]
   mangaComments     MangaComment[]
-  tvShowComments    TVShowComment[]
+  tvShowComments    TvShowComment[]
   movieComments     MovieComment[]
 }
 
@@ -238,15 +238,16 @@ model MangaComment {
   @@unique([mangaId, commentId])
 }
 
-model TVShowComment {
+model TvShowComment {
   id        String @id @default(uuid())
   tvShowId  String
   commentId String
 
-  tvShow  TVShow  @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  tvShow  TvShow  @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@unique([tvShowId, commentId])
+  @@map("TVShowComment")
 }
 
 model MovieComment {
@@ -493,7 +494,7 @@ model Manga {
   listItems       ListItem[]
 }
 
-model TVShow {
+model TvShow {
   id                  String    @id @default(uuid())
   tmdbId              Int       @unique
   createdBy           Json?
@@ -527,12 +528,14 @@ model TVShow {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  tvShowComments   TVShowComment[]
-  tvshowWatches    TVShowWatch[]
-  tvshowProgresses TVShowProgress[]
-  tvshowReviews    TVShowReview[]
+  tvShowComments   TvShowComment[]
+  tvshowWatches    TvShowWatch[]
+  tvshowProgresses TvShowProgress[]
+  tvshowReviews    TvShowReview[]
   favorites        Favorite[]
   listItems        ListItem[]
+
+  @@map("TVShow")
 }
 
 model Movie {
@@ -599,7 +602,7 @@ model AnimeWatch {
   @@index([userId])
 }
 
-model TVShowWatch {
+model TvShowWatch {
   id          String      @id @default(uuid())
   season      Int
   episode     Int
@@ -612,10 +615,11 @@ model TVShowWatch {
   updatedAt   DateTime    @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
+  tvShow TvShow @relation(fields: [tvShowId], references: [id])
 
   @@unique([userId, tvShowId])
   @@index([userId])
+  @@map("TVShowWatch")
 }
 
 model MovieWatch {
@@ -721,7 +725,7 @@ model MangaProgress {
   @@index([userId])
 }
 
-model TVShowProgress {
+model TvShowProgress {
   id        String         @id @default(uuid())
   status    ProgressStatus
   userId    String
@@ -730,10 +734,11 @@ model TVShowProgress {
   updatedAt DateTime       @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
+  tvShow TvShow @relation(fields: [tvShowId], references: [id])
 
   @@unique([userId, tvShowId])
   @@index([userId])
+  @@map("TVShowProgress")
 }
 
 model MovieProgress {
@@ -826,7 +831,7 @@ model MangaReview {
   @@unique([userId, mangaId])
 }
 
-model TVShowReview {
+model TvShowReview {
   id          String   @id @default(uuid())
   overall     Int
   direction   Int?
@@ -842,9 +847,10 @@ model TVShowReview {
   updatedAt   DateTime @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
+  tvShow TvShow @relation(fields: [tvShowId], references: [id])
 
   @@unique([userId, tvShowId])
+  @@map("TVShowReview")
 }
 
 model MovieReview {
@@ -946,7 +952,7 @@ model ListItem {
   list   List    @relation(fields: [listId], references: [id], onDelete: Cascade)
   anime  Anime?  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  tvShow TVShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
   game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
   book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
@@ -977,7 +983,7 @@ model Favorite {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   anime  Anime?  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  tvShow TVShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
   game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
   book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)

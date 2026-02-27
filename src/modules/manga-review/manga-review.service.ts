@@ -18,18 +18,6 @@ export class MangaReviewService {
 	) {}
 
 	async createMangaReview(createMangaReviewDto: CreateMangaReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.mangaReview.findFirst({
-				where: {
-					mangaId: createMangaReviewDto.mangaId,
-					userId: createMangaReviewDto.userId,
-				},
-			});
-
-		if (reviewAlreadyExists) {
-			throw new AppException(ERROR_CODES.REVIEW_ALREADY_EXISTS);
-		}
-
 		const mangaReview = await this.databaseService.mangaReview.create({
 			data: {
 				overall: createMangaReviewDto.overall,
@@ -68,9 +56,9 @@ export class MangaReviewService {
 		});
 	}
 
-	async getMangaReviewById(reviewId: string) {
-		const review = await this.databaseService.mangaReview.findUnique({
-			where: { id: reviewId },
+	async getMangaReviewById(mangaReviewId: string) {
+		const mangaReview = await this.databaseService.mangaReview.findUnique({
+			where: { id: mangaReviewId },
 			include: {
 				manga: true,
 				user: {
@@ -89,11 +77,11 @@ export class MangaReviewService {
 			},
 		});
 
-		if (!review) {
+		if (!mangaReview) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		return review;
+		return mangaReview;
 	}
 
 	async getMangaReviews(getMangaReviewsDto: GetMangaReviewsDto) {
@@ -128,20 +116,18 @@ export class MangaReviewService {
 	}
 
 	async updateMangaReview(updateMangaReviewDto: UpdateMangaReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.mangaReview.findFirst({
-				where: {
-					id: updateMangaReviewDto.mangaReviewId,
-					userId: updateMangaReviewDto.userId,
-				},
-			});
+		const mangaReview = await this.databaseService.mangaReview.findUnique({
+      where: {
+        id: updateMangaReviewDto.mangaReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!mangaReview || mangaReview.userId !== updateMangaReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.mangaReview.update({
-			where: { id: reviewAlreadyExists.id },
+			where: { id: mangaReview.id },
 			data: {
 				overall: updateMangaReviewDto.overall,
 				art: updateMangaReviewDto.art,
@@ -156,20 +142,18 @@ export class MangaReviewService {
 	}
 
 	async deleteMangaReview(deleteMangaReviewDto: DeleteMangaReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.mangaReview.findFirst({
-				where: {
-					id: deleteMangaReviewDto.mangaReviewId,
-					userId: deleteMangaReviewDto.userId,
-				},
-			});
+		const mangaReview = await this.databaseService.mangaReview.findUnique({
+      where: {
+        id: deleteMangaReviewDto.mangaReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!mangaReview || mangaReview.userId !== deleteMangaReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.mangaReview.delete({
-			where: { id: reviewAlreadyExists.id },
+			where: { id: mangaReview.id },
 		});
 	}
 }

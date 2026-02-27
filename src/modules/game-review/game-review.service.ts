@@ -18,18 +18,6 @@ export class GameReviewService {
 	) {}
 
 	async createGameReview(createGameReviewDto: CreateGameReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.gameReview.findFirst({
-				where: {
-					gameId: createGameReviewDto.gameId,
-					userId: createGameReviewDto.userId,
-				},
-			});
-
-		if (reviewAlreadyExists) {
-			throw new AppException(ERROR_CODES.REVIEW_ALREADY_EXISTS);
-		}
-
 		const gameReview = await this.databaseService.gameReview.create({
 			data: {
 				overall: createGameReviewDto.overall,
@@ -69,9 +57,9 @@ export class GameReviewService {
 		});
 	}
 
-	async getGameReviewById(reviewId: string) {
-		const review = await this.databaseService.gameReview.findUnique({
-			where: { id: reviewId },
+	async getGameReviewById(gameReviewId: string) {
+		const gameReview = await this.databaseService.gameReview.findUnique({
+			where: { id: gameReviewId },
 			include: {
 				game: true,
 				user: {
@@ -90,11 +78,11 @@ export class GameReviewService {
 			},
 		});
 
-		if (!review) {
+		if (!gameReview) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		return review;
+		return gameReview;
 	}
 
 	async getGameReviews(getGameReviewsDto: GetGameReviewsDto) {
@@ -129,20 +117,20 @@ export class GameReviewService {
 	}
 
 	async updateGameReview(updateGameReviewDto: UpdateGameReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.gameReview.findFirst({
-				where: {
-					id: updateGameReviewDto.gameReviewId,
-					userId: updateGameReviewDto.userId,
-				},
-			});
+    const gameReview = await this.databaseService.gameReview.findUnique({
+      where: {
+        id: updateGameReviewDto.gameReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!gameReview || gameReview.userId !== updateGameReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
-
+    
 		await this.databaseService.gameReview.update({
-			where: { id: reviewAlreadyExists.id },
+			where: {
+        id: gameReview.id,
+      },
 			data: {
 				overall: updateGameReviewDto.overall,
 				graphics: updateGameReviewDto.graphics,
@@ -158,20 +146,18 @@ export class GameReviewService {
 	}
 
 	async deleteGameReview(deleteGameReviewDto: DeleteGameReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.gameReview.findFirst({
-				where: {
-					id: deleteGameReviewDto.gameReviewId,
-					userId: deleteGameReviewDto.userId,
-				},
-			});
+		const gameReview = await this.databaseService.gameReview.findUnique({
+      where: {
+        id: deleteGameReviewDto.gameReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!gameReview || gameReview.userId !== deleteGameReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.gameReview.delete({
-			where: { id: reviewAlreadyExists.id },
+			where: { id: gameReview.id },
 		});
 	}
 }

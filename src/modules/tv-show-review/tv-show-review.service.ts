@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { CreateTVShowReviewDto } from "./dtos/create-tv-show-review.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { TVShowReviewFindManyArgs } from "@prisma/generated/models";
+import { TvShowReviewFindManyArgs } from "@prisma/generated/models";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { FeedEventType } from "@prisma/generated/enums";
 import { GetTVShowReviewsDto } from "./dtos/get-tv-show-reviews.dto";
@@ -18,19 +18,7 @@ export class TVShowReviewService {
 	) {}
 
 	async createTVShowReview(createTVShowReviewDto: CreateTVShowReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.tVShowReview.findFirst({
-				where: {
-					tvShowId: createTVShowReviewDto.tvShowId,
-					userId: createTVShowReviewDto.userId,
-				},
-			});
-
-		if (reviewAlreadyExists) {
-			throw new AppException(ERROR_CODES.REVIEW_ALREADY_EXISTS);
-		}
-
-		const tvShowReview = await this.databaseService.tVShowReview.create({
+		const tvShowReview = await this.databaseService.tvShowReview.create({
 			data: {
 				overall: createTVShowReviewDto.overall,
 				direction: createTVShowReviewDto.direction,
@@ -68,9 +56,9 @@ export class TVShowReviewService {
 		});
 	}
 
-	async getTVShowReviewById(reviewId: string) {
-		const review = await this.databaseService.tVShowReview.findUnique({
-			where: { id: reviewId },
+	async getTVShowReviewById(tvShowReviewId: string) {
+		const tvShowReview = await this.databaseService.tvShowReview.findUnique({
+			where: { id: tvShowReviewId },
 			include: {
 				tvShow: true,
 				user: {
@@ -89,17 +77,17 @@ export class TVShowReviewService {
 			},
 		});
 
-		if (!review) {
+		if (!tvShowReview) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		return review;
+		return tvShowReview;
 	}
 
 	async getTVShowReviews(getTVShowReviewsDto: GetTVShowReviewsDto) {
 		const tvShowReviews =
-			await this.databaseService.offsetPagination<TVShowReviewFindManyArgs>({
-				model: "tVShowReview",
+			await this.databaseService.offsetPagination<TvShowReviewFindManyArgs>({
+				model: "tvShowReview",
 				itemsPerPage: getTVShowReviewsDto.itemsPerPage,
 				page: getTVShowReviewsDto.page,
 				where: {
@@ -128,20 +116,18 @@ export class TVShowReviewService {
 	}
 
 	async updateTVShowReview(updateTVShowReviewDto: UpdateTVShowReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.tVShowReview.findFirst({
-				where: {
-					id: updateTVShowReviewDto.tvShowReviewId,
-					userId: updateTVShowReviewDto.userId,
-				},
-			});
+		const tvShowReview = await this.databaseService.tvShowReview.findUnique({
+      where: {
+        id: updateTVShowReviewDto.tvShowReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!tvShowReview || tvShowReview.userId !== updateTVShowReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		await this.databaseService.tVShowReview.update({
-			where: { id: reviewAlreadyExists.id },
+		await this.databaseService.tvShowReview.update({
+			where: { id: tvShowReview.id },
 			data: {
 				overall: updateTVShowReviewDto.overall,
 				direction: updateTVShowReviewDto.direction,
@@ -156,20 +142,18 @@ export class TVShowReviewService {
 	}
 
 	async deleteTVShowReview(deleteTVShowReviewDto: DeleteTVShowReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.tVShowReview.findFirst({
-				where: {
-					id: deleteTVShowReviewDto.tvShowReviewId,
-					userId: deleteTVShowReviewDto.userId,
-				},
-			});
+		const tvShowReview = await this.databaseService.tvShowReview.findUnique({
+      where: {
+        id: deleteTVShowReviewDto.tvShowReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!tvShowReview || tvShowReview.userId !== deleteTVShowReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		await this.databaseService.tVShowReview.delete({
-			where: { id: reviewAlreadyExists.id },
+		await this.databaseService.tvShowReview.delete({
+			where: { id: tvShowReview.id },
 		});
 	}
 }

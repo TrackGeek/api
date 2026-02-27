@@ -18,18 +18,6 @@ export class MovieReviewService {
 	) {}
 
 	async createMovieReview(createMovieReviewDto: CreateMovieReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.movieReview.findFirst({
-				where: {
-					movieId: createMovieReviewDto.movieId,
-					userId: createMovieReviewDto.userId,
-				},
-			});
-
-		if (reviewAlreadyExists) {
-			throw new AppException(ERROR_CODES.REVIEW_ALREADY_EXISTS);
-		}
-
 		const movieReview = await this.databaseService.movieReview.create({
 			data: {
 				overall: createMovieReviewDto.overall,
@@ -68,9 +56,9 @@ export class MovieReviewService {
 		});
 	}
 
-	async getMovieReviewById(reviewId: string) {
-		const review = await this.databaseService.movieReview.findUnique({
-			where: { id: reviewId },
+	async getMovieReviewById(movieReviewId: string) {
+		const movieReview = await this.databaseService.movieReview.findUnique({
+			where: { id: movieReviewId },
 			include: {
 				movie: true,
 				user: {
@@ -89,11 +77,11 @@ export class MovieReviewService {
 			},
 		});
 
-		if (!review) {
+		if (!movieReview) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		return review;
+		return movieReview;
 	}
 
 	async getMovieReviews(getMovieReviewsDto: GetMovieReviewsDto) {
@@ -128,20 +116,18 @@ export class MovieReviewService {
 	}
 
 	async updateMovieReview(updateMovieReviewDto: UpdateMovieReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.movieReview.findFirst({
-				where: {
-					id: updateMovieReviewDto.movieReviewId,
-					userId: updateMovieReviewDto.userId,
-				},
-			});
+		const movieReview = await this.databaseService.movieReview.findUnique({
+      where: {
+        id: updateMovieReviewDto.movieReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!movieReview || movieReview.userId !== updateMovieReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.movieReview.update({
-			where: { id: reviewAlreadyExists.id },
+			where: { id: movieReview.id },
 			data: {
 				overall: updateMovieReviewDto.overall,
 				direction: updateMovieReviewDto.direction,
@@ -156,20 +142,18 @@ export class MovieReviewService {
 	}
 
 	async deleteMovieReview(deleteMovieReviewDto: DeleteMovieReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.movieReview.findFirst({
-				where: {
-					id: deleteMovieReviewDto.movieReviewId,
-					userId: deleteMovieReviewDto.userId,
-				},
-			});
+		const movieReview = await this.databaseService.movieReview.findUnique({
+      where: {
+        id: deleteMovieReviewDto.movieReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!movieReview || movieReview.userId !== deleteMovieReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.movieReview.delete({
-			where: { id: reviewAlreadyExists.id },
+			where: { id: movieReview.id },
 		});
 	}
 }

@@ -18,18 +18,6 @@ export class AnimeReviewService {
 	) {}
 
 	async createAnimeReview(createAnimeReviewDto: CreateAnimeReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.animeReview.findFirst({
-				where: {
-					animeId: createAnimeReviewDto.animeId,
-					userId: createAnimeReviewDto.userId,
-				},
-			});
-
-		if (reviewAlreadyExists) {
-			throw new AppException(ERROR_CODES.REVIEW_ALREADY_EXISTS);
-		}
-
 		const animeReview = await this.databaseService.animeReview.create({
 			data: {
 				overall: createAnimeReviewDto.overall,
@@ -71,9 +59,9 @@ export class AnimeReviewService {
 		});
 	}
 
-	async getAnimeReviewById(reviewId: string) {
-		const review = await this.databaseService.animeReview.findUnique({
-			where: { id: reviewId },
+	async getAnimeReviewById(animeReviewId: string) {
+		const animeReview = await this.databaseService.animeReview.findUnique({
+			where: { id: animeReviewId },
 			include: {
 				anime: true,
 				user: {
@@ -92,11 +80,11 @@ export class AnimeReviewService {
 			},
 		});
 
-		if (!review) {
+		if (!animeReview) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
-		return review;
+		return animeReview;
 	}
 
 	async getAnimeReviews(getAnimeReviewsDto: GetAnimeReviewsDto) {
@@ -131,20 +119,20 @@ export class AnimeReviewService {
 	}
 
 	async updateAnimeReview(updateAnimeReviewDto: UpdateAnimeReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.animeReview.findFirst({
-				where: {
-					id: updateAnimeReviewDto.animeReviewId,
-					userId: updateAnimeReviewDto.userId,
-				},
-			});
+		const animeReview = await this.databaseService.animeReview.findUnique({
+      where: {
+        id: updateAnimeReviewDto.animeReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!animeReview || animeReview.userId !== updateAnimeReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.animeReview.update({
-			where: { id: reviewAlreadyExists.id },
+			where: { 
+        id: animeReview.id
+      },
 			data: {
 				overall: updateAnimeReviewDto.overall,
 				story: updateAnimeReviewDto.story,
@@ -162,20 +150,18 @@ export class AnimeReviewService {
 	}
 
 	async deleteAnimeReview(deleteAnimeReviewDto: DeleteAnimeReviewDto) {
-		const reviewAlreadyExists =
-			await this.databaseService.animeReview.findFirst({
-				where: {
-					id: deleteAnimeReviewDto.animeReviewId,
-					userId: deleteAnimeReviewDto.userId,
-				},
-			});
+		const animeReview = await this.databaseService.animeReview.findUnique({
+      where: {
+        id: deleteAnimeReviewDto.animeReviewId,
+      },
+    });
 
-		if (!reviewAlreadyExists) {
+		if (!animeReview || animeReview.userId !== deleteAnimeReviewDto.userId) {
 			throw new AppException(ERROR_CODES.REVIEW_NOT_FOUND);
 		}
 
 		await this.databaseService.animeReview.delete({
-			where: { id: reviewAlreadyExists.id },
+			where: { id: animeReview.id },
 		});
 	}
 }
