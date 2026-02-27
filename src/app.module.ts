@@ -25,6 +25,10 @@ import { FavoriteModule } from "./modules/favorite/favorite.module";
 import { ListModule } from "./modules/list/list.module";
 import { AnimeReviewModule } from "./modules/anime-review/anime-review.module";
 import { MangaReviewModule } from './modules/manga-review/manga-review.module';
+import { TVShowReviewModule } from './modules/tv-show-review/tv-show-review.module';
+import { MovieReviewModule } from './modules/movie-review/movie-review.module';
+import { GameReviewModule } from './modules/game-review/game-review.module';
+import { BookReviewModule } from './modules/book-review/book-review.module';
 
 @Module({
 	imports: [
@@ -44,11 +48,15 @@ import { MangaReviewModule } from './modules/manga-review/manga-review.module';
 		CommentModule,
 		ReactionModule,
 		GameModule,
+    GameReviewModule,
 		MovieModule,
+    MovieReviewModule,
 		TVShowModule,
+    TVShowReviewModule,
 		MangaModule,
     MangaReviewModule,
 		BookModule,
+    BookReviewModule,
 		AnimeModule,
 		AnimeReviewModule,
 		FavoriteModule,
