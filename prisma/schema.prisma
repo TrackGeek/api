@@ -8,15 +8,23 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  User
+  Moderator
+  Administrator
+}
+
 model User {
-  id            String   @id
-  name          String
-  email         String
-  emailVerified Boolean  @default(false)
-  image         String?
-  username      String   @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id
+  name            String
+  email           String
+  emailVerified   Boolean  @default(false)
+  image           String?
+  username        String?
+  displayUsername String?
+  role            UserRole @default(User)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   profile          Profile?
   sessions         Session[]
@@ -28,19 +36,19 @@ model User {
   feedEvents       FeedEvent[]
   animeWatches     AnimeWatch[]
   lists            List[]
-  tvshowWatches    TVShowWatch[]
+  tvshowWatches    TvShowWatch[]
   movieWatches     MovieWatch[]
   bookReads        BookRead[]
   mangaReads       MangaRead[]
   animeProgresses  AnimeProgress[]
   mangaProgresses  MangaProgress[]
-  tvshowProgresses TVShowProgress[]
+  tvshowProgresses TvShowProgress[]
   movieProgresses  MovieProgress[]
   gameProgresses   GameProgress[]
   bookProgresses   BookProgress[]
   animeReviews     AnimeReview[]
   mangaReviews     MangaReview[]
-  tvshowReviews    TVShowReview[]
+  tvshowReviews    TvShowReview[]
   movieReviews     MovieReview[]
   gameReviews      GameReview[]
   bookReviews      BookReview[]
@@ -48,61 +56,7 @@ model User {
   userMedals       UserMedal[]
 
   @@unique([email])
-}
-
-model Profile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  color     String?  @default("#10b981")
-  language  String?  @default("en-US")
-  timezone  String?
-  about     String?  @default("Hello! I'm using TrackGeek.")
-  bannerUrl String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profilesComments ProfileComment[]
-}
-
-model Medal {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  imageUrl    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userMedals UserMedal[]
-}
-
-model UserMedal {
-  id        String   @id @default(uuid())
-  userId    String
-  medalId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  medal Medal @relation(fields: [medalId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, medalId])
-}
-
-model Following {
-  id          String   @id @default(uuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
-
-  @@unique([followerId, followingId])
-  @@index([followerId])
-  @@index([followingId])
+  @@unique([username])
 }
 
 model Session {
@@ -152,125 +106,128 @@ model Verification {
   @@index([identifier])
 }
 
-model Comment {
+model Profile {
   id        String   @id @default(uuid())
-  content   String
-  userId    String
+  userId    String   @unique
+  color     String?  @default("#10b981")
+  language  String?  @default("en-US")
+  timezone  String?
+  about     String?  @default("Hello! I'm using TrackGeek.")
+  bannerUrl String?
+  avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  commentsReactions CommentReaction[]
-  gamesComments     GameComment[]
-  profilesComments  ProfileComment[]
-  bookComments      BookComment[]
-  animeComments     AnimeComment[]
-  mangaComments     MangaComment[]
-  tvShowComments    TVShowComment[]
-  movieComments     MovieComment[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+}
+
+model Medal {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  imageUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userMedals UserMedal[]
+}
+
+model UserMedal {
+  id        String   @id @default(uuid())
+  userId    String
+  medalId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medal Medal @relation(fields: [medalId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, medalId])
+}
+
+model Following {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+enum CommentType {
+  Anime
+  Manga
+  TVShow
+  Movie
+  Game
+  Book
+  Profile
+}
+
+model Comment {
+  id        String      @id @default(uuid())
+  content   String
+  type      CommentType
+  userId    String
+  animeId   String?
+  mangaId   String?
+  tvShowId  String?
+  movieId   String?
+  gameId    String?
+  bookId    String?
+  profileId String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime     Anime?     @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  manga     Manga?     @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  tvShow    TvShow?    @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  movie     Movie?     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  game      Game?      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book      Book?      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  profile   Profile?   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
+
+  @@unique([userId, animeId])
+  @@unique([userId, mangaId])
+  @@unique([userId, tvShowId])
+  @@unique([userId, movieId])
+  @@unique([userId, gameId])
+  @@unique([userId, bookId])
+  @@unique([userId, profileId])
+}
+
+enum ReactionType {
+  Comment
+  FeedEvent
 }
 
 model Reaction {
-  id        String   @id @default(uuid())
-  emoji     String
-  userId    String
-  createdAt DateTime @default(now())
+  id          String       @id @default(uuid())
+  emoji       String
+  type        ReactionType
+  userId      String
+  commentId   String?
+  feedEventId String?
+  createdAt   DateTime     @default(now())
 
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  commentsReactions  CommentReaction[]
-  feedEventReactions FeedEventReaction[]
-}
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  feedEvent FeedEvent? @relation(fields: [feedEventId], references: [id], onDelete: Cascade)
 
-model CommentReaction {
-  id         String @id @default(uuid())
-  commentId  String
-  reactionId String
-
-  comment  Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  reaction Reaction @relation(fields: [reactionId], references: [id], onDelete: Cascade)
-
-  @@unique([commentId, reactionId])
-}
-
-model GameComment {
-  id        String @id @default(uuid())
-  gameId    String
-  commentId String
-
-  game    Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([gameId, commentId])
-}
-
-model BookComment {
-  id        String @id @default(uuid())
-  bookId    String
-  commentId String
-
-  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([bookId, commentId])
-}
-
-model AnimeComment {
-  id        String @id @default(uuid())
-  animeId   String
-  commentId String
-
-  anime   Anime   @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([animeId, commentId])
-}
-
-model MangaComment {
-  id        String @id @default(uuid())
-  mangaId   String
-  commentId String
-
-  manga   Manga   @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([mangaId, commentId])
-}
-
-model TVShowComment {
-  id        String @id @default(uuid())
-  tvShowId  String
-  commentId String
-
-  tvShow  TVShow  @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([tvShowId, commentId])
-}
-
-model MovieComment {
-  id        String @id @default(uuid())
-  movieId   String
-  commentId String
-
-  movie   Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([movieId, commentId])
-}
-
-model ProfileComment {
-  id        String @id @default(uuid())
-  profileId String
-  commentId String
-
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([profileId, commentId])
+  @@unique([userId, commentId])
+  @@unique([userId, feedEventId])
 }
 
 enum FeedEventType {
-  NewComment
   NewFollower
   NewFavorite
   NewList
@@ -287,21 +244,10 @@ model FeedEvent {
   metadata  Json?
   createdAt DateTime      @default(now())
 
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  feedEventReactions FeedEventReaction[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@index([userId, createdAt])
-}
-
-model FeedEventReaction {
-  id          String @id @default(uuid())
-  feedEventId String
-  reactionId  String
-
-  feedEvent FeedEvent @relation(fields: [feedEventId], references: [id], onDelete: Cascade)
-  reaction  Reaction  @relation(fields: [reactionId], references: [id], onDelete: Cascade)
-
-  @@unique([feedEventId, reactionId])
 }
 
 model Game {
@@ -359,11 +305,11 @@ model Game {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  gamesComments  GameComment[]
   gameProgresses GameProgress[]
   gameReviews    GameReview[]
   favorites      Favorite[]
   listItems      ListItem[]
+  comments       Comment[]
 }
 
 model Book {
@@ -399,12 +345,12 @@ model Book {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  bookComments   BookComment[]
   bookReads      BookRead[]
   bookProgresses BookProgress[]
   bookReviews    BookReview[]
   favorites      Favorite[]
   listItems      ListItem[]
+  comments       Comment[]
 }
 
 model Anime {
@@ -446,12 +392,12 @@ model Anime {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  animeComments   AnimeComment[]
   animeWatches    AnimeWatch[]
   animeProgresses AnimeProgress[]
   animeReviews    AnimeReview[]
   favorites       Favorite[]
   listItems       ListItem[]
+  comments        Comment[]
 }
 
 model Manga {
@@ -483,15 +429,15 @@ model Manga {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  mangaComments   MangaComment[]
   mangaReads      MangaRead[]
   mangaProgresses MangaProgress[]
   mangaReviews    MangaReview[]
   favorites       Favorite[]
   listItems       ListItem[]
+  comments        Comment[]
 }
 
-model TVShow {
+model TvShow {
   id                  String    @id @default(uuid())
   tmdbId              Int       @unique
   createdBy           Json?
@@ -501,6 +447,7 @@ model TVShow {
   homepage            String?
   inProduction        Boolean?
   languages           String[]
+  backdropUrl         String?
   lastAirDate         DateTime?
   lastEpisodeToAir    Json?
   name                String?
@@ -525,12 +472,14 @@ model TVShow {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  tvShowComments   TVShowComment[]
-  tvshowWatches    TVShowWatch[]
-  tvshowProgresses TVShowProgress[]
-  tvshowReviews    TVShowReview[]
+  tvshowWatches    TvShowWatch[]
+  tvshowProgresses TvShowProgress[]
+  tvshowReviews    TvShowReview[]
   favorites        Favorite[]
   listItems        ListItem[]
+  comments         Comment[]
+
+  @@map("TVShow")
 }
 
 model Movie {
@@ -540,6 +489,7 @@ model Movie {
   belongsToCollection Json?
   budget              Int?
   genres              Json?
+  backdropUrl         String?
   homepage            String?
   originalLanguage    String?
   originalTitle       String?
@@ -562,12 +512,12 @@ model Movie {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  movieComments   MovieComment[]
   movieWatches    MovieWatch[]
   movieProgresses MovieProgress[]
   movieReviews    MovieReview[]
   favorites       Favorite[]
   listItems       ListItem[]
+  comments        Comment[]
 }
 
 enum WatchStatus {
@@ -597,7 +547,7 @@ model AnimeWatch {
   @@index([userId])
 }
 
-model TVShowWatch {
+model TvShowWatch {
   id          String      @id @default(uuid())
   season      Int
   episode     Int
@@ -610,10 +560,11 @@ model TVShowWatch {
   updatedAt   DateTime    @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
+  tvShow TvShow @relation(fields: [tvShowId], references: [id])
 
   @@unique([userId, tvShowId])
   @@index([userId])
+  @@map("TVShowWatch")
 }
 
 model MovieWatch {
@@ -719,7 +670,7 @@ model MangaProgress {
   @@index([userId])
 }
 
-model TVShowProgress {
+model TvShowProgress {
   id        String         @id @default(uuid())
   status    ProgressStatus
   userId    String
@@ -728,10 +679,11 @@ model TVShowProgress {
   updatedAt DateTime       @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
+  tvShow TvShow @relation(fields: [tvShowId], references: [id])
 
   @@unique([userId, tvShowId])
   @@index([userId])
+  @@map("TVShowProgress")
 }
 
 model MovieProgress {
@@ -781,9 +733,17 @@ model BookProgress {
 
 model AnimeReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Decimal
+  story       Decimal?
+  characters  Decimal?
+  animation   Decimal?
+  sound       Decimal?
+  enjoyment   Decimal?
+  summary     String?
   notes       String?
-  screenshots String[] @default([])
+  pros        String?
+  cons        String?
+  recommended Boolean?
   userId      String
   animeId     String
   createdAt   DateTime @default(now())
@@ -796,14 +756,19 @@ model AnimeReview {
 }
 
 model MangaReview {
-  id          String   @id @default(uuid())
-  rating      Int
-  notes       String?
-  screenshots String[] @default([])
-  userId      String
-  mangaId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  overall       Decimal
+  art           Decimal?
+  worldbuilding Decimal?
+  summary       String?
+  notes         String?
+  story         String?
+  characters    String?
+  recommended   Boolean?
+  userId        String
+  mangaId       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   manga Manga @relation(fields: [mangaId], references: [id])
@@ -811,27 +776,38 @@ model MangaReview {
   @@unique([userId, mangaId])
 }
 
-model TVShowReview {
+model TvShowReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Decimal
+  direction   Decimal?
+  production  Decimal?
+  acting      Decimal?
+  summary     String?
   notes       String?
-  screenshots String[] @default([])
+  story       String?
+  recommended Boolean?
   userId      String
   tvShowId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
-  tvShow TVShow @relation(fields: [tvShowId], references: [id])
+  tvShow TvShow @relation(fields: [tvShowId], references: [id])
 
   @@unique([userId, tvShowId])
+  @@map("TVShowReview")
 }
 
 model MovieReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Decimal
+  direction   Decimal?
+  production  Decimal?
+  acting      Decimal?
+  summary     String?
   notes       String?
-  screenshots String[] @default([])
+  story       String?
+  recommended Boolean?
   userId      String
   movieId     String
   createdAt   DateTime @default(now())
@@ -845,8 +821,15 @@ model MovieReview {
 
 model GameReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Decimal
+  graphics    Decimal?
+  sound       Decimal?
+  story       Decimal?
+  gameplay    Decimal?
+  platform    String?
+  summary     String?
   notes       String?
+  recommended Boolean?
   screenshots String[] @default([])
   userId      String
   gameId      String
@@ -861,9 +844,13 @@ model GameReview {
 
 model BookReview {
   id          String   @id @default(uuid())
-  rating      Int
+  overall     Decimal
+  characters  Decimal?
+  language    Decimal?
+  theme       Decimal?
+  summary     String?
   notes       String?
-  screenshots String[] @default([])
+  recommended Boolean?
   userId      String
   bookId      String
   createdAt   DateTime @default(now())
@@ -895,6 +882,8 @@ model List {
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   listItems ListItem[]
+
+  @@unique([userId, name])
 }
 
 model ListItem {
@@ -910,10 +899,17 @@ model ListItem {
   list   List    @relation(fields: [listId], references: [id], onDelete: Cascade)
   anime  Anime?  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  tvShow TVShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
   game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
   book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, animeId])
+  @@unique([listId, mangaId])
+  @@unique([listId, tvShowId])
+  @@unique([listId, movieId])
+  @@unique([listId, gameId])
+  @@unique([listId, bookId])
 }
 
 enum FavoriteType {
@@ -941,8 +937,15 @@ model Favorite {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   anime  Anime?  @relation(fields: [animeId], references: [id], onDelete: Cascade)
   manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  tvShow TVShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
   game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
   book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, animeId])
+  @@unique([userId, mangaId])
+  @@unique([userId, tvShowId])
+  @@unique([userId, movieId])
+  @@unique([userId, gameId])
+  @@unique([userId, bookId])
 }

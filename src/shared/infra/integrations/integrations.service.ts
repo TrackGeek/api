@@ -8,11 +8,11 @@ import { TMDBService } from "./tmdb.service";
 
 @Injectable()
 export class IntegrationsService {
-	constructor(
-		readonly hardcover: HardcoverService,
-		readonly igdb: IGDBService,
-		readonly imgbb: IMGBBService,
-		readonly jikan: JikanService,
-		readonly tmdb: TMDBService,
-	) {}
+  constructor(
+    readonly hardcover: HardcoverService,
+    readonly igdb: IGDBService,
+    readonly imgbb: IMGBBService,
+    readonly jikan: JikanService,
+    readonly tmdb: TMDBService,
+  ) {}
 }

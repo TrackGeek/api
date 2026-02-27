@@ -1,6 +1,6 @@
 import { IsInt } from "class-validator";
 
 export class RefreshAnimeDto {
-	@IsInt()
-	readonly id: number;
+  @IsInt()
+  readonly id: number;
 }

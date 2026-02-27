@@ -1,38 +1,41 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@thallesp/nestjs-better-auth';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { RefreshGameDto } from "./dtos/refresh-game.dto";
+import { SearchGameDto } from "./dtos/search-game.dto";
+import { GameService } from "./game.service";
 
-import { GameService } from './game.service';
-import { RateLimitGuard } from '@/shared/guards/ratelimit.guard';
-import { RateLimit } from '@/shared/decorators/ratelimit.decorator';
-import { RefreshGameDto } from './dtos/refresh-game.dto';
-import { SearchGameDto } from './dtos/search-game.dto';
-
-@UseGuards(RateLimitGuard)
-@RateLimit({ limit: 30, window: 60, blockDuration: 300 })
 @Controller("game")
 export class GameController {
-	constructor(private readonly gameService: GameService) { }
+  constructor(private readonly gameService: GameService) {}
 
-	@Get('search')
-	async searchGames(@Query() searchGameDto: SearchGameDto) {
-		const games = await this.gameService.searchGames(searchGameDto);
+  @Get("search")
+  async searchGames(@Query() query: SearchGameDto) {
+    const games = await this.gameService.searchGames(query);
 
-		return { games };
-	}
+    return { games };
+  }
 
-	@Post('/refresh')
-	@HttpCode(HttpStatus.OK)
-	@UseGuards(AuthGuard)
-	@UseGuards(RateLimitGuard)
-	@RateLimit({ limit: 4, window: 60, blockDuration: 300 })
-	async refreshGame(@Body() refreshGameDto: RefreshGameDto) {
-		await this.gameService.refreshGame(refreshGameDto);
-	}
+  @Post("/refresh")
+  @UseGuards(AuthGuard)
+  async refreshGame(@Body() body: RefreshGameDto) {
+    await this.gameService.refreshGame(body);
+  }
 
-	@Get('/details/:gameId')
-	async getGameById(@Param('gameId', new ParseIntPipe()) gameId: number) {
-		const game = await this.gameService.getGameById(gameId);
+  @Get("/details/:gameId")
+  async getGameById(@Param("gameId", new ParseIntPipe()) gameId: number) {
+    const game = await this.gameService.getGameById(gameId);
 
-		return { game };
-	}
+    return { game };
+  }
 }

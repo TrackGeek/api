@@ -1,12 +1,11 @@
 import { Module } from "@nestjs/common";
-
-import { FeedEventService } from "./feed-event.service";
 import { FeedEventController } from "./feed-event.controller";
+import { FeedEventService } from "./feed-event.service";
 
 @Module({
-	imports: [],
-	controllers: [FeedEventController],
-	providers: [FeedEventService],
-	exports: [FeedEventService],
+  imports: [],
+  controllers: [FeedEventController],
+  providers: [FeedEventService],
+  exports: [FeedEventService],
 })
 export class FeedEventModule {}

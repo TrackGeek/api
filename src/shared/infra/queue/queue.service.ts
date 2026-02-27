@@ -1,24 +1,23 @@
+import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable } from "@nestjs/common";
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-
-import { SendMagicLinkDto } from '../email/dtos/send-magic-link.dto';
-import { FeedEventDto } from '@/modules/feed-event/dtos/feed-event.dto';
+import { Queue } from "bullmq";
+import { FeedEventDto } from "@/modules/feed-event/dtos/feed-event.dto";
+import { SendMagicLinkDto } from "../email/dtos/send-magic-link.dto";
 
 @Injectable()
 export class QueueService {
   constructor(
-    @InjectQueue('email-queue')
+    @InjectQueue("email-queue")
     private readonly emailQueue: Queue,
-    @InjectQueue('feed-event-queue')
+    @InjectQueue("feed-event-queue")
     private readonly feedEventQueue: Queue,
   ) {}
 
   async toSendMagicLinkQueue(emailDto: SendMagicLinkDto) {
-    await this.emailQueue.add('send-magic-link', emailDto);
+    await this.emailQueue.add("send-magic-link", emailDto);
   }
-  
+
   async toFeedEventQueue(feedEventDto: FeedEventDto) {
-    await this.feedEventQueue.add('feed-event', feedEventDto);
+    await this.feedEventQueue.add("feed-event", feedEventDto);
   }
 }

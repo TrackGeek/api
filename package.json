@@ -1,98 +1,103 @@
 {
-	"name": "desafio-biblico-api",
-	"scripts": {
-		"check:types": "tsc --noEmit",
-		"lint": "biome check",
-		"format": "biome format --write",
-		"prisma:generate": "prisma generate",
-		"prisma:migrate": "prisma migrate dev",
-		"auth:generate": "npx @better-auth/cli generate --config src/shared/config/auth.config.ts",
-		"test": "jest",
-		"test:watch": "jest --watch",
-		"test:cov": "jest --coverage",
-		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-		"test:e2e": "jest --config ./e2e/jest-e2e.json",
-		"dev": "nest start --watch",
-		"build": "nest build",
-		"start": "NODE_ENV=production node dist/main"
-	},
-	"jest": {
-		"moduleFileExtensions": [
-			"js",
-			"json",
-			"ts"
-		],
-		"rootDir": "src",
-		"testRegex": ".*\\.spec\\.ts$",
-		"transform": {
-			"^.+\\.(t|j)s$": "ts-jest"
-		},
-		"collectCoverageFrom": [
-			"**/*.(t|j)s"
-		],
-		"coverageDirectory": "../coverage",
-		"testEnvironment": "node",
-		"moduleNameMapper": {
-			"^@/(.*)$": "<rootDir>/$1",
-			"^@prisma/generated/(.*)$": "<rootDir>/../prisma/generated/$1"
-		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(@prisma)/)"
-		]
-	},
-	"dependencies": {
-		"@nestjs-redis/client": "^1.0.0",
-		"@nestjs/axios": "^4.0.1",
-		"@nestjs/bullmq": "^11.0.4",
-		"@nestjs/common": "^11.0.1",
-		"@nestjs/config": "^4.0.2",
-		"@nestjs/core": "^11.0.1",
-		"@nestjs/jwt": "^11.0.2",
-		"@nestjs/platform-express": "^11.1.12",
-		"@nestjs/swagger": "^11.2.4",
-		"@prisma/adapter-pg": "^7.2.0",
-		"@prisma/client": "^7.2.0",
-		"@thallesp/nestjs-better-auth": "^2.4.0",
-		"axios": "^1.13.2",
-		"better-auth": "^1.4.18",
-		"bullmq": "^5.67.3",
-		"class-transformer": "^0.5.1",
-		"class-validator": "^0.14.3",
-		"cookie-parser": "^1.4.7",
-		"emoji-regex": "^10.6.0",
-		"graphql": "^16.12.0",
-		"handlebars": "^4.7.8",
-		"helmet": "^8.1.0",
-		"lodash": "^4.17.23",
-		"multer": "^2.0.2",
-		"nestjs-resend": "^1.1.0",
-		"pg": "^8.16.3",
-		"redis": "^5.10.0",
-		"reflect-metadata": "^0.2.2",
-		"rxjs": "^7.8.1"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "2.3.11",
-		"@nestjs/cli": "^11.0.0",
-		"@nestjs/schematics": "^11.0.0",
-		"@nestjs/testing": "^11.0.1",
-		"@types/cookie-parser": "^1.4.10",
-		"@types/express": "^5.0.0",
-		"@types/jest": "^30.0.0",
-		"@types/lodash": "^4.17.23",
-		"@types/multer": "^2.0.0",
-		"@types/node": "^22.10.7",
-		"@types/pg": "^8.16.0",
-		"@types/supertest": "^6.0.2",
-		"globals": "^16.0.0",
-		"jest": "^30.0.0",
-		"prisma": "^7.2.0",
-		"source-map-support": "^0.5.21",
-		"supertest": "^7.0.0",
-		"ts-jest": "^29.2.5",
-		"ts-loader": "^9.5.2",
-		"ts-node": "^10.9.2",
-		"tsconfig-paths": "^4.2.0",
-		"typescript": "^5.7.3"
-	}
+  "name": "desafio-biblico-api",
+  "scripts": {
+    "types": "tsc --noEmit",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "check": "biome check",
+    "check:fix": "biome check --write",
+    "format": "biome format",
+    "format:fix": "biome format --write",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./e2e/jest-e2e.json",
+    "dev": "NODE_ENV=development nest start --watch",
+    "build": "nest build",
+    "start": "NODE_ENV=production node dist/main"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@prisma/generated/(.*)$": "<rootDir>/../prisma/generated/$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@prisma)/)"
+    ]
+  },
+  "dependencies": {
+    "@nestjs-redis/client": "^1.0.0",
+    "@nestjs/axios": "^4.0.1",
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/platform-express": "^11.1.12",
+    "@nestjs/swagger": "^11.2.4",
+    "@nestjs/throttler": "^6.5.0",
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "@scalar/nestjs-api-reference": "^1.0.29",
+    "@thallesp/nestjs-better-auth": "^2.4.0",
+    "axios": "^1.13.2",
+    "better-auth": "^1.4.18",
+    "bullmq": "^5.67.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "cookie-parser": "^1.4.7",
+    "emoji-regex": "^10.6.0",
+    "graphql": "^16.12.0",
+    "handlebars": "^4.7.8",
+    "helmet": "^8.1.0",
+    "lodash": "^4.17.23",
+    "multer": "^2.0.2",
+    "nestjs-resend": "^1.1.0",
+    "pg": "^8.16.3",
+    "redis": "^5.10.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.23",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^22.10.7",
+    "@types/pg": "^8.16.0",
+    "@types/supertest": "^6.0.2",
+    "globals": "^16.0.0",
+    "jest": "^30.0.0",
+    "prisma": "^7.2.0",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3"
+  }
 }
