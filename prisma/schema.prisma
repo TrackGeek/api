@@ -875,6 +875,7 @@ model GameReview {
   sound       Int?
   story       Int?
   gameplay    Int?
+  platform    String?
   summary     String?
   notes       String?
   recommended Boolean?
@@ -899,7 +900,6 @@ model BookReview {
   summary     String?
   notes       String?
   recommended Boolean?
-  screenshots String[] @default([])
   userId      String
   bookId      String
   createdAt   DateTime @default(now())
