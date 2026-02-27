@@ -151,8 +151,6 @@ export class MangaReviewService {
 				story: updateMangaReviewDto.story,
 				characters: updateMangaReviewDto.characters,
 				recommended: updateMangaReviewDto.recommended,
-				mangaId: updateMangaReviewDto.mangaId,
-				userId: updateMangaReviewDto.userId,
 			},
 		});
 	}
