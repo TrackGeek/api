@@ -50,7 +50,7 @@ export class GameReviewService {
       },
     });
 
-    await this.queueService.toFeedEventQueue({
+    await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId: createGameReviewDto.userId,
       metadata: { gameReview },

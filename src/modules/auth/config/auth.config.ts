@@ -32,7 +32,7 @@ export function getAuthConfig(params: AuthConfigParams) {
       configService.get<string>("WEB_URL"),
       "com.trackgeek.net.mobile.ios://auth/callback",
       "com.trackgeek.net.mobile.android://auth/callback",
-      "trackgeek://callback",
+      "trackgeek://auth/callback",
     ],
     advanced: {
       database: {
@@ -51,6 +51,15 @@ export function getAuthConfig(params: AuthConfigParams) {
     },
     emailAndPassword: {
       enabled: true,
+      minPasswordLength: 8,
+      resetPasswordTokenExpiresIn: 60 * 60 * 3, // 3 hours
+      sendResetPassword: async ({ user, url }) => {
+        await queueService.toResetPasswordJob({
+          name: user.name,
+          email: user.email,
+          url,
+        });
+      }
     },
     socialProviders: {
       google: {
@@ -65,6 +74,18 @@ export function getAuthConfig(params: AuthConfigParams) {
         clientId: configService.get<string>("DISCORD_CLIENT_ID"),
         clientSecret: configService.get<string>("DISCORD_CLIENT_SECRET"),
       },
+      // twitch: {
+      //   clientId: configService.get<string>("TWITCH_CLIENT_ID"),
+      //   clientSecret: configService.get<string>("TWITCH_CLIENT_SECRET"),
+      // },
+      // reddit: {
+      //   clientId: configService.get<string>("REDDIT_CLIENT_ID"),
+      //   clientSecret: configService.get<string>("REDDIT_CLIENT_SECRET"),
+      // },
+      // twitter: {
+      //   clientId: configService.get<string>("TWITTER_CLIENT_ID"),
+      //   clientSecret: configService.get<string>("TWITTER_CLIENT_SECRET"),
+      // },
     },
     plugins: [
       openAPI({ path: "/docs" }),
@@ -81,7 +102,7 @@ export function getAuthConfig(params: AuthConfigParams) {
       lastLoginMethod(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          await queueService.toSendMagicLinkQueue({ email, url });
+          await queueService.toMagicLinkJob({ email, url });
         },
       }),
     ],

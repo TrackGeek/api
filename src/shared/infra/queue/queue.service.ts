@@ -1,11 +1,14 @@
 import { InjectQueue } from "@nestjs/bullmq";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Queue } from "bullmq";
 import { FeedEventDto } from "@/modules/feed-event/dtos/feed-event.dto";
-import { SendMagicLinkDto } from "../email/dtos/send-magic-link.dto";
+import { MagicLinkEmailDto } from "../email/dtos/magic-link-email.dto";
+import { ResetPasswordEmailDto } from '../email/dtos/reset-password-email.dto';
 
 @Injectable()
 export class QueueService {
+  private readonly logger = new Logger(QueueService.name);
+
   constructor(
     @InjectQueue("email-queue")
     private readonly emailQueue: Queue,
@@ -13,11 +16,21 @@ export class QueueService {
     private readonly feedEventQueue: Queue,
   ) {}
 
-  async toSendMagicLinkQueue(emailDto: SendMagicLinkDto) {
-    await this.emailQueue.add("send-magic-link", emailDto);
+  async toFeedEventJob(feedEventDto: FeedEventDto) {
+    const job = await this.feedEventQueue.add("feed-event", feedEventDto);
+    
+    this.logger.log(`Job added to queue [feed-event-queue] | job=${job.id} name=feed-event`);
   }
 
-  async toFeedEventQueue(feedEventDto: FeedEventDto) {
-    await this.feedEventQueue.add("feed-event", feedEventDto);
+  async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {
+    const job = await this.emailQueue.add("magic-link", magicLinkEmailDto);
+    
+    this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=magic-link`);
+  }
+
+  async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
+    const job = await this.emailQueue.add("reset-password", resetPasswordEmailDto);
+    
+    this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=reset-password`);
   }
 }

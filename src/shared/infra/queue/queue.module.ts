@@ -18,6 +18,15 @@ import { QueueService } from "./queue.service";
         connection: {
           url: configService.get<string>("REDIS_URL"),
         },
+        defaultJobOptions: {
+          attempts: 4,
+          backoff: {
+            type: "fixed",
+            delay: 5 * 60 * 1000, // 5min
+          },
+          removeOnFail: true,
+          removeOnComplete: true,
+        },
       }),
     }),
     BullModule.registerQueue({ name: "feed-event-queue" }),
