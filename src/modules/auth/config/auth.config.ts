@@ -7,6 +7,7 @@ import type { ProfileService } from "@/modules/profile/profile.service";
 import type { UserService } from "@/modules/user/user.service";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
+import { Logger } from '@nestjs/common';
 
 interface AuthConfigParams {
   configService?: ConfigService;
@@ -16,12 +17,18 @@ interface AuthConfigParams {
   queueService?: QueueService;
 }
 
+const logger = new Logger("BetterAuth");
+
 export function getAuthConfig(params: AuthConfigParams) {
   const { configService, databaseService, userService, profileService, queueService } =
     params as Required<AuthConfigParams>;
 
   return {
     appName: "TrackGeek",
+    logger: {
+      level: "debug",
+      log: (level, message, ...args) => logger.log(`[${level}] ${message}`, ...args),
+    },
     database: prismaAdapter(databaseService, {
       provider: "postgresql",
     }),
@@ -40,7 +47,25 @@ export function getAuthConfig(params: AuthConfigParams) {
       },
     },
     account: {
-      skipStateCookieCheck: true,
+      accountLinking: {
+        enabled: true,
+        updateUserInfoOnLink: false,
+        trustedProviders: [
+          "google",
+          "github",
+          "discord",
+          "twitch",
+          "kick",
+          "twitter",
+          "tiktok",
+          "roblox",
+          "slack",
+          "microsoft",
+          "notion",
+          "spotify",
+          "email-password"
+        ],
+      },
     },
     user: {
       additionalFields: {
@@ -59,7 +84,7 @@ export function getAuthConfig(params: AuthConfigParams) {
           email: user.email,
           url,
         });
-      }
+      },
     },
     socialProviders: {
       google: {
@@ -74,18 +99,38 @@ export function getAuthConfig(params: AuthConfigParams) {
         clientId: configService.get<string>("DISCORD_CLIENT_ID"),
         clientSecret: configService.get<string>("DISCORD_CLIENT_SECRET"),
       },
-      // twitch: {
-      //   clientId: configService.get<string>("TWITCH_CLIENT_ID"),
-      //   clientSecret: configService.get<string>("TWITCH_CLIENT_SECRET"),
-      // },
-      // reddit: {
-      //   clientId: configService.get<string>("REDDIT_CLIENT_ID"),
-      //   clientSecret: configService.get<string>("REDDIT_CLIENT_SECRET"),
-      // },
-      // twitter: {
-      //   clientId: configService.get<string>("TWITTER_CLIENT_ID"),
-      //   clientSecret: configService.get<string>("TWITTER_CLIENT_SECRET"),
-      // },
+      twitch: {
+        clientId: configService.get<string>("TWITCH_CLIENT_ID"),
+        clientSecret: configService.get<string>("TWITCH_CLIENT_SECRET"),
+      },
+      kick: {
+        clientId: configService.get<string>("KICK_CLIENT_ID"),
+        clientSecret: configService.get<string>("KICK_CLIENT_SECRET"),
+      },
+      twitter: {
+        clientId: configService.get<string>("TWITTER_CLIENT_ID"),
+        clientSecret: configService.get<string>("TWITTER_CLIENT_SECRET"),
+      },
+      slack: {
+        clientId: configService.get<string>("SLACK_CLIENT_ID"),
+        clientSecret: configService.get<string>("SLACK_CLIENT_SECRET"),
+        scope: ["openid", "profile", "email"],
+      },
+      microsoft: {
+        clientId: configService.get<string>("MICROSOFT_CLIENT_ID"),
+        clientSecret: configService.get<string>("MICROSOFT_CLIENT_SECRET"),
+        tenantId: 'common', 
+        authority: "https://login.microsoftonline.com",
+        prompt: "select_account",
+      },
+      notion: {
+        clientId: configService.get<string>("NOTION_CLIENT_ID"),
+        clientSecret: configService.get<string>("NOTION_CLIENT_SECRET"),
+      },
+      spotify: {
+        clientId: configService.get<string>("SPOTIFY_CLIENT_ID"),
+        clientSecret: configService.get<string>("SPOTIFY_CLIENT_SECRET"),
+      },
     },
     plugins: [
       openAPI({ path: "/docs" }),
