@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
-import type { APIRequestContext, APIResponse } from '@playwright/test';
+import { faker } from "@faker-js/faker";
+import type { APIRequestContext, APIResponse } from "@playwright/test";
 
 export function generateUserCredentials() {
   return {
@@ -9,8 +9,11 @@ export function generateUserCredentials() {
   };
 }
 
-export async function signUp(request: APIRequestContext, credentials: ReturnType<typeof generateUserCredentials>): Promise<APIResponse> {
-  const response = await request.post('/auth/sign-up/email', {
+export async function signUp(
+  request: APIRequestContext,
+  credentials: ReturnType<typeof generateUserCredentials>,
+): Promise<APIResponse> {
+  const response = await request.post("/auth/sign-up/email", {
     data: {
       ...credentials,
       rememberMe: false,
@@ -20,14 +23,17 @@ export async function signUp(request: APIRequestContext, credentials: ReturnType
   return response;
 }
 
-export async function signIn(request: APIRequestContext, credentials: Pick<ReturnType<typeof generateUserCredentials>, 'email' | 'password'>): Promise<APIResponse> {
-  const response = await request.post('/auth/sign-in/email', {
+export async function signIn(
+  request: APIRequestContext,
+  credentials: Pick<ReturnType<typeof generateUserCredentials>, "email" | "password">,
+): Promise<APIResponse> {
+  const response = await request.post("/auth/sign-in/email", {
     data: {
       email: credentials.email,
       password: credentials.password,
       rememberMe: false,
     },
   });
-  
+
   return response;
 }

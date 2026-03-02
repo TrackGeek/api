@@ -7,7 +7,7 @@ import type { ProfileService } from "@/modules/profile/profile.service";
 import type { UserService } from "@/modules/user/user.service";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
-import { Logger } from '@nestjs/common';
+import { Logger } from "@nestjs/common";
 
 interface AuthConfigParams {
   configService?: ConfigService;
@@ -63,7 +63,7 @@ export function getAuthConfig(params: AuthConfigParams) {
           "microsoft",
           "notion",
           "spotify",
-          "email-password"
+          "email-password",
         ],
       },
     },
@@ -119,7 +119,7 @@ export function getAuthConfig(params: AuthConfigParams) {
       microsoft: {
         clientId: configService.get<string>("MICROSOFT_CLIENT_ID"),
         clientSecret: configService.get<string>("MICROSOFT_CLIENT_SECRET"),
-        tenantId: 'common', 
+        tenantId: "common",
         authority: "https://login.microsoftonline.com",
         prompt: "select_account",
       },

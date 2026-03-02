@@ -35,7 +35,7 @@ export class EmailProcessor extends WorkerHost {
   @OnWorkerEvent("failed")
   onFailed(job: Job | undefined, error: Error) {
     if (!job) return;
-    
+
     const maxAttempts = job.opts?.attempts ?? 1;
     const willRetry = job.attemptsMade < maxAttempts;
 

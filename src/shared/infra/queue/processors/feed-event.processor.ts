@@ -22,7 +22,9 @@ export class FeedEventProcessor extends WorkerHost {
 
   @OnWorkerEvent("active")
   onActive(job: Job) {
-    this.logger.log(`Processing job [feed-event-queue] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`);
+    this.logger.log(
+      `Processing job [feed-event-queue] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`,
+    );
   }
 
   @OnWorkerEvent("completed")
@@ -33,7 +35,7 @@ export class FeedEventProcessor extends WorkerHost {
   @OnWorkerEvent("failed")
   onFailed(job: Job | undefined, error: Error) {
     if (!job) return;
-    
+
     const maxAttempts = job.opts?.attempts ?? 1;
     const willRetry = job.attemptsMade < maxAttempts;
 

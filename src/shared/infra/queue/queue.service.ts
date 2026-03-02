@@ -3,7 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Queue } from "bullmq";
 import { FeedEventDto } from "@/modules/feed-event/dtos/feed-event.dto";
 import { MagicLinkEmailDto } from "../email/dtos/magic-link-email.dto";
-import { ResetPasswordEmailDto } from '../email/dtos/reset-password-email.dto';
+import { ResetPasswordEmailDto } from "../email/dtos/reset-password-email.dto";
 
 @Injectable()
 export class QueueService {
@@ -18,19 +18,19 @@ export class QueueService {
 
   async toFeedEventJob(feedEventDto: FeedEventDto) {
     const job = await this.feedEventQueue.add("feed-event", feedEventDto);
-    
+
     this.logger.log(`Job added to queue [feed-event-queue] | job=${job.id} name=feed-event`);
   }
 
   async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {
     const job = await this.emailQueue.add("magic-link", magicLinkEmailDto);
-    
+
     this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=magic-link`);
   }
 
   async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
     const job = await this.emailQueue.add("reset-password", resetPasswordEmailDto);
-    
+
     this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=reset-password`);
   }
 }
