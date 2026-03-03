@@ -58,6 +58,7 @@ export function getAuthConfig(params: AuthConfigParams) {
       accountLinking: {
         enabled: true,
         updateUserInfoOnLink: false,
+        // https://github.com/TrackGeek/api/pull/43#discussion_r2875336763
         trustedProviders: [
           "google",
           "github",
