@@ -21,7 +21,7 @@ import { FavoriteService } from "./favorite.service";
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async addFavorite(@Session() session: UserSession, @Body() body: AddFavoriteDto) {
@@ -31,7 +31,7 @@ export class FavoriteController {
     });
   }
 
-  @Delete()
+  @Delete("/")
   @UseGuards(AuthGuard)
   async removeFavorite(@Session() session: UserSession, @Body() body: RemoveFavoriteDto) {
     await this.favoriteService.removeFavorite({

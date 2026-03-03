@@ -8,7 +8,7 @@ import { GetTVShowProgressDto } from './dtos/get-tv-show-progress.dto';
 export class TVShowProgressController {
   constructor(private readonly tvShowProgressService: TVShowProgressService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async createOrUpdateTVShowProgress(@Session() session: UserSession, @Body() body: CreateOrUpdateTVShowProgressDto) {
@@ -18,7 +18,7 @@ export class TVShowProgressController {
     });
   }
   
-  @Get()
+  @Get("/")
   async getTVShowProgressesByUserId(@Query() query: GetTVShowProgressDto) {
     const tvShowProgresses = await this.tvShowProgressService.getTVShowProgress(query);
 

@@ -22,7 +22,7 @@ import { UpdateAnimeReviewDto } from "./dtos/update-anime-review.dto";
 export class AnimeReviewController {
   constructor(private readonly animeReviewService: AnimeReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createAnimeReview(@Session() session: UserSession, @Body() body: CreateAnimeReviewDto) {
@@ -32,7 +32,7 @@ export class AnimeReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getAnimeReviews(@Query() query: GetAnimeReviewsDto) {
     const animeReviews = await this.animeReviewService.getAnimeReviews(query);
 

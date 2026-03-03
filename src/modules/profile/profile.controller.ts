@@ -10,7 +10,7 @@ import { imageConfig } from '@/shared/infra/upload/upload.config';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @Patch()
+  @Patch("/")
   async updateProfile(@Session() session: UserSession, @Body() body: UpdateProfileDto) {
     await this.profileService.updateProfile({
       ...body,
@@ -18,24 +18,24 @@ export class ProfileController {
     });
   }
 
-  @Patch("avatar")
+  @Patch("/avatar")
   @UseInterceptors(FileInterceptor("file", imageConfig))
   async updateProfileAvatar(@Session() session: UserSession, @UploadedFile() file: Express.Multer.File) {
     await this.profileService.updateProfileAvatar(session.user.id, file);
   }
 
-  @Delete("avatar")
+  @Delete("/avatar")
   async deleteProfileAvatar(@Session() session: UserSession) {
     await this.profileService.deleteProfileAvatar(session.user.id);
   }
 
-  @Patch("banner")
+  @Patch("/banner")
   @UseInterceptors(FileInterceptor("file", imageConfig))
   async updateProfileBanner(@Session() session: UserSession, @UploadedFile() file: Express.Multer.File) {
     await this.profileService.updateProfileBanner(session.user.id, file);
   }
 
-  @Delete("banner")
+  @Delete("/banner")
   async deleteProfileBanner(@Session() session: UserSession) {
     await this.profileService.deleteProfileBanner(session.user.id);
   }

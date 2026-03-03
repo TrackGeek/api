@@ -8,7 +8,7 @@ import { GetMovieProgressDto } from './dtos/get-movie-progress.dto';
 export class MovieProgressController {
   constructor(private readonly movieProgressService: MovieProgressService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async createOrUpdateMovieProgress(@Session() session: UserSession, @Body() body: CreateOrUpdateMovieProgressDto) {
@@ -18,7 +18,7 @@ export class MovieProgressController {
     });
   }
   
-  @Get()
+  @Get("/")
   async getMovieProgress(@Query() query: GetMovieProgressDto) {
     const movieProgresses = await this.movieProgressService.getMovieProgress(query);
 

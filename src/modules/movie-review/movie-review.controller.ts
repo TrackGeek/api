@@ -21,7 +21,7 @@ import { MovieReviewService } from "./movie-review.service";
 export class MovieReviewController {
   constructor(private readonly movieReviewService: MovieReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createMovieReview(@Session() session: UserSession, @Body() body: CreateMovieReviewDto) {
@@ -31,7 +31,7 @@ export class MovieReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getMovieReviews(@Query() query: GetMovieReviewsDto) {
     const movieReviews = await this.movieReviewService.getMovieReviews(query);
 

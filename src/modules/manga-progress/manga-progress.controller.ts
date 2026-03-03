@@ -8,7 +8,7 @@ import { GetMangaProgressesByUserIdDto } from './dtos/get-manga-progresses-by-us
 export class MangaProgressController {
   constructor(private readonly mangaProgressService: MangaProgressService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async createOrUpdateMangaProgress(@Session() session: UserSession, @Body() body: CreateOrUpdateMangaProgressDto) {
@@ -18,7 +18,7 @@ export class MangaProgressController {
     });
   }
   
-  @Get()
+  @Get("/")
   async getMangaProgressesByUserId(@Query() query: GetMangaProgressesByUserIdDto) {
     const mangaProgresses = await this.mangaProgressService.getMangaProgressesByUserId(query);
 

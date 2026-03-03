@@ -22,7 +22,7 @@ import { TVShowReviewService } from "./tv-show-review.service";
 export class TVShowReviewController {
   constructor(private readonly tvShowReviewService: TVShowReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createTVShowReview(@Session() session: UserSession, @Body() body: CreateTVShowReviewDto) {
@@ -32,7 +32,7 @@ export class TVShowReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getTVShowReviews(@Query() query: GetTVShowReviewsDto) {
     const tvShowReviews = await this.tvShowReviewService.getTVShowReviews(query);
 

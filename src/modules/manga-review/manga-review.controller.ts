@@ -22,7 +22,7 @@ import { MangaReviewService } from "./manga-review.service";
 export class MangaReviewController {
   constructor(private readonly mangaReviewService: MangaReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createMangaReview(@Session() session: UserSession, @Body() body: CreateMangaReviewDto) {
@@ -32,7 +32,7 @@ export class MangaReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getMangaReviews(@Query() query: GetMangaReviewsDto) {
     const mangaReviews = await this.mangaReviewService.getMangaReviews(query);
 

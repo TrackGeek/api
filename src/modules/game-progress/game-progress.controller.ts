@@ -8,7 +8,7 @@ import { GetGameProgressDto } from './dtos/get-game-progress.dto';
 export class GameProgressController {
   constructor(private readonly gameProgressService: GameProgressService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async createOrUpdateGameProgress(@Session() session: UserSession, @Body() body: CreateOrUpdateGameProgressDto) {
@@ -18,7 +18,7 @@ export class GameProgressController {
     });
   }
   
-  @Get()
+  @Get("/")
   async getGameProgress(@Query() query: GetGameProgressDto) {
     const gameProgresses = await this.gameProgressService.getGameProgress(query);
 

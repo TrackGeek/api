@@ -22,7 +22,7 @@ import { UpdateBookReviewDto } from "./dtos/update-book-review.dto";
 export class BookReviewController {
   constructor(private readonly bookReviewService: BookReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createBookReview(@Session() session: UserSession, @Body() body: CreateBookReviewDto) {
@@ -32,7 +32,7 @@ export class BookReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getBookReviews(@Query() query: GetBookReviewsDto) {
     const bookReviews = await this.bookReviewService.getBookReviews(query);
 

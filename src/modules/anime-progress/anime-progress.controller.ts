@@ -8,7 +8,7 @@ import { GetAnimeProgressDto } from './dtos/get-anime-progress.dto';
 export class AnimeProgressController {
   constructor(private readonly animeProgressService: AnimeProgressService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async createOrUpdateAnimeProgress(@Session() session: UserSession, @Body() body: CreateOrUpdateAnimeProgressDto) {
@@ -18,7 +18,7 @@ export class AnimeProgressController {
     });
   }
   
-  @Get()
+  @Get("/")
   async getAnimeProgress(@Query() query: GetAnimeProgressDto) {
     const animeProgresses = await this.animeProgressService.getAnimeProgress(query);
 

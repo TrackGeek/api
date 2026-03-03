@@ -8,7 +8,7 @@ import { GetBookProgressDto } from './dtos/get-book-progress.dto';
 export class BookProgressController {
   constructor(private readonly bookProgressService: BookProgressService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async createOrUpdateBookProgress(@Session() session: UserSession, @Body() body: CreateOrUpdateBookProgressDto) {
@@ -18,7 +18,7 @@ export class BookProgressController {
     });
   }
   
-  @Get()
+  @Get("/")
   async getBookProgress(@Query() query: GetBookProgressDto) {
     const bookProgresses = await this.bookProgressService.getBookProgress(query);
 
