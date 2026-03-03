@@ -22,7 +22,7 @@ export class GameService {
     return {
       gameById: {
         prefix: (id: number) => `game:id:${id}`,
-        expiration: 3600 * 6, // 6 hours
+        expiration: 3600 * 24, // 24 hours
       },
     };
   }

@@ -22,7 +22,7 @@ export class BookService {
     return {
       bookById: {
         prefix: (id: number) => `book:id:${id}`,
-        expiration: 3600 * 6, // 6 hours
+        expiration: 3600 * 24, // 24 hours
       },
     };
   }

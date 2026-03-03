@@ -21,7 +21,7 @@ export class MovieService {
     return {
       movieById: {
         prefix: (id: number) => `movie:id:${id}`,
-        expiration: 3600 * 6, // 6 hours
+        expiration: 3600 * 24, // 24 hours
       },
     };
   }
