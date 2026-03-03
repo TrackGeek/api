@@ -179,4 +179,8 @@ export const ERROR_CODES = {
     code: "REVIEW_ALREADY_EXISTS",
     status: 409,
   },
+  PROGRESS_NOT_FOUND: {
+    code: "PROGRESS_NOT_FOUND",
+    status: 404,
+  },
 } as const;

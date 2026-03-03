@@ -31,6 +31,7 @@ import { EmailModule } from "./shared/infra/email/email.module";
 import { IntegrationsModule } from "./shared/infra/integrations/integrations.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
+import { GameProgressModule } from './modules/game-progress/game-progress.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { UploadModule } from "./shared/infra/upload/upload.module";
     CommentModule,
     ReactionModule,
     GameModule,
+    GameProgressModule,
     GameReviewModule,
     MovieModule,
     MovieReviewModule,

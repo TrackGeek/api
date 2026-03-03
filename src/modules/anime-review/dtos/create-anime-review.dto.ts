@@ -1,4 +1,4 @@
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
 
 export class CreateAnimeReviewDto {
   @IsDecimal()
@@ -57,6 +57,7 @@ export class CreateAnimeReviewDto {
   readonly recommended?: boolean;
 
   @IsNotEmpty()
+  @IsUUID()
   readonly animeId: string;
 
   readonly userId: string;
