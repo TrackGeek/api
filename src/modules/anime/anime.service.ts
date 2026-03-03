@@ -22,7 +22,11 @@ export class AnimeService {
     return {
       animeById: {
         prefix: (id: number) => `anime:id:${id}`,
-        expiration: 3600 * 6, // 6 hours
+        expiration: 3600 * 24, // 24 hours
+      },
+      animeEpisodesById: {
+        prefix: (id: number) => `anime:id:${id}:episodes`,
+        expiration: 3600 * 24, // 24 hours
       },
     };
   }
@@ -54,6 +58,41 @@ export class AnimeService {
 
     return anime;
   }
+  
+  async getAnimeEpisodesById(id: number) {
+    const cachedEpisodes = await this.cacheService.get(this.cacheKeys.animeEpisodesById.prefix(id));
+
+    if (cachedEpisodes) {
+      return cachedEpisodes;
+    }
+
+    const anime = await this.databaseService.anime.findUnique({
+      where: { malId: id },
+    });
+
+    if (!anime) {
+      throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+    }
+    
+    let episodes: any = anime.episodes;
+    
+    if (!anime?.episodes) {
+      episodes = await this.integrationsService.jikan.getAnimeEpisodesById(id);
+      
+      await this.databaseService.anime.update({
+        where: { malId: id },
+        data: { episodes },
+      });
+    }
+
+    await this.cacheService.set(
+      this.cacheKeys.animeEpisodesById.prefix(id),
+      episodes,
+      this.cacheKeys.animeEpisodesById.expiration,
+    );
+
+    return episodes;
+  }
 
   async refreshAnime(refreshAnimeDto: RefreshAnimeDto) {
     const anime = await this.databaseService.anime.findUnique({
@@ -73,10 +112,14 @@ export class AnimeService {
     }
 
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(anime.malId);
+    const jikanEpisodes = await this.integrationsService.jikan.getAnimeEpisodesById(anime.malId);
 
     await this.databaseService.anime.update({
       where: { malId: refreshAnimeDto.id },
-      data: jikanAnime,
+      data: {
+        ...jikanAnime,
+        episodes: jikanEpisodes,
+      },
     });
 
     await this.cacheService.set(

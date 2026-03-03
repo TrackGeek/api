@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
-import { firstValueFrom } from "rxjs";
+import { Injectable, Logger } from "@nestjs/common";
+import { firstValueFrom, timer } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { manyRequestWithDelay } from "@/shared/utils/request";
@@ -8,6 +8,8 @@ import { CacheKeys, CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class JikanService {
+  private readonly logger = new Logger(JikanService.name);
+  
   private readonly JIKAN_API_URL = "https://api.jikan.moe/v4";
 
   constructor(
@@ -26,11 +28,15 @@ export class JikanService {
         expiration: 3600 * 24, // 24 hours
       },
       getAnimeById: {
-        prefix: (id: number) => `jikan:details:anime:id:${id}`,
+        prefix: (id: number) => `jikan:details:anime:${id}`,
+        expiration: 3600 * 24, // 24 hours
+      },
+      getAnimeEpisodesById: {
+        prefix: (id: number) => `jikan:details:anime:${id}:episodes`,
         expiration: 3600 * 24, // 24 hours
       },
       getMangaById: {
-        prefix: (id: number) => `jikan:details:manga:id:${id}`,
+        prefix: (id: number) => `jikan:details:manga:${id}`,
         expiration: 3600 * 24, // 24 hours
       },
     };
@@ -68,6 +74,10 @@ export class JikanService {
 
       return animes;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+      
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
@@ -104,6 +114,12 @@ export class JikanService {
 
       return mangas;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to search mangas with query "${query}" from Jikan API`, error);
+      
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
@@ -127,8 +143,8 @@ export class JikanService {
       });
 
       const animeFullData = animeFullResponse.data.data;
-      const staffData = staffResponse.data.data;
       const videosData = videosResponse.data.data;
+      const staffData = staffResponse.data.data;
       const charactersData = charactersResponse.data.data;
 
       const relations = animeFullData.relations
@@ -173,14 +189,6 @@ export class JikanService {
                 youtubeId: promo.trailer.youtube_id ?? null,
                 url: promo.trailer.url ?? null,
               },
-            }))
-          : [],
-        episodes: videosData.episodes
-          ? videosData.episodes.map((video) => ({
-              malId: video.mal_id,
-              title: video.title,
-              episode: video.episode,
-              imageUrl: video.images?.jpg?.image_url ?? null,
             }))
           : [],
         musicVideos: videosData.music_videos
@@ -261,6 +269,69 @@ export class JikanService {
 
       return anime;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to fetch anime details for ID ${id} from Jikan API`, error);
+      
+      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+    }
+  }
+  
+  async getAnimeEpisodesById(id: number): Promise<any> {
+    try {
+      const cachedEpisodes = await this.cacheService.get(this.cacheKeys.getAnimeEpisodesById.prefix(id));
+
+      if (cachedEpisodes) {
+        return cachedEpisodes;
+      }
+      
+      const episodesData: any[] = []
+      
+      let page = 1;
+      let hasNextPage = true;
+
+      while (hasNextPage) {
+        const videosResponse = await firstValueFrom(
+          this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
+            params: { page },
+          }),
+        );
+        
+        episodesData.push(...videosResponse.data.data);
+        
+        hasNextPage = videosResponse.data.pagination.has_next_page;
+        page++;
+
+        if (hasNextPage) {
+          await firstValueFrom(timer(500));
+        }
+      }
+      
+      const episodes = episodesData.length > 0
+        ? episodesData.map((video) => ({
+            malId: video.mal_id,
+            title: video.title,
+            episode: video.episode,
+            imageUrl: video.images?.jpg?.image_url ?? null,
+          }))
+        : []
+        
+      await this.cacheService.set(
+        this.cacheKeys.getAnimeEpisodesById.prefix(id),
+        episodes,
+        this.cacheKeys.getAnimeEpisodesById.expiration,
+      );
+
+      return episodes;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch anime episodes for ID ${id} from Jikan API`, error);
+      
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
@@ -344,6 +415,12 @@ export class JikanService {
 
       return manga;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to fetch manga details for ID ${id} from Jikan API`, error);
+      
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }

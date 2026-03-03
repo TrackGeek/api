@@ -38,4 +38,11 @@ export class AnimeController {
 
     return { anime };
   }
+  
+  @Get("/details/:animeId/episodes")
+  async getAnimeEpisodesById(@Param("animeId", new ParseIntPipe()) animeId: number) {
+    const episodes = await this.animeService.getAnimeEpisodesById(animeId);
+
+    return { episodes };
+  }
 }
