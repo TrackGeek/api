@@ -16,10 +16,7 @@ export class EmailService {
   ) {}
 
   private getHtmlTemplate(templateName: string, variables: Record<string, any>): string {
-    const baseDir =
-      process.env.NODE_ENV === "development" ? path.join(process.cwd(), "src", "shared", "infra", "email") : __dirname;
-
-    const templatePath = path.join(baseDir, "templates", `${templateName}.template.hbs`);
+    const templatePath = path.join(__dirname, "templates", `${templateName}.template.hbs`);
     const templateSource = fs.readFileSync(templatePath, "utf-8");
 
     const template = handlebars.compile(templateSource);
