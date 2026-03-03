@@ -309,6 +309,7 @@ CREATE TABLE "Anime" (
     "characters" JSONB,
     "cast" JSONB,
     "videos" JSONB,
+    "episodes" JSONB,
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
