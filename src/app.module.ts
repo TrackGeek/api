@@ -35,6 +35,7 @@ import { GameProgressModule } from './modules/game-progress/game-progress.module
 import { MovieProgressModule } from './modules/movie-progress/movie-progress.module';
 import { MangaProgressModule } from './modules/manga-progress/manga-progress.module';
 import { BookProgressModule } from './modules/book-progress/book-progress.module';
+import { AnimeProgressModule } from './modules/anime-progress/anime-progress.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { BookProgressModule } from './modules/book-progress/book-progress.module
     BookProgressModule,
     BookReviewModule,
     AnimeModule,
+    AnimeProgressModule,
     AnimeReviewModule,
     FavoriteModule,
     ListModule,

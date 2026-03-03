@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('User', 'Moderator', 'Administrator');
+CREATE TYPE "UserRole" AS ENUM ('User', 'Premium', 'Contributor', 'Moderator', 'Administrator');
 
 -- CreateEnum
 CREATE TYPE "CommentType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book', 'Profile');
@@ -455,23 +455,12 @@ CREATE TABLE "TVShowWatch" (
 );
 
 -- CreateTable
-CREATE TABLE "MovieWatch" (
-    "id" TEXT NOT NULL,
-    "status" "WatchStatus" NOT NULL,
-    "userId" TEXT NOT NULL,
-    "movieId" TEXT NOT NULL,
-    "startedAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MovieWatch_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "AnimeProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "episodesWatched" INTEGER,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
     "animeId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -499,6 +488,9 @@ CREATE TABLE "MangaProgress" (
 CREATE TABLE "TVShowProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "episodesWatched" INTEGER,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
     "tvShowId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -511,6 +503,8 @@ CREATE TABLE "TVShowProgress" (
 CREATE TABLE "MovieProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
     "movieId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -523,6 +517,8 @@ CREATE TABLE "MovieProgress" (
 CREATE TABLE "GameProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
     "gameId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -535,6 +531,9 @@ CREATE TABLE "GameProgress" (
 CREATE TABLE "BookProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "chaptersRead" INTEGER,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
     "bookId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -802,12 +801,6 @@ CREATE INDEX "TVShowWatch_userId_idx" ON "TVShowWatch"("userId");
 CREATE UNIQUE INDEX "TVShowWatch_userId_tvShowId_key" ON "TVShowWatch"("userId", "tvShowId");
 
 -- CreateIndex
-CREATE INDEX "MovieWatch_userId_idx" ON "MovieWatch"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "MovieWatch_userId_movieId_key" ON "MovieWatch"("userId", "movieId");
-
--- CreateIndex
 CREATE INDEX "AnimeProgress_userId_idx" ON "AnimeProgress"("userId");
 
 -- CreateIndex
@@ -968,12 +961,6 @@ ALTER TABLE "TVShowWatch" ADD CONSTRAINT "TVShowWatch_userId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "TVShowWatch" ADD CONSTRAINT "TVShowWatch_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MovieWatch" ADD CONSTRAINT "MovieWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MovieWatch" ADD CONSTRAINT "MovieWatch_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnimeProgress" ADD CONSTRAINT "AnimeProgress_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

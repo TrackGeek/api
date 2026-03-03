@@ -575,12 +575,15 @@ enum ProgressStatus {
 }
 
 model AnimeProgress {
-  id        String         @id @default(uuid())
-  status    ProgressStatus
-  userId    String
-  animeId   String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id              String         @id @default(uuid())
+  status          ProgressStatus
+  episodesWatched Int?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  userId          String
+  animeId         String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   anime Anime @relation(fields: [animeId], references: [id])
@@ -608,12 +611,15 @@ model MangaProgress {
 }
 
 model TvShowProgress {
-  id        String         @id @default(uuid())
-  status    ProgressStatus
-  userId    String
-  tvShowId  String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id              String         @id @default(uuid())
+  status          ProgressStatus
+  episodesWatched Int?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  userId          String
+  tvShowId        String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
   tvShow TvShow @relation(fields: [tvShowId], references: [id])
@@ -624,12 +630,14 @@ model TvShowProgress {
 }
 
 model MovieProgress {
-  id        String         @id @default(uuid())
-  status    ProgressStatus
-  userId    String
-  movieId   String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          String         @id @default(uuid())
+  status      ProgressStatus
+  startedAt   DateTime?
+  completedAt DateTime?
+  userId      String
+  movieId     String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   movie Movie @relation(fields: [movieId], references: [id])
@@ -639,12 +647,14 @@ model MovieProgress {
 }
 
 model GameProgress {
-  id        String         @id @default(uuid())
-  status    ProgressStatus
-  userId    String
-  gameId    String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          String         @id @default(uuid())
+  status      ProgressStatus
+  startedAt   DateTime?
+  completedAt DateTime?
+  userId      String
+  gameId      String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   user User @relation(fields: [userId], references: [id])
   game Game @relation(fields: [gameId], references: [id])
