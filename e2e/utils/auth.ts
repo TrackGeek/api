@@ -10,10 +10,10 @@ export function generateUserCredentials() {
 }
 
 export async function signUp(
-  request: APIRequestContext,
+  api: APIRequestContext,
   credentials: ReturnType<typeof generateUserCredentials>,
 ): Promise<APIResponse> {
-  const response = await request.post("/auth/sign-up/email", {
+  const response = await api.post("/auth/sign-up/email", {
     data: {
       ...credentials,
       rememberMe: false,
@@ -24,10 +24,10 @@ export async function signUp(
 }
 
 export async function signIn(
-  request: APIRequestContext,
+  api: APIRequestContext,
   credentials: Pick<ReturnType<typeof generateUserCredentials>, "email" | "password">,
 ): Promise<APIResponse> {
-  const response = await request.post("/auth/sign-in/email", {
+  const response = await api.post("/auth/sign-in/email", {
     data: {
       email: credentials.email,
       password: credentials.password,
