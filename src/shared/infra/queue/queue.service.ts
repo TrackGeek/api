@@ -17,19 +17,19 @@ export class QueueService {
   ) {}
 
   async toFeedEventJob(feedEventDto: FeedEventDto) {
-   try {
-     const job = await this.feedEventQueue.add("feed-event", feedEventDto)
- 
-     this.logger.log(`Job added to queue [feed-event-queue] | job=${job.id} name=feed-event`);
-   } catch (error) {
-     this.logger.error(`Failed to add job to queue [feed-event-queue] | error=${error.message}`);
-   }
+    try {
+      const job = await this.feedEventQueue.add("feed-event", feedEventDto);
+
+      this.logger.log(`Job added to queue [feed-event-queue] | job=${job.id} name=feed-event`);
+    } catch (error) {
+      this.logger.error(`Failed to add job to queue [feed-event-queue] | error=${error.message}`);
+    }
   }
 
   async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {
     try {
       const job = await this.emailQueue.add("magic-link", magicLinkEmailDto);
-  
+
       this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=magic-link`);
     } catch (error) {
       this.logger.error(`Failed to add job to queue [email-queue] | error=${error.message}`);
@@ -39,7 +39,7 @@ export class QueueService {
   async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
     try {
       const job = await this.emailQueue.add("reset-password", resetPasswordEmailDto);
-  
+
       this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=reset-password`);
     } catch (error) {
       this.logger.error(`Failed to add job to queue [email-queue] | error=${error.message}`);

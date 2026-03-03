@@ -15,13 +15,13 @@ export class EmailProcessor extends WorkerHost {
   async process(job: Job) {
     if (job.name === "magic-link") {
       await this.emailService.sendMagicLinkEmail(job.data);
-      
+
       return;
     }
 
     if (job.name === "reset-password") {
       await this.emailService.sendResetPasswordEmail(job.data);
-      
+
       return;
     }
 

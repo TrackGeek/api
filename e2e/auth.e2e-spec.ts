@@ -1,5 +1,5 @@
 import { generateUserCredentials, signIn, signUp } from "./utils/auth";
-import { test } from './utils/test';
+import { test } from "./utils/test";
 
 test.describe("Auth", () => {
   let authToken: string;
@@ -7,10 +7,10 @@ test.describe("Auth", () => {
 
   test.beforeAll(async ({ api }) => {
     authCredentials = generateUserCredentials();
-    
-    const response = await api.post('/signup', { data: authCredentials });
+
+    const response = await api.post("/signup", { data: authCredentials });
     const body = await response.json();
-    
+
     authToken = body.token;
   });
 
