@@ -11,7 +11,7 @@ export class MangaProgressService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateMangaProgress(createOrUpdateMangaProgressDto: CreateOrUpdateMangaProgressDto) {
-    const { mangaId, userId, status } = createOrUpdateMangaProgressDto;
+    const { mangaId, userId, status, chaptersRead, completedAt, startedAt } = createOrUpdateMangaProgressDto;
     
     const manga = await this.databaseService.manga.findUnique({
       where: { id: mangaId },
@@ -21,7 +21,7 @@ export class MangaProgressService {
       throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
     }
     
-    if (createOrUpdateMangaProgressDto.chaptersRead && manga.numberOfChapters && createOrUpdateMangaProgressDto.chaptersRead > manga.numberOfChapters) {
+    if (chaptersRead && manga.numberOfChapters && chaptersRead > manga.numberOfChapters) {
       throw new AppException(ERROR_CODES.INVALID_CHAPTERS_READ);
     }
 
@@ -34,11 +34,17 @@ export class MangaProgressService {
       },
       update: {
         status,
+        chaptersRead,
+        completedAt,
+        startedAt
       },
       create: {
         mangaId,
         userId,
         status,
+        chaptersRead,
+        completedAt,
+        startedAt
       },
     });
   }

@@ -11,7 +11,7 @@ export class GameProgressService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
-    const { gameId, userId, status } = createOrUpdateGameProgressDto;
+    const { gameId, userId, status, completedAt, startedAt } = createOrUpdateGameProgressDto;
 
     await this.databaseService.gameProgress.upsert({
       where: {
@@ -22,11 +22,15 @@ export class GameProgressService {
       },
       update: {
         status,
+        completedAt,
+        startedAt
       },
       create: {
         gameId,
         userId,
         status,
+        completedAt,
+        startedAt
       },
     });
   }

@@ -11,7 +11,7 @@ export class BookProgressService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateBookProgress(createOrUpdateBookProgressDto: CreateOrUpdateBookProgressDto) {
-    const { bookId, userId, status } = createOrUpdateBookProgressDto;
+    const { bookId, userId, status,chaptersRead, completedAt, startedAt } = createOrUpdateBookProgressDto;
 
     await this.databaseService.bookProgress.upsert({
       where: {
@@ -22,11 +22,17 @@ export class BookProgressService {
       },
       update: {
         status,
+        chaptersRead,
+        completedAt,
+        startedAt
       },
       create: {
         bookId,
         userId,
         status,
+        chaptersRead,
+        completedAt,
+        startedAt
       },
     });
   }

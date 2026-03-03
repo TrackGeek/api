@@ -186,5 +186,9 @@ export const ERROR_CODES = {
   INVALID_CHAPTERS_READ: {
     code: "INVALID_CHAPTERS_READ",
     status: 400,
+  },
+  INVALID_EPISODES_WATCHED: {
+    code: "INVALID_EPISODES_WATCHED",
+    status: 400,
   }
 } as const;
