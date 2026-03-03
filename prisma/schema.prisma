@@ -10,6 +10,8 @@ datasource db {
 
 enum UserRole {
   User
+  Premium
+  Contributor
   Moderator
   Administrator
 }
@@ -37,7 +39,6 @@ model User {
   animeWatches     AnimeWatch[]
   lists            List[]
   tvshowWatches    TvShowWatch[]
-  movieWatches     MovieWatch[]
   animeProgresses  AnimeProgress[]
   mangaProgresses  MangaProgress[]
   tvshowProgresses TvShowProgress[]
@@ -509,7 +510,6 @@ model Movie {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  movieWatches    MovieWatch[]
   movieProgresses MovieProgress[]
   movieReviews    MovieReview[]
   favorites       Favorite[]
@@ -562,23 +562,6 @@ model TvShowWatch {
   @@unique([userId, tvShowId])
   @@index([userId])
   @@map("TVShowWatch")
-}
-
-model MovieWatch {
-  id          String      @id @default(uuid())
-  status      WatchStatus
-  userId      String
-  movieId     String
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  user  User  @relation(fields: [userId], references: [id])
-  movie Movie @relation(fields: [movieId], references: [id])
-
-  @@unique([userId, movieId])
-  @@index([userId])
 }
 
 enum ProgressStatus {
@@ -671,12 +654,15 @@ model GameProgress {
 }
 
 model BookProgress {
-  id        String         @id @default(uuid())
-  status    ProgressStatus
-  userId    String
-  bookId    String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id           String         @id @default(uuid())
+  status       ProgressStatus
+  chaptersRead Int?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  userId       String
+  bookId       String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   user User @relation(fields: [userId], references: [id])
   book Book @relation(fields: [bookId], references: [id])
