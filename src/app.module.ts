@@ -32,6 +32,7 @@ import { IntegrationsModule } from "./shared/infra/integrations/integrations.mod
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { GameProgressModule } from './modules/game-progress/game-progress.module';
+import { MovieProgressModule } from './modules/movie-progress/movie-progress.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { GameProgressModule } from './modules/game-progress/game-progress.module
     GameProgressModule,
     GameReviewModule,
     MovieModule,
+    MovieProgressModule,
     MovieReviewModule,
     TVShowModule,
     TVShowReviewModule,
