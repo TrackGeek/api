@@ -22,12 +22,20 @@ const logger = new Logger("BetterAuth");
 export function getAuthConfig(params: AuthConfigParams) {
   const { configService, databaseService, userService, profileService, queueService } =
     params as Required<AuthConfigParams>;
+    
+  const authLogLevel = configService.get<"debug" | "info" | "warn" | "error">("BETTER_AUTH_LOG_LEVEL") ?? "info";
 
   return {
     appName: "TrackGeek",
     logger: {
-      level: "debug",
-      log: (level, message, ...args) => logger.log(`[${level}] ${message}`, ...args),
+      level: authLogLevel,
+      log: (level, message, ...args) => {
+        if (level === "error") return logger.error(message, ...args);
+        if (level === "warn") return logger.warn(message, ...args);
+        if (level === "debug") return logger.debug(message, ...args);
+        
+        return logger.log(message, ...args);
+      },
     },
     database: prismaAdapter(databaseService, {
       provider: "postgresql",
