@@ -19,7 +19,7 @@
     "test:e2e:debug": "playwright test --debug",
     "dev": "NODE_ENV=development nest start --watch",
     "build": "nest build",
-    "start": "NODE_ENV=production node dist/main"
+    "start": "NODE_ENV=production node dist/src/main"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -88,6 +88,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/k6": "^1.6.0",
     "@types/lodash": "^4.17.23",
     "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
