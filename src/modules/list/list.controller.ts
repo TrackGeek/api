@@ -23,7 +23,7 @@ import { ListService } from "./list.service";
 export class ListController {
   constructor(private readonly listService: ListService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createList(@Session() session: UserSession, @Body() body: CreateListDto) {
