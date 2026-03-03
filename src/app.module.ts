@@ -1,7 +1,7 @@
 import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { AnimeModule } from "./modules/anime/anime.module";
@@ -31,27 +31,33 @@ import { EmailModule } from "./shared/infra/email/email.module";
 import { IntegrationsModule } from "./shared/infra/integrations/integrations.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
+import { HealthModule } from './shared/infra/health/health.module';
 import { GameProgressModule } from './modules/game-progress/game-progress.module';
 import { MovieProgressModule } from './modules/movie-progress/movie-progress.module';
 import { MangaProgressModule } from './modules/manga-progress/manga-progress.module';
 import { BookProgressModule } from './modules/book-progress/book-progress.module';
 import { AnimeProgressModule } from './modules/anime-progress/anime-progress.module';
 import { TVShowProgressModule } from './modules/tv-show-progress/tv-show-progress.module';
+import { MetricsInterceptor } from './shared/interceptors/metrics.interceptor';
+import { MetricsModule } from './shared/infra/metrics/metrics.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    JwtModule.register({ global: true }),
-    HttpModule.register({ global: true }),
     ThrottlerModule.forRoot({
       throttlers: [
         { name: "read", ttl: 60_000, limit: 30, blockDuration: 300_000 },
         { name: "write", ttl: 60_000, limit: 5, blockDuration: 300_000 },
       ],
     }),
+    
+    MetricsModule,
+    JwtModule.register({ global: true }),
+    HttpModule.register({ global: true }),
     EmailModule,
     QueueModule,
     DatabaseModule,
+    HealthModule,
     AuthModule,
     FeedEventModule,
     CacheModule,
@@ -82,7 +88,16 @@ import { TVShowProgressModule } from './modules/tv-show-progress/tv-show-progres
     FavoriteModule,
     ListModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: HttpThrottlerGuard }],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: HttpThrottlerGuard
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor,
+    },
+  ],
   controllers: [],
   exports: [],
 })
