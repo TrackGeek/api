@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateAnimeProgressDto } from "./dtos/create-or-update-anime-progress.dto";
 import { AppException } from '@/shared/exceptions/app.exceptions';
 import { ERROR_CODES } from '@/shared/constants/error-codes';
-import { GetAnimeProgressesByUserIdDto } from './dtos/get-anime-progresses-by-user-id.dto';
+import { GetAnimeProgressDto } from './dtos/get-anime-progress.dto';
 import { AnimeProgressFindManyArgs } from '@prisma/generated/models';
 
 @Injectable()
@@ -49,9 +49,15 @@ export class AnimeProgressService {
     });
   }
   
-  async getAnimeProgressById(animeProgressId: string) {
-    const animeProgress = await this.databaseService.animeProgress.findUnique({
-      where: { id: animeProgressId },
+  async getAnimeProgress(getAnimeProgressDto: GetAnimeProgressDto) {
+    const animeProgress = await this.databaseService.offsetPagination<AnimeProgressFindManyArgs>({
+      model: "animeProgress",
+      itemsPerPage: getAnimeProgressDto.itemsPerPage,
+      page: getAnimeProgressDto.page,
+      where: {
+        userId: getAnimeProgressDto.userId,
+        animeId: getAnimeProgressDto.animeId,
+      },
       include: {
         anime: true,
         user: {
@@ -69,40 +75,7 @@ export class AnimeProgressService {
         },
       },
     });
-    
-    if (!animeProgress) {
-      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
-    }
 
     return animeProgress;
-  }
-  
-  async getAnimeProgressesByUserId(getAnimeProgressesByUserIdDto: GetAnimeProgressesByUserIdDto) {
-    const animeProgresses = await this.databaseService.offsetPagination<AnimeProgressFindManyArgs>({
-      model: "animeProgress",
-      itemsPerPage: getAnimeProgressesByUserIdDto.itemsPerPage,
-      page: getAnimeProgressesByUserIdDto.page,
-      where: {
-        userId: getAnimeProgressesByUserIdDto.userId,
-      },
-      include: {
-        anime: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return animeProgresses;
   }
 }

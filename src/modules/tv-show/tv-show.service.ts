@@ -60,11 +60,11 @@ export class TVShowService {
     });
 
     if (!tvShow) {
-      throw new AppException(ERROR_CODES.TVSHOW_NOT_FOUND);
+      throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
     }
 
     if (Date.now() - tvShow.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
-      throw new AppException(ERROR_CODES.TVSHOW_ALREADY_REFRESHED);
+      throw new AppException(ERROR_CODES.TV_SHOW_ALREADY_REFRESHED);
     }
 
     if (await this.cacheService.exists(this.cacheKeys.tvShowById.prefix(tvShow.tmdbId))) {

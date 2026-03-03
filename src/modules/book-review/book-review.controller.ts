@@ -18,7 +18,7 @@ import { CreateBookReviewDto } from "./dtos/create-book-review.dto";
 import { GetBookReviewsDto } from "./dtos/get-book-reviews.dto";
 import { UpdateBookReviewDto } from "./dtos/update-book-review.dto";
 
-@Controller("book/review")
+@Controller("/book/review")
 export class BookReviewController {
   constructor(private readonly bookReviewService: BookReviewService) {}
 

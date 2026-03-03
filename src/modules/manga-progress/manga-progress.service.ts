@@ -49,34 +49,6 @@ export class MangaProgressService {
     });
   }
   
-  async getMangaProgressById(mangaProgressId: string) {
-    const mangaProgress = await this.databaseService.mangaProgress.findUnique({
-      where: { id: mangaProgressId },
-      include: {
-        manga: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    
-    if (!mangaProgress) {
-      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
-    }
-
-    return mangaProgress;
-  }
-  
   async getMangaProgressesByUserId(getMangaProgressesByUserIdDto: GetMangaProgressesByUserIdDto) {
     const mangaProgresses = await this.databaseService.offsetPagination<MangaProgressFindManyArgs>({
       model: "mangaProgress",
@@ -84,6 +56,7 @@ export class MangaProgressService {
       page: getMangaProgressesByUserIdDto.page,
       where: {
         userId: getMangaProgressesByUserIdDto.userId,
+        mangaId: getMangaProgressesByUserIdDto.mangaId
       },
       include: {
         manga: true,

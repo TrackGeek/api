@@ -18,7 +18,7 @@ import { GetTVShowReviewsDto } from "./dtos/get-tv-show-reviews.dto";
 import { UpdateTVShowReviewDto } from "./dtos/update-tv-show-review.dto";
 import { TVShowReviewService } from "./tv-show-review.service";
 
-@Controller("tv/review")
+@Controller("/tv/review")
 export class TVShowReviewController {
   constructor(private readonly tvShowReviewService: TVShowReviewService) {}
 

@@ -18,7 +18,7 @@ import { GetMangaReviewsDto } from "./dtos/get-manga-reviews.dto";
 import { UpdateMangaReviewDto } from "./dtos/update-manga-review.dto";
 import { MangaReviewService } from "./manga-review.service";
 
-@Controller("manga/review")
+@Controller("/manga/review")
 export class MangaReviewController {
   constructor(private readonly mangaReviewService: MangaReviewService) {}
 

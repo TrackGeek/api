@@ -19,7 +19,7 @@ import { GetListsByUserIdDto } from "./dtos/get-lists-by-user-id.dto";
 import { RemoveItemFromListDto } from "./dtos/remove-item-from-list.dto";
 import { ListService } from "./list.service";
 
-@Controller("list")
+@Controller("/list")
 export class ListController {
   constructor(private readonly listService: ListService) {}
 

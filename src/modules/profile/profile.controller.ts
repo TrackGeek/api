@@ -5,7 +5,7 @@ import { UpdateProfileDto } from "./dtos/update-profile.dto";
 import { ProfileService } from "./profile.service";
 import { imageConfig } from '@/shared/infra/upload/upload.config';
 
-@Controller("profile")
+@Controller("/profile")
 @UseGuards(AuthGuard)
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}

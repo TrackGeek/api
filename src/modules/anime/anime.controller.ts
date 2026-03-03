@@ -15,11 +15,11 @@ import { AnimeService } from "./anime.service";
 import { RefreshAnimeDto } from "./dtos/refresh-anime.dto";
 import { SearchAnimeDto } from "./dtos/search-anime.dto";
 
-@Controller("anime")
+@Controller("/anime")
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchAnimes(@Query() query: SearchAnimeDto) {
     const animes = await this.animeService.searchAnimes(query);
 

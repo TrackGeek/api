@@ -4,11 +4,11 @@ import { RefreshMangaDto } from "./dtos/refresh-manga.dto";
 import { SearchMangaDto } from "./dtos/search-manga.dto";
 import { MangaService } from "./manga.service";
 
-@Controller("manga")
+@Controller("/manga")
 export class MangaController {
   constructor(private readonly mangaService: MangaService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchMangas(@Query() query: SearchMangaDto) {
     const mangas = await this.mangaService.searchMangas(query);
 

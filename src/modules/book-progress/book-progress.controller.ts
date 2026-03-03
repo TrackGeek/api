@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { BookProgressService } from "./book-progress.service";
 import { CreateOrUpdateBookProgressDto } from "./dtos/create-or-update-book-progress.dto";
-import { GetBookProgressesByUserIdDto } from './dtos/get-book-progresses-by-user-id.dto';
+import { GetBookProgressDto } from './dtos/get-book-progress.dto';
 
-@Controller("book/progress")
+@Controller("/book/progress")
 export class BookProgressController {
   constructor(private readonly bookProgressService: BookProgressService) {}
 
@@ -19,16 +19,9 @@ export class BookProgressController {
   }
   
   @Get()
-  async getBookProgressesByUserId(@Query() query: GetBookProgressesByUserIdDto) {
-    const bookProgresses = await this.bookProgressService.getBookProgressesByUserId(query);
+  async getBookProgress(@Query() query: GetBookProgressDto) {
+    const bookProgresses = await this.bookProgressService.getBookProgress(query);
 
     return { bookProgresses };
-  }
-  
-  @Get("/:bookProgressId")
-  async getBookProgressById(@Param("bookProgressId", new ParseUUIDPipe()) bookProgressId: string) {
-    const bookProgress = await this.bookProgressService.getBookProgressById(bookProgressId);
-
-    return { bookProgress };
   }
 }

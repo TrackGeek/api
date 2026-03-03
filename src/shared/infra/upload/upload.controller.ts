@@ -4,7 +4,7 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { UploadService } from './upload.service';
 import { imageConfig } from './upload.config';
 
-@Controller("upload")
+@Controller("/upload")
 @UseGuards(AuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

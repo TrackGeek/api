@@ -4,7 +4,7 @@ import { MangaProgressService } from "./manga-progress.service";
 import { CreateOrUpdateMangaProgressDto } from "./dtos/create-or-update-manga-progress.dto";
 import { GetMangaProgressesByUserIdDto } from './dtos/get-manga-progresses-by-user-id.dto';
 
-@Controller("manga/progress")
+@Controller("/manga/progress")
 export class MangaProgressController {
   constructor(private readonly mangaProgressService: MangaProgressService) {}
 
@@ -23,12 +23,5 @@ export class MangaProgressController {
     const mangaProgresses = await this.mangaProgressService.getMangaProgressesByUserId(query);
 
     return { mangaProgresses };
-  }
-  
-  @Get("/:mangaProgressId")
-  async getMangaProgressById(@Param("mangaProgressId", new ParseUUIDPipe()) mangaProgressId: string) {
-    const mangaProgress = await this.mangaProgressService.getMangaProgressById(mangaProgressId);
-
-    return { mangaProgress };
   }
 }

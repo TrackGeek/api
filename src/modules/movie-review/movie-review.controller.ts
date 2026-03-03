@@ -17,7 +17,7 @@ import { CreateMovieReviewDto } from "./dtos/create-movie-review.dto";
 import { GetMovieReviewsDto } from "./dtos/get-movie-reviews.dto";
 import { MovieReviewService } from "./movie-review.service";
 
-@Controller("movie/review")
+@Controller("/movie/review")
 export class MovieReviewController {
   constructor(private readonly movieReviewService: MovieReviewService) {}
 

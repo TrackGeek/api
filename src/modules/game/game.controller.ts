@@ -15,11 +15,11 @@ import { RefreshGameDto } from "./dtos/refresh-game.dto";
 import { SearchGameDto } from "./dtos/search-game.dto";
 import { GameService } from "./game.service";
 
-@Controller("game")
+@Controller("/game")
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchGames(@Query() query: SearchGameDto) {
     const games = await this.gameService.searchGames(query);
 

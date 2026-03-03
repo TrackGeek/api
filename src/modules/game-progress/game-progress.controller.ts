@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { GameProgressService } from "./game-progress.service";
 import { CreateOrUpdateGameProgressDto } from "./dtos/create-or-update-game-progress.dto";
-import { GetGameProgressesByUserIdDto } from './dtos/get-game-progresses-by-user-id.dto';
+import { GetGameProgressDto } from './dtos/get-game-progress.dto';
 
-@Controller("game/progress")
+@Controller("/game/progress")
 export class GameProgressController {
   constructor(private readonly gameProgressService: GameProgressService) {}
 
@@ -19,16 +19,9 @@ export class GameProgressController {
   }
   
   @Get()
-  async getGameProgressesByUserId(@Query() query: GetGameProgressesByUserIdDto) {
-    const gameProgresses = await this.gameProgressService.getGameProgressesByUserId(query);
+  async getGameProgress(@Query() query: GetGameProgressDto) {
+    const gameProgresses = await this.gameProgressService.getGameProgress(query);
 
     return { gameProgresses };
-  }
-  
-  @Get("/:gameProgressId")
-  async getGameProgressById(@Param("gameProgressId", new ParseUUIDPipe()) gameProgressId: string) {
-    const gameProgress = await this.gameProgressService.getGameProgressById(gameProgressId);
-
-    return { gameProgress };
   }
 }

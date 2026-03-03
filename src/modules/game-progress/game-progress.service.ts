@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateGameProgressDto } from "./dtos/create-or-update-game-progress.dto";
 import { AppException } from '@/shared/exceptions/app.exceptions';
 import { ERROR_CODES } from '@/shared/constants/error-codes';
-import { GetGameProgressesByUserIdDto } from './dtos/get-game-progresses-by-user-id.dto';
+import { GetGameProgressDto } from './dtos/get-game-progress.dto';
 import { GameProgressFindManyArgs } from '@prisma/generated/models';
 
 @Injectable()
@@ -35,9 +35,15 @@ export class GameProgressService {
     });
   }
   
-  async getGameProgressById(gameProgressId: string) {
-    const gameProgress = await this.databaseService.gameProgress.findUnique({
-      where: { id: gameProgressId },
+  async getGameProgress(getGameProgressDto: GetGameProgressDto) {
+    const gameProgress = await this.databaseService.offsetPagination<GameProgressFindManyArgs>({
+      model: "gameProgress",
+      itemsPerPage: getGameProgressDto.itemsPerPage,
+      page: getGameProgressDto.page,
+      where: {
+        userId: getGameProgressDto.userId,
+        gameId: getGameProgressDto.gameId,
+      },
       include: {
         game: true,
         user: {
@@ -55,40 +61,7 @@ export class GameProgressService {
         },
       },
     });
-    
-    if (!gameProgress) {
-      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
-    }
 
     return gameProgress;
-  }
-  
-  async getGameProgressesByUserId(getGameProgressesByUserIdDto: GetGameProgressesByUserIdDto) {
-    const gameProgresses = await this.databaseService.offsetPagination<GameProgressFindManyArgs>({
-      model: "gameProgress",
-      itemsPerPage: getGameProgressesByUserIdDto.itemsPerPage,
-      page: getGameProgressesByUserIdDto.page,
-      where: {
-        userId: getGameProgressesByUserIdDto.userId,
-      },
-      include: {
-        game: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return gameProgresses;
   }
 }

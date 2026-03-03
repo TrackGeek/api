@@ -36,6 +36,7 @@ import { MovieProgressModule } from './modules/movie-progress/movie-progress.mod
 import { MangaProgressModule } from './modules/manga-progress/manga-progress.module';
 import { BookProgressModule } from './modules/book-progress/book-progress.module';
 import { AnimeProgressModule } from './modules/anime-progress/anime-progress.module';
+import { TVShowProgressModule } from './modules/tv-show-progress/tv-show-progress.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { AnimeProgressModule } from './modules/anime-progress/anime-progress.mod
     MovieProgressModule,
     MovieReviewModule,
     TVShowModule,
+    TVShowProgressModule,
     TVShowReviewModule,
     MangaModule,
     MangaProgressModule,

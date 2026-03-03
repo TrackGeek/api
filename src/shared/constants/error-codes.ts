@@ -95,11 +95,11 @@ export const ERROR_CODES = {
     code: "BOOK_NOT_FOUND",
     status: 404,
   },
-  TVSHOW_NOT_FOUND: {
+  TV_SHOW_NOT_FOUND: {
     code: "TVSHOW_NOT_FOUND",
     status: 404,
   },
-  TVSHOW_ALREADY_REFRESHED: {
+  TV_SHOW_ALREADY_REFRESHED: {
     code: "TVSHOW_ALREADY_REFRESHED",
     status: 409,
   },
@@ -190,5 +190,5 @@ export const ERROR_CODES = {
   INVALID_EPISODES_WATCHED: {
     code: "INVALID_EPISODES_WATCHED",
     status: 400,
-  }
+  },
 } as const;

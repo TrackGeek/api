@@ -2,7 +2,7 @@ import { Controller, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/commo
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { UserService } from "./user.service";
 
-@Controller("user")
+@Controller("/user")
 @UseGuards(AuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}

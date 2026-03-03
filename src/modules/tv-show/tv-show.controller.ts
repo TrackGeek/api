@@ -4,11 +4,11 @@ import { RefreshTVShowDto } from "./dtos/refresh-tv-show.dto";
 import { SearchTVShowDto } from "./dtos/search-tv-show.dto";
 import { TVShowService } from "./tv-show.service";
 
-@Controller("tv")
+@Controller("/tv")
 export class TVShowController {
   constructor(private readonly tvShowService: TVShowService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchTVShows(@Query() query: SearchTVShowDto) {
     const tvShows = await this.tvShowService.searchTVShows(query);
 

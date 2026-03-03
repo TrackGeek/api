@@ -4,7 +4,7 @@ import { GetFeedEventsDto } from "./dtos/get-feed-events.dto";
 import { GetFeedEventsByUserDto } from "./dtos/get-feed-events-by-user.dto";
 import { FeedEventService } from "./feed-event.service";
 
-@Controller("feed")
+@Controller("/feed")
 export class FeedEventController {
   constructor(private readonly feedEventService: FeedEventService) {}
 

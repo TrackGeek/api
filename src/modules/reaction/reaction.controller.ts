@@ -16,7 +16,7 @@ import { CreateReactionDto } from "./dtos/create-reaction.dto";
 import { GetReactionsDto } from "./dtos/get-reactions.dto";
 import { ReactionService } from "./reaction.service";
 
-@Controller("reaction")
+@Controller("/reaction")
 export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}
 

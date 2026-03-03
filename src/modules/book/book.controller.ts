@@ -4,11 +4,11 @@ import { BookService } from "./book.service";
 import { RefreshBookDto } from "./dtos/refresh-book.dto";
 import { SearchBookDto } from "./dtos/search-book.dto";
 
-@Controller("book")
+@Controller("/book")
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchBooks(@Query() query: SearchBookDto) {
     const books = await this.bookService.searchBooks(query);
 
