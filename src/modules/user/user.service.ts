@@ -18,6 +18,12 @@ export class UserService {
       where: { id },
       include: {
         profile: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+          },
+        }
       },
       omit: {
         image: true,
