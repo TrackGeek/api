@@ -316,7 +316,8 @@ model Book {
   title                  String
   alternativeTitles      Json?
   audioSeconds           Int?
-  bookCategoryId         Int?
+  taggings               Json?
+  bookCategory           Json?
   bookStatus             Json?
   canonical              Json?
   compilation            Boolean?
