@@ -35,7 +35,11 @@ export class AnimeReviewService {
         userId: createAnimeReviewDto.userId,
       },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -63,7 +67,11 @@ export class AnimeReviewService {
     const animeReview = await this.databaseService.animeReview.findUnique({
       where: { id: animeReviewId },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -97,7 +105,11 @@ export class AnimeReviewService {
         userId: getAnimeReviewsDto.userId,
       },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         user: {
           select: {
             id: true,

@@ -88,7 +88,11 @@ export class ListService {
         ...entityId,
       },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         manga: true,
         tvShow: true,
         book: true,
@@ -193,7 +197,11 @@ export class ListService {
       page: getItemsByListIdDto.page,
       where: { listId: getItemsByListIdDto.listId },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         manga: true,
         tvShow: true,
         book: true,

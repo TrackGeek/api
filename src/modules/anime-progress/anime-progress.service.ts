@@ -59,7 +59,11 @@ export class AnimeProgressService {
         animeId: getAnimeProgressDto.animeId,
       },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         user: {
           select: {
             id: true,
