@@ -3,8 +3,9 @@ import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 
 import { FeedEventService } from "@/modules/feed-event/feed-event.service";
+import { FEED_EVENT_QUEUE } from '@/shared/constants/queue';
 
-@Processor("feed-event-queue")
+@Processor(FEED_EVENT_QUEUE)
 export class FeedEventProcessor extends WorkerHost {
   private readonly logger = new Logger(FeedEventProcessor.name);
 
@@ -23,13 +24,13 @@ export class FeedEventProcessor extends WorkerHost {
   @OnWorkerEvent("active")
   onActive(job: Job) {
     this.logger.log(
-      `Processing job [feed-event-queue] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`,
+      `Processing job [${FEED_EVENT_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`,
     );
   }
 
   @OnWorkerEvent("completed")
   onCompleted(job: Job) {
-    this.logger.log(`Job completed [feed-event-queue] | job=${job.id} name=${job.name}`);
+    this.logger.log(`Job completed [${FEED_EVENT_QUEUE}] | job=${job.id} name=${job.name}`);
   }
 
   @OnWorkerEvent("failed")
@@ -41,11 +42,11 @@ export class FeedEventProcessor extends WorkerHost {
 
     if (willRetry) {
       this.logger.warn(
-        `Job failed, retrying [feed-event-queue] | job=${job.id} name=${job.name} attempt=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
+        `Job failed, retrying [${FEED_EVENT_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
       );
     } else {
       this.logger.error(
-        `Job removed from queue after max attempts [feed-event-queue] | job=${job.id} name=${job.name} attempts=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
+        `Job removed from queue after max attempts [${FEED_EVENT_QUEUE}] | job=${job.id} name=${job.name} attempts=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
       );
     }
   }

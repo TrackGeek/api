@@ -3,8 +3,9 @@ import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 
 import { EmailService } from "@/shared/infra/email/email.service";
+import { EMAIL_QUEUE } from '@/shared/constants/queue';
 
-@Processor("email-queue")
+@Processor(EMAIL_QUEUE)
 export class EmailProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailProcessor.name);
 
@@ -30,12 +31,12 @@ export class EmailProcessor extends WorkerHost {
 
   @OnWorkerEvent("active")
   onActive(job: Job) {
-    this.logger.log(`Processing job [email-queue] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`);
+    this.logger.log(`Processing job [${EMAIL_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`);
   }
 
   @OnWorkerEvent("completed")
   onCompleted(job: Job) {
-    this.logger.log(`Job completed [email-queue] | job=${job.id} name=${job.name}`);
+    this.logger.log(`Job completed [${EMAIL_QUEUE}] | job=${job.id} name=${job.name}`);
   }
 
   @OnWorkerEvent("failed")
@@ -47,11 +48,11 @@ export class EmailProcessor extends WorkerHost {
 
     if (willRetry) {
       this.logger.warn(
-        `Job failed, retrying [email-queue] | job=${job.id} name=${job.name} attempt=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
+        `Job failed, retrying [${EMAIL_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
       );
     } else {
       this.logger.error(
-        `Job removed from queue after max attempts [email-queue] | job=${job.id} name=${job.name} attempts=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
+        `Job removed from queue after max attempts [${EMAIL_QUEUE}] | job=${job.id} name=${job.name} attempts=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
       );
     }
   }

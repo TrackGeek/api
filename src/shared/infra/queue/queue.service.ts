@@ -4,45 +4,38 @@ import { Queue } from "bullmq";
 import { FeedEventDto } from "@/modules/feed-event/dtos/feed-event.dto";
 import { MagicLinkEmailDto } from "../email/dtos/magic-link-email.dto";
 import { ResetPasswordEmailDto } from "../email/dtos/reset-password-email.dto";
+import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from '@/shared/constants/queue';
 
 @Injectable()
 export class QueueService {
   private readonly logger = new Logger(QueueService.name);
 
   constructor(
-    @InjectQueue("email-queue")
+    @InjectQueue(EMAIL_QUEUE)
     private readonly emailQueue: Queue,
-    @InjectQueue("feed-event-queue")
+    @InjectQueue(FEED_EVENT_QUEUE)
     private readonly feedEventQueue: Queue,
   ) {}
 
-  async toFeedEventJob(feedEventDto: FeedEventDto) {
+  private async addJob(queue: Queue, jobName: string, data: unknown) {
     try {
-      const job = await this.feedEventQueue.add("feed-event", feedEventDto);
+      const job = await queue.add(jobName, data);
 
-      this.logger.log(`Job added to queue [feed-event-queue] | job=${job.id} name=feed-event`);
+      this.logger.log(`Job added to queue [${queue.name}] | job=${job.id} name=${jobName}`);
     } catch (error) {
-      this.logger.error(`Failed to add job to queue [feed-event-queue] | error=${error.message}`);
+      this.logger.error(`Failed to add job to queue [${queue.name}] | error=${error.message}`);
     }
+  }
+
+  async toFeedEventJob(feedEventDto: FeedEventDto) {
+    await this.addJob(this.feedEventQueue, "feed-event", feedEventDto);
   }
 
   async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {
-    try {
-      const job = await this.emailQueue.add("magic-link", magicLinkEmailDto);
-
-      this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=magic-link`);
-    } catch (error) {
-      this.logger.error(`Failed to add job to queue [email-queue] | error=${error.message}`);
-    }
+    await this.addJob(this.emailQueue, "magic-link", magicLinkEmailDto);
   }
 
   async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
-    try {
-      const job = await this.emailQueue.add("reset-password", resetPasswordEmailDto);
-
-      this.logger.log(`Job added to queue [email-queue] | job=${job.id} name=reset-password`);
-    } catch (error) {
-      this.logger.error(`Failed to add job to queue [email-queue] | error=${error.message}`);
-    }
+    await this.addJob(this.emailQueue, "reset-password", resetPasswordEmailDto);
   }
 }

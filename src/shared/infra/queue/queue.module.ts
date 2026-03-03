@@ -6,6 +6,7 @@ import { EmailModule } from "../email/email.module";
 import { EmailProcessor } from "./processors/email.processor";
 import { FeedEventProcessor } from "./processors/feed-event.processor";
 import { QueueService } from "./queue.service";
+import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from '@/shared/constants/queue';
 
 @Global()
 @Module({
@@ -29,8 +30,8 @@ import { QueueService } from "./queue.service";
         },
       }),
     }),
-    BullModule.registerQueue({ name: "feed-event-queue" }),
-    BullModule.registerQueue({ name: "email-queue" }),
+    BullModule.registerQueue({ name: FEED_EVENT_QUEUE }),
+    BullModule.registerQueue({ name: EMAIL_QUEUE }),
   ],
   controllers: [],
   providers: [QueueService, FeedEventProcessor, EmailProcessor],
