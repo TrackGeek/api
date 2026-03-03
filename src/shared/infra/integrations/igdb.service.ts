@@ -27,7 +27,7 @@ export class IGDBService {
         expiration: 3600 * 24, // 24 hours
       },
       getGameById: {
-        prefix: (id: number) => `igdb:details:game:id:${id}`,
+        prefix: (id: number) => `igdb:details:game:${id}`,
         expiration: 3600 * 24, // 24 hours
       },
     };
@@ -131,6 +131,10 @@ export class IGDBService {
 
       return games;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+      }
+      
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -552,6 +556,10 @@ export class IGDBService {
 
       return game;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+      }
+      
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }

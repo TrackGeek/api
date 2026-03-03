@@ -1,5 +1,5 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -8,6 +8,8 @@ import { CacheKeys, CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class TMDBService {
+  private readonly logger = new Logger(TMDBService.name);
+  
   private readonly TMDB_API_URL = "https://api.themoviedb.org/3";
 
   constructor(
@@ -27,11 +29,11 @@ export class TMDBService {
         expiration: 3600 * 24, // 24 hours
       },
       getMovieById: {
-        prefix: (id: number) => `tmdb:detailsmovie:id:${id}`,
+        prefix: (id: number) => `tmdb:details:movie:${id}`,
         expiration: 3600 * 24, // 24 hours
       },
       getTVShowById: {
-        prefix: (id: number) => `tmdb:detailstv:id:${id}`,
+        prefix: (id: number) => `tmdb:details:tv:${id}`,
         expiration: 3600 * 24, // 24 hours
       },
     };
@@ -71,6 +73,12 @@ export class TMDBService {
 
       return movies;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to search movies from TMDB API for query "${query}": ${error.message}`, error.stack);
+      
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -109,6 +117,12 @@ export class TMDBService {
 
       return tvShows;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to search TV shows from TMDB API for query "${query}": ${error.message}`, error.stack);
+      
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -221,6 +235,12 @@ export class TMDBService {
 
       return movie;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to fetch movie details for ID ${id} from TMDB API: ${error.message}`, error.stack);
+        
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -372,6 +392,12 @@ export class TMDBService {
 
       return tvShow;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to fetch TV show details for ID ${id} from TMDB API: ${error.message}`, error.stack);
+      
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }

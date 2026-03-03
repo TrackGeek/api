@@ -25,7 +25,7 @@ export class HardcoverService {
         expiration: 3600 * 24, // 24 hours
       },
       getBookById: {
-        prefix: (id: number) => `hardcover:details:book:id:${id}`,
+        prefix: (id: number) => `hardcover:details:book:${id}`,
         expiration: 3600 * 24, // 24 hours
       },
     };
@@ -79,6 +79,10 @@ export class HardcoverService {
 
       return books;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
+      }
+      
       this.logger.error(`Failed to search books from Hardcover API for query "${query}": ${error.message}`, error.stack);
       
       throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
@@ -316,6 +320,10 @@ export class HardcoverService {
 
       return book;
     } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
+      }
+      
       this.logger.error(`Failed to fetch book details from Hardcover API for book ID ${id}: ${error.message}`, error.stack);
       
       throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
