@@ -33,6 +33,8 @@ import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { GameProgressModule } from './modules/game-progress/game-progress.module';
 import { MovieProgressModule } from './modules/movie-progress/movie-progress.module';
+import { MangaProgressModule } from './modules/manga-progress/manga-progress.module';
+import { BookProgressModule } from './modules/book-progress/book-progress.module';
 
 @Module({
   imports: [
@@ -66,8 +68,10 @@ import { MovieProgressModule } from './modules/movie-progress/movie-progress.mod
     TVShowModule,
     TVShowReviewModule,
     MangaModule,
+    MangaProgressModule,
     MangaReviewModule,
     BookModule,
+    BookProgressModule,
     BookReviewModule,
     AnimeModule,
     AnimeReviewModule,
