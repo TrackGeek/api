@@ -49,7 +49,7 @@ export class TVShowReviewService {
       },
     });
 
-    await this.queueService.toFeedEventQueue({
+    await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId: createTVShowReviewDto.userId,
       metadata: { tvShowReview },

@@ -48,7 +48,7 @@ export class ListService {
       },
     });
 
-    await this.queueService.toFeedEventQueue({
+    await this.queueService.toFeedEventJob({
       type: FeedEventType.NewList,
       userId,
       metadata: { list },
@@ -116,7 +116,7 @@ export class ListService {
       },
     });
 
-    await this.queueService.toFeedEventQueue({
+    await this.queueService.toFeedEventJob({
       type: FeedEventType.NewListItem,
       userId,
       metadata: { listItem },

@@ -1,17 +1,59 @@
-import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
+import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 
 import { EmailService } from "@/shared/infra/email/email.service";
+import { EMAIL_QUEUE } from "@/shared/constants/queue";
 
-@Processor("email-queue")
+@Processor(EMAIL_QUEUE)
 export class EmailProcessor extends WorkerHost {
+  private readonly logger = new Logger(EmailProcessor.name);
+
   constructor(private readonly emailService: EmailService) {
     super();
   }
 
   async process(job: Job) {
-    if (job.name === "send-magic-link") {
-      await this.emailService.sendMagicLink(job.data);
+    if (job.name === "magic-link") {
+      await this.emailService.sendMagicLinkEmail(job.data);
+
+      return;
+    }
+
+    if (job.name === "reset-password") {
+      await this.emailService.sendResetPasswordEmail(job.data);
+
+      return;
+    }
+
+    throw new Error(`Unsupported email job name: ${job.name}`);
+  }
+
+  @OnWorkerEvent("active")
+  onActive(job: Job) {
+    this.logger.log(`Processing job [${EMAIL_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`);
+  }
+
+  @OnWorkerEvent("completed")
+  onCompleted(job: Job) {
+    this.logger.log(`Job completed [${EMAIL_QUEUE}] | job=${job.id} name=${job.name}`);
+  }
+
+  @OnWorkerEvent("failed")
+  onFailed(job: Job | undefined, error: Error) {
+    if (!job) return;
+
+    const maxAttempts = job.opts?.attempts ?? 1;
+    const willRetry = job.attemptsMade < maxAttempts;
+
+    if (willRetry) {
+      this.logger.warn(
+        `Job failed, retrying [${EMAIL_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
+      );
+    } else {
+      this.logger.error(
+        `Job removed from queue after max attempts [${EMAIL_QUEUE}] | job=${job.id} name=${job.name} attempts=${job.attemptsMade}/${maxAttempts} error=${error.message}`,
+      );
     }
   }
 }

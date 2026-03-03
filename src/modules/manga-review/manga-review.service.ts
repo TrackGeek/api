@@ -49,7 +49,7 @@ export class MangaReviewService {
       },
     });
 
-    await this.queueService.toFeedEventQueue({
+    await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId: createMangaReviewDto.userId,
       metadata: { mangaReview },

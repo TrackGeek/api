@@ -52,7 +52,7 @@ export class AnimeReviewService {
       },
     });
 
-    await this.queueService.toFeedEventQueue({
+    await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId: createAnimeReviewDto.userId,
       metadata: { animeReview },

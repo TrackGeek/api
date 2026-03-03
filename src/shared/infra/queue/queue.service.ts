@@ -1,23 +1,41 @@
 import { InjectQueue } from "@nestjs/bullmq";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Queue } from "bullmq";
 import { FeedEventDto } from "@/modules/feed-event/dtos/feed-event.dto";
-import { SendMagicLinkDto } from "../email/dtos/send-magic-link.dto";
+import { MagicLinkEmailDto } from "../email/dtos/magic-link-email.dto";
+import { ResetPasswordEmailDto } from "../email/dtos/reset-password-email.dto";
+import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 
 @Injectable()
 export class QueueService {
+  private readonly logger = new Logger(QueueService.name);
+
   constructor(
-    @InjectQueue("email-queue")
+    @InjectQueue(EMAIL_QUEUE)
     private readonly emailQueue: Queue,
-    @InjectQueue("feed-event-queue")
+    @InjectQueue(FEED_EVENT_QUEUE)
     private readonly feedEventQueue: Queue,
   ) {}
 
-  async toSendMagicLinkQueue(emailDto: SendMagicLinkDto) {
-    await this.emailQueue.add("send-magic-link", emailDto);
+  private async addJob(queue: Queue, jobName: string, data: unknown) {
+    try {
+      const job = await queue.add(jobName, data);
+
+      this.logger.log(`Job added to queue [${queue.name}] | job=${job.id} name=${jobName}`);
+    } catch (error) {
+      this.logger.error(`Failed to add job to queue [${queue.name}] | error=${error.message}`);
+    }
   }
 
-  async toFeedEventQueue(feedEventDto: FeedEventDto) {
-    await this.feedEventQueue.add("feed-event", feedEventDto);
+  async toFeedEventJob(feedEventDto: FeedEventDto) {
+    await this.addJob(this.feedEventQueue, "feed-event", feedEventDto);
+  }
+
+  async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {
+    await this.addJob(this.emailQueue, "magic-link", magicLinkEmailDto);
+  }
+
+  async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
+    await this.addJob(this.emailQueue, "reset-password", resetPasswordEmailDto);
   }
 }
