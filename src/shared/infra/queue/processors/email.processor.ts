@@ -3,7 +3,7 @@ import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 
 import { EmailService } from "@/shared/infra/email/email.service";
-import { EMAIL_QUEUE } from '@/shared/constants/queue';
+import { EMAIL_QUEUE } from "@/shared/constants/queue";
 
 @Processor(EMAIL_QUEUE)
 export class EmailProcessor extends WorkerHost {

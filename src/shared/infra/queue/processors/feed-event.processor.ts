@@ -3,7 +3,7 @@ import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 
 import { FeedEventService } from "@/modules/feed-event/feed-event.service";
-import { FEED_EVENT_QUEUE } from '@/shared/constants/queue';
+import { FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 
 @Processor(FEED_EVENT_QUEUE)
 export class FeedEventProcessor extends WorkerHost {

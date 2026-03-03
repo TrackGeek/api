@@ -4,7 +4,7 @@ export const test = base.extend<{}, { api: APIRequestContext }>({
   api: [
     async (_unused, use) => {
       const api = await pwRequest.newContext({ baseURL: `http://localhost:${process.env.PORT}` });
-     
+
       try {
         await use(api);
       } finally {
