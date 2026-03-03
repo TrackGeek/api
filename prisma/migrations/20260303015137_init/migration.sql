@@ -14,9 +14,6 @@ CREATE TYPE "FeedEventType" AS ENUM ('NewFollower', 'NewFavorite', 'NewList', 'N
 CREATE TYPE "WatchStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
-CREATE TYPE "ReadStatus" AS ENUM ('Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
-
--- CreateEnum
 CREATE TYPE "ProgressStatus" AS ENUM ('Watching', 'Playing', 'Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
@@ -471,38 +468,6 @@ CREATE TABLE "MovieWatch" (
 );
 
 -- CreateTable
-CREATE TABLE "BookRead" (
-    "id" TEXT NOT NULL,
-    "status" "ReadStatus" NOT NULL,
-    "chapter" INTEGER,
-    "volume" INTEGER,
-    "userId" TEXT NOT NULL,
-    "bookId" TEXT NOT NULL,
-    "startedAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "BookRead_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MangaRead" (
-    "id" TEXT NOT NULL,
-    "status" "ReadStatus" NOT NULL,
-    "chapter" INTEGER,
-    "volume" INTEGER,
-    "userId" TEXT NOT NULL,
-    "mangaId" TEXT NOT NULL,
-    "startedAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MangaRead_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "AnimeProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
@@ -518,6 +483,9 @@ CREATE TABLE "AnimeProgress" (
 CREATE TABLE "MangaProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "chaptersRead" INTEGER,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
     "mangaId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -839,18 +807,6 @@ CREATE INDEX "MovieWatch_userId_idx" ON "MovieWatch"("userId");
 CREATE UNIQUE INDEX "MovieWatch_userId_movieId_key" ON "MovieWatch"("userId", "movieId");
 
 -- CreateIndex
-CREATE INDEX "BookRead_userId_idx" ON "BookRead"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "BookRead_userId_bookId_key" ON "BookRead"("userId", "bookId");
-
--- CreateIndex
-CREATE INDEX "MangaRead_userId_idx" ON "MangaRead"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "MangaRead_userId_mangaId_key" ON "MangaRead"("userId", "mangaId");
-
--- CreateIndex
 CREATE INDEX "AnimeProgress_userId_idx" ON "AnimeProgress"("userId");
 
 -- CreateIndex
@@ -1017,18 +973,6 @@ ALTER TABLE "MovieWatch" ADD CONSTRAINT "MovieWatch_userId_fkey" FOREIGN KEY ("u
 
 -- AddForeignKey
 ALTER TABLE "MovieWatch" ADD CONSTRAINT "MovieWatch_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BookRead" ADD CONSTRAINT "BookRead_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BookRead" ADD CONSTRAINT "BookRead_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MangaRead" ADD CONSTRAINT "MangaRead_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "MangaRead" ADD CONSTRAINT "MangaRead_mangaId_fkey" FOREIGN KEY ("mangaId") REFERENCES "Manga"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnimeProgress" ADD CONSTRAINT "AnimeProgress_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

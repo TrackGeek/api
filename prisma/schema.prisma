@@ -38,8 +38,6 @@ model User {
   lists            List[]
   tvshowWatches    TvShowWatch[]
   movieWatches     MovieWatch[]
-  bookReads        BookRead[]
-  mangaReads       MangaRead[]
   animeProgresses  AnimeProgress[]
   mangaProgresses  MangaProgress[]
   tvshowProgresses TvShowProgress[]
@@ -345,7 +343,6 @@ model Book {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  bookReads      BookRead[]
   bookProgresses BookProgress[]
   bookReviews    BookReview[]
   favorites      Favorite[]
@@ -429,7 +426,6 @@ model Manga {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  mangaReads      MangaRead[]
   mangaProgresses MangaProgress[]
   mangaReviews    MangaReview[]
   favorites       Favorite[]
@@ -584,52 +580,6 @@ model MovieWatch {
   @@index([userId])
 }
 
-enum ReadStatus {
-  Reading
-  Completed
-  Paused
-  Dropped
-  Planning
-}
-
-model BookRead {
-  id          String     @id @default(uuid())
-  status      ReadStatus
-  chapter     Int?
-  volume      Int?
-  userId      String
-  bookId      String
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
-
-  @@unique([userId, bookId])
-  @@index([userId])
-}
-
-model MangaRead {
-  id          String     @id @default(uuid())
-  status      ReadStatus
-  chapter     Int?
-  volume      Int?
-  userId      String
-  mangaId     String
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  user  User  @relation(fields: [userId], references: [id])
-  manga Manga @relation(fields: [mangaId], references: [id])
-
-  @@unique([userId, mangaId])
-  @@index([userId])
-}
-
 enum ProgressStatus {
   Watching
   Playing
@@ -656,12 +606,15 @@ model AnimeProgress {
 }
 
 model MangaProgress {
-  id        String         @id @default(uuid())
-  status    ProgressStatus
-  userId    String
-  mangaId   String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id           String         @id @default(uuid())
+  status       ProgressStatus
+  chaptersRead Int?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  userId       String
+  mangaId      String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   manga Manga @relation(fields: [mangaId], references: [id])
