@@ -50,6 +50,8 @@ export function getAuthConfig(params: AuthConfigParams) {
       "trackgeek://auth/callback",
     ],
     advanced: {
+      disableCSRFCheck: process.env.NODE_ENV !== "production",
+      disableOriginCheck: process.env.NODE_ENV !== "production",
       database: {
         generateId: () => crypto.randomUUID(),
       },
