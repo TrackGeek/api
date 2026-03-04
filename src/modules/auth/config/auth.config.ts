@@ -8,6 +8,7 @@ import type { UserService } from "@/modules/user/user.service";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
 import { Logger } from "@nestjs/common";
+import uuid from 'uuid'
 
 interface AuthConfigParams {
   configService?: ConfigService;
@@ -53,7 +54,7 @@ export function getAuthConfig(params: AuthConfigParams) {
       disableCSRFCheck: process.env.NODE_ENV !== "production",
       disableOriginCheck: process.env.NODE_ENV !== "production",
       database: {
-        generateId: () => crypto.randomUUID(),
+        generateId: () => uuid.v7()
       },
     },
     account: {
