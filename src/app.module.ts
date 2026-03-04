@@ -40,6 +40,7 @@ import { AnimeProgressModule } from './modules/anime-progress/anime-progress.mod
 import { TVShowProgressModule } from './modules/tv-show-progress/tv-show-progress.module';
 import { MetricsInterceptor } from './shared/interceptors/metrics.interceptor';
 import { MetricsModule } from './shared/infra/metrics/metrics.module';
+import { AnimeEpisodeWatchModule } from './modules/anime-episode-watch/anime-episode-watch.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { MetricsModule } from './shared/infra/metrics/metrics.module';
     BookProgressModule,
     BookReviewModule,
     AnimeModule,
+    AnimeEpisodeWatchModule,
     AnimeProgressModule,
     AnimeReviewModule,
     FavoriteModule,
