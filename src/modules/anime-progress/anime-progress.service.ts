@@ -1,29 +1,17 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateAnimeProgressDto } from "./dtos/create-or-update-anime-progress.dto";
-import { AppException } from '@/shared/exceptions/app.exceptions';
-import { ERROR_CODES } from '@/shared/constants/error-codes';
 import { GetAnimeProgressDto } from './dtos/get-anime-progress.dto';
 import { AnimeProgressFindManyArgs } from '@prisma/generated/models';
 
 @Injectable()
 export class AnimeProgressService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService
+  ) {}
 
   async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
-    const { animeId, userId, status, episodesWatched, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
-    
-    const anime = await this.databaseService.anime.findUnique({
-      where: { id: animeId },
-    });
-    
-    if (!anime) {
-      throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
-    }
-    
-    if (episodesWatched && anime.numberOfEpisodes && episodesWatched > anime.numberOfEpisodes) {
-      throw new AppException(ERROR_CODES.INVALID_EPISODES_WATCHED);
-    }
+    const { animeId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
 
     await this.databaseService.animeProgress.upsert({
       where: {
@@ -34,15 +22,15 @@ export class AnimeProgressService {
       },
       update: {
         status,
-        episodesWatched,
+        watchCount,
         completedAt,
         startedAt
       },
       create: {
         animeId,
+        watchCount,
         userId,
         status,
-        episodesWatched,
         completedAt,
         startedAt
       },

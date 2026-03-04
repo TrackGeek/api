@@ -10,7 +10,7 @@ export class CreateOrUpdateTVShowProgressDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  readonly episodesWatched?: number;
+  readonly watchCount?: number;
   
   @IsOptional()
   @IsDate()

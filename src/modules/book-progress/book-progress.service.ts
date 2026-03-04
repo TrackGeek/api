@@ -1,8 +1,6 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateBookProgressDto } from "./dtos/create-or-update-book-progress.dto";
-import { AppException } from '@/shared/exceptions/app.exceptions';
-import { ERROR_CODES } from '@/shared/constants/error-codes';
 import { GetBookProgressDto } from './dtos/get-book-progress.dto';
 import { BookProgressFindManyArgs } from '@prisma/generated/models';
 
@@ -11,7 +9,7 @@ export class BookProgressService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateBookProgress(createOrUpdateBookProgressDto: CreateOrUpdateBookProgressDto) {
-    const { bookId, userId, status,chaptersRead, completedAt, startedAt } = createOrUpdateBookProgressDto;
+    const { bookId, userId, status, readCount,chaptersRead, completedAt, startedAt } = createOrUpdateBookProgressDto;
 
     await this.databaseService.bookProgress.upsert({
       where: {
@@ -23,6 +21,7 @@ export class BookProgressService {
       update: {
         status,
         chaptersRead,
+        readCount,
         completedAt,
         startedAt
       },
@@ -30,6 +29,7 @@ export class BookProgressService {
         bookId,
         userId,
         status,
+        readCount,
         chaptersRead,
         completedAt,
         startedAt

@@ -11,7 +11,7 @@ export class MangaProgressService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateMangaProgress(createOrUpdateMangaProgressDto: CreateOrUpdateMangaProgressDto) {
-    const { mangaId, userId, status, chaptersRead, completedAt, startedAt } = createOrUpdateMangaProgressDto;
+    const { mangaId, userId, status, chaptersRead, readCount, completedAt, startedAt } = createOrUpdateMangaProgressDto;
     
     const manga = await this.databaseService.manga.findUnique({
       where: { id: mangaId },
@@ -35,12 +35,14 @@ export class MangaProgressService {
       update: {
         status,
         chaptersRead,
+        readCount,
         completedAt,
         startedAt
       },
       create: {
         mangaId,
         userId,
+        readCount,
         status,
         chaptersRead,
         completedAt,

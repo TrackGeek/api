@@ -13,6 +13,11 @@ export class CreateOrUpdateMangaProgressDto {
   readonly chaptersRead?: number;
   
   @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly readCount?: number;
+  
+  @IsOptional()
   @IsDate()
   readonly startedAt?: Date;
   

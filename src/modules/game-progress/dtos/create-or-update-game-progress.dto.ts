@@ -1,9 +1,14 @@
 import { ProgressStatus } from "@prisma/generated/enums";
-import { IsDate, IsEnum, IsNotEmpty, IsOptional } from "class-validator";
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
 
 export class CreateOrUpdateGameProgressDto {
   @IsEnum(ProgressStatus)
   readonly status: ProgressStatus;
+  
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly playCount?: number;
   
   @IsOptional()
   @IsDate()

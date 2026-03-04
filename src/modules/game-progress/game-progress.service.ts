@@ -1,8 +1,6 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateGameProgressDto } from "./dtos/create-or-update-game-progress.dto";
-import { AppException } from '@/shared/exceptions/app.exceptions';
-import { ERROR_CODES } from '@/shared/constants/error-codes';
 import { GetGameProgressDto } from './dtos/get-game-progress.dto';
 import { GameProgressFindManyArgs } from '@prisma/generated/models';
 
@@ -11,7 +9,7 @@ export class GameProgressService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
-    const { gameId, userId, status, completedAt, startedAt } = createOrUpdateGameProgressDto;
+    const { gameId, userId, status, playCount, completedAt, startedAt } = createOrUpdateGameProgressDto;
 
     await this.databaseService.gameProgress.upsert({
       where: {
@@ -22,12 +20,14 @@ export class GameProgressService {
       },
       update: {
         status,
+        playCount,
         completedAt,
         startedAt
       },
       create: {
         gameId,
         userId,
+        playCount,
         status,
         completedAt,
         startedAt
