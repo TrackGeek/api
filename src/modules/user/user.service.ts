@@ -111,7 +111,7 @@ export class UserService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewFollower,
       userId,
-      metadata: { following },
+      metadata: following,
     });
   }
 
