@@ -5,6 +5,7 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { manyRequestWithDelay } from "@/shared/utils/request";
 import { CacheKeys, CacheService } from "../cache/cache.service";
+import { CACHE_KEYS } from '@/shared/constants/cache';
 
 @Injectable()
 export class JikanService {
@@ -17,34 +18,9 @@ export class JikanService {
     private readonly cacheService: CacheService,
   ) {}
 
-  private get cacheKeys(): CacheKeys {
-    return {
-      searchAnimes: {
-        prefix: (query: string) => `jikan:search:animes:${query}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      searchMangas: {
-        prefix: (query: string) => `jikan:search:mangas:${query}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getAnimeById: {
-        prefix: (id: number) => `jikan:details:anime:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getAnimeEpisodesById: {
-        prefix: (id: number) => `jikan:details:anime:${id}:episodes`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getMangaById: {
-        prefix: (id: number) => `jikan:details:manga:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-    };
-  }
-
   async searchAnimes(query: string) {
     try {
-      const cachedAnimes = await this.cacheService.get(this.cacheKeys.searchAnimes.prefix(query));
+      const cachedAnimes = await this.cacheService.get(CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix(query));
 
       if (cachedAnimes) {
         return cachedAnimes;
@@ -67,9 +43,9 @@ export class JikanService {
       }));
 
       await this.cacheService.set(
-        this.cacheKeys.searchAnimes.prefix(query),
+        CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix(query),
         animes,
-        this.cacheKeys.searchAnimes.expiration,
+        CACHE_KEYS.JIKAN_SEARCH_ANIMES.expiration,
       );
 
       return animes;
@@ -84,7 +60,7 @@ export class JikanService {
 
   async searchMangas(query: string) {
     try {
-      const cachedMangas = await this.cacheService.get(this.cacheKeys.searchMangas.prefix(query));
+      const cachedMangas = await this.cacheService.get(CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix(query));
 
       if (cachedMangas) {
         return cachedMangas;
@@ -107,9 +83,9 @@ export class JikanService {
       }));
 
       await this.cacheService.set(
-        this.cacheKeys.searchMangas.prefix(query),
+        CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix(query),
         mangas,
-        this.cacheKeys.searchMangas.expiration,
+        CACHE_KEYS.JIKAN_SEARCH_MANGAS.expiration,
       );
 
       return mangas;
@@ -126,7 +102,7 @@ export class JikanService {
 
   async getAnimeById(id: number): Promise<any> {
     try {
-      const cachedAnime = await this.cacheService.get(this.cacheKeys.getAnimeById.prefix(id));
+      const cachedAnime = await this.cacheService.get(CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id));
 
       if (cachedAnime) {
         return cachedAnime;
@@ -262,9 +238,9 @@ export class JikanService {
       };
 
       await this.cacheService.set(
-        this.cacheKeys.getAnimeById.prefix(id),
+        CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id),
         anime,
-        this.cacheKeys.getAnimeById.expiration,
+        CACHE_KEYS.JIKAN_ANIME_BY_ID.expiration,
       );
 
       return anime;
@@ -281,7 +257,7 @@ export class JikanService {
   
   async getAnimeEpisodesById(id: number): Promise<any> {
     try {
-      const cachedEpisodes = await this.cacheService.get(this.cacheKeys.getAnimeEpisodesById.prefix(id));
+      const cachedEpisodes = await this.cacheService.get(CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id));
 
       if (cachedEpisodes) {
         return cachedEpisodes;
@@ -319,9 +295,9 @@ export class JikanService {
         : []
         
       await this.cacheService.set(
-        this.cacheKeys.getAnimeEpisodesById.prefix(id),
+        CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id),
         episodes,
-        this.cacheKeys.getAnimeEpisodesById.expiration,
+        CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration,
       );
 
       return episodes;
@@ -338,7 +314,7 @@ export class JikanService {
 
   async getMangaById(id: number): Promise<any> {
     try {
-      const cachedManga = await this.cacheService.get(this.cacheKeys.getMangaById.prefix(id));
+      const cachedManga = await this.cacheService.get(CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id));
 
       if (cachedManga) {
         return cachedManga;
@@ -408,9 +384,9 @@ export class JikanService {
       };
 
       await this.cacheService.set(
-        this.cacheKeys.getMangaById.prefix(id),
+        CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id),
         manga,
-        this.cacheKeys.getMangaById.expiration,
+        CACHE_KEYS.JIKAN_MANGA_BY_ID.expiration,
       );
 
       return manga;

@@ -191,4 +191,8 @@ export const ERROR_CODES = {
     code: "INVALID_EPISODES_WATCHED",
     status: 400,
   },
+  ANIME_EPISODES_NOT_FOUND: {
+    code: "ANIME_EPISODES_NOT_FOUND",
+    status: 404,
+  },
 } as const;

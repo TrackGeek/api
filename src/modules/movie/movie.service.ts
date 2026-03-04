@@ -3,11 +3,12 @@ import { Movie } from "@prisma/generated/client";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheKeys, CacheService } from "@/shared/infra/cache/cache.service";
+import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshMovieDto } from "./dtos/refresh-movie.dto";
 import type { SearchMovieDto } from "./dtos/search-movie.dto";
+import { CACHE_KEYS } from '@/shared/constants/cache';
 
 @Injectable()
 export class MovieService {
@@ -17,21 +18,12 @@ export class MovieService {
     private readonly integrationsService: IntegrationsService,
   ) {}
 
-  private get cacheKeys(): CacheKeys {
-    return {
-      movieById: {
-        prefix: (id: number) => `movie:id:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-    };
-  }
-
   async searchMovies(searchMovieDto: SearchMovieDto) {
     return this.integrationsService.tmdb.searchMovies(searchMovieDto.query);
   }
 
   async getMovieById(id: number) {
-    const cachedMovie = await this.cacheService.get<Movie>(this.cacheKeys.movieById.prefix(id));
+    const cachedMovie = await this.cacheService.get<Movie>(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id));
 
     if (cachedMovie) {
       return cachedMovie;
@@ -49,7 +41,7 @@ export class MovieService {
       });
     }
 
-    await this.cacheService.set(this.cacheKeys.movieById.prefix(id), movie, this.cacheKeys.movieById.expiration);
+    await this.cacheService.set(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id), movie, CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration);
 
     return movie;
   }
@@ -67,8 +59,8 @@ export class MovieService {
       throw new AppException(ERROR_CODES.MOVIE_ALREADY_REFRESHED);
     }
 
-    if (await this.cacheService.exists(this.cacheKeys.movieById.prefix(movie.tmdbId))) {
-      await this.cacheService.delete(this.cacheKeys.movieById.prefix(movie.tmdbId));
+    if (await this.cacheService.exists(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(movie.tmdbId))) {
+      await this.cacheService.delete(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(movie.tmdbId));
     }
 
     const tmdbMovie = await this.integrationsService.tmdb.getMovieById(movie.tmdbId);
@@ -79,9 +71,9 @@ export class MovieService {
     });
 
     await this.cacheService.set(
-      this.cacheKeys.movieById.prefix(movie.tmdbId),
+      CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(movie.tmdbId),
       movie,
-      this.cacheKeys.movieById.expiration,
+      CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration,
     );
   }
 }

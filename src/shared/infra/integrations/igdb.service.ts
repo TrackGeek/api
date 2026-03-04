@@ -4,7 +4,8 @@ import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheKeys, CacheService } from "../cache/cache.service";
+import { CacheService } from "../cache/cache.service";
+import { CACHE_KEYS } from '@/shared/constants/cache';
 
 @Injectable()
 export class IGDBService {
@@ -16,25 +17,8 @@ export class IGDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  private get cacheKeys(): CacheKeys {
-    return {
-      accessToken: {
-        prefix: () => "igdb:accessToken",
-        expiration: 0,
-      },
-      searchGames: {
-        prefix: (query: string) => `igdb:search:games:${query}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getGameById: {
-        prefix: (id: number) => `igdb:details:game:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-    };
-  }
-
   private async getAccessToken(): Promise<string> {
-    const cachedToken = await this.cacheService.get<string>(this.cacheKeys.accessToken.prefix());
+    const cachedToken = await this.cacheService.get<string>(CACHE_KEYS.IGDB_ACCESS_TOKEN.prefix());
 
     if (cachedToken) {
       return cachedToken;
@@ -57,7 +41,7 @@ export class IGDBService {
       const authData = authResponse.data;
 
       await this.cacheService.set(
-        this.cacheKeys.accessToken.prefix(),
+        CACHE_KEYS.IGDB_ACCESS_TOKEN.prefix(),
         authData.access_token,
         authData.expires_in - 300,
       );
@@ -72,7 +56,7 @@ export class IGDBService {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGames = await this.cacheService.get<any[]>(this.cacheKeys.searchGames.prefix(query));
+      const cachedGames = await this.cacheService.get<any[]>(CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query));
 
       if (cachedGames) {
         return cachedGames;
@@ -124,9 +108,9 @@ export class IGDBService {
       }));
 
       await this.cacheService.set(
-        this.cacheKeys.searchGames.prefix(query),
+        CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query),
         games,
-        this.cacheKeys.searchGames.expiration,
+        CACHE_KEYS.IGDB_SEARCH_GAMES.expiration,
       );
 
       return games;
@@ -143,7 +127,7 @@ export class IGDBService {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGame = await this.cacheService.get<any>(this.cacheKeys.getGameById.prefix(id));
+      const cachedGame = await this.cacheService.get<any>(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id));
 
       if (cachedGame) {
         return cachedGame;
@@ -552,7 +536,7 @@ export class IGDBService {
           })) ?? [],
       };
 
-      await this.cacheService.set(this.cacheKeys.getGameById.prefix(id), game, this.cacheKeys.getGameById.expiration);
+      await this.cacheService.set(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id), game, CACHE_KEYS.IGDB_GAME_BY_ID.expiration);
 
       return game;
     } catch (error) {

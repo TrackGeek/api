@@ -4,7 +4,8 @@ import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheKeys, CacheService } from "../cache/cache.service";
+import { CacheService } from "../cache/cache.service";
+import { CACHE_KEYS } from '@/shared/constants/cache';
 
 @Injectable()
 export class TMDBService {
@@ -18,30 +19,9 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  private get cacheKeys(): CacheKeys {
-    return {
-      searchMovies: {
-        prefix: (query: string) => `tmdb:search:movies:${query}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      searchTVShows: {
-        prefix: (query: string) => `tmdb:search:tv:${query}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getMovieById: {
-        prefix: (id: number) => `tmdb:details:movie:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getTVShowById: {
-        prefix: (id: number) => `tmdb:details:tv:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-    };
-  }
-
   async searchMovies(query: string): Promise<any> {
     try {
-      const cachedMovies = await this.cacheService.get(this.cacheKeys.searchMovies.prefix(query));
+      const cachedMovies = await this.cacheService.get(CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query));
 
       if (cachedMovies) {
         return cachedMovies;
@@ -66,9 +46,9 @@ export class TMDBService {
       }));
 
       await this.cacheService.set(
-        this.cacheKeys.searchMovies.prefix(query),
+        CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query),
         movies,
-        this.cacheKeys.searchMovies.expiration,
+        CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration,
       );
 
       return movies;
@@ -85,7 +65,7 @@ export class TMDBService {
 
   async searchTVShows(query: string): Promise<any> {
     try {
-      const cachedTVShows = await this.cacheService.get(this.cacheKeys.searchTVShows.prefix(query));
+      const cachedTVShows = await this.cacheService.get(CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query));
 
       if (cachedTVShows) {
         return cachedTVShows;
@@ -110,9 +90,9 @@ export class TMDBService {
       }));
 
       await this.cacheService.set(
-        this.cacheKeys.searchTVShows.prefix(query),
+        CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query),
         tvShows,
-        this.cacheKeys.searchTVShows.expiration,
+        CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration,
       );
 
       return tvShows;
@@ -129,7 +109,7 @@ export class TMDBService {
 
   async getMovieById(id: number): Promise<any> {
     try {
-      const cachedMovie = await this.cacheService.get(this.cacheKeys.getMovieById.prefix(id));
+      const cachedMovie = await this.cacheService.get(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id));
 
       if (cachedMovie) {
         return cachedMovie;
@@ -228,9 +208,9 @@ export class TMDBService {
       };
 
       await this.cacheService.set(
-        this.cacheKeys.getMovieById.prefix(id),
+        CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id),
         movie,
-        this.cacheKeys.getMovieById.expiration,
+        CACHE_KEYS.TMDB_MOVIE_BY_ID.expiration,
       );
 
       return movie;
@@ -247,7 +227,7 @@ export class TMDBService {
 
   async getTVShowById(id: number): Promise<any> {
     try {
-      const cachedTVShow = await this.cacheService.get(this.cacheKeys.getTVShowById.prefix(id));
+      const cachedTVShow = await this.cacheService.get(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id));
 
       if (cachedTVShow) {
         return cachedTVShow;
@@ -385,9 +365,9 @@ export class TMDBService {
       };
 
       await this.cacheService.set(
-        this.cacheKeys.getTVShowById.prefix(id),
+        CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id),
         tvShow,
-        this.cacheKeys.getTVShowById.expiration,
+        CACHE_KEYS.TMDB_TV_SHOW_BY_ID.expiration,
       );
 
       return tvShow;

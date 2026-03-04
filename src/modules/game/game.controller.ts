@@ -32,9 +32,9 @@ export class GameController {
     await this.gameService.refreshGame(body);
   }
 
-  @Get("/detail/:gameId")
-  async getGameById(@Param("gameId", new ParseIntPipe()) gameId: number) {
-    const game = await this.gameService.getGameById(gameId);
+  @Get("/detail/:igdbId")
+  async getGameByIgdbId(@Param("igdbId", new ParseIntPipe()) igdbId: number) {
+    const game = await this.gameService.getGameByIgdbId(igdbId);
 
     return { game };
   }

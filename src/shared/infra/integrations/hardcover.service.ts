@@ -5,6 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheKeys, CacheService } from "../cache/cache.service";
+import { CACHE_KEYS } from '@/shared/constants/cache';
 
 @Injectable()
 export class HardcoverService {
@@ -18,22 +19,9 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  private get cacheKeys(): CacheKeys {
-    return {
-      searchBooks: {
-        prefix: (query: string) => `hardcover:search:books:${query}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-      getBookById: {
-        prefix: (id: number) => `hardcover:details:book:${id}`,
-        expiration: 3600 * 24, // 24 hours
-      },
-    };
-  }
-
   async searchBooks(query: string) {
     try {
-      const cachedBooks = await this.cacheService.get(this.cacheKeys.searchBooks.prefix(query));
+      const cachedBooks = await this.cacheService.get(CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query));
 
       if (cachedBooks) {
         return cachedBooks;
@@ -76,6 +64,8 @@ export class HardcoverService {
         imageUrl: hit.document.image.url,
         genres: hit.document.genres ?? [],
       }));
+      
+      await this.cacheService.set(CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query), books, CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration);
 
       return books;
     } catch (error) {
@@ -91,7 +81,7 @@ export class HardcoverService {
 
   async getBookById(id: number): Promise<any> {
     try {
-      const cachedBook = await this.cacheService.get(this.cacheKeys.getBookById.prefix(id));
+      const cachedBook = await this.cacheService.get(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id));
 
       if (cachedBook) {
         return cachedBook;
@@ -316,7 +306,7 @@ export class HardcoverService {
           : [],
       };
 
-      await this.cacheService.set(this.cacheKeys.getBookById.prefix(id), book, this.cacheKeys.getBookById.expiration);
+      await this.cacheService.set(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id), book, CACHE_KEYS.HARDCOVER_BOOK_BY_ID.expiration);
 
       return book;
     } catch (error) {

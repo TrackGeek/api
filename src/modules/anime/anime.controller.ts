@@ -30,16 +30,16 @@ export class AnimeController {
     await this.animeService.refreshAnime(body);
   }
 
-  @Get("/detail/:animeId")
-  async getAnimeById(@Param("animeId", new ParseIntPipe()) animeId: number) {
-    const anime = await this.animeService.getAnimeById(animeId);
+  @Get("/detail/:malId")
+  async getAnimeByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
+    const anime = await this.animeService.getAnimeByMalId(malId);
 
     return { anime };
   }
   
-  @Get("/detail/:animeId/episode")
-  async getAnimeEpisodesById(@Param("animeId", new ParseIntPipe()) animeId: number) {
-    const episodes = await this.animeService.getAnimeEpisodesById(animeId);
+  @Get("/detail/:malId/episode")
+  async getAnimeEpisodesByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
+    const episodes = await this.animeService.getAnimeEpisodesByMalId(malId);
 
     return { episodes };
   }
