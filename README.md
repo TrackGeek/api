@@ -11,15 +11,15 @@
 </h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/NestJS-000000?style=for-the-badge&logo=nestjs&logoColor=ffffff">
-  <img src="https://img.shields.io/badge/TypeScript-000000?style=for-the-badge&logo=typescript&logoColor=ffffff">
-  <img src="https://img.shields.io/badge/Prisma-000000?style=for-the-badge&logo=prisma&logoColor=ffffff">
-  <img src="https://img.shields.io/badge/PostgreSQL-000000?style=for-the-badge&logo=postgresql&logoColor=ffffff">
-  <img src="https://img.shields.io/badge/Redis-000000?style=for-the-badge&logo=redis&logoColor=ffffff">
+  <img src="https://img.shields.io/badge/NestJS-99e3a0?style=for-the-badge&logo=nestjs&logoColor=004b38">
+  <img src="https://img.shields.io/badge/TypeScript-99e3a0?style=for-the-badge&logo=typescript&logoColor=004b38">
+  <img src="https://img.shields.io/badge/Prisma-99e3a0?style=for-the-badge&logo=prisma&logoColor=004b38">
+  <img src="https://img.shields.io/badge/PostgreSQL-99e3a0?style=for-the-badge&logo=postgresql&logoColor=004b38">
+  <img src="https://img.shields.io/badge/Redis-99e3a0?style=for-the-badge&logo=redis&logoColor=004b38">
   <br>
-  <img src="https://img.shields.io/badge/Docker-000000?style=for-the-badge&logo=docker&logoColor=ffffff">
-  <img src="https://img.shields.io/badge/Swagger-000000?style=for-the-badge&logo=swagger&logoColor=ffffff">
-  <a href="https://translate.trackgeek.net"><img src="https://img.shields.io/badge/Crowdin-000000?style=for-the-badge&logo=crowdin&logoColor=ffffff"></a>
+  <img src="https://img.shields.io/badge/Docker-99e3a0?style=for-the-badge&logo=docker&logoColor=004b38">
+  <img src="https://img.shields.io/badge/Swagger-99e3a0?style=for-the-badge&logo=swagger&logoColor=004b38">
+  <a href="https://translate.trackgeek.net"><img src="https://img.shields.io/badge/Crowdin-99e3a0?style=for-the-badge&logo=crowdin&logoColor=004b38"></a>
 </p>
 
 ## <samp>Features</samp>
