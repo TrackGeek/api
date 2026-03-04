@@ -11,7 +11,7 @@ CREATE TYPE "ReactionType" AS ENUM ('Comment', 'FeedEvent');
 CREATE TYPE "FeedEventType" AS ENUM ('NewFollower', 'NewFavorite', 'NewList', 'NewListItem', 'NewReview', 'NewWatch', 'NewProgress');
 
 -- CreateEnum
-CREATE TYPE "WatchStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
+CREATE TYPE "WatchEpisodeStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
 CREATE TYPE "ProgressStatus" AS ENUM ('Watching', 'Playing', 'Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
@@ -171,6 +171,8 @@ CREATE TABLE "FeedEvent" (
     "type" "FeedEventType" NOT NULL,
     "userId" TEXT NOT NULL,
     "metadata" JSONB,
+    "entityIds" TEXT[],
+    "count" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "FeedEvent_pkey" PRIMARY KEY ("id")
@@ -424,35 +426,30 @@ CREATE TABLE "Movie" (
 );
 
 -- CreateTable
-CREATE TABLE "AnimeWatch" (
+CREATE TABLE "AnimeEpisodeWatch" (
     "id" TEXT NOT NULL,
-    "season" INTEGER NOT NULL,
+    "status" "WatchEpisodeStatus" NOT NULL,
     "episode" INTEGER NOT NULL,
-    "status" "WatchStatus" NOT NULL,
     "userId" TEXT NOT NULL,
     "animeId" TEXT NOT NULL,
-    "startedAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "AnimeWatch_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "AnimeEpisodeWatch_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "TVShowWatch" (
+CREATE TABLE "TVShowEpisodeWatch" (
     "id" TEXT NOT NULL,
+    "status" "WatchEpisodeStatus" NOT NULL,
     "season" INTEGER NOT NULL,
     "episode" INTEGER NOT NULL,
-    "status" "WatchStatus" NOT NULL,
     "userId" TEXT NOT NULL,
     "tvShowId" TEXT NOT NULL,
-    "startedAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "TVShowWatch_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "TVShowEpisodeWatch_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -730,9 +727,6 @@ CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
 CREATE UNIQUE INDEX "UserMedal_userId_medalId_key" ON "UserMedal"("userId", "medalId");
 
 -- CreateIndex
-CREATE INDEX "Following_followerId_idx" ON "Following"("followerId");
-
--- CreateIndex
 CREATE INDEX "Following_followingId_idx" ON "Following"("followingId");
 
 -- CreateIndex
@@ -766,7 +760,7 @@ CREATE UNIQUE INDEX "Reaction_userId_commentId_key" ON "Reaction"("userId", "com
 CREATE UNIQUE INDEX "Reaction_userId_feedEventId_key" ON "Reaction"("userId", "feedEventId");
 
 -- CreateIndex
-CREATE INDEX "FeedEvent_userId_createdAt_idx" ON "FeedEvent"("userId", "createdAt");
+CREATE INDEX "FeedEvent_userId_idx" ON "FeedEvent"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Game_igdbId_key" ON "Game"("igdbId");
@@ -790,49 +784,31 @@ CREATE UNIQUE INDEX "TVShow_tmdbId_key" ON "TVShow"("tmdbId");
 CREATE UNIQUE INDEX "Movie_tmdbId_key" ON "Movie"("tmdbId");
 
 -- CreateIndex
-CREATE INDEX "AnimeWatch_userId_idx" ON "AnimeWatch"("userId");
+CREATE INDEX "AnimeEpisodeWatch_userId_status_idx" ON "AnimeEpisodeWatch"("userId", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AnimeWatch_userId_animeId_key" ON "AnimeWatch"("userId", "animeId");
+CREATE UNIQUE INDEX "AnimeEpisodeWatch_userId_animeId_episode_key" ON "AnimeEpisodeWatch"("userId", "animeId", "episode");
 
 -- CreateIndex
-CREATE INDEX "TVShowWatch_userId_idx" ON "TVShowWatch"("userId");
+CREATE INDEX "TVShowEpisodeWatch_userId_status_idx" ON "TVShowEpisodeWatch"("userId", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TVShowWatch_userId_tvShowId_key" ON "TVShowWatch"("userId", "tvShowId");
-
--- CreateIndex
-CREATE INDEX "AnimeProgress_userId_idx" ON "AnimeProgress"("userId");
+CREATE UNIQUE INDEX "TVShowEpisodeWatch_userId_tvShowId_season_episode_key" ON "TVShowEpisodeWatch"("userId", "tvShowId", "season", "episode");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AnimeProgress_userId_animeId_key" ON "AnimeProgress"("userId", "animeId");
 
 -- CreateIndex
-CREATE INDEX "MangaProgress_userId_idx" ON "MangaProgress"("userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "MangaProgress_userId_mangaId_key" ON "MangaProgress"("userId", "mangaId");
-
--- CreateIndex
-CREATE INDEX "TVShowProgress_userId_idx" ON "TVShowProgress"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "TVShowProgress_userId_tvShowId_key" ON "TVShowProgress"("userId", "tvShowId");
 
 -- CreateIndex
-CREATE INDEX "MovieProgress_userId_idx" ON "MovieProgress"("userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "MovieProgress_userId_movieId_key" ON "MovieProgress"("userId", "movieId");
 
 -- CreateIndex
-CREATE INDEX "GameProgress_userId_idx" ON "GameProgress"("userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "GameProgress_userId_gameId_key" ON "GameProgress"("userId", "gameId");
-
--- CreateIndex
-CREATE INDEX "BookProgress_userId_idx" ON "BookProgress"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BookProgress_userId_bookId_key" ON "BookProgress"("userId", "bookId");
@@ -952,16 +928,16 @@ ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_feedEventId_fkey" FOREIGN KEY ("
 ALTER TABLE "FeedEvent" ADD CONSTRAINT "FeedEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AnimeWatch" ADD CONSTRAINT "AnimeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AnimeEpisodeWatch" ADD CONSTRAINT "AnimeEpisodeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AnimeWatch" ADD CONSTRAINT "AnimeWatch_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AnimeEpisodeWatch" ADD CONSTRAINT "AnimeEpisodeWatch_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TVShowWatch" ADD CONSTRAINT "TVShowWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TVShowEpisodeWatch" ADD CONSTRAINT "TVShowEpisodeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TVShowWatch" ADD CONSTRAINT "TVShowWatch_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TVShowEpisodeWatch" ADD CONSTRAINT "TVShowEpisodeWatch_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnimeProgress" ADD CONSTRAINT "AnimeProgress_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
