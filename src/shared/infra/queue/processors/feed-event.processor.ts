@@ -5,10 +5,9 @@ import { Job } from "bullmq";
 import { FeedEventService } from "@/modules/feed-event/feed-event.service";
 import { FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 import { FEED_EVENT_FLUSH_AGGREGATION_JOB, FEED_EVENT_JOB } from '@/shared/constants/job';
-import { InjectRedis } from '@nestjs-redis/client';
-import type { RedisClientType } from 'redis';
 import { FeedEventDto, FeedEventMetadata } from '@/modules/feed-event/dtos/feed-event.dto';
 import { QueueService } from '../queue.service';
+import { CacheService } from '../../cache/cache.service';
 
 export type FeedEventJobData = FeedEventDto
 
@@ -23,8 +22,7 @@ export class FeedEventProcessor extends WorkerHost {
   constructor(
     private readonly queueService: QueueService,
     private readonly feedEventService: FeedEventService,
-    @InjectRedis()
-    private readonly redis: RedisClientType,
+    private readonly cacheService: CacheService,
   ) {
     super();
   }
@@ -36,12 +34,12 @@ export class FeedEventProcessor extends WorkerHost {
       const aggKey = `feed:agg:${userId}:${type}`;
       const lockKey = `${aggKey}:lock`;
       
-      await this.redis.lPush(aggKey, JSON.stringify({ userId, type, metadata }));
-      await this.redis.expire(aggKey, 600); // 10 minutos
+      await this.cacheService.redis.lPush(aggKey, JSON.stringify({ userId, type, metadata }));
+      await this.cacheService.redis.expire(aggKey, 600); // 10 minutos
       
       const windowsMs = 5 * 60 * 1000; // 5 minutos
       
-      const isLeader = await this.redis.set(lockKey, '1', { NX: true, PX: windowsMs });
+      const isLeader = await this.cacheService.redis.set(lockKey, '1', { NX: true, PX: windowsMs });
       
       if (isLeader) {
         await this.queueService.addJob(
@@ -60,9 +58,9 @@ export class FeedEventProcessor extends WorkerHost {
     if (job.name === FEED_EVENT_FLUSH_AGGREGATION_JOB) {
       const { aggKey } = job.data as FeedEventFlushAggregationJobData;
       
-      const raw = await this.redis.lRange(aggKey, 0, -1);
+      const raw = await this.cacheService.redis.lRange(aggKey, 0, -1);
       
-      await this.redis.del(aggKey);
+      await this.cacheService.redis.del(aggKey);
       
       if (!raw.length) return;
       

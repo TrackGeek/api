@@ -13,7 +13,7 @@ export interface CacheKeys {
 export class CacheService {
   constructor(
     @InjectRedis()
-    private readonly redis: RedisClientType,
+    readonly redis: RedisClientType,
   ) {}
 
   async set<T>(key: string, data: T, exp: number = 180): Promise<void> {
