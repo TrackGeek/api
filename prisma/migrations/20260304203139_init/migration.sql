@@ -456,7 +456,7 @@ CREATE TABLE "TVShowEpisodeWatch" (
 CREATE TABLE "AnimeProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
-    "episodesWatched" INTEGER,
+    "watchCount" INTEGER,
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
@@ -472,6 +472,7 @@ CREATE TABLE "MangaProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
     "chaptersRead" INTEGER,
+    "readCount" INTEGER,
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
@@ -486,7 +487,7 @@ CREATE TABLE "MangaProgress" (
 CREATE TABLE "TVShowProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
-    "episodesWatched" INTEGER,
+    "watchCount" INTEGER,
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
@@ -501,6 +502,7 @@ CREATE TABLE "TVShowProgress" (
 CREATE TABLE "MovieProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "watchCount" INTEGER,
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
@@ -515,6 +517,7 @@ CREATE TABLE "MovieProgress" (
 CREATE TABLE "GameProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "playCount" INTEGER,
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
@@ -530,6 +533,7 @@ CREATE TABLE "BookProgress" (
     "id" TEXT NOT NULL,
     "status" "ProgressStatus" NOT NULL,
     "chaptersRead" INTEGER,
+    "readCount" INTEGER,
     "startedAt" TIMESTAMP(3),
     "completedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,

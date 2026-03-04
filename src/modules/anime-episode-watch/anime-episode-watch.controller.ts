@@ -12,6 +12,7 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { CreateOrUpdateAnimeEpisodeWatchDto } from './dtos/create-or-update-anime-episode-watch.dto';
 import { AnimeEpisodeWatchService } from './anime-episode-watch.service';
 import { GetAnimeEpisodeWatchDto } from './dtos/get-anime-episode-watch.dto';
+import { WatchAllEpisodesOfAnimeDto } from './dtos/watch-all-episodes-of-anime.dto';
 
 @Controller("/anime/episode/watch")
 export class AnimeEpisodeWatchController {
@@ -22,6 +23,16 @@ export class AnimeEpisodeWatchController {
   @HttpCode(HttpStatus.CREATED)
   async createAnimeEpisodeWatch(@Session() session: UserSession, @Body() body: CreateOrUpdateAnimeEpisodeWatchDto) {
     await this.animeEpisodeWatchService.createOrUpdateAnimeEpisodeWatch({
+      ...body,
+      userId: session.user.id,
+    });
+  }
+  
+  @Post("/all")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  async watchAllEpisodesOfAnime(@Session() session: UserSession, @Body() body: WatchAllEpisodesOfAnimeDto) {
+    await this.animeEpisodeWatchService.watchAllEpisodesOfAnime({
       ...body,
       userId: session.user.id,
     });

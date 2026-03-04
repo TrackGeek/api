@@ -572,15 +572,15 @@ enum ProgressStatus {
 }
 
 model AnimeProgress {
-  id              String         @id @default(uuid(7))
-  status          ProgressStatus
-  episodesWatched Int?
-  startedAt       DateTime?
-  completedAt     DateTime?
-  userId          String
-  animeId         String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id          String         @id @default(uuid(7))
+  status      ProgressStatus
+  watchCount  Int?
+  startedAt   DateTime?
+  completedAt DateTime?
+  userId      String
+  animeId     String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   user  User  @relation(fields: [userId], references: [id])
   anime Anime @relation(fields: [animeId], references: [id])
@@ -592,6 +592,7 @@ model MangaProgress {
   id           String         @id @default(uuid(7))
   status       ProgressStatus
   chaptersRead Int?
+  readCount    Int?
   startedAt    DateTime?
   completedAt  DateTime?
   userId       String
@@ -606,15 +607,15 @@ model MangaProgress {
 }
 
 model TvShowProgress {
-  id              String         @id @default(uuid(7))
-  status          ProgressStatus
-  episodesWatched Int?
-  startedAt       DateTime?
-  completedAt     DateTime?
-  userId          String
-  tvShowId        String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id          String         @id @default(uuid(7))
+  status      ProgressStatus
+  watchCount  Int?
+  startedAt   DateTime?
+  completedAt DateTime?
+  userId      String
+  tvShowId    String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   user   User   @relation(fields: [userId], references: [id])
   tvShow TvShow @relation(fields: [tvShowId], references: [id])
@@ -626,6 +627,7 @@ model TvShowProgress {
 model MovieProgress {
   id          String         @id @default(uuid(7))
   status      ProgressStatus
+  watchCount  Int?
   startedAt   DateTime?
   completedAt DateTime?
   userId      String
@@ -642,6 +644,7 @@ model MovieProgress {
 model GameProgress {
   id          String         @id @default(uuid(7))
   status      ProgressStatus
+  playCount   Int?
   startedAt   DateTime?
   completedAt DateTime?
   userId      String
@@ -659,6 +662,7 @@ model BookProgress {
   id           String         @id @default(uuid(7))
   status       ProgressStatus
   chaptersRead Int?
+  readCount    Int?
   startedAt    DateTime?
   completedAt  DateTime?
   userId       String
