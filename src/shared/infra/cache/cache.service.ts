@@ -42,14 +42,6 @@ export class CacheService {
     return value;
   }
 
-  async getTTL(key: string): Promise<number> {
-    return await this.redis.ttl(key);
-  }
-
-  async setWithExpiry(key: string, value: string, seconds: number): Promise<void> {
-    await this.redis.setEx(key, seconds, value);
-  }
-
   async exists(key: string): Promise<boolean> {
     const result = await this.redis.exists(key);
 
