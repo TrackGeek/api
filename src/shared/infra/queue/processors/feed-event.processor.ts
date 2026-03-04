@@ -42,9 +42,7 @@ export class FeedEventProcessor extends WorkerHost {
       const isLeader = await this.cacheService.redis.set(lockKey, '1', { NX: true, PX: windowsMs });
       
       if (isLeader) {
-        await this.queueService.addJob(
-          FEED_EVENT_QUEUE,
-          FEED_EVENT_JOB,
+        await this.queueService.toFeedEventFlushAggregationJob(
           { aggKey },
           { delay: windowsMs },
         );
@@ -77,11 +75,13 @@ export class FeedEventProcessor extends WorkerHost {
         userId: first.userId,
         count: events.length,
         entityIds,
-        metadata: (
-          events.length === 1 
-            ? first.metadata as FeedEventMetadata
-            : events.map(e => e.metadata) as FeedEventMetadata[]
-        ),
+        metadata: {
+          ...(
+            events.length === 1 
+              ? first.metadata as FeedEventMetadata
+              : events.map(e => e.metadata) as FeedEventMetadata[]
+          )
+        },
       });
       
       return

@@ -95,7 +95,7 @@ export class FavoriteService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewFavorite,
       userId,
-      metadata: favorite,
+      metadata: { ...favorite },
     });
   }
 

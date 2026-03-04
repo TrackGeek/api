@@ -59,7 +59,7 @@ export class AnimeReviewService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId: createAnimeReviewDto.userId,
-      metadata: animeReview,
+      metadata: { ...animeReview },
     });
   }
 
