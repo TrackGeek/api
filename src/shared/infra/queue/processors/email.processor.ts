@@ -4,8 +4,9 @@ import { Job } from "bullmq";
 
 import { EmailService } from "@/shared/infra/email/email.service";
 import { EMAIL_QUEUE } from "@/shared/constants/queue";
+import { MAGIC_LINK_JOB, RESET_PASSWORD_JOB } from '@/shared/constants/job';
 
-@Processor(EMAIL_QUEUE)
+@Processor(EMAIL_QUEUE, { concurrency: 10 })
 export class EmailProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailProcessor.name);
 
@@ -14,13 +15,13 @@ export class EmailProcessor extends WorkerHost {
   }
 
   async process(job: Job) {
-    if (job.name === "magic-link") {
+    if (job.name === MAGIC_LINK_JOB) {
       await this.emailService.sendMagicLinkEmail(job.data);
 
       return;
     }
 
-    if (job.name === "reset-password") {
+    if (job.name === RESET_PASSWORD_JOB) {
       await this.emailService.sendResetPasswordEmail(job.data);
 
       return;
