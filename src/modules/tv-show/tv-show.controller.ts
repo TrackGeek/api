@@ -21,7 +21,7 @@ export class TVShowController {
     await this.tvShowService.refreshTVShow(body);
   }
 
-  @Get("/details/:tvShowId")
+  @Get("/detail/:tvShowId")
   async getTVShowById(@Param("tvShowId", new ParseIntPipe()) tvShowId: number) {
     const tvShow = await this.tvShowService.getTVShowById(tvShowId);
 

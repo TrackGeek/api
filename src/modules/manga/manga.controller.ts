@@ -21,7 +21,7 @@ export class MangaController {
     await this.mangaService.refreshManga(refreshMangaDto);
   }
 
-  @Get("/details/:mangaId")
+  @Get("/detail/:mangaId")
   async getMangaById(@Param("mangaId", new ParseIntPipe()) mangaId: number) {
     const manga = await this.mangaService.getMangaById(mangaId);
 

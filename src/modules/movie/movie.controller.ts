@@ -21,7 +21,7 @@ export class MovieController {
     await this.movieService.refreshMovie(refreshMovieDto);
   }
 
-  @Get("/details/:movieId")
+  @Get("/detail/:movieId")
   async getMovieById(@Param("movieId", new ParseIntPipe()) movieId: number) {
     const movie = await this.movieService.getMovieById(movieId);
 

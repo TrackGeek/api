@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -32,14 +30,14 @@ export class AnimeController {
     await this.animeService.refreshAnime(body);
   }
 
-  @Get("/details/:animeId")
+  @Get("/detail/:animeId")
   async getAnimeById(@Param("animeId", new ParseIntPipe()) animeId: number) {
     const anime = await this.animeService.getAnimeById(animeId);
 
     return { anime };
   }
   
-  @Get("/details/:animeId/episodes")
+  @Get("/detail/:animeId/episode")
   async getAnimeEpisodesById(@Param("animeId", new ParseIntPipe()) animeId: number) {
     const episodes = await this.animeService.getAnimeEpisodesById(animeId);
 

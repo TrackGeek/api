@@ -32,7 +32,7 @@ export class GameController {
     await this.gameService.refreshGame(body);
   }
 
-  @Get("/details/:gameId")
+  @Get("/detail/:gameId")
   async getGameById(@Param("gameId", new ParseIntPipe()) gameId: number) {
     const game = await this.gameService.getGameById(gameId);
 

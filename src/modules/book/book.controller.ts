@@ -21,7 +21,7 @@ export class BookController {
     await this.bookService.refreshBook(body);
   }
 
-  @Get("/details/:bookId")
+  @Get("/detail/:bookId")
   async getBookById(@Param("bookId", new ParseIntPipe()) bookId: number) {
     const book = await this.bookService.getBookById(bookId);
 
