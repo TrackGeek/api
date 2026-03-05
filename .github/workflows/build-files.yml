@@ -1,4 +1,4 @@
-name: Format
+name: Build Files
 
 on:
   push:
@@ -11,8 +11,8 @@ on:
       - develop
 
 jobs:
-  format:
-    name: Format
+  build:
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -28,5 +28,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Type check
+        run: npm run types
+
+      - name: Build
+        run: npm run build
