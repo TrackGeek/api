@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { MangaProgressService } from "./manga-progress.service";
 import { CreateOrUpdateMangaProgressDto } from "./dtos/create-or-update-manga-progress.dto";
