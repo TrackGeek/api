@@ -71,7 +71,7 @@ export class AnimeEpisodeWatchService {
               userId_animeId_episode: {
                 userId,
                 animeId,
-                episode: episode.episode,
+                episode: episode.episodeNumber,
               },
             },
             update: {
@@ -79,7 +79,7 @@ export class AnimeEpisodeWatchService {
             },
             create: {
               animeId,
-              episode: episode.episode,
+              episode: episode.episodeNumber,
               status: WatchEpisodeStatus.Completed,
               userId,
             },

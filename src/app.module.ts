@@ -41,6 +41,7 @@ import { TVShowProgressModule } from './modules/tv-show-progress/tv-show-progres
 import { MetricsInterceptor } from './shared/interceptors/metrics.interceptor';
 import { MetricsModule } from './shared/infra/metrics/metrics.module';
 import { AnimeEpisodeWatchModule } from './modules/anime-episode-watch/anime-episode-watch.module';
+import { TVShowEpisodeWatchModule } from './modules/tv-show-watch/tv-show-episode-watch.module';
 
 @Module({
   imports: [
@@ -51,7 +52,6 @@ import { AnimeEpisodeWatchModule } from './modules/anime-episode-watch/anime-epi
         { name: "write", ttl: 60_000, limit: 5, blockDuration: 300_000 },
       ],
     }),
-    
     MetricsModule,
     JwtModule.register({ global: true }),
     HttpModule.register({ global: true }),
@@ -75,6 +75,7 @@ import { AnimeEpisodeWatchModule } from './modules/anime-episode-watch/anime-epi
     MovieProgressModule,
     MovieReviewModule,
     TVShowModule,
+    TVShowEpisodeWatchModule,
     TVShowProgressModule,
     TVShowReviewModule,
     MangaModule,

@@ -32,7 +32,11 @@ export class TVShowReviewService {
         userId: createTVShowReviewDto.userId,
       },
       include: {
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -60,7 +64,11 @@ export class TVShowReviewService {
     const tvShowReview = await this.databaseService.tvShowReview.findUnique({
       where: { id: tvShowReviewId },
       include: {
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -94,7 +102,11 @@ export class TVShowReviewService {
         userId: getTVShowReviewsDto.userId,
       },
       include: {
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         user: {
           select: {
             id: true,

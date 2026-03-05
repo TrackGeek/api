@@ -94,7 +94,11 @@ export class ListService {
           }
         },
         manga: true,
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         book: true,
         game: true,
         movie: true,
@@ -203,7 +207,11 @@ export class ListService {
           }
         },
         manga: true,
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         book: true,
         game: true,
         movie: true,

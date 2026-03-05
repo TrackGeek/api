@@ -7,6 +7,160 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from '@/shared/constants/cache';
 
+export interface SearchMovieResult {
+  tmdbId: number;
+  name: string;
+  releaseDate: Date | null;
+  posterUrl: string | null;
+}
+
+export interface SearchTVShowResult {
+  tmdbId: number;
+  name: string;
+  firstAirDate: Date | null;
+  posterUrl: string | null;
+}
+
+export interface TMDBMovieDetails {
+  tmdbId: number;
+  imdbId: string | null;
+  backdropUrl: string | null;
+  belongsToCollection: {
+    name: string;
+    posterUrl: string | null;
+    backdropUrl: string | null;
+  } | null;
+  budget: number;
+  genres: string[];
+  homepage: string | null;
+  originalLanguage: string;
+  originalTitle: string;
+  overview: string | null;
+  popularity: number;
+  posterUrl: string | null;
+  productionCompanies: {
+    logoUrl: string | null;
+    name: string;
+    originCountry: string;
+  }[];
+  productionCountries: string[];
+  releaseDate: Date | null;
+  revenue: number;
+  runtime: number | null;
+  spokenLanguages: {
+    englishName: string;
+    name: string;
+    iso639_1: string;
+  }[];
+  status: string;
+  title: string;
+  cast: {
+    id: number;
+    name: string;
+    character: string;
+    profileUrl: string | null;
+  }[];
+  crew: {
+    id: number;
+    name: string;
+    job: string;
+    profileUrl: string | null;
+  }[];
+  videos: {
+    id: string;
+    key: string;
+    name: string;
+    site: string;
+    type: string;
+    publishedAt: Date | null;
+  }[];
+}
+
+export interface TMDBTVShowDetails {
+  tmdbId: number;
+  backdropUrl: string | null;
+  createdBy: {
+    id: number;
+    name: string;
+    profileUrl: string | null;
+  }[];
+  episodeRuntime: number[];
+  firstAirDate: Date | null;
+  genres: string[];
+  homepage: string | null;
+  inProduction: boolean;
+  languages: string[];
+  lastAirDate: Date | null;
+  lastEpisodeToAir: {
+    airDate: Date | null;
+    episodeNumber: number;
+    id: number;
+    name: string;
+    overview: string | null;
+    seasonNumber: number;
+    stillUrl: string | null;
+  } | null;
+  name: string;
+  nextEpisodeToAir: {
+    airDate: Date | null;
+    episodeNumber: number;
+    id: number;
+    name: string;
+    overview: string | null;
+    seasonNumber: number;
+    stillUrl: string | null;
+  } | null;
+  networks: {
+    id: number;
+    name: string;
+    originCountry: string;
+    logoUrl: string | null;
+  }[];
+  numberOfEpisodes: number;
+  numberOfSeasons: number;
+  originCountry: string[];
+  originalLanguage: string;
+  originalName: string;
+  popularity: number;
+  posterUrl: string | null;
+  productionCompanies: {
+    logoUrl: string | null;
+    name: string;
+    originCountry: string;
+  }[];
+  productionCountries: string[];
+  status: string;
+  tagline: string | null;
+  type: string;
+  cast: {
+    id: number;
+    name: string;
+    character: string;
+    profileUrl: string | null;
+  }[];
+  crew: {
+    id: number;
+    name: string;
+    job: string;
+    profileUrl: string | null;
+  }[];
+}
+
+export interface TMDBTVShowSeason {
+  id: number;
+  name: string;
+  seasonNumber: number;
+  airDate: Date | null;
+  posterUrl: string | null;
+  episodes: {
+    episodeNumber: number;
+    name: string;
+    overview: string | null;
+    airDate: Date | null;
+    stillUrl: string | null;
+  }[];
+}
+
 @Injectable()
 export class TMDBService {
   private readonly logger = new Logger(TMDBService.name);
@@ -19,9 +173,9 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchMovies(query: string): Promise<any> {
+  async searchMovies(query: string): Promise<SearchMovieResult[]> {
     try {
-      const cachedMovies = await this.cacheService.get(CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query));
+      const cachedMovies = await this.cacheService.get<SearchMovieResult[]>(CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query));
 
       if (cachedMovies) {
         return cachedMovies;
@@ -63,9 +217,9 @@ export class TMDBService {
     }
   }
 
-  async searchTVShows(query: string): Promise<any> {
+  async searchTVShows(query: string): Promise<SearchTVShowResult[]> {
     try {
-      const cachedTVShows = await this.cacheService.get(CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query));
+      const cachedTVShows = await this.cacheService.get<SearchTVShowResult[]>(CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query));
 
       if (cachedTVShows) {
         return cachedTVShows;
@@ -107,9 +261,9 @@ export class TMDBService {
     }
   }
 
-  async getMovieById(id: number): Promise<any> {
+  async getMovieById(id: number): Promise<TMDBMovieDetails> {
     try {
-      const cachedMovie = await this.cacheService.get(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id));
+      const cachedMovie = await this.cacheService.get<TMDBMovieDetails>(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id));
 
       if (cachedMovie) {
         return cachedMovie;
@@ -205,7 +359,7 @@ export class TMDBService {
           type: video.type,
           publishedAt: video.published_at ? new Date(video.published_at) : null,
         })),
-      };
+      } as TMDBMovieDetails;
 
       await this.cacheService.set(
         CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id),
@@ -225,9 +379,9 @@ export class TMDBService {
     }
   }
 
-  async getTVShowById(id: number): Promise<any> {
+  async getTVShowById(id: number): Promise<TMDBTVShowDetails> {
     try {
-      const cachedTVShow = await this.cacheService.get(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id));
+      const cachedTVShow = await this.cacheService.get<TMDBTVShowDetails>(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id));
 
       if (cachedTVShow) {
         return cachedTVShow;
@@ -252,38 +406,9 @@ export class TMDBService {
       const tvShowData = tvShowResponse.data;
       const creditsData = creditsResponse.data;
 
-      const seasons: any[] = [];
-
-      for (const season of tvShowData.seasons) {
-        const seasonResponse = await firstValueFrom(
-          this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/season/${season.season_number}`, {
-            headers: {
-              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-            },
-          }),
-        );
-
-        const seasonData = seasonResponse.data;
-
-        seasons.push({
-          id: seasonData.id,
-          name: seasonData.name,
-          seasonNumber: seasonData.season_number,
-          airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
-          posterUrl: seasonData.poster_path ? `https://image.tmdb.org/t/p/w500${seasonData.poster_path}` : null,
-          episodes: seasonData.episodes.map((episode: any) => ({
-            episodeNumber: episode.episode_number,
-            name: episode.name,
-            overview: episode.overview,
-            airDate: episode.air_date ? new Date(episode.air_date) : null,
-            stillUrl: episode.still_path ? `https://image.tmdb.org/t/p/w500${episode.still_path}` : null,
-          })),
-        });
-      }
-
       const tvShow = {
         tmdbId: tvShowData.id,
-        backdropPath: tvShowData.backdrop_path ? `https://image.tmdb.org/t/p/w500${tvShowData.backdrop_path}` : null,
+        backdropUrl: tvShowData.backdrop_path ? `https://image.tmdb.org/t/p/w500${tvShowData.backdrop_path}` : null,
         createdBy: tvShowData.created_by.map((creator: any) => ({
           id: creator.id,
           name: creator.name,
@@ -361,8 +486,7 @@ export class TMDBService {
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
-        seasons,
-      };
+      } as TMDBTVShowDetails;
 
       await this.cacheService.set(
         CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id),
@@ -377,6 +501,71 @@ export class TMDBService {
       }
       
       this.logger.error(`Failed to fetch TV show details for ID ${id} from TMDB API: ${error.message}`, error.stack);
+      
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+  
+  async getTVShowSeasonsById(id: number): Promise<TMDBTVShowSeason[]> {
+    try {
+      const cachedTVShow = await this.cacheService.get<TMDBTVShowSeason[]>(CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id));
+
+      if (cachedTVShow) {
+        return cachedTVShow;
+      }
+
+      const tvShowResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/tv/${id}`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+      
+      const tvShowData = tvShowResponse.data;
+      
+      const seasons: any[] = [];
+
+      for (const season of tvShowData.seasons) {
+        const seasonResponse = await firstValueFrom(
+          this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/season/${season.season_number}`, {
+            headers: {
+              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+            },
+          }),
+        );
+
+        const seasonData = seasonResponse.data;
+
+        seasons.push({
+          id: seasonData.id,
+          name: seasonData.name,
+          seasonNumber: seasonData.season_number,
+          airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
+          posterUrl: seasonData.poster_path ? `https://image.tmdb.org/t/p/w500${seasonData.poster_path}` : null,
+          episodes: seasonData.episodes.map((episode: any) => ({
+            episodeNumber: episode.episode_number,
+            name: episode.name,
+            overview: episode.overview,
+            airDate: episode.air_date ? new Date(episode.air_date) : null,
+            stillUrl: episode.still_path ? `https://image.tmdb.org/t/p/w500${episode.still_path}` : null,
+          })),
+        });
+      }
+
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id),
+        seasons,
+        CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.expiration,
+      );
+
+      return seasons;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+      }
+      
+      this.logger.error(`Failed to fetch TV show seasons for ID ${id} from TMDB API: ${error.message}`, error.stack);
       
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }

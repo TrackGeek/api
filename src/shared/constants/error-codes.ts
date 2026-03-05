@@ -195,4 +195,8 @@ export const ERROR_CODES = {
     code: "ANIME_EPISODES_NOT_FOUND",
     status: 404,
   },
+  TV_SHOW_SEASONS_NOT_FOUND: {
+    code: "TV_SHOW_SEASONS_NOT_FOUND",
+    status: 404,
+  },
 } as const;

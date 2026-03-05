@@ -9,6 +9,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import { RefreshMovieDto } from "./dtos/refresh-movie.dto";
 import type { SearchMovieDto } from "./dtos/search-movie.dto";
 import { CACHE_KEYS } from '@/shared/constants/cache';
+import { MovieCreateInput, MovieUpdateInput } from '@prisma/generated/models';
 
 @Injectable()
 export class MovieService {
@@ -37,7 +38,7 @@ export class MovieService {
       const tmdbMovie = await this.integrationsService.tmdb.getMovieById(id);
 
       movie = await this.databaseService.movie.create({
-        data: tmdbMovie,
+        data: tmdbMovie as MovieCreateInput,
       });
     }
 
@@ -67,7 +68,7 @@ export class MovieService {
 
     await this.databaseService.movie.update({
       where: { tmdbId: refreshMovieDto.id },
-      data: tmdbMovie,
+      data: tmdbMovie as MovieUpdateInput,
     });
 
     await this.cacheService.set(

@@ -45,7 +45,11 @@ export class TVShowProgressService {
         tvShowId: getTVShowProgressDto.tvShowId,
       },
       include: {
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         user: {
           select: {
             id: true,

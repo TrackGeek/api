@@ -289,7 +289,7 @@ export class JikanService {
         ? episodesData.map((video) => ({
             malId: video.mal_id,
             title: video.title,
-            episode: video.episode,
+            episodeNumber: video.episode,
             imageUrl: video.images?.jpg?.image_url ?? null,
           }))
         : []

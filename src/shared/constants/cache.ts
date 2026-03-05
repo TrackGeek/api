@@ -8,6 +8,7 @@ export const CACHE_KEYS: CacheKeys<
   "MANGA_BY_MAL_ID" |
   "MOVIE_BY_IMDB_ID" |
   "TV_SHOW_BY_TMDB_ID" |
+  "TV_SHOW_SEASONS_BY_TMDB_ID" |
   "HARDCOVER_SEARCH_BOOKS" |
   "HARDCOVER_BOOK_BY_ID" |
   "IGDB_ACCESS_TOKEN" |
@@ -21,7 +22,8 @@ export const CACHE_KEYS: CacheKeys<
   "TMDB_SEARCH_MOVIES" |
   "TMDB_SEARCH_TV_SHOWS" |
   "TMDB_MOVIE_BY_ID" |
-  "TMDB_TV_SHOW_BY_ID"
+  "TMDB_TV_SHOW_BY_ID" |
+  "TMDB_TV_SHOW_SEASONS_BY_ID"
 > = {
   ANIME_BY_MAL_ID: {
     prefix: (malId: number) => `anime:malId:${malId}`,
@@ -49,6 +51,10 @@ export const CACHE_KEYS: CacheKeys<
   },
   TV_SHOW_BY_TMDB_ID: {
     prefix: (tmdbId: number) => `tvShow:tmdbId:${tmdbId}`,
+    expiration: 3600 * 24,
+  },
+  TV_SHOW_SEASONS_BY_TMDB_ID: {
+    prefix: (tmdbId: number) => `tvShow:tmdbId:${tmdbId}:season`,
     expiration: 3600 * 24,
   },
   HARDCOVER_SEARCH_BOOKS: {
@@ -105,6 +111,10 @@ export const CACHE_KEYS: CacheKeys<
   },
   TMDB_TV_SHOW_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:tvShow:id:${tmdbId}`,
+    expiration: 3600 * 24,
+  },
+  TMDB_TV_SHOW_SEASONS_BY_ID: {
+    prefix: (tmdbId: number) => `tmdb:tvShow:id:${tmdbId}:season`,
     expiration: 3600 * 24,
   },
 }

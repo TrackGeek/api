@@ -9,6 +9,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import { RefreshTVShowDto } from "./dtos/refresh-tv-show.dto";
 import type { SearchTVShowDto } from "./dtos/search-tv-show.dto";
 import { CACHE_KEYS } from '@/shared/constants/cache';
+import { TvShowCreateInput, TvShowUpdateInput } from '@prisma/generated/models';
 
 @Injectable()
 export class TVShowService {
@@ -37,13 +38,51 @@ export class TVShowService {
       const tmdbTVShow = await this.integrationsService.tmdb.getTVShowById(tmdbId);
 
       tvShow = await this.databaseService.tvShow.create({
-        data: tmdbTVShow,
+        data: tmdbTVShow as TvShowCreateInput,
       });
     }
 
     await this.cacheService.set(CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId), tvShow, CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration);
 
     return tvShow;
+  }
+  
+  async getTVShowSeasonsByTmdbId(tmdbId: number) {
+    const cachedSeasons = await this.cacheService.get(CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId));
+    
+    if (cachedSeasons) {
+      return cachedSeasons;
+    }
+    
+    const tvShow = await this.databaseService.tvShow.findUnique({
+      where: { tmdbId },
+      select: {
+        seasons: true,
+      }
+    });
+    
+    if (!tvShow) {
+      throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+    }
+    
+    let seasons: any = tvShow.seasons;
+    
+    if (!seasons) {
+      seasons = await this.integrationsService.tmdb.getTVShowSeasonsById(tmdbId);
+      
+      await this.databaseService.tvShow.update({
+        where: { tmdbId },
+        data: { seasons },
+      });
+    }
+    
+    await this.cacheService.set(
+      CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId),
+      seasons,
+      CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.expiration,
+    );
+    
+    return seasons;
   }
 
   async refreshTVShow(refreshTVShowDto: RefreshTVShowDto) {
@@ -70,7 +109,7 @@ export class TVShowService {
 
     await this.databaseService.tvShow.update({
       where: { tmdbId: refreshTVShowDto.tmdbId },
-      data: tmdbTVShow,
+      data: tmdbTVShow as TvShowUpdateInput,
     });
 
     await this.cacheService.set(
