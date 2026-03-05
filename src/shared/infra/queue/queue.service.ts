@@ -1,9 +1,9 @@
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { JobsOptions, Queue } from "bullmq";
-import { FeedEventDto } from "@/modules/feed-event/dtos/feed-event.dto";
-import { MagicLinkEmailDto } from "../email/dtos/magic-link-email.dto";
-import { ResetPasswordEmailDto } from "../email/dtos/reset-password-email.dto";
+import { FeedEventDto } from "@/modules/feed-event/dto/feed-event.dto";
+import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
+import { ResetPasswordEmailDto } from "../email/dto/reset-password-email.dto";
 import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 import {
   FEED_EVENT_JOB,

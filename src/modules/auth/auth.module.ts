@@ -4,9 +4,9 @@ import { AuthModule as BetterAuthModule } from "@thallesp/nestjs-better-auth";
 import { betterAuth } from "better-auth";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
-import { ProfileService } from "../profile/profile.service";
-import { UserService } from "../user/user.service";
+import { UserService } from "../user/service/user.service";
 import { getAuthConfig } from "./config/auth.config";
+import { ProfileService } from '../profile/service/profile.service';
 
 @Global()
 @Module({

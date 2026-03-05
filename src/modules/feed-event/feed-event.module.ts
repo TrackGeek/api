@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { FeedEventController } from "./feed-event.controller";
-import { FeedEventService } from "./feed-event.service";
+import { FeedEventController } from "./controller/feed-event.controller";
+import { FeedEventService } from "./service/feed-event.service";
 
 @Module({
   imports: [],

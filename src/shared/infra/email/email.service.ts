@@ -5,8 +5,8 @@ import { ConfigService } from "@nestjs/config";
 import handlebars from "handlebars";
 import { ResendService } from "nestjs-resend";
 import { extractNameFromEmail } from "@/shared/utils/email";
-import { MagicLinkEmailDto } from "./dtos/magic-link-email.dto";
-import { ResetPasswordEmailDto } from "./dtos/reset-password-email.dto";
+import { MagicLinkEmailDto } from "./dto/magic-link-email.dto";
+import { ResetPasswordEmailDto } from "./dto/reset-password-email.dto";
 
 @Injectable()
 export class EmailService {
