@@ -3,9 +3,9 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import { SearchMangaDto } from "../dto/search-manga.dto";
 import { MangaService } from "../service/manga.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Manga')
+@ApiTags("Manga")
 @Controller("/manga")
 export class MangaController {
   constructor(private readonly mangaService: MangaService) {}

@@ -16,9 +16,9 @@ import { AddFavoriteDto } from "../dto/add-favorite.dto";
 import { GetFavoritesByUserIdDto } from "../dto/get-favorites-by-user-id.dto";
 import { RemoveFavoriteDto } from "../dto/remove-favorite.dto";
 import { FavoriteService } from "../service/favorite.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Favorite')
+@ApiTags("Favorite")
 @Controller("/favorite")
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}

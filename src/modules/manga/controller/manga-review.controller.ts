@@ -17,9 +17,9 @@ import { CreateMangaReviewDto } from "../dto/create-manga-review.dto";
 import { GetMangaReviewsDto } from "../dto/get-manga-reviews.dto";
 import { UpdateMangaReviewDto } from "../dto/update-manga-review.dto";
 import { MangaReviewService } from "../service/manga-review.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Manga')
+@ApiTags("Manga")
 @Controller("/manga/review")
 export class MangaReviewController {
   constructor(private readonly mangaReviewService: MangaReviewService) {}

@@ -6,7 +6,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { UserService } from "../user/service/user.service";
 import { getAuthConfig } from "./config/auth.config";
-import { ProfileService } from '../profile/service/profile.service';
+import { ProfileService } from "../profile/service/profile.service";
 
 @Global()
 @Module({

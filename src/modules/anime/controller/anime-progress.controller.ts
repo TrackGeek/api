@@ -3,9 +3,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { AnimeProgressService } from "../service/anime-progress.service";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Anime')
+@ApiTags("Anime")
 @Controller("/anime/progress")
 export class AnimeProgressController {
   constructor(private readonly animeProgressService: AnimeProgressService) {}

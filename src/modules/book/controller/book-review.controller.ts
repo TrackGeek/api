@@ -17,9 +17,9 @@ import { BookReviewService } from "../service/book-review.service";
 import { CreateBookReviewDto } from "../dto/create-book-review.dto";
 import { GetBookReviewsDto } from "../dto/get-book-reviews.dto";
 import { UpdateBookReviewDto } from "../dto/update-book-review.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Book')
+@ApiTags("Book")
 @Controller("/book/review")
 export class BookReviewController {
   constructor(private readonly bookReviewService: BookReviewService) {}

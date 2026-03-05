@@ -15,9 +15,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { CreateReactionDto } from "../dto/create-reaction.dto";
 import { GetReactionsDto } from "../dto/get-reactions.dto";
 import { ReactionService } from "../service/reaction.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Reaction')
+@ApiTags("Reaction")
 @Controller("/reaction")
 export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}

@@ -3,9 +3,9 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { BookService } from "../service/book.service";
 import { RefreshBookDto } from "../dto/refresh-book.dto";
 import { SearchBookDto } from "../dto/search-book.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Book')
+@ApiTags("Book")
 @Controller("/book")
 export class BookController {
   constructor(private readonly bookService: BookService) {}

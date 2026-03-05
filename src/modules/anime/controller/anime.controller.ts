@@ -3,9 +3,9 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { AnimeService } from "../service/anime.service";
 import { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import { SearchAnimeDto } from "../dto/search-anime.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Anime')
+@ApiTags("Anime")
 @Controller("/anime")
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}

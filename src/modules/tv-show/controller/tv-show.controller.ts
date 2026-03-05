@@ -3,9 +3,9 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { SearchTVShowDto } from "../dto/search-tv-show.dto";
 import { TVShowService } from "../service/tv-show.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('TV Show')
+@ApiTags("TV Show")
 @Controller("/tv")
 export class TVShowController {
   constructor(private readonly tvShowService: TVShowService) {}

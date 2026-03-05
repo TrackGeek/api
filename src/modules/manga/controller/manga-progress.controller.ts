@@ -3,9 +3,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { MangaProgressService } from "../service/manga-progress.service";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
 import { GetMangaProgressesByUserIdDto } from "../dto/get-manga-progresses-by-user-id.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Manga')
+@ApiTags("Manga")
 @Controller("/manga/progress")
 export class MangaProgressController {
   constructor(private readonly mangaProgressService: MangaProgressService) {}

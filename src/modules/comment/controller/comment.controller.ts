@@ -15,9 +15,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { CommentService } from "../service/comment.service";
 import { CreateCommentDto } from "../dto/create-comment.dto";
 import { GetCommentsDto } from "../dto/get-comments.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Comment')
+@ApiTags("Comment")
 @Controller("/comment")
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}

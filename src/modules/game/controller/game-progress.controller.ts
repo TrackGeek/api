@@ -3,9 +3,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { GameProgressService } from "../service/game-progress.service";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Game')
+@ApiTags("Game")
 @Controller("/game/progress")
 export class GameProgressController {
   constructor(private readonly gameProgressService: GameProgressService) {}

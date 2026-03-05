@@ -4,9 +4,9 @@ import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-
 import { TVShowEpisodeWatchService } from "../service/tv-show-episode-watch.service";
 import { GetTVShowEpisodeWatchDto } from "../dto/get-tv-show-episode-watch.dto";
 import { WatchAllEpisodesOfTVShowDto } from "../dto/watch-all-episodes-of-tv-show.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('TV Show')
+@ApiTags("TV Show")
 @Controller("/tv/episode/watch")
 export class TVShowEpisodeWatchController {
   constructor(private readonly tvShowEpisodeWatchService: TVShowEpisodeWatchService) {}

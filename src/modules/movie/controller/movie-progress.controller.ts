@@ -3,9 +3,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { MovieProgressService } from "../service/movie-progress.service";
 import { CreateOrUpdateMovieProgressDto } from "../dto/create-or-update-movie-progress.dto";
 import { GetMovieProgressDto } from "../dto/get-movie-progress.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Movie')
+@ApiTags("Movie")
 @Controller("/movie/progress")
 export class MovieProgressController {
   constructor(private readonly movieProgressService: MovieProgressService) {}

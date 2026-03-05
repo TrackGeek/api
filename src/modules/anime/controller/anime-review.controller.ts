@@ -17,9 +17,9 @@ import { AnimeReviewService } from "../service/anime-review.service";
 import { CreateAnimeReviewDto } from "../dto/create-anime-review.dto";
 import { GetAnimeReviewsDto } from "../dto/get-anime-reviews.dto";
 import { UpdateAnimeReviewDto } from "../dto/update-anime-review.dto";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Anime')
+@ApiTags("Anime")
 @Controller("/anime/review")
 export class AnimeReviewController {
   constructor(private readonly animeReviewService: AnimeReviewService) {}

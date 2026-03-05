@@ -3,9 +3,9 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { RefreshGameDto } from "../dto/refresh-game.dto";
 import { SearchGameDto } from "../dto/search-game.dto";
 import { GameService } from "../service/game.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Game')
+@ApiTags("Game")
 @Controller("/game")
 export class GameController {
   constructor(private readonly gameService: GameService) {}

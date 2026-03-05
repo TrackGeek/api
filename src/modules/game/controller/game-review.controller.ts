@@ -16,9 +16,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { CreateGameReviewDto } from "../dto/create-game-review.dto";
 import { GetGameReviewsDto } from "../dto/get-game-reviews.dto";
 import { GameReviewService } from "../service/game-review.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Game')
+@ApiTags("Game")
 @Controller("/game/review")
 export class GameReviewController {
   constructor(private readonly gameReviewService: GameReviewService) {}

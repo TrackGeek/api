@@ -3,9 +3,9 @@ import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import { SearchMovieDto } from "../dto/search-movie.dto";
 import { MovieService } from "../service/movie.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Movie')
+@ApiTags("Movie")
 @Controller("/movie")
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}

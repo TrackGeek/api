@@ -3,9 +3,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { GetFeedEventsDto } from "../dto/get-feed-events.dto";
 import { GetFeedEventsByUserDto } from "../dto/get-feed-events-by-user.dto";
 import { FeedEventService } from "../service/feed-event.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Feed Event')
+@ApiTags("Feed Event")
 @Controller("/feed")
 export class FeedEventController {
   constructor(private readonly feedEventService: FeedEventService) {}

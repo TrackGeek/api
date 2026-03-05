@@ -18,9 +18,9 @@ import { GetItemsByListIdDto } from "../dto/get-items-by-list-id.dto";
 import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
 import { ListService } from "../service/list.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('List')
+@ApiTags("List")
 @Controller("/list")
 export class ListController {
   constructor(private readonly listService: ListService) {}

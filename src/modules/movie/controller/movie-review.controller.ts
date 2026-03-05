@@ -16,9 +16,9 @@ import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-au
 import { CreateMovieReviewDto } from "../dto/create-movie-review.dto";
 import { GetMovieReviewsDto } from "../dto/get-movie-reviews.dto";
 import { MovieReviewService } from "../service/movie-review.service";
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Movie')
+@ApiTags("Movie")
 @Controller("/movie/review")
 export class MovieReviewController {
   constructor(private readonly movieReviewService: MovieReviewService) {}
