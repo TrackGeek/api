@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
 import type { SearchGameDto } from "./dtos/search-game.dto";
+import { CACHE_KEYS } from '@/shared/constants/cache';
 
 @Injectable()
 export class GameService {
@@ -18,46 +19,40 @@ export class GameService {
     private readonly integrationsService: IntegrationsService,
   ) {}
 
-  private get cacheKeys(): CacheKeys {
-    return {
-      gameById: {
-        prefix: (id: number) => `game:id:${id}`,
-        expiration: 3600 * 6, // 6 hours
-      },
-    };
-  }
-
   async searchGames(searchGameDto: SearchGameDto) {
     return this.integrationsService.igdb.searchGames(searchGameDto.query);
   }
 
-  async getGameById(id: number) {
-    const cachedGame = await this.cacheService.get<Game>(this.cacheKeys.gameById.prefix(id));
+  async getGameByIgdbId(igdbId: number) {
+    const cachedGame = await this.cacheService.get<Game>(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId));
 
     if (cachedGame) {
       return cachedGame;
     }
 
     let game = await this.databaseService.game.findUnique({
-      where: { igdbId: id },
+      where: { igdbId },
     });
 
     if (!game) {
-      const igdbGame = await this.integrationsService.igdb.getGameById(id);
+      const igdbGame = await this.integrationsService.igdb.getGameById(igdbId);
 
       game = await this.databaseService.game.create({
         data: igdbGame,
       });
     }
 
-    await this.cacheService.set(this.cacheKeys.gameById.prefix(id), game, this.cacheKeys.gameById.expiration);
+    await this.cacheService.set(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId), game, CACHE_KEYS.GAME_BY_IGDB_ID.expiration);
 
     return game;
   }
 
   async refreshGame(refreshGameDto: RefreshGameDto) {
     const game = await this.databaseService.game.findUnique({
-      where: { igdbId: refreshGameDto.id },
+      where: { igdbId: refreshGameDto.igdbId },
+      select: {
+        lastRefreshedAt: true,
+      }
     });
 
     if (!game) {
@@ -68,17 +63,17 @@ export class GameService {
       throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
     }
 
-    if (await this.cacheService.exists(this.cacheKeys.gameById.prefix(game.igdbId))) {
-      await this.cacheService.delete(this.cacheKeys.gameById.prefix(game.igdbId));
+    if (await this.cacheService.exists(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId))) {
+      await this.cacheService.delete(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId));
     }
 
-    const igdbGame = await this.integrationsService.igdb.getGameById(game.igdbId);
+    const igdbGame = await this.integrationsService.igdb.getGameById(refreshGameDto.igdbId);
 
     await this.databaseService.game.update({
-      where: { igdbId: refreshGameDto.id },
+      where: { igdbId: refreshGameDto.igdbId },
       data: igdbGame,
     });
 
-    await this.cacheService.set(this.cacheKeys.gameById.prefix(game.igdbId), game, this.cacheKeys.gameById.expiration);
+    await this.cacheService.set(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId), game, CACHE_KEYS.GAME_BY_IGDB_ID.expiration);
   }
 }

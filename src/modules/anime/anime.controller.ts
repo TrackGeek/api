@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -15,11 +13,11 @@ import { AnimeService } from "./anime.service";
 import { RefreshAnimeDto } from "./dtos/refresh-anime.dto";
 import { SearchAnimeDto } from "./dtos/search-anime.dto";
 
-@Controller("anime")
+@Controller("/anime")
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchAnimes(@Query() query: SearchAnimeDto) {
     const animes = await this.animeService.searchAnimes(query);
 
@@ -32,10 +30,17 @@ export class AnimeController {
     await this.animeService.refreshAnime(body);
   }
 
-  @Get("/details/:animeId")
-  async getAnimeById(@Param("animeId", new ParseIntPipe()) animeId: number) {
-    const anime = await this.animeService.getAnimeById(animeId);
+  @Get("/detail/:malId")
+  async getAnimeByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
+    const anime = await this.animeService.getAnimeByMalId(malId);
 
     return { anime };
+  }
+  
+  @Get("/detail/:malId/episode")
+  async getAnimeEpisodesByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
+    const episodes = await this.animeService.getAnimeEpisodesByMalId(malId);
+
+    return { episodes };
   }
 }

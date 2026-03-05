@@ -17,11 +17,11 @@ import { GetFavoritesByUserIdDto } from "./dtos/get-favorites-by-user-id.dto";
 import { RemoveFavoriteDto } from "./dtos/remove-favorite.dto";
 import { FavoriteService } from "./favorite.service";
 
-@Controller("favorite")
+@Controller("/favorite")
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async addFavorite(@Session() session: UserSession, @Body() body: AddFavoriteDto) {
@@ -31,7 +31,7 @@ export class FavoriteController {
     });
   }
 
-  @Delete()
+  @Delete("/")
   @UseGuards(AuthGuard)
   async removeFavorite(@Session() session: UserSession, @Body() body: RemoveFavoriteDto) {
     await this.favoriteService.removeFavorite({

@@ -10,6 +10,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+      const message = exception.getResponse();
+
+      if (status === 404) {
+        return response.status(status).json(ERROR_CODES.NOT_FOUND);
+      }
+
+      const isAppException = typeof message === "object" && message !== null && "code" in message;
+
+      if (isAppException) {
+        return response.status(status).json(message?.["code"]);
+      }
+
+      return response.status(status).json({ code: message, status });
+    }
+    
+    this.logger.error("Unhandled exception occurred:", exception instanceof Error ? exception.stack : exception);
 
     if (exception instanceof Prisma.PrismaClientValidationError) {
       const databaseValidationError = ERROR_CODES.DATABASE_VALIDATION_ERROR;
@@ -30,25 +49,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return response.status(databaseItemNotFoundError.status).json(databaseItemNotFoundError);
       }
     }
-
-    if (exception instanceof HttpException) {
-      const status = exception.getStatus();
-      const message = exception.getResponse();
-
-      if (status === 404) {
-        return response.status(status).json(ERROR_CODES.NOT_FOUND);
-      }
-
-      const isAppException = typeof message === "object" && message !== null && "code" in message;
-
-      if (isAppException) {
-        return response.status(status).json(message?.["code"]);
-      }
-
-      return response.status(status).json({ code: message, status });
-    }
-
-    this.logger.error("Unhandled exception occurred:", exception instanceof Error ? exception.stack : exception);
 
     const internalError = ERROR_CODES.INTERNAL_SERVER_ERROR;
 

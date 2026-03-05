@@ -18,6 +18,12 @@ export class UserService {
       where: { id },
       include: {
         profile: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+          },
+        }
       },
       omit: {
         image: true,
@@ -105,7 +111,7 @@ export class UserService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewFollower,
       userId,
-      metadata: { following },
+      metadata: { ...following },
     });
   }
 

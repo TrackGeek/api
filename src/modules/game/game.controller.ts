@@ -15,11 +15,11 @@ import { RefreshGameDto } from "./dtos/refresh-game.dto";
 import { SearchGameDto } from "./dtos/search-game.dto";
 import { GameService } from "./game.service";
 
-@Controller("game")
+@Controller("/game")
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchGames(@Query() query: SearchGameDto) {
     const games = await this.gameService.searchGames(query);
 
@@ -32,9 +32,9 @@ export class GameController {
     await this.gameService.refreshGame(body);
   }
 
-  @Get("/details/:gameId")
-  async getGameById(@Param("gameId", new ParseIntPipe()) gameId: number) {
-    const game = await this.gameService.getGameById(gameId);
+  @Get("/detail/:igdbId")
+  async getGameByIgdbId(@Param("igdbId", new ParseIntPipe()) igdbId: number) {
+    const game = await this.gameService.getGameByIgdbId(igdbId);
 
     return { game };
   }

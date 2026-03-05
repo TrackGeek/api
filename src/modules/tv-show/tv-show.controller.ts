@@ -4,11 +4,11 @@ import { RefreshTVShowDto } from "./dtos/refresh-tv-show.dto";
 import { SearchTVShowDto } from "./dtos/search-tv-show.dto";
 import { TVShowService } from "./tv-show.service";
 
-@Controller("tv")
+@Controller("/tv")
 export class TVShowController {
   constructor(private readonly tvShowService: TVShowService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchTVShows(@Query() query: SearchTVShowDto) {
     const tvShows = await this.tvShowService.searchTVShows(query);
 
@@ -21,10 +21,17 @@ export class TVShowController {
     await this.tvShowService.refreshTVShow(body);
   }
 
-  @Get("/details/:tvShowId")
-  async getTVShowById(@Param("tvShowId", new ParseIntPipe()) tvShowId: number) {
-    const tvShow = await this.tvShowService.getTVShowById(tvShowId);
+  @Get("/detail/:tmdbId")
+  async getTVShowByTmdbId(@Param("tmdbId", new ParseIntPipe()) tmdbId: number) {
+    const tvShow = await this.tvShowService.getTVShowByTmdbId(tmdbId);
 
     return { tvShow };
+  }
+  
+  @Get("/detail/:tmdbId/season")
+  async getTVShowSeasonsByTmdbId(@Param("tmdbId", new ParseIntPipe()) tmdbId: number) {
+    const seasons = await this.tvShowService.getTVShowSeasonsByTmdbId(tmdbId);
+
+    return { seasons };
   }
 }

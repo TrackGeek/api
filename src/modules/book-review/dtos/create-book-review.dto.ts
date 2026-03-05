@@ -1,4 +1,4 @@
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
 
 export class CreateBookReviewDto {
   @IsDecimal()
@@ -37,6 +37,7 @@ export class CreateBookReviewDto {
   readonly recommended?: boolean;
 
   @IsNotEmpty()
+  @IsUUID()
   readonly bookId: string;
 
   readonly userId: string;

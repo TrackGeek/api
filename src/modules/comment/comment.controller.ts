@@ -16,11 +16,11 @@ import { CommentService } from "./comment.service";
 import { CreateCommentDto } from "./dtos/create-comment.dto";
 import { GetCommentsDto } from "./dtos/get-comments.dto";
 
-@Controller("comment")
+@Controller("/comment")
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async addCommentToProfile(@Session() session: UserSession, @Body() body: CreateCommentDto) {
@@ -30,7 +30,7 @@ export class CommentController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getComments(@Query() body: GetCommentsDto) {
     const comments = await this.commentService.getComments(body);
 

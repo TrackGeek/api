@@ -2,18 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { InjectRedis } from "@nestjs-redis/client";
 import type { RedisClientType } from "redis";
 
-export interface CacheKeys {
-  [key: string]: {
-    prefix: (...args: any[]) => string;
-    expiration: number;
-  };
-}
+export type CacheKeys<Keys extends string> = Record<Keys, {
+  prefix: (...args: any[]) => string;
+  expiration: number;
+}>;
 
 @Injectable()
 export class CacheService {
   constructor(
     @InjectRedis()
-    private readonly redis: RedisClientType,
+    readonly redis: RedisClientType,
   ) {}
 
   async set<T>(key: string, data: T, exp: number = 180): Promise<void> {
@@ -40,14 +38,6 @@ export class CacheService {
     }
 
     return value;
-  }
-
-  async getTTL(key: string): Promise<number> {
-    return await this.redis.ttl(key);
-  }
-
-  async setWithExpiry(key: string, value: string, seconds: number): Promise<void> {
-    await this.redis.setEx(key, seconds, value);
   }
 
   async exists(key: string): Promise<boolean> {

@@ -18,11 +18,11 @@ import { GetMangaReviewsDto } from "./dtos/get-manga-reviews.dto";
 import { UpdateMangaReviewDto } from "./dtos/update-manga-review.dto";
 import { MangaReviewService } from "./manga-review.service";
 
-@Controller("manga/review")
+@Controller("/manga/review")
 export class MangaReviewController {
   constructor(private readonly mangaReviewService: MangaReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createMangaReview(@Session() session: UserSession, @Body() body: CreateMangaReviewDto) {
@@ -32,7 +32,7 @@ export class MangaReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getMangaReviews(@Query() query: GetMangaReviewsDto) {
     const mangaReviews = await this.mangaReviewService.getMangaReviews(query);
 

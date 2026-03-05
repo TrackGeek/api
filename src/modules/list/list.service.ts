@@ -51,7 +51,7 @@ export class ListService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewList,
       userId,
-      metadata: { list },
+      metadata: { ...list },
     });
   }
 
@@ -88,9 +88,17 @@ export class ListService {
         ...entityId,
       },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         manga: true,
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         book: true,
         game: true,
         movie: true,
@@ -119,7 +127,7 @@ export class ListService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewListItem,
       userId,
-      metadata: { listItem },
+      metadata: { ...listItem },
     });
   }
 
@@ -193,9 +201,17 @@ export class ListService {
       page: getItemsByListIdDto.page,
       where: { listId: getItemsByListIdDto.listId },
       include: {
-        anime: true,
+        anime: {
+          omit: {
+            episodes: true,
+          }
+        },
         manga: true,
-        tvShow: true,
+        tvShow: {
+          omit: {
+            seasons: true,
+          }
+        },
         book: true,
         game: true,
         movie: true,

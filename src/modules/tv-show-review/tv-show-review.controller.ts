@@ -18,11 +18,11 @@ import { GetTVShowReviewsDto } from "./dtos/get-tv-show-reviews.dto";
 import { UpdateTVShowReviewDto } from "./dtos/update-tv-show-review.dto";
 import { TVShowReviewService } from "./tv-show-review.service";
 
-@Controller("tv/review")
+@Controller("/tv/review")
 export class TVShowReviewController {
   constructor(private readonly tvShowReviewService: TVShowReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createTVShowReview(@Session() session: UserSession, @Body() body: CreateTVShowReviewDto) {
@@ -32,7 +32,7 @@ export class TVShowReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getTVShowReviews(@Query() query: GetTVShowReviewsDto) {
     const tvShowReviews = await this.tvShowReviewService.getTVShowReviews(query);
 

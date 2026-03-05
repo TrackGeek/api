@@ -4,11 +4,11 @@ import { BookService } from "./book.service";
 import { RefreshBookDto } from "./dtos/refresh-book.dto";
 import { SearchBookDto } from "./dtos/search-book.dto";
 
-@Controller("book")
+@Controller("/book")
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchBooks(@Query() query: SearchBookDto) {
     const books = await this.bookService.searchBooks(query);
 
@@ -21,9 +21,9 @@ export class BookController {
     await this.bookService.refreshBook(body);
   }
 
-  @Get("/details/:bookId")
-  async getBookById(@Param("bookId", new ParseIntPipe()) bookId: number) {
-    const book = await this.bookService.getBookById(bookId);
+  @Get("/detail/:hardcoverId")
+  async getBookByHardcoverId(@Param("hardcoverId", new ParseIntPipe()) hardcoverId: number) {
+    const book = await this.bookService.getBookByHardcoverId(hardcoverId);
 
     return { book };
   }

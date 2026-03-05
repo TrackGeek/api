@@ -95,11 +95,11 @@ export const ERROR_CODES = {
     code: "BOOK_NOT_FOUND",
     status: 404,
   },
-  TVSHOW_NOT_FOUND: {
+  TV_SHOW_NOT_FOUND: {
     code: "TVSHOW_NOT_FOUND",
     status: 404,
   },
-  TVSHOW_ALREADY_REFRESHED: {
+  TV_SHOW_ALREADY_REFRESHED: {
     code: "TVSHOW_ALREADY_REFRESHED",
     status: 409,
   },
@@ -178,5 +178,25 @@ export const ERROR_CODES = {
   REVIEW_ALREADY_EXISTS: {
     code: "REVIEW_ALREADY_EXISTS",
     status: 409,
+  },
+  PROGRESS_NOT_FOUND: {
+    code: "PROGRESS_NOT_FOUND",
+    status: 404,
+  },
+  INVALID_CHAPTERS_READ: {
+    code: "INVALID_CHAPTERS_READ",
+    status: 400,
+  },
+  INVALID_EPISODES_WATCHED: {
+    code: "INVALID_EPISODES_WATCHED",
+    status: 400,
+  },
+  ANIME_EPISODES_NOT_FOUND: {
+    code: "ANIME_EPISODES_NOT_FOUND",
+    status: 404,
+  },
+  TV_SHOW_SEASONS_NOT_FOUND: {
+    code: "TV_SHOW_SEASONS_NOT_FOUND",
+    status: 404,
   },
 } as const;

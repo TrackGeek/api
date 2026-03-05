@@ -10,7 +10,6 @@ export async function setupDocs(app: INestApplication): Promise<void> {
 
   const mergedDocument = await buildMergedDocument(app, betterAuthInstance);
 
-  // Override helmet's strict CSP for the /docs route so Scalar's CDN script and inline scripts are allowed.
   app.use("/docs", (_req: any, res: any, next: any) => {
     res.setHeader(
       "Content-Security-Policy",

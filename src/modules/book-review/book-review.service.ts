@@ -51,7 +51,7 @@ export class BookReviewService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId: createBookReviewDto.userId,
-      metadata: { bookReview },
+      metadata: { ...bookReview },
     });
   }
 

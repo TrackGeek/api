@@ -4,11 +4,11 @@ import { RefreshMovieDto } from "./dtos/refresh-movie.dto";
 import { SearchMovieDto } from "./dtos/search-movie.dto";
 import { MovieService } from "./movie.service";
 
-@Controller("movie")
+@Controller("/movie")
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchMovies(@Query() searchMovieDto: SearchMovieDto) {
     const movies = await this.movieService.searchMovies(searchMovieDto);
 
@@ -21,7 +21,7 @@ export class MovieController {
     await this.movieService.refreshMovie(refreshMovieDto);
   }
 
-  @Get("/details/:movieId")
+  @Get("/detail/:movieId")
   async getMovieById(@Param("movieId", new ParseIntPipe()) movieId: number) {
     const movie = await this.movieService.getMovieById(movieId);
 

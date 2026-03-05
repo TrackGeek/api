@@ -4,11 +4,11 @@ import { RefreshMangaDto } from "./dtos/refresh-manga.dto";
 import { SearchMangaDto } from "./dtos/search-manga.dto";
 import { MangaService } from "./manga.service";
 
-@Controller("manga")
+@Controller("/manga")
 export class MangaController {
   constructor(private readonly mangaService: MangaService) {}
 
-  @Get("search")
+  @Get("/search")
   async searchMangas(@Query() query: SearchMangaDto) {
     const mangas = await this.mangaService.searchMangas(query);
 
@@ -21,9 +21,9 @@ export class MangaController {
     await this.mangaService.refreshManga(refreshMangaDto);
   }
 
-  @Get("/details/:mangaId")
-  async getMangaById(@Param("mangaId", new ParseIntPipe()) mangaId: number) {
-    const manga = await this.mangaService.getMangaById(mangaId);
+  @Get("/detail/:malId")
+  async getMangaByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
+    const manga = await this.mangaService.getMangaByMalId(malId);
 
     return { manga };
   }

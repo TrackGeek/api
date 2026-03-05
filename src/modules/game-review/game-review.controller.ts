@@ -17,11 +17,11 @@ import { CreateGameReviewDto } from "./dtos/create-game-review.dto";
 import { GetGameReviewsDto } from "./dtos/get-game-reviews.dto";
 import { GameReviewService } from "./game-review.service";
 
-@Controller("game/review")
+@Controller("/game/review")
 export class GameReviewController {
   constructor(private readonly gameReviewService: GameReviewService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createGameReview(@Session() session: UserSession, @Body() body: CreateGameReviewDto) {
@@ -31,7 +31,7 @@ export class GameReviewController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getGameReviews(@Query() query: GetGameReviewsDto) {
     const gameReviews = await this.gameReviewService.getGameReviews(query);
 

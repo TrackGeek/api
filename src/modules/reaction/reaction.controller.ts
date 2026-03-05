@@ -16,11 +16,11 @@ import { CreateReactionDto } from "./dtos/create-reaction.dto";
 import { GetReactionsDto } from "./dtos/get-reactions.dto";
 import { ReactionService } from "./reaction.service";
 
-@Controller("reaction")
+@Controller("/reaction")
 export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}
 
-  @Post()
+  @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async addReactionToComment(@Session() session: UserSession, @Body() body: CreateReactionDto) {
@@ -30,7 +30,7 @@ export class ReactionController {
     });
   }
 
-  @Get()
+  @Get("/")
   async getReactionsByCommentId(@Query() query: GetReactionsDto) {
     const reactions = await this.reactionService.getReactions(query);
 
