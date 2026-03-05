@@ -22,7 +22,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const isAppException = typeof message === "object" && message !== null && "code" in message;
 
       if (isAppException) {
-        return response.status(status).json(message?.["code"]);
+        return response.status(status).json(message?.code);
       }
 
       return response.status(status).json({ code: message, status });

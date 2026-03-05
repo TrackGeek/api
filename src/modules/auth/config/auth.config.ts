@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import type { BetterAuthOptions } from "@better-auth/core";
 import { ConfigService } from "@nestjs/config";
 import { prismaAdapter } from "better-auth/adapters/prisma";

@@ -47,7 +47,7 @@ export class IGDBService {
       );
 
       return authData.access_token;
-    } catch (error) {
+    } catch (_error) {
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
