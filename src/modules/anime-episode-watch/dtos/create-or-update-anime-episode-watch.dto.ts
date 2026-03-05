@@ -1,5 +1,5 @@
-import { WatchEpisodeStatus } from '@prisma/generated/enums';
-import { IsEnum, IsInt, IsNotEmpty, IsPositive } from 'class-validator';
+import { WatchEpisodeStatus } from "@prisma/generated/enums";
+import { IsEnum, IsInt, IsNotEmpty, IsPositive } from "class-validator";
 
 export class CreateOrUpdateAnimeEpisodeWatchDto {
   @IsEnum(WatchEpisodeStatus)
@@ -8,7 +8,7 @@ export class CreateOrUpdateAnimeEpisodeWatchDto {
   @IsInt()
   @IsPositive()
   readonly episode: number;
-  
+
   @IsNotEmpty()
   readonly animeId: string;
 

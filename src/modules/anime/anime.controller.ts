@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
 import { AnimeService } from "./anime.service";
 import { RefreshAnimeDto } from "./dtos/refresh-anime.dto";
@@ -36,7 +27,7 @@ export class AnimeController {
 
     return { anime };
   }
-  
+
   @Get("/detail/:malId/episode")
   async getAnimeEpisodesByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
     const episodes = await this.animeService.getAnimeEpisodesByMalId(malId);

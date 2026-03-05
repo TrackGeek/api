@@ -8,8 +8,8 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshMovieDto } from "./dtos/refresh-movie.dto";
 import type { SearchMovieDto } from "./dtos/search-movie.dto";
-import { CACHE_KEYS } from '@/shared/constants/cache';
-import { MovieCreateInput, MovieUpdateInput } from '@prisma/generated/models';
+import { CACHE_KEYS } from "@/shared/constants/cache";
+import { MovieCreateInput, MovieUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class MovieService {

@@ -38,7 +38,7 @@ export class AnimeReviewService {
         anime: {
           omit: {
             episodes: true,
-          }
+          },
         },
         user: {
           select: {
@@ -70,7 +70,7 @@ export class AnimeReviewService {
         anime: {
           omit: {
             episodes: true,
-          }
+          },
         },
         user: {
           select: {
@@ -108,7 +108,7 @@ export class AnimeReviewService {
         anime: {
           omit: {
             episodes: true,
-          }
+          },
         },
         user: {
           select: {

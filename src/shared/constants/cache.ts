@@ -1,29 +1,29 @@
-import type { CacheKeys } from '../infra/cache/cache.service';
+import type { CacheKeys } from "../infra/cache/cache.service";
 
 export const CACHE_KEYS: CacheKeys<
-  "ANIME_BY_MAL_ID" |
-  "ANIME_EPISODES_BY_MAL_ID" |
-  "BOOK_BY_HARDCOVER_ID" |
-  "GAME_BY_IGDB_ID" |
-  "MANGA_BY_MAL_ID" |
-  "MOVIE_BY_IMDB_ID" |
-  "TV_SHOW_BY_TMDB_ID" |
-  "TV_SHOW_SEASONS_BY_TMDB_ID" |
-  "HARDCOVER_SEARCH_BOOKS" |
-  "HARDCOVER_BOOK_BY_ID" |
-  "IGDB_ACCESS_TOKEN" |
-  "IGDB_SEARCH_GAMES" |
-  "IGDB_GAME_BY_ID" |
-  "JIKAN_SEARCH_ANIMES" |
-  "JIKAN_SEARCH_MANGAS" |
-  "JIKAN_ANIME_BY_ID" |
-  "JIKAN_ANIME_EPISODES_BY_ID" |
-  "JIKAN_MANGA_BY_ID" |
-  "TMDB_SEARCH_MOVIES" |
-  "TMDB_SEARCH_TV_SHOWS" |
-  "TMDB_MOVIE_BY_ID" |
-  "TMDB_TV_SHOW_BY_ID" |
-  "TMDB_TV_SHOW_SEASONS_BY_ID"
+  | "ANIME_BY_MAL_ID"
+  | "ANIME_EPISODES_BY_MAL_ID"
+  | "BOOK_BY_HARDCOVER_ID"
+  | "GAME_BY_IGDB_ID"
+  | "MANGA_BY_MAL_ID"
+  | "MOVIE_BY_IMDB_ID"
+  | "TV_SHOW_BY_TMDB_ID"
+  | "TV_SHOW_SEASONS_BY_TMDB_ID"
+  | "HARDCOVER_SEARCH_BOOKS"
+  | "HARDCOVER_BOOK_BY_ID"
+  | "IGDB_ACCESS_TOKEN"
+  | "IGDB_SEARCH_GAMES"
+  | "IGDB_GAME_BY_ID"
+  | "JIKAN_SEARCH_ANIMES"
+  | "JIKAN_SEARCH_MANGAS"
+  | "JIKAN_ANIME_BY_ID"
+  | "JIKAN_ANIME_EPISODES_BY_ID"
+  | "JIKAN_MANGA_BY_ID"
+  | "TMDB_SEARCH_MOVIES"
+  | "TMDB_SEARCH_TV_SHOWS"
+  | "TMDB_MOVIE_BY_ID"
+  | "TMDB_TV_SHOW_BY_ID"
+  | "TMDB_TV_SHOW_SEASONS_BY_ID"
 > = {
   ANIME_BY_MAL_ID: {
     prefix: (malId: number) => `anime:malId:${malId}`,
@@ -117,4 +117,4 @@ export const CACHE_KEYS: CacheKeys<
     prefix: (tmdbId: number) => `tmdb:tvShow:id:${tmdbId}:season`,
     expiration: 3600 * 24,
   },
-}
+};

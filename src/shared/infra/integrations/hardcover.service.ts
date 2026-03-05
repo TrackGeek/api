@@ -5,12 +5,12 @@ import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheKeys, CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class HardcoverService {
   private readonly logger = new Logger(HardcoverService.name);
-  
+
   private readonly HARDCOVER_API_URL = "https://api.hardcover.app/v1/graphql";
 
   constructor(
@@ -64,17 +64,24 @@ export class HardcoverService {
         imageUrl: hit.document.image.url,
         genres: hit.document.genres ?? [],
       }));
-      
-      await this.cacheService.set(CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query), books, CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration);
+
+      await this.cacheService.set(
+        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
+        books,
+        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration,
+      );
 
       return books;
     } catch (error) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
       }
-      
-      this.logger.error(`Failed to search books from Hardcover API for query "${query}": ${error.message}`, error.stack);
-      
+
+      this.logger.error(
+        `Failed to search books from Hardcover API for query "${query}": ${error.message}`,
+        error.stack,
+      );
+
       throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
     }
   }
@@ -86,7 +93,7 @@ export class HardcoverService {
       if (cachedBook) {
         return cachedBook;
       }
-      
+
       const bookCategoriesResponse = await firstValueFrom(
         this.httpService.post(
           this.HARDCOVER_API_URL,
@@ -234,7 +241,11 @@ export class HardcoverService {
         alternativeTitles: bookData.alternative_titles,
         audioSeconds: bookData.audio_seconds,
         taggings: bookData.taggings
-          ? [...new Map(bookData.taggings.map((tagging) => [tagging.tag.id, { id: tagging.tag.id, tag: tagging.tag.tag }])).values()]
+          ? [
+              ...new Map(
+                bookData.taggings.map((tagging) => [tagging.tag.id, { id: tagging.tag.id, tag: tagging.tag.tag }]),
+              ).values(),
+            ]
           : [],
         bookCategory: bookCategories.find((category) => category.id === bookData.book_category_id) ?? null,
         bookStatus: bookData.bookStatus,
@@ -306,16 +317,23 @@ export class HardcoverService {
           : [],
       };
 
-      await this.cacheService.set(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id), book, CACHE_KEYS.HARDCOVER_BOOK_BY_ID.expiration);
+      await this.cacheService.set(
+        CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id),
+        book,
+        CACHE_KEYS.HARDCOVER_BOOK_BY_ID.expiration,
+      );
 
       return book;
     } catch (error) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
       }
-      
-      this.logger.error(`Failed to fetch book details from Hardcover API for book ID ${id}: ${error.message}`, error.stack);
-      
+
+      this.logger.error(
+        `Failed to fetch book details from Hardcover API for book ID ${id}: ${error.message}`,
+        error.stack,
+      );
+
       throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
     }
   }

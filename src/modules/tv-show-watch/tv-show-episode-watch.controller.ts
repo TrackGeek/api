@@ -1,18 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { CreateOrUpdateTVShowEpisodeWatchDto } from './dtos/create-or-update-tv-show-episode-watch.dto';
-import { TVShowEpisodeWatchService } from './tv-show-episode-watch.service';
-import { GetTVShowEpisodeWatchDto } from './dtos/get-tv-show-episode-watch.dto';
-import { WatchAllEpisodesOfTVShowDto } from './dtos/watch-all-episodes-of-tv-show.dto';
+import { CreateOrUpdateTVShowEpisodeWatchDto } from "./dtos/create-or-update-tv-show-episode-watch.dto";
+import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
+import { GetTVShowEpisodeWatchDto } from "./dtos/get-tv-show-episode-watch.dto";
+import { WatchAllEpisodesOfTVShowDto } from "./dtos/watch-all-episodes-of-tv-show.dto";
 
 @Controller("/tv/episode/watch")
 export class TVShowEpisodeWatchController {
@@ -27,7 +18,7 @@ export class TVShowEpisodeWatchController {
       userId: session.user.id,
     });
   }
-  
+
   @Post("/all")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -37,7 +28,7 @@ export class TVShowEpisodeWatchController {
       userId: session.user.id,
     });
   }
-  
+
   @Get("/")
   @UseGuards(AuthGuard)
   async getTVShowEpisodeWatch(@Session() session: UserSession, @Query() query: GetTVShowEpisodeWatchDto) {
@@ -45,7 +36,7 @@ export class TVShowEpisodeWatchController {
       ...query,
       userId: session.user.id,
     });
-    
-    return tvShowEpisodeWatch; 
+
+    return tvShowEpisodeWatch;
   }
 }

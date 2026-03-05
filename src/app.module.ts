@@ -31,17 +31,17 @@ import { EmailModule } from "./shared/infra/email/email.module";
 import { IntegrationsModule } from "./shared/infra/integrations/integrations.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
-import { HealthModule } from './shared/infra/health/health.module';
-import { GameProgressModule } from './modules/game-progress/game-progress.module';
-import { MovieProgressModule } from './modules/movie-progress/movie-progress.module';
-import { MangaProgressModule } from './modules/manga-progress/manga-progress.module';
-import { BookProgressModule } from './modules/book-progress/book-progress.module';
-import { AnimeProgressModule } from './modules/anime-progress/anime-progress.module';
-import { TVShowProgressModule } from './modules/tv-show-progress/tv-show-progress.module';
-import { MetricsInterceptor } from './shared/interceptors/metrics.interceptor';
-import { MetricsModule } from './shared/infra/metrics/metrics.module';
-import { AnimeEpisodeWatchModule } from './modules/anime-episode-watch/anime-episode-watch.module';
-import { TVShowEpisodeWatchModule } from './modules/tv-show-watch/tv-show-episode-watch.module';
+import { HealthModule } from "./shared/infra/health/health.module";
+import { GameProgressModule } from "./modules/game-progress/game-progress.module";
+import { MovieProgressModule } from "./modules/movie-progress/movie-progress.module";
+import { MangaProgressModule } from "./modules/manga-progress/manga-progress.module";
+import { BookProgressModule } from "./modules/book-progress/book-progress.module";
+import { AnimeProgressModule } from "./modules/anime-progress/anime-progress.module";
+import { TVShowProgressModule } from "./modules/tv-show-progress/tv-show-progress.module";
+import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
+import { MetricsModule } from "./shared/infra/metrics/metrics.module";
+import { AnimeEpisodeWatchModule } from "./modules/anime-episode-watch/anime-episode-watch.module";
+import { TVShowEpisodeWatchModule } from "./modules/tv-show-watch/tv-show-episode-watch.module";
 
 @Module({
   imports: [
@@ -94,7 +94,7 @@ import { TVShowEpisodeWatchModule } from './modules/tv-show-watch/tv-show-episod
   providers: [
     {
       provide: APP_GUARD,
-      useClass: HttpThrottlerGuard
+      useClass: HttpThrottlerGuard,
     },
     {
       provide: APP_INTERCEPTOR,

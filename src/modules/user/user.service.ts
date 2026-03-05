@@ -23,7 +23,7 @@ export class UserService {
             followers: true,
             following: true,
           },
-        }
+        },
       },
       omit: {
         image: true,

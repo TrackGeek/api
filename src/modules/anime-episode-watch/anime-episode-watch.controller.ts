@@ -1,18 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { CreateOrUpdateAnimeEpisodeWatchDto } from './dtos/create-or-update-anime-episode-watch.dto';
-import { AnimeEpisodeWatchService } from './anime-episode-watch.service';
-import { GetAnimeEpisodeWatchDto } from './dtos/get-anime-episode-watch.dto';
-import { WatchAllEpisodesOfAnimeDto } from './dtos/watch-all-episodes-of-anime.dto';
+import { CreateOrUpdateAnimeEpisodeWatchDto } from "./dtos/create-or-update-anime-episode-watch.dto";
+import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
+import { GetAnimeEpisodeWatchDto } from "./dtos/get-anime-episode-watch.dto";
+import { WatchAllEpisodesOfAnimeDto } from "./dtos/watch-all-episodes-of-anime.dto";
 
 @Controller("/anime/episode/watch")
 export class AnimeEpisodeWatchController {
@@ -27,7 +18,7 @@ export class AnimeEpisodeWatchController {
       userId: session.user.id,
     });
   }
-  
+
   @Post("/all")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -37,7 +28,7 @@ export class AnimeEpisodeWatchController {
       userId: session.user.id,
     });
   }
-  
+
   @Get("/")
   @UseGuards(AuthGuard)
   async getAnimeEpisodeWatch(@Session() session: UserSession, @Query() query: GetAnimeEpisodeWatchDto) {
@@ -45,7 +36,7 @@ export class AnimeEpisodeWatchController {
       ...query,
       userId: session.user.id,
     });
-    
-    return animeEpisodeWatch; 
+
+    return animeEpisodeWatch;
   }
 }

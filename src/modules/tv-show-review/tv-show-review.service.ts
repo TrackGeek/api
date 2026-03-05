@@ -35,7 +35,7 @@ export class TVShowReviewService {
         tvShow: {
           omit: {
             seasons: true,
-          }
+          },
         },
         user: {
           select: {
@@ -67,7 +67,7 @@ export class TVShowReviewService {
         tvShow: {
           omit: {
             seasons: true,
-          }
+          },
         },
         user: {
           select: {
@@ -105,7 +105,7 @@ export class TVShowReviewService {
         tvShow: {
           omit: {
             seasons: true,
-          }
+          },
         },
         user: {
           select: {

@@ -4,23 +4,23 @@ import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class
 
 export class CreateOrUpdateBookProgressDto {
   @IsEnum(ProgressStatus)
-  @Transform(({ value, obj }) => obj.completedAt ? ProgressStatus.Completed : value)
+  @Transform(({ value, obj }) => (obj.completedAt ? ProgressStatus.Completed : value))
   readonly status: ProgressStatus;
-  
+
   @IsOptional()
   @IsInt()
   @IsPositive()
   readonly chaptersRead?: number;
-  
+
   @IsOptional()
   @IsInt()
   @IsPositive()
   readonly readCount?: number;
-  
+
   @IsOptional()
   @IsDate()
   readonly startedAt?: Date;
-  
+
   @IsOptional()
   @IsDate()
   readonly completedAt?: Date;

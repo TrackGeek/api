@@ -91,13 +91,13 @@ export class ListService {
         anime: {
           omit: {
             episodes: true,
-          }
+          },
         },
         manga: true,
         tvShow: {
           omit: {
             seasons: true,
-          }
+          },
         },
         book: true,
         game: true,
@@ -204,13 +204,13 @@ export class ListService {
         anime: {
           omit: {
             episodes: true,
-          }
+          },
         },
         manga: true,
         tvShow: {
           omit: {
             seasons: true,
-          }
+          },
         },
         book: true,
         game: true,

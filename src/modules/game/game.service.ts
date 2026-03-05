@@ -9,7 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "./dtos/refresh-game.dto";
 import type { SearchGameDto } from "./dtos/search-game.dto";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class GameService {
@@ -52,7 +52,7 @@ export class GameService {
       where: { igdbId: refreshGameDto.igdbId },
       select: {
         lastRefreshedAt: true,
-      }
+      },
     });
 
     if (!game) {
@@ -74,6 +74,10 @@ export class GameService {
       data: igdbGame,
     });
 
-    await this.cacheService.set(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId), game, CACHE_KEYS.GAME_BY_IGDB_ID.expiration);
+    await this.cacheService.set(
+      CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId),
+      game,
+      CACHE_KEYS.GAME_BY_IGDB_ID.expiration,
+    );
   }
 }

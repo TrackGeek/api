@@ -9,7 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshAnimeDto } from "./dtos/refresh-anime.dto";
 import type { SearchAnimeDto } from "./dtos/search-anime.dto";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class AnimeService {
@@ -46,7 +46,7 @@ export class AnimeService {
 
     return anime;
   }
-  
+
   async getAnimeEpisodesByMalId(malId: number) {
     const cachedEpisodes = await this.cacheService.get(CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(malId));
 
@@ -57,19 +57,19 @@ export class AnimeService {
     const anime = await this.databaseService.anime.findUnique({
       where: { malId },
       select: {
-        episodes: true
-      }
+        episodes: true,
+      },
     });
 
     if (!anime) {
       throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
     }
-    
+
     let episodes: any = anime.episodes;
-    
+
     if (!anime?.episodes) {
       episodes = await this.integrationsService.jikan.getAnimeEpisodesById(malId);
-      
+
       await this.databaseService.anime.update({
         where: { malId },
         data: { episodes },
@@ -90,7 +90,7 @@ export class AnimeService {
       where: { malId: refreshAnimeDto.malId },
       select: {
         lastRefreshedAt: true,
-      }
+      },
     });
 
     if (!anime) {

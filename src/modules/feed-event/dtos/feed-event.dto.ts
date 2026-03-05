@@ -14,12 +14,12 @@ export class FeedEventDto {
   @IsNotEmpty()
   @IsUUID()
   readonly userId: string;
-  
+
   @IsArray()
   @IsOptional()
-  @IsUUID('7', { each: true })
+  @IsUUID("7", { each: true })
   readonly entityIds?: string[] = [];
-  
+
   @IsInt()
   @IsOptional()
   readonly count?: number = 1;

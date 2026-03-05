@@ -5,12 +5,12 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { manyRequestWithDelay } from "@/shared/utils/request";
 import { CacheKeys, CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class JikanService {
   private readonly logger = new Logger(JikanService.name);
-  
+
   private readonly JIKAN_API_URL = "https://api.jikan.moe/v4";
 
   constructor(
@@ -53,7 +53,7 @@ export class JikanService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
-      
+
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
@@ -93,9 +93,9 @@ export class JikanService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to search mangas with query "${query}" from Jikan API`, error);
-      
+
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
@@ -248,13 +248,13 @@ export class JikanService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to fetch anime details for ID ${id} from Jikan API`, error);
-      
+
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getAnimeEpisodesById(id: number): Promise<any> {
     try {
       const cachedEpisodes = await this.cacheService.get(CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id));
@@ -262,9 +262,9 @@ export class JikanService {
       if (cachedEpisodes) {
         return cachedEpisodes;
       }
-      
-      const episodesData: any[] = []
-      
+
+      const episodesData: any[] = [];
+
       let page = 1;
       let hasNextPage = true;
 
@@ -274,9 +274,9 @@ export class JikanService {
             params: { page },
           }),
         );
-        
+
         episodesData.push(...videosResponse.data.data);
-        
+
         hasNextPage = videosResponse.data.pagination.has_next_page;
         page++;
 
@@ -284,16 +284,17 @@ export class JikanService {
           await firstValueFrom(timer(500));
         }
       }
-      
-      const episodes = episodesData.length > 0
-        ? episodesData.map((video) => ({
-            malId: video.mal_id,
-            title: video.title,
-            episodeNumber: video.episode,
-            imageUrl: video.images?.jpg?.image_url ?? null,
-          }))
-        : []
-        
+
+      const episodes =
+        episodesData.length > 0
+          ? episodesData.map((video) => ({
+              malId: video.mal_id,
+              title: video.title,
+              episodeNumber: video.episode,
+              imageUrl: video.images?.jpg?.image_url ?? null,
+            }))
+          : [];
+
       await this.cacheService.set(
         CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id),
         episodes,
@@ -307,7 +308,7 @@ export class JikanService {
       }
 
       this.logger.error(`Failed to fetch anime episodes for ID ${id} from Jikan API`, error);
-      
+
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
@@ -394,9 +395,9 @@ export class JikanService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to fetch manga details for ID ${id} from Jikan API`, error);
-      
+
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }

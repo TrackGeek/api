@@ -28,11 +28,7 @@ describe("IGDBService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new IGDBService(
-      mockHttpService as any,
-      mockConfigService as any,
-      mockCacheService as any,
-    );
+    service = new IGDBService(mockHttpService as any, mockConfigService as any, mockCacheService as any);
   });
 
   describe("searchGames", () => {
@@ -66,9 +62,7 @@ describe("IGDBService", () => {
                 slug: "elden-ring",
                 name: "Elden Ring",
                 cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
-                involved_companies: [
-                  { checksum: "abc", company: { name: "FromSoftware" }, developer: true },
-                ],
+                involved_companies: [{ checksum: "abc", company: { name: "FromSoftware" }, developer: true }],
                 platforms: [{ checksum: "plat1", name: "PlayStation 5" }],
                 first_release_date: 1645747200,
               },
@@ -93,7 +87,19 @@ describe("IGDBService", () => {
         .mockResolvedValueOnce(null); // games cache miss
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post.mockReturnValue(
-        of({ data: [{ id: 1, slug: "game", name: "Game", cover: null, involved_companies: null, platforms: null, first_release_date: null }] }),
+        of({
+          data: [
+            {
+              id: 1,
+              slug: "game",
+              name: "Game",
+              cover: null,
+              involved_companies: null,
+              platforms: null,
+              first_release_date: null,
+            },
+          ],
+        }),
       );
 
       await service.searchGames("Game");
@@ -196,9 +202,7 @@ describe("IGDBService", () => {
     });
 
     it("should throw AppException when game is not found in response", async () => {
-      mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token")
-        .mockResolvedValueOnce(null);
+      mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
       mockHttpService.post.mockReturnValue(of({ data: [] })); // empty response → game not found
 
       await expect(service.getGameById(99999)).rejects.toBeInstanceOf(AppException);

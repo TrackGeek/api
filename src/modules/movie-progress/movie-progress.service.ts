@@ -1,8 +1,8 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateMovieProgressDto } from "./dtos/create-or-update-movie-progress.dto";
-import { GetMovieProgressDto } from './dtos/get-movie-progress.dto';
-import { MovieProgressFindManyArgs } from '@prisma/generated/models';
+import { GetMovieProgressDto } from "./dtos/get-movie-progress.dto";
+import { MovieProgressFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class MovieProgressService {
@@ -28,7 +28,7 @@ export class MovieProgressService {
       },
     });
   }
-  
+
   async getMovieProgress(getMovieProgressDto: GetMovieProgressDto) {
     const movieProgress = await this.databaseService.offsetPagination<MovieProgressFindManyArgs>({
       model: "movieProgress",

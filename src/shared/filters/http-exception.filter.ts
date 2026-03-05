@@ -10,7 +10,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    
+
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const message = exception.getResponse();
@@ -27,7 +27,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
       return response.status(status).json({ code: message, status });
     }
-    
+
     this.logger.error("Unhandled exception occurred:", exception instanceof Error ? exception.stack : exception);
 
     if (exception instanceof Prisma.PrismaClientValidationError) {

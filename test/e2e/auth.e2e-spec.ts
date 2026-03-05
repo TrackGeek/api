@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect } from "@playwright/test";
 import { generateUserCredentials, signIn, signUp } from "./utils/auth";
 import { test } from "./utils/test";
 
@@ -25,7 +25,7 @@ test.describe("Auth", () => {
   test("POST /auth/sign-in/email - should return a token when signing in", async ({ api }) => {
     const response = await signIn(api, authCredentials);
     const body = await response.json();
-    
+
     expect(response.status()).toBe(200);
     expect(body).toHaveProperty("token");
   });

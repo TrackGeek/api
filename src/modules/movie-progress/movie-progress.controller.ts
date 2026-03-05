@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } f
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { MovieProgressService } from "./movie-progress.service";
 import { CreateOrUpdateMovieProgressDto } from "./dtos/create-or-update-movie-progress.dto";
-import { GetMovieProgressDto } from './dtos/get-movie-progress.dto';
+import { GetMovieProgressDto } from "./dtos/get-movie-progress.dto";
 
 @Controller("/movie/progress")
 export class MovieProgressController {
@@ -17,7 +17,7 @@ export class MovieProgressController {
       userId: session.user.id,
     });
   }
-  
+
   @Get("/")
   async getMovieProgress(@Query() query: GetMovieProgressDto) {
     const movieProgresses = await this.movieProgressService.getMovieProgress(query);

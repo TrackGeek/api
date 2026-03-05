@@ -5,7 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class IGDBService {
@@ -118,7 +118,7 @@ export class IGDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
-      
+
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -543,7 +543,7 @@ export class IGDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
-      
+
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }

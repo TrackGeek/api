@@ -4,7 +4,7 @@ import { Job } from "bullmq";
 
 import { EmailService } from "@/shared/infra/email/email.service";
 import { EMAIL_QUEUE } from "@/shared/constants/queue";
-import { MAGIC_LINK_JOB, RESET_PASSWORD_JOB } from '@/shared/constants/job';
+import { MAGIC_LINK_JOB, RESET_PASSWORD_JOB } from "@/shared/constants/job";
 
 @Processor(EMAIL_QUEUE, { concurrency: 10 })
 export class EmailProcessor extends WorkerHost {

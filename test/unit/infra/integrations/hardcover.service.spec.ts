@@ -21,11 +21,7 @@ describe("HardcoverService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new HardcoverService(
-      mockHttpService as any,
-      mockConfigService as any,
-      mockCacheService as any,
-    );
+    service = new HardcoverService(mockHttpService as any, mockConfigService as any, mockCacheService as any);
   });
 
   describe("searchBooks", () => {
@@ -93,9 +89,7 @@ describe("HardcoverService", () => {
   });
 
   describe("getBookById", () => {
-    const bookCategoriesData = [
-      { id: 1, name: "Fiction" },
-    ];
+    const bookCategoriesData = [{ id: 1, name: "Fiction" }];
 
     const bookData = {
       id: 12345,

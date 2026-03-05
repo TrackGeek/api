@@ -1,8 +1,8 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateTVShowProgressDto } from "./dtos/create-or-update-tv-show-progress.dto";
-import { GetTVShowProgressDto } from './dtos/get-tv-show-progress.dto';
-import { TvShowProgressFindManyArgs } from '@prisma/generated/models';
+import { GetTVShowProgressDto } from "./dtos/get-tv-show-progress.dto";
+import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class TVShowProgressService {
@@ -22,7 +22,7 @@ export class TVShowProgressService {
         status,
         watchCount,
         completedAt,
-        startedAt
+        startedAt,
       },
       create: {
         tvShowId,
@@ -30,11 +30,11 @@ export class TVShowProgressService {
         status,
         watchCount,
         completedAt,
-        startedAt
+        startedAt,
       },
     });
   }
-  
+
   async getTVShowProgress(getTVShowProgressDto: GetTVShowProgressDto) {
     const tvShowProgress = await this.databaseService.offsetPagination<TvShowProgressFindManyArgs>({
       model: "tvShowProgress",
@@ -48,7 +48,7 @@ export class TVShowProgressService {
         tvShow: {
           omit: {
             seasons: true,
-          }
+          },
         },
         user: {
           select: {

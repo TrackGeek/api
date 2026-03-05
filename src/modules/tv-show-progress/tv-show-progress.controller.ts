@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } f
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { TVShowProgressService } from "./tv-show-progress.service";
 import { CreateOrUpdateTVShowProgressDto } from "./dtos/create-or-update-tv-show-progress.dto";
-import { GetTVShowProgressDto } from './dtos/get-tv-show-progress.dto';
+import { GetTVShowProgressDto } from "./dtos/get-tv-show-progress.dto";
 
 @Controller("/tv/progress")
 export class TVShowProgressController {
@@ -17,7 +17,7 @@ export class TVShowProgressController {
       userId: session.user.id,
     });
   }
-  
+
   @Get("/")
   async getTVShowProgressesByUserId(@Query() query: GetTVShowProgressDto) {
     const tvShowProgresses = await this.tvShowProgressService.getTVShowProgress(query);

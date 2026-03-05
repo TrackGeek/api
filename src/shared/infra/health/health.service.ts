@@ -13,9 +13,9 @@ export class HealthService {
 
     try {
       const dbStart = performance.now();
-      
+
       await this.databaseService.$queryRaw`SELECT 1`;
-      
+
       dbLatencyMs = Math.round(performance.now() - dbStart);
     } catch {
       dbStatus = "error";

@@ -1,8 +1,8 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateGameProgressDto } from "./dtos/create-or-update-game-progress.dto";
-import { GetGameProgressDto } from './dtos/get-game-progress.dto';
-import { GameProgressFindManyArgs } from '@prisma/generated/models';
+import { GetGameProgressDto } from "./dtos/get-game-progress.dto";
+import { GameProgressFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class GameProgressService {
@@ -22,7 +22,7 @@ export class GameProgressService {
         status,
         playCount,
         completedAt,
-        startedAt
+        startedAt,
       },
       create: {
         gameId,
@@ -30,11 +30,11 @@ export class GameProgressService {
         playCount,
         status,
         completedAt,
-        startedAt
+        startedAt,
       },
     });
   }
-  
+
   async getGameProgress(getGameProgressDto: GetGameProgressDto) {
     const gameProgress = await this.databaseService.offsetPagination<GameProgressFindManyArgs>({
       model: "gameProgress",

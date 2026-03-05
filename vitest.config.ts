@@ -6,8 +6,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ["test/unit/setup.ts"],
     coverage: {
-      reporter: ['html'],
-      reportsDirectory: './coverage',
+      reporter: ["html"],
+      reportsDirectory: "./coverage",
       include: ["src/**/*.ts"],
     },
     include: ["test/unit/**/*.spec.ts"],

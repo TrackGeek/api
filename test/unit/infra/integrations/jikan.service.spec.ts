@@ -220,7 +220,12 @@ describe("JikanService", () => {
         of({
           data: {
             data: [
-              { mal_id: 1, title: "Enter: Naruto Uzumaki!", episode: "1", images: { jpg: { image_url: "https://cdn.myanimelist.net/ep1.jpg" } } },
+              {
+                mal_id: 1,
+                title: "Enter: Naruto Uzumaki!",
+                episode: "1",
+                images: { jpg: { image_url: "https://cdn.myanimelist.net/ep1.jpg" } },
+              },
             ],
             pagination: { has_next_page: false },
           },

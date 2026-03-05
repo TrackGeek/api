@@ -3,7 +3,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { UpdateProfileDto } from "./dtos/update-profile.dto";
 import { ProfileService } from "./profile.service";
-import { imageConfig } from '@/shared/infra/upload/upload.config';
+import { imageConfig } from "@/shared/infra/upload/upload.config";
 
 @Controller("/profile")
 @UseGuards(AuthGuard)

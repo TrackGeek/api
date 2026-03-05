@@ -22,11 +22,7 @@ describe("TMDBService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new TMDBService(
-      mockHttpService as any,
-      mockConfigService as any,
-      mockCacheService as any,
-    );
+    service = new TMDBService(mockHttpService as any, mockConfigService as any, mockCacheService as any);
   });
 
   describe("searchMovies", () => {
@@ -70,18 +66,14 @@ describe("TMDBService", () => {
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(
-        throwError(() => new Error("Service down")),
-      );
+      mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
       await expect(service.searchMovies("Inception")).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException with 404 status when movie not found", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(
-        throwError(() => ({ response: { status: 404 } })),
-      );
+      mockHttpService.get.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
       await expect(service.searchMovies("unknown")).rejects.toBeInstanceOf(AppException);
     });
@@ -127,9 +119,7 @@ describe("TMDBService", () => {
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(
-        throwError(() => new Error("Service down")),
-      );
+      mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
       await expect(service.searchTVShows("Breaking Bad")).rejects.toBeInstanceOf(AppException);
     });
@@ -178,9 +168,7 @@ describe("TMDBService", () => {
     it("should fetch movie details, credits and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get
-        .mockReturnValueOnce(of({ data: movieData }))
-        .mockReturnValueOnce(of({ data: creditsData }));
+      mockHttpService.get.mockReturnValueOnce(of({ data: movieData })).mockReturnValueOnce(of({ data: creditsData }));
 
       const result = await service.getMovieById(27205);
 
@@ -195,9 +183,7 @@ describe("TMDBService", () => {
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(
-        throwError(() => new Error("Service down")),
-      );
+      mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
       await expect(service.getMovieById(99999)).rejects.toBeInstanceOf(AppException);
     });
@@ -251,9 +237,7 @@ describe("TMDBService", () => {
     it("should fetch TV show details and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get
-        .mockReturnValueOnce(of({ data: tvShowData }))
-        .mockReturnValueOnce(of({ data: creditsData }));
+      mockHttpService.get.mockReturnValueOnce(of({ data: tvShowData })).mockReturnValueOnce(of({ data: creditsData }));
 
       const result = await service.getTVShowById(1396);
 
@@ -266,9 +250,7 @@ describe("TMDBService", () => {
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(
-        throwError(() => new Error("Service down")),
-      );
+      mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
       await expect(service.getTVShowById(99999)).rejects.toBeInstanceOf(AppException);
     });
@@ -308,9 +290,7 @@ describe("TMDBService", () => {
 
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get
-        .mockReturnValueOnce(of({ data: tvShowData }))
-        .mockReturnValueOnce(of({ data: season1Data }));
+      mockHttpService.get.mockReturnValueOnce(of({ data: tvShowData })).mockReturnValueOnce(of({ data: season1Data }));
 
       const result = await service.getTVShowSeasonsById(1396);
 
@@ -322,9 +302,7 @@ describe("TMDBService", () => {
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(
-        throwError(() => new Error("Service down")),
-      );
+      mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
       await expect(service.getTVShowSeasonsById(99999)).rejects.toBeInstanceOf(AppException);
     });

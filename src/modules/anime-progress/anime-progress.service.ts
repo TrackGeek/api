@@ -1,14 +1,12 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateAnimeProgressDto } from "./dtos/create-or-update-anime-progress.dto";
-import { GetAnimeProgressDto } from './dtos/get-anime-progress.dto';
-import { AnimeProgressFindManyArgs } from '@prisma/generated/models';
+import { GetAnimeProgressDto } from "./dtos/get-anime-progress.dto";
+import { AnimeProgressFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class AnimeProgressService {
-  constructor(
-    private readonly databaseService: DatabaseService
-  ) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
   async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
     const { animeId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
@@ -24,7 +22,7 @@ export class AnimeProgressService {
         status,
         watchCount,
         completedAt,
-        startedAt
+        startedAt,
       },
       create: {
         animeId,
@@ -32,11 +30,11 @@ export class AnimeProgressService {
         userId,
         status,
         completedAt,
-        startedAt
+        startedAt,
       },
     });
   }
-  
+
   async getAnimeProgress(getAnimeProgressDto: GetAnimeProgressDto) {
     const animeProgress = await this.databaseService.offsetPagination<AnimeProgressFindManyArgs>({
       model: "animeProgress",
@@ -50,7 +48,7 @@ export class AnimeProgressService {
         anime: {
           omit: {
             episodes: true,
-          }
+          },
         },
         user: {
           select: {

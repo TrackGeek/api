@@ -24,9 +24,7 @@ describe("IMGBBService", () => {
       const buffer = Buffer.from("fake-image-data");
       const imageUrl = "https://i.ibb.co/abc123/image.jpg";
 
-      mockHttpService.post.mockReturnValue(
-        of({ data: { data: { image: { url: imageUrl } } } }),
-      );
+      mockHttpService.post.mockReturnValue(of({ data: { data: { image: { url: imageUrl } } } }));
 
       const result = await service.upload(buffer);
 
@@ -43,9 +41,7 @@ describe("IMGBBService", () => {
     it("should throw AppException when the HTTP request fails", async () => {
       const buffer = Buffer.from("bad-data");
 
-      mockHttpService.post.mockReturnValue(
-        throwError(() => new Error("Network error")),
-      );
+      mockHttpService.post.mockReturnValue(throwError(() => new Error("Network error")));
 
       await expect(service.upload(buffer)).rejects.toBeInstanceOf(AppException);
     });

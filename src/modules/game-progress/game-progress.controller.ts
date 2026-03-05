@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } f
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { GameProgressService } from "./game-progress.service";
 import { CreateOrUpdateGameProgressDto } from "./dtos/create-or-update-game-progress.dto";
-import { GetGameProgressDto } from './dtos/get-game-progress.dto';
+import { GetGameProgressDto } from "./dtos/get-game-progress.dto";
 
 @Controller("/game/progress")
 export class GameProgressController {
@@ -17,7 +17,7 @@ export class GameProgressController {
       userId: session.user.id,
     });
   }
-  
+
   @Get("/")
   async getGameProgress(@Query() query: GetGameProgressDto) {
     const gameProgresses = await this.gameProgressService.getGameProgress(query);

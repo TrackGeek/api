@@ -5,7 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 export interface SearchMovieResult {
   tmdbId: number;
@@ -164,7 +164,7 @@ export interface TMDBTVShowSeason {
 @Injectable()
 export class TMDBService {
   private readonly logger = new Logger(TMDBService.name);
-  
+
   private readonly TMDB_API_URL = "https://api.themoviedb.org/3";
 
   constructor(
@@ -175,7 +175,9 @@ export class TMDBService {
 
   async searchMovies(query: string): Promise<SearchMovieResult[]> {
     try {
-      const cachedMovies = await this.cacheService.get<SearchMovieResult[]>(CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query));
+      const cachedMovies = await this.cacheService.get<SearchMovieResult[]>(
+        CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query),
+      );
 
       if (cachedMovies) {
         return cachedMovies;
@@ -210,16 +212,18 @@ export class TMDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to search movies from TMDB API for query "${query}": ${error.message}`, error.stack);
-      
+
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
 
   async searchTVShows(query: string): Promise<SearchTVShowResult[]> {
     try {
-      const cachedTVShows = await this.cacheService.get<SearchTVShowResult[]>(CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query));
+      const cachedTVShows = await this.cacheService.get<SearchTVShowResult[]>(
+        CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query),
+      );
 
       if (cachedTVShows) {
         return cachedTVShows;
@@ -254,9 +258,9 @@ export class TMDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to search TV shows from TMDB API for query "${query}": ${error.message}`, error.stack);
-      
+
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -372,9 +376,9 @@ export class TMDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to fetch movie details for ID ${id} from TMDB API: ${error.message}`, error.stack);
-        
+
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
@@ -499,16 +503,18 @@ export class TMDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to fetch TV show details for ID ${id} from TMDB API: ${error.message}`, error.stack);
-      
+
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getTVShowSeasonsById(id: number): Promise<TMDBTVShowSeason[]> {
     try {
-      const cachedTVShow = await this.cacheService.get<TMDBTVShowSeason[]>(CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id));
+      const cachedTVShow = await this.cacheService.get<TMDBTVShowSeason[]>(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id),
+      );
 
       if (cachedTVShow) {
         return cachedTVShow;
@@ -521,9 +527,9 @@ export class TMDBService {
           },
         }),
       );
-      
+
       const tvShowData = tvShowResponse.data;
-      
+
       const seasons: any[] = [];
 
       for (const season of tvShowData.seasons) {
@@ -564,9 +570,9 @@ export class TMDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
-      
+
       this.logger.error(`Failed to fetch TV show seasons for ID ${id} from TMDB API: ${error.message}`, error.stack);
-      
+
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }

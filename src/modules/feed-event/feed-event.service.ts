@@ -9,9 +9,7 @@ import { GetFeedEventsByUserDto } from "./dtos/get-feed-events-by-user.dto";
 
 @Injectable()
 export class FeedEventService {
-  constructor(
-    private readonly databaseService: DatabaseService
-  ) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
   async createFeedEvent(feedEventDto: FeedEventDto) {
     const { type, userId, metadata } = feedEventDto;

@@ -9,7 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshMangaDto } from "./dtos/refresh-manga.dto";
 import type { SearchMangaDto } from "./dtos/search-manga.dto";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class MangaService {
@@ -52,7 +52,7 @@ export class MangaService {
       where: { malId: refreshMangaDto.malId },
       select: {
         lastRefreshedAt: true,
-      }
+      },
     });
 
     if (!manga) {

@@ -8,8 +8,8 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshTVShowDto } from "./dtos/refresh-tv-show.dto";
 import type { SearchTVShowDto } from "./dtos/search-tv-show.dto";
-import { CACHE_KEYS } from '@/shared/constants/cache';
-import { TvShowCreateInput, TvShowUpdateInput } from '@prisma/generated/models';
+import { CACHE_KEYS } from "@/shared/constants/cache";
+import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class TVShowService {
@@ -42,46 +42,50 @@ export class TVShowService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId), tvShow, CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration);
+    await this.cacheService.set(
+      CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId),
+      tvShow,
+      CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration,
+    );
 
     return tvShow;
   }
-  
+
   async getTVShowSeasonsByTmdbId(tmdbId: number) {
     const cachedSeasons = await this.cacheService.get(CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId));
-    
+
     if (cachedSeasons) {
       return cachedSeasons;
     }
-    
+
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { tmdbId },
       select: {
         seasons: true,
-      }
+      },
     });
-    
+
     if (!tvShow) {
       throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
     }
-    
+
     let seasons: any = tvShow.seasons;
-    
+
     if (!seasons) {
       seasons = await this.integrationsService.tmdb.getTVShowSeasonsById(tmdbId);
-      
+
       await this.databaseService.tvShow.update({
         where: { tmdbId },
         data: { seasons },
       });
     }
-    
+
     await this.cacheService.set(
       CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId),
       seasons,
       CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.expiration,
     );
-    
+
     return seasons;
   }
 
@@ -90,7 +94,7 @@ export class TVShowService {
       where: { tmdbId: refreshTVShowDto.tmdbId },
       select: {
         lastRefreshedAt: true,
-      }
+      },
     });
 
     if (!tvShow) {

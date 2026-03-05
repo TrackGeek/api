@@ -4,16 +4,16 @@ import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class
 export class CreateOrUpdateGameProgressDto {
   @IsEnum(ProgressStatus)
   readonly status: ProgressStatus;
-  
+
   @IsOptional()
   @IsInt()
   @IsPositive()
   readonly playCount?: number;
-  
+
   @IsOptional()
   @IsDate()
   readonly startedAt?: Date;
-  
+
   @IsOptional()
   @IsDate()
   readonly completedAt?: Date;

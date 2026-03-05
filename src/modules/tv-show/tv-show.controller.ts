@@ -27,7 +27,7 @@ export class TVShowController {
 
     return { tvShow };
   }
-  
+
   @Get("/detail/:tmdbId/season")
   async getTVShowSeasonsByTmdbId(@Param("tmdbId", new ParseIntPipe()) tmdbId: number) {
     const seasons = await this.tvShowService.getTVShowSeasonsByTmdbId(tmdbId);

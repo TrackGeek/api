@@ -9,7 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshBookDto } from "./dtos/refresh-book.dto";
 import type { SearchBookDto } from "./dtos/search-book.dto";
-import { CACHE_KEYS } from '@/shared/constants/cache';
+import { CACHE_KEYS } from "@/shared/constants/cache";
 
 @Injectable()
 export class BookService {
@@ -42,7 +42,11 @@ export class BookService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(hardcoverId), book, CACHE_KEYS.BOOK_BY_HARDCOVER_ID.expiration);
+    await this.cacheService.set(
+      CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(hardcoverId),
+      book,
+      CACHE_KEYS.BOOK_BY_HARDCOVER_ID.expiration,
+    );
 
     return book;
   }
@@ -52,7 +56,7 @@ export class BookService {
       where: { hardcoverId: refreshBookDto.hardcoverId },
       select: {
         lastRefreshedAt: true,
-      }
+      },
     });
 
     if (!book) {
