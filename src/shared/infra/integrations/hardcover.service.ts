@@ -7,6 +7,70 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 
+export interface SearchBookResult {
+  id: number;
+  title: string;
+  alternativeTitles: string[];
+  authors: string[];
+  imageUrl: string;
+  genres: string[];
+}
+
+export interface HardcoverEdition {
+  id: number;
+  title: string;
+  imageUrl: string | null;
+  language: string | null;
+}
+
+export interface HardcoverBookDetails {
+  hardcoverId: number;
+  title: string;
+  alternativeTitles: string[] | null;
+  audioSeconds: number | null;
+  taggings: {
+    id: number;
+    tag: string;
+  }[];
+  bookCategory: {
+    id: number;
+    name: string;
+  } | null;
+  bookStatus: unknown;
+  canonical: {
+    id: number;
+    image: { url: string | null };
+    title: string;
+  } | null;
+  compilation: boolean | null;
+  curationStatus: unknown;
+  defaultAudioEdition: HardcoverEdition | null;
+  defaultCoverEdition: HardcoverEdition | null;
+  defaultEbookEdition: HardcoverEdition | null;
+  defaultPhysicalEdition: (HardcoverEdition & { alternativeTitles: string[] | null }) | null;
+  description: string | null;
+  editionsCount: number;
+  featuredBookSeries: {
+    id: number;
+    book: {
+      id: number;
+      title: string;
+      imageUrl: string | null;
+    };
+  } | null;
+  headline: string | null;
+  imageUrl: string | null;
+  links: unknown;
+  literaryTypeId: number | null;
+  numberOfPages: number | null;
+  releaseDate: Date | null;
+  releaseYear: number | null;
+  slug: string;
+  state: string;
+  subtitle: string | null;
+  editions: HardcoverEdition[];
+}
+
 @Injectable()
 export class HardcoverService {
   private readonly logger = new Logger(HardcoverService.name);
@@ -19,9 +83,9 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchBooks(query: string) {
+  async searchBooks(query: string): Promise<SearchBookResult[]> {
     try {
-      const cachedBooks = await this.cacheService.get(CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query));
+      const cachedBooks = await this.cacheService.get<SearchBookResult[]>(CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query));
 
       if (cachedBooks) {
         return cachedBooks;
@@ -86,9 +150,9 @@ export class HardcoverService {
     }
   }
 
-  async getBookById(id: number): Promise<any> {
+  async getBookById(id: number): Promise<HardcoverBookDetails> {
     try {
-      const cachedBook = await this.cacheService.get(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id));
+      const cachedBook = await this.cacheService.get<HardcoverBookDetails>(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id));
 
       if (cachedBook) {
         return cachedBook;
@@ -315,7 +379,7 @@ export class HardcoverService {
               language: edition.language?.language ?? null,
             }))
           : [],
-      };
+      } as HardcoverBookDetails;
 
       await this.cacheService.set(
         CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id),

@@ -7,6 +7,171 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 
+export interface SearchGameResult {
+  igdbId: number;
+  slug: string;
+  name: string;
+  involvedCompanies: {
+    checksum: string | null;
+    companyName: string | null;
+    developer: boolean;
+  }[];
+  platforms: {
+    checksum: string | null;
+    name: string | null;
+  }[];
+  coverUrl: string | null;
+  firstReleaseDate: Date | null;
+}
+
+interface IGDBGameRef {
+  checksum: string | null;
+  name: string | null;
+  slug: string | null;
+  coverUrl: string | null;
+}
+
+export interface IGDBGameDetails {
+  igdbId: number;
+  ageRatings: {
+    category: string | null;
+    synopsis: string | null;
+    organization: string | null;
+  }[];
+  alternativeNames: {
+    checksum: string | null;
+    name: string | null;
+    comment: string | null;
+  }[];
+  artworks: {
+    checksum: string | null;
+    type: string | null;
+    url: string | null;
+  }[];
+  checksum: string | null;
+  bundles: IGDBGameRef[];
+  collections: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+    type: string | null;
+  }[];
+  coverUrl: string | null;
+  dlcs: IGDBGameRef[];
+  expandedGames: IGDBGameRef[];
+  expansions: IGDBGameRef[];
+  externalGames: IGDBGameRef[];
+  firstReleaseDate: Date | null;
+  forks: IGDBGameRef[];
+  franchise: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  } | null;
+  franchises: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  }[];
+  gameEngines: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  }[];
+  gameLocalizations: {
+    checksum: string | null;
+    region: string | null;
+  }[];
+  gameModes: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  }[];
+  gameStatus: {
+    checksum: string | null;
+    status: string | null;
+  } | null;
+  gameType: {
+    checksum: string | null;
+    type: string | null;
+  } | null;
+  genres: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  }[];
+  involvedCompanies: {
+    checksum: string | null;
+    companyName: string | null;
+    developer: boolean;
+    porting: boolean;
+    publisher: boolean;
+    supporting: boolean;
+  }[];
+  keywords: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  }[];
+  multiplayerModes: {
+    checksum: string | null;
+    campaignCoop: boolean;
+    dropIn: boolean;
+    lanCoop: boolean;
+    offlineCoop: boolean;
+    offlineCoopMax: number | null;
+    offlineMax: number | null;
+    onlineCoop: boolean;
+    onlineCoopMax: number | null;
+    onlineMax: number | null;
+    platform: string | null;
+    splitScreen: boolean;
+    splitScreenOnline: boolean;
+  }[];
+  name: string | null;
+  parentGame: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+    coverUrl: string | null;
+  } | null;
+  platforms: {
+    checksum: string | null;
+    name: string | null;
+  }[];
+  playerPerspectives: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+  }[];
+  ports: IGDBGameRef[];
+  releaseDates: {
+    date: Date | null;
+  }[];
+  remakes: IGDBGameRef[];
+  remasters: IGDBGameRef[];
+  screenshots: {
+    checksum: string | null;
+    imageId: string | null;
+  }[];
+  similarGames: IGDBGameRef[];
+  slug: string | null;
+  standaloneExpansions: IGDBGameRef[];
+  summary: string | null;
+  versionParent: {
+    checksum: string | null;
+    name: string | null;
+    slug: string | null;
+    coverUrl: string | null;
+  } | null;
+  versionTitle: string | null;
+  videos: {
+    checksum: string | null;
+    name: string | null;
+    videoId: string | null;
+  }[];
+}
+
 @Injectable()
 export class IGDBService {
   private readonly IGDB_API_URL = "https://api.igdb.com/v4";
@@ -52,11 +217,11 @@ export class IGDBService {
     }
   }
 
-  async searchGames(query: string): Promise<any> {
+  async searchGames(query: string): Promise<SearchGameResult[]> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGames = await this.cacheService.get<any[]>(CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query));
+      const cachedGames = await this.cacheService.get<SearchGameResult[]>(CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query));
 
       if (cachedGames) {
         return cachedGames;
@@ -123,11 +288,11 @@ export class IGDBService {
     }
   }
 
-  async getGameById(id: number): Promise<any> {
+  async getGameById(id: number): Promise<IGDBGameDetails> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGame = await this.cacheService.get<any>(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id));
+      const cachedGame = await this.cacheService.get<IGDBGameDetails>(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id));
 
       if (cachedGame) {
         return cachedGame;
@@ -534,7 +699,7 @@ export class IGDBService {
             name: video?.name ?? null,
             videoId: video?.video_id ? `https://www.youtube.com/embed/${video.video_id}` : null,
           })) ?? [],
-      };
+      } as IGDBGameDetails;
 
       await this.cacheService.set(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id), game, CACHE_KEYS.IGDB_GAME_BY_ID.expiration);
 

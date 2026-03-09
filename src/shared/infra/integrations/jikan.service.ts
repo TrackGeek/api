@@ -7,6 +7,161 @@ import { manyRequestWithDelay } from "@/shared/utils/request";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 
+export interface SearchAnimeResult {
+  malId: number;
+  title: string;
+  type: string;
+  airedFrom: string | null;
+  imageUrl: string | null;
+}
+
+export interface SearchMangaResult {
+  malId: number;
+  title: string;
+  type: string;
+  publishedFrom: string | null;
+  imageUrl: string | null;
+}
+
+export interface JikanTitle {
+  type: string;
+  title: string;
+}
+
+export interface JikanDateProp {
+  from: string | null;
+  to: string | null;
+  prop: {
+    from: { day: number | null; month: number | null; year: number | null };
+    to: { day: number | null; month: number | null; year: number | null };
+  };
+  string: string | null;
+}
+
+export interface JikanMalEntry {
+  malId: number;
+  type: string;
+  name: string;
+}
+
+export interface JikanRelation {
+  relationType: string;
+  entry: {
+    malId: number;
+    title: string;
+    type: string;
+  }[];
+}
+
+export interface JikanVideo {
+  embedUrl: string | null;
+  youtubeId: string | null;
+  url: string | null;
+}
+
+export interface JikanAnimeDetails {
+  malId: number;
+  url: string;
+  imageUrl: string | null;
+  trailer: JikanVideo;
+  title: string;
+  titles: JikanTitle[];
+  type: string | null;
+  source: string | null;
+  numberOfEpisodes: number | null;
+  status: string | null;
+  aired: JikanDateProp;
+  duration: string | null;
+  rating: string | null;
+  rank: number | null;
+  popularity: number;
+  synopsis: string | null;
+  background: string | null;
+  season: string | null;
+  year: number | null;
+  broadcast: {
+    day: string | null;
+    time: string | null;
+    timezone: string | null;
+    string: string | null;
+  };
+  producers: JikanMalEntry[];
+  licensors: JikanMalEntry[];
+  studios: JikanMalEntry[];
+  genres: string[];
+  explicitGenres: string[];
+  themes: string[];
+  demographics: string[];
+  external: string[];
+  characters: {
+    malId: number;
+    name: string;
+    imageUrl: string | null;
+    role: string;
+    voiceActors: {
+      malId: number;
+      name: string;
+      imageUrl: string | null;
+      language: string;
+    }[];
+  }[];
+  cast: {
+    malId: number;
+    name: string;
+    imageUrl: string | null;
+    positions: string[];
+  }[];
+  videos: {
+    promo: {
+      title: string;
+      video: JikanVideo;
+    }[];
+    musicVideos: {
+      title: string;
+      author: string;
+      video: JikanVideo;
+    }[];
+  };
+  relations: JikanRelation[];
+}
+
+export interface JikanAnimeEpisode {
+  malId: number;
+  title: string;
+  episodeNumber: string;
+  imageUrl: string | null;
+}
+
+export interface JikanMangaDetails {
+  malId: number;
+  url: string;
+  imageUrl: string | null;
+  title: string;
+  titles: JikanTitle[];
+  type: string | null;
+  numberOfChapters: number | null;
+  numberOfVolumes: number | null;
+  status: string | null;
+  published: JikanDateProp;
+  rank: number | null;
+  popularity: number;
+  synopsis: string | null;
+  authors: JikanMalEntry[];
+  serializations: JikanMalEntry[];
+  genres: string[];
+  explicitGenres: string[];
+  themes: string[];
+  demographics: string[];
+  external: string[];
+  characters: {
+    malId: number;
+    name: string;
+    imageUrl: string | null;
+    role: string;
+  }[];
+  relations: JikanRelation[];
+}
+
 @Injectable()
 export class JikanService {
   private readonly logger = new Logger(JikanService.name);
@@ -18,9 +173,9 @@ export class JikanService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchAnimes(query: string) {
+  async searchAnimes(query: string): Promise<SearchAnimeResult[]> {
     try {
-      const cachedAnimes = await this.cacheService.get(CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix(query));
+      const cachedAnimes = await this.cacheService.get<SearchAnimeResult[]>(CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix(query));
 
       if (cachedAnimes) {
         return cachedAnimes;
@@ -58,9 +213,9 @@ export class JikanService {
     }
   }
 
-  async searchMangas(query: string) {
+  async searchMangas(query: string): Promise<SearchMangaResult[]> {
     try {
-      const cachedMangas = await this.cacheService.get(CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix(query));
+      const cachedMangas = await this.cacheService.get<SearchMangaResult[]>(CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix(query));
 
       if (cachedMangas) {
         return cachedMangas;
@@ -100,9 +255,9 @@ export class JikanService {
     }
   }
 
-  async getAnimeById(id: number): Promise<any> {
+  async getAnimeById(id: number): Promise<JikanAnimeDetails> {
     try {
-      const cachedAnime = await this.cacheService.get(CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id));
+      const cachedAnime = await this.cacheService.get<JikanAnimeDetails>(CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id));
 
       if (cachedAnime) {
         return cachedAnime;
@@ -235,7 +390,7 @@ export class JikanService {
         cast,
         videos,
         relations,
-      };
+      } as JikanAnimeDetails;
 
       await this.cacheService.set(
         CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id),
@@ -255,9 +410,9 @@ export class JikanService {
     }
   }
 
-  async getAnimeEpisodesById(id: number): Promise<any> {
+  async getAnimeEpisodesById(id: number): Promise<JikanAnimeEpisode[]> {
     try {
-      const cachedEpisodes = await this.cacheService.get(CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id));
+      const cachedEpisodes = await this.cacheService.get<JikanAnimeEpisode[]>(CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id));
 
       if (cachedEpisodes) {
         return cachedEpisodes;
@@ -313,9 +468,9 @@ export class JikanService {
     }
   }
 
-  async getMangaById(id: number): Promise<any> {
+  async getMangaById(id: number): Promise<JikanMangaDetails> {
     try {
-      const cachedManga = await this.cacheService.get(CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id));
+      const cachedManga = await this.cacheService.get<JikanMangaDetails>(CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id));
 
       if (cachedManga) {
         return cachedManga;
@@ -382,7 +537,7 @@ export class JikanService {
         external: mangaFullData.external ? mangaFullData.external.map((ext) => ext.name) : [],
         characters,
         relations,
-      };
+      } as JikanMangaDetails;
 
       await this.cacheService.set(
         CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id),
