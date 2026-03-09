@@ -174,9 +174,9 @@ describe("JikanService", () => {
       mockCacheService.set.mockResolvedValue(undefined);
       vi.mocked(manyRequestWithDelay).mockResolvedValue([
         { data: { data: animeFullData } },
-        { data: { data: [] } }, // characters
-        { data: { data: [] } }, // staff
-        { data: { data: { promo: [], music_videos: [] } } }, // videos
+        { data: { data: [] } },
+        { data: { data: [] } },
+        { data: { data: { promo: [], music_videos: [] } } },
       ] as any);
 
       const result = await service.getAnimeById(20);
@@ -288,7 +288,7 @@ describe("JikanService", () => {
       mockCacheService.set.mockResolvedValue(undefined);
       vi.mocked(manyRequestWithDelay).mockResolvedValue([
         { data: { data: mangaFullData } },
-        { data: { data: [] } }, // characters
+        { data: { data: [] } },
       ] as any);
 
       const result = await service.getMangaById(11);

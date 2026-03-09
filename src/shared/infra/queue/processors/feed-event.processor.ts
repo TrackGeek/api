@@ -35,9 +35,9 @@ export class FeedEventProcessor extends WorkerHost {
       const lockKey = `${aggKey}:lock`;
 
       await this.cacheService.redis.lPush(aggKey, JSON.stringify({ userId, type, metadata }));
-      await this.cacheService.redis.expire(aggKey, 600); // 10 minutos
+      await this.cacheService.redis.expire(aggKey, 600);
 
-      const windowsMs = 5 * 60 * 1000; // 5 minutos
+      const windowsMs = 5 * 60 * 1000;
 
       const isLeader = await this.cacheService.redis.set(lockKey, "1", { NX: true, PX: windowsMs });
 

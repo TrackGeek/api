@@ -14,8 +14,8 @@ export const options = {
     { duration: "30s", target: 400 },
   ],
   thresholds: {
-    http_req_duration: ["p(95)<500"], // 95% das requests < 500ms
-    errors: ["rate<0.01"], // menos de 1% de erros
+    http_req_duration: ["p(95)<500"],
+    errors: ["rate<0.01"],
   },
 };
 

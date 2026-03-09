@@ -13,6 +13,7 @@ export interface SearchAnimeResult {
   type: string;
   airedFrom: string | null;
   imageUrl: string | null;
+  genres: string[];
 }
 
 export interface SearchMangaResult {
@@ -21,6 +22,7 @@ export interface SearchMangaResult {
   type: string;
   publishedFrom: string | null;
   imageUrl: string | null;
+  genres: string[];
 }
 
 export interface JikanTitle {
@@ -197,6 +199,7 @@ export class JikanService {
         type: anime.type,
         airedFrom: anime.aired.from,
         imageUrl: anime.images?.jpg?.image_url ?? null,
+        genres: anime.genres ? anime.genres.map((genre) => genre.name) : [],
       }));
 
       await this.cacheService.set(
@@ -214,7 +217,7 @@ export class JikanService {
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
-
+  
   async searchMangas(query: string): Promise<SearchMangaResult[]> {
     try {
       const cachedMangas = await this.cacheService.get<SearchMangaResult[]>(
@@ -239,6 +242,7 @@ export class JikanService {
         type: manga.type,
         publishedFrom: manga.published.from,
         imageUrl: manga.images?.jpg?.image_url ?? null,
+        genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
       }));
 
       await this.cacheService.set(
@@ -258,6 +262,10 @@ export class JikanService {
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
+  
+  async getAnimeGenres() {}
+  
+  async getMangaGenres() {}
 
   async getAnimeById(id: number): Promise<JikanAnimeDetails> {
     try {

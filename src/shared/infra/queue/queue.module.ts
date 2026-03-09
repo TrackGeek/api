@@ -23,7 +23,7 @@ import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
           attempts: 4,
           backoff: {
             type: "fixed",
-            delay: 5 * 60 * 1000, // 5min
+            delay: 5 * 60 * 1000,
           },
           removeOnFail: true,
           removeOnComplete: true,

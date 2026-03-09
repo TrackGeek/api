@@ -88,7 +88,7 @@ export function getAuthConfig(params: AuthConfigParams) {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 8,
-      resetPasswordTokenExpiresIn: 60 * 60 * 3, // 3 hours
+      resetPasswordTokenExpiresIn: 60 * 60 * 3,
       sendResetPassword: async ({ user, url }) => {
         await queueService.toResetPasswordJob({
           name: user.name,

@@ -7,6 +7,6 @@ export const imageConfig = {
       ? cb(null, true)
       : cb(new AppException(ERROR_CODES.IMAGE_TYPE_NOT_SUPPORTED), false),
   limits: {
-    fileSize: 1024 * 1024 * 5, // 5 MB
+    fileSize: 1024 * 1024 * 5,
   },
 };

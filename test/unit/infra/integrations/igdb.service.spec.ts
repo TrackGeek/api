@@ -37,8 +37,8 @@ describe("IGDBService", () => {
     it("should return cached games when cache hit", async () => {
       const cached = [{ igdbId: 1, name: "Elden Ring" }];
       mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token") // token cache hit
-        .mockResolvedValueOnce(cached); // games cache hit
+        .mockResolvedValueOnce("cached-access-token")
+        .mockResolvedValueOnce(cached);
 
       const result = await service.searchGames("Elden Ring");
 
@@ -48,12 +48,12 @@ describe("IGDBService", () => {
 
     it("should fetch games, map them and cache the result", async () => {
       mockCacheService.get
-        .mockResolvedValueOnce(null) // token cache miss
-        .mockResolvedValueOnce(null); // games cache miss
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
 
       mockHttpService.post
-        .mockReturnValueOnce(of(tokenResponse)) // token request
+        .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(
           of({
             data: [
@@ -78,13 +78,13 @@ describe("IGDBService", () => {
       expect(result[0].coverUrl).toContain("t_cover_big");
       expect(result[0].involvedCompanies[0].companyName).toBe("FromSoftware");
       expect(result[0].firstReleaseDate).toBeInstanceOf(Date);
-      expect(mockCacheService.set).toHaveBeenCalledTimes(2); // token + games
+      expect(mockCacheService.set).toHaveBeenCalledTimes(2);
     });
 
     it("should use cached token when available", async () => {
       mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token") // token cache hit
-        .mockResolvedValueOnce(null); // games cache miss
+        .mockResolvedValueOnce("cached-access-token")
+        .mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post.mockReturnValue(
         of({
@@ -104,12 +104,12 @@ describe("IGDBService", () => {
 
       await service.searchGames("Game");
 
-      // Should only call post once (games) — not to get a token
+    
       expect(mockHttpService.post).toHaveBeenCalledTimes(1);
     });
 
     it("should throw AppException when token request fails", async () => {
-      mockCacheService.get.mockResolvedValueOnce(null); // token cache miss
+      mockCacheService.get.mockResolvedValueOnce(null);
       mockHttpService.post.mockReturnValue(throwError(() => new Error("Auth failed")));
 
       await expect(service.searchGames("Elden Ring")).rejects.toBeInstanceOf(AppException);
@@ -117,8 +117,8 @@ describe("IGDBService", () => {
 
     it("should throw AppException when games request fails", async () => {
       mockCacheService.get
-        .mockResolvedValueOnce(null) // token cache miss
-        .mockResolvedValueOnce(null); // games cache miss
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
       mockHttpService.post
         .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(throwError(() => new Error("Service down")));
@@ -177,8 +177,8 @@ describe("IGDBService", () => {
     it("should return cached game when cache hit", async () => {
       const cached = { igdbId: 119171, name: "Elden Ring" };
       mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token") // token cache hit
-        .mockResolvedValueOnce(cached); // game cache hit
+        .mockResolvedValueOnce("cached-access-token")
+        .mockResolvedValueOnce(cached);
 
       const result = await service.getGameById(119171);
 
@@ -188,8 +188,8 @@ describe("IGDBService", () => {
 
     it("should fetch game details and cache the result", async () => {
       mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token") // token cache hit
-        .mockResolvedValueOnce(null); // game cache miss
+        .mockResolvedValueOnce("cached-access-token")
+        .mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post.mockReturnValue(of({ data: [gameData] }));
 
@@ -203,15 +203,15 @@ describe("IGDBService", () => {
 
     it("should throw AppException when game is not found in response", async () => {
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
-      mockHttpService.post.mockReturnValue(of({ data: [] })); // empty response → game not found
+      mockHttpService.post.mockReturnValue(of({ data: [] }));
 
       await expect(service.getGameById(99999)).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get
-        .mockResolvedValueOnce(null) // token cache miss
-        .mockResolvedValueOnce(null); // game cache miss
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
       mockHttpService.post
         .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(throwError(() => new Error("Service down")));
