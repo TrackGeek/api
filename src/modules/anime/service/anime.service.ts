@@ -10,6 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
+import { AnimeCreateInput, AnimeUpdateInput } from '@prisma/generated/models';
 
 @Injectable()
 export class AnimeService {
@@ -38,7 +39,7 @@ export class AnimeService {
       const jikanAnime = await this.integrationsService.jikan.getAnimeById(malId);
 
       anime = await this.databaseService.anime.create({
-        data: jikanAnime,
+        data: jikanAnime as unknown as AnimeCreateInput,
       });
     }
 
@@ -113,7 +114,7 @@ export class AnimeService {
       data: {
         ...jikanAnime,
         episodes: jikanEpisodes,
-      },
+      } as unknown as AnimeUpdateInput,
     });
 
     await this.cacheService.set(

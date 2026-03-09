@@ -10,6 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
+import { MangaCreateInput, MangaUpdateInput } from '@prisma/generated/models';
 
 @Injectable()
 export class MangaService {
@@ -38,7 +39,7 @@ export class MangaService {
       const jikanManga = await this.integrationsService.jikan.getMangaById(malId);
 
       manga = await this.databaseService.manga.create({
-        data: jikanManga,
+        data: jikanManga as unknown as MangaCreateInput,
       });
     }
 
@@ -71,7 +72,7 @@ export class MangaService {
 
     await this.databaseService.manga.update({
       where: { malId: refreshMangaDto.malId },
-      data: jikanManga,
+      data: jikanManga as unknown as MangaUpdateInput,
     });
 
     await this.cacheService.set(

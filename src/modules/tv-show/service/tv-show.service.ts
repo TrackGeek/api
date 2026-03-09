@@ -38,7 +38,7 @@ export class TVShowService {
       const tmdbTVShow = await this.integrationsService.tmdb.getTVShowById(tmdbId);
 
       tvShow = await this.databaseService.tvShow.create({
-        data: tmdbTVShow as TvShowCreateInput,
+        data: tmdbTVShow as unknown as TvShowCreateInput,
       });
     }
 
@@ -113,7 +113,7 @@ export class TVShowService {
 
     await this.databaseService.tvShow.update({
       where: { tmdbId: refreshTVShowDto.tmdbId },
-      data: tmdbTVShow as TvShowUpdateInput,
+      data: tmdbTVShow as unknown as TvShowUpdateInput,
     });
 
     await this.cacheService.set(

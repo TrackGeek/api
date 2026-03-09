@@ -10,6 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
+import { GameCreateInput, GameUpdateInput } from '@prisma/generated/models';
 
 @Injectable()
 export class GameService {
@@ -38,7 +39,7 @@ export class GameService {
       const igdbGame = await this.integrationsService.igdb.getGameById(igdbId);
 
       game = await this.databaseService.game.create({
-        data: igdbGame,
+        data: igdbGame as unknown as GameCreateInput,
       });
     }
 
@@ -71,7 +72,7 @@ export class GameService {
 
     await this.databaseService.game.update({
       where: { igdbId: refreshGameDto.igdbId },
-      data: igdbGame,
+      data: igdbGame as unknown as GameUpdateInput,
     });
 
     await this.cacheService.set(

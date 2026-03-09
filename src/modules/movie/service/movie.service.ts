@@ -38,7 +38,7 @@ export class MovieService {
       const tmdbMovie = await this.integrationsService.tmdb.getMovieById(id);
 
       movie = await this.databaseService.movie.create({
-        data: tmdbMovie as MovieCreateInput,
+        data: tmdbMovie as unknown as MovieCreateInput,
       });
     }
 
@@ -68,7 +68,7 @@ export class MovieService {
 
     await this.databaseService.movie.update({
       where: { tmdbId: refreshMovieDto.id },
-      data: tmdbMovie as MovieUpdateInput,
+      data: tmdbMovie as unknown as MovieUpdateInput,
     });
 
     await this.cacheService.set(

@@ -10,6 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
+import { BookCreateInput, BookUpdateInput } from '@prisma/generated/models';
 
 @Injectable()
 export class BookService {
@@ -35,10 +36,10 @@ export class BookService {
     });
 
     if (!book) {
-      const jikanBook = await this.integrationsService.hardcover.getBookById(hardcoverId);
+      const hardcoverBook = await this.integrationsService.hardcover.getBookById(hardcoverId);
 
       book = await this.databaseService.book.create({
-        data: jikanBook,
+        data: hardcoverBook as unknown as BookCreateInput,
       });
     }
 
@@ -75,7 +76,7 @@ export class BookService {
 
     await this.databaseService.book.update({
       where: { hardcoverId: refreshBookDto.hardcoverId },
-      data: hardcoverBook,
+      data: hardcoverBook as unknown as BookUpdateInput,
     });
 
     await this.cacheService.set(
