@@ -85,7 +85,9 @@ export class HardcoverService {
 
   async searchBooks(query: string): Promise<SearchBookResult[]> {
     try {
-      const cachedBooks = await this.cacheService.get<SearchBookResult[]>(CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query));
+      const cachedBooks = await this.cacheService.get<SearchBookResult[]>(
+        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
+      );
 
       if (cachedBooks) {
         return cachedBooks;

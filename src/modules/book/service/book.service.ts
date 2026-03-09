@@ -10,7 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
-import { BookCreateInput, BookUpdateInput } from '@prisma/generated/models';
+import { BookCreateInput, BookUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class BookService {

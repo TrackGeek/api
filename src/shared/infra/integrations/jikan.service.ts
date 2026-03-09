@@ -175,7 +175,9 @@ export class JikanService {
 
   async searchAnimes(query: string): Promise<SearchAnimeResult[]> {
     try {
-      const cachedAnimes = await this.cacheService.get<SearchAnimeResult[]>(CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix(query));
+      const cachedAnimes = await this.cacheService.get<SearchAnimeResult[]>(
+        CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix(query),
+      );
 
       if (cachedAnimes) {
         return cachedAnimes;
@@ -215,7 +217,9 @@ export class JikanService {
 
   async searchMangas(query: string): Promise<SearchMangaResult[]> {
     try {
-      const cachedMangas = await this.cacheService.get<SearchMangaResult[]>(CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix(query));
+      const cachedMangas = await this.cacheService.get<SearchMangaResult[]>(
+        CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix(query),
+      );
 
       if (cachedMangas) {
         return cachedMangas;
@@ -412,7 +416,9 @@ export class JikanService {
 
   async getAnimeEpisodesById(id: number): Promise<JikanAnimeEpisode[]> {
     try {
-      const cachedEpisodes = await this.cacheService.get<JikanAnimeEpisode[]>(CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id));
+      const cachedEpisodes = await this.cacheService.get<JikanAnimeEpisode[]>(
+        CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id),
+      );
 
       if (cachedEpisodes) {
         return cachedEpisodes;

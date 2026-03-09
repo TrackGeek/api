@@ -10,7 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
-import { AnimeCreateInput, AnimeUpdateInput } from '@prisma/generated/models';
+import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class AnimeService {

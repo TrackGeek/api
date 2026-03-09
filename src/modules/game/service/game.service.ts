@@ -10,7 +10,7 @@ import { IntegrationsService } from "@/shared/infra/integrations/integrations.se
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
-import { GameCreateInput, GameUpdateInput } from '@prisma/generated/models';
+import { GameCreateInput, GameUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class GameService {
