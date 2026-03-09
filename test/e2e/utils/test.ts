@@ -1,8 +1,8 @@
 import { test as base, request as pwRequest, type APIRequestContext } from "@playwright/test";
 
-export const test = base.extend<{}, { api: APIRequestContext }>({
+export const test = base.extend<any, { api: APIRequestContext }>({
   api: [
-    async ({}, use) => {
+    async (_, use) => {
       const api = await pwRequest.newContext({ baseURL: `http://localhost:${process.env.PORT}` });
 
       try {
