@@ -36,9 +36,7 @@ describe("IGDBService", () => {
 
     it("should return cached games when cache hit", async () => {
       const cached = [{ igdbId: 1, name: "Elden Ring" }];
-      mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token")
-        .mockResolvedValueOnce(cached);
+      mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(cached);
 
       const result = await service.searchGames("Elden Ring");
 
@@ -47,28 +45,24 @@ describe("IGDBService", () => {
     });
 
     it("should fetch games, map them and cache the result", async () => {
-      mockCacheService.get
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockCacheService.get.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
 
-      mockHttpService.post
-        .mockReturnValueOnce(of(tokenResponse))
-        .mockReturnValueOnce(
-          of({
-            data: [
-              {
-                id: 119171,
-                slug: "elden-ring",
-                name: "Elden Ring",
-                cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
-                involved_companies: [{ checksum: "abc", company: { name: "FromSoftware" }, developer: true }],
-                platforms: [{ checksum: "plat1", name: "PlayStation 5" }],
-                first_release_date: 1645747200,
-              },
-            ],
-          }),
-        );
+      mockHttpService.post.mockReturnValueOnce(of(tokenResponse)).mockReturnValueOnce(
+        of({
+          data: [
+            {
+              id: 119171,
+              slug: "elden-ring",
+              name: "Elden Ring",
+              cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
+              involved_companies: [{ checksum: "abc", company: { name: "FromSoftware" }, developer: true }],
+              platforms: [{ checksum: "plat1", name: "PlayStation 5" }],
+              first_release_date: 1645747200,
+            },
+          ],
+        }),
+      );
 
       const result = await service.searchGames("Elden Ring");
 
@@ -82,9 +76,7 @@ describe("IGDBService", () => {
     });
 
     it("should use cached token when available", async () => {
-      mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token")
-        .mockResolvedValueOnce(null);
+      mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post.mockReturnValue(
         of({
@@ -104,7 +96,6 @@ describe("IGDBService", () => {
 
       await service.searchGames("Game");
 
-    
       expect(mockHttpService.post).toHaveBeenCalledTimes(1);
     });
 
@@ -116,9 +107,7 @@ describe("IGDBService", () => {
     });
 
     it("should throw AppException when games request fails", async () => {
-      mockCacheService.get
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockCacheService.get.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mockHttpService.post
         .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(throwError(() => new Error("Service down")));
@@ -176,9 +165,7 @@ describe("IGDBService", () => {
 
     it("should return cached game when cache hit", async () => {
       const cached = { igdbId: 119171, name: "Elden Ring" };
-      mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token")
-        .mockResolvedValueOnce(cached);
+      mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(cached);
 
       const result = await service.getGameById(119171);
 
@@ -187,9 +174,7 @@ describe("IGDBService", () => {
     });
 
     it("should fetch game details and cache the result", async () => {
-      mockCacheService.get
-        .mockResolvedValueOnce("cached-access-token")
-        .mockResolvedValueOnce(null);
+      mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post.mockReturnValue(of({ data: [gameData] }));
 
@@ -209,9 +194,7 @@ describe("IGDBService", () => {
     });
 
     it("should throw AppException when request fails", async () => {
-      mockCacheService.get
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockCacheService.get.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mockHttpService.post
         .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(throwError(() => new Error("Service down")));

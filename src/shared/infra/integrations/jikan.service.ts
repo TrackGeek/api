@@ -217,7 +217,7 @@ export class JikanService {
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async searchMangas(query: string): Promise<SearchMangaResult[]> {
     try {
       const cachedMangas = await this.cacheService.get<SearchMangaResult[]>(
@@ -262,9 +262,9 @@ export class JikanService {
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getAnimeGenres() {}
-  
+
   async getMangaGenres() {}
 
   async getAnimeById(id: number): Promise<JikanAnimeDetails> {
