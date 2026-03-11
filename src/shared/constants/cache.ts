@@ -99,7 +99,7 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24,
   },
   TMDB_TOP_MOVIES: {
-    prefix: (filters: Record<string, any>) => `jikan:top:anime:${filtersToString(filters)}`,
+    prefix: (filters: Record<string, any>) => `tmdb:top:movie:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   TMDB_SEARCH_TV_SHOWS: {
