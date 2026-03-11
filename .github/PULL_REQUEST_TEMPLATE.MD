@@ -6,10 +6,10 @@
 
 ## Acknowledgements
 
-- [ ] I read the [PR Guidelines](https://github.com/TrackGeek/trackgeek/blob/main/.github/CONTRIBUTING.md)
+- [ ] I read the [PR Guidelines](https://github.com/TrackGeek/api/blob/main/.github/CONTRIBUTING.md)
 - [ ] I linted and formatted the code by running `npm run check`
-- [ ] The PR title follows the
-  repo's [commit conventions](https://github.com/TrackGeek/trackgeek/blob/main/.github/COMMIT_CONVENTION.md)
+- [ ] The PR title follows th
+  repo's [commit conventions](https://github.com/TrackGeek/api/blob/main/.github/COMMIT_CONVENTION.md)
 
 ## Screenshots
 
