@@ -7,7 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 
-export interface SearchGameResult {
+export interface IGDBSearchGameResult {
   igdbId: number;
   slug: string;
   name: string;
@@ -183,7 +183,7 @@ export class IGDBService {
   ) {}
 
   private async getAccessToken(): Promise<string> {
-    const cachedToken = await this.cacheService.get<string>(CACHE_KEYS.IGDB_ACCESS_TOKEN.prefix());
+    const cachedToken = await this.cacheService.get<string>(CACHE_KEYS.IGDB_ACCESS_TOKEN);
 
     if (cachedToken) {
       return cachedToken;
@@ -205,11 +205,7 @@ export class IGDBService {
 
       const authData = authResponse.data;
 
-      await this.cacheService.set(
-        CACHE_KEYS.IGDB_ACCESS_TOKEN.prefix(),
-        authData.access_token,
-        authData.expires_in - 300,
-      );
+      await this.cacheService.set(CACHE_KEYS.IGDB_ACCESS_TOKEN, authData.access_token, authData.expires_in - 300);
 
       return authData.access_token;
     } catch (_error) {
@@ -217,11 +213,13 @@ export class IGDBService {
     }
   }
 
-  async searchGames(query: string): Promise<SearchGameResult[]> {
+  async searchGames(query: string): Promise<IGDBSearchGameResult[]> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGames = await this.cacheService.get<SearchGameResult[]>(CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query));
+      const cachedGames = await this.cacheService.get<IGDBSearchGameResult[]>(
+        CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query),
+      );
 
       if (cachedGames) {
         return cachedGames;

@@ -7,7 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 
-export interface SearchBookResult {
+export interface HardcoverSearchBookResult {
   id: number;
   title: string;
   alternativeTitles: string[];
@@ -83,9 +83,9 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchBooks(query: string): Promise<SearchBookResult[]> {
+  async searchBooks(query: string): Promise<HardcoverSearchBookResult[]> {
     try {
-      const cachedBooks = await this.cacheService.get<SearchBookResult[]>(
+      const cachedBooks = await this.cacheService.get<HardcoverSearchBookResult[]>(
         CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
       );
 
@@ -152,9 +152,11 @@ export class HardcoverService {
     }
   }
 
-  async getBookById(id: number): Promise<HardcoverBookDetails> {
+  async getBookByHardcoverId(hardcoverId: number): Promise<HardcoverBookDetails> {
     try {
-      const cachedBook = await this.cacheService.get<HardcoverBookDetails>(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id));
+      const cachedBook = await this.cacheService.get<HardcoverBookDetails>(
+        CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(hardcoverId),
+      );
 
       if (cachedBook) {
         return cachedBook;
@@ -188,7 +190,7 @@ export class HardcoverService {
         this.httpService.post(
           this.HARDCOVER_API_URL,
           {
-            variables: { id },
+            variables: { id: hardcoverId },
             query: `
 						query GetBookById($id: Int!) {
 							books_by_pk(id: $id) {
@@ -384,7 +386,7 @@ export class HardcoverService {
       } as HardcoverBookDetails;
 
       await this.cacheService.set(
-        CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(id),
+        CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(hardcoverId),
         book,
         CACHE_KEYS.HARDCOVER_BOOK_BY_ID.expiration,
       );
@@ -396,7 +398,7 @@ export class HardcoverService {
       }
 
       this.logger.error(
-        `Failed to fetch book details from Hardcover API for book ID ${id}: ${error.message}`,
+        `Failed to fetch book details from Hardcover API for book ID ${hardcoverId}: ${error.message}`,
         error.stack,
       );
 
