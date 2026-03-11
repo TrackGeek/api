@@ -1,60 +1,36 @@
-import type { CacheKeys } from "../infra/cache/cache.service";
+import { filtersToString } from "../utils/filters";
 
-export const CACHE_KEYS: CacheKeys<
-  | "ANIME_BY_MAL_ID"
-  | "ANIME_EPISODES_BY_MAL_ID"
-  | "BOOK_BY_HARDCOVER_ID"
-  | "GAME_BY_IGDB_ID"
-  | "MANGA_BY_MAL_ID"
-  | "MOVIE_BY_IMDB_ID"
-  | "TV_SHOW_BY_TMDB_ID"
-  | "TV_SHOW_SEASONS_BY_TMDB_ID"
-  | "HARDCOVER_SEARCH_BOOKS"
-  | "HARDCOVER_BOOK_BY_ID"
-  | "IGDB_ACCESS_TOKEN"
-  | "IGDB_SEARCH_GAMES"
-  | "IGDB_GAME_BY_ID"
-  | "JIKAN_SEARCH_ANIMES"
-  | "JIKAN_SEARCH_MANGAS"
-  | "JIKAN_ANIME_BY_ID"
-  | "JIKAN_ANIME_EPISODES_BY_ID"
-  | "JIKAN_MANGA_BY_ID"
-  | "TMDB_SEARCH_MOVIES"
-  | "TMDB_SEARCH_TV_SHOWS"
-  | "TMDB_MOVIE_BY_ID"
-  | "TMDB_TV_SHOW_BY_ID"
-  | "TMDB_TV_SHOW_SEASONS_BY_ID"
-> = {
+export const CACHE_KEYS = {
   ANIME_BY_MAL_ID: {
-    prefix: (malId: number) => `anime:malId:${malId}`,
+    prefix: (malId: number) => `anime:detail:malId:${malId}`,
     expiration: 3600 * 24,
   },
   ANIME_EPISODES_BY_MAL_ID: {
-    prefix: (malId: number) => `anime:malId:${malId}:episode`,
+    prefix: (malId: number) => `anime:detail:malId:${malId}:episode`,
     expiration: 3600 * 24,
   },
   BOOK_BY_HARDCOVER_ID: {
-    prefix: (hardcoverId: number) => `book:hardcoverId:${hardcoverId}`,
+    prefix: (hardcoverId: number) => `book:detail:hardcoverId:${hardcoverId}`,
     expiration: 3600 * 24,
   },
   GAME_BY_IGDB_ID: {
-    prefix: (igdbId: number) => `game:igdbId:${igdbId}`,
+    prefix: (igdbId: number) => `game:detail:igdbId:${igdbId}`,
     expiration: 3600 * 24,
   },
   MANGA_BY_MAL_ID: {
-    prefix: (malId: number) => `manga:malId:${malId}`,
+    prefix: (malId: number) => `manga:detail:malId:${malId}`,
     expiration: 3600 * 24,
   },
   MOVIE_BY_IMDB_ID: {
-    prefix: (imdbId: string) => `movie:imdbId:${imdbId}`,
+    prefix: (imdbId: number) => `movie:detail:imdbId:${imdbId}`,
     expiration: 3600 * 24,
   },
   TV_SHOW_BY_TMDB_ID: {
-    prefix: (tmdbId: number) => `tvShow:tmdbId:${tmdbId}`,
+    prefix: (tmdbId: number) => `tvShow:detail:tmdbId:${tmdbId}`,
     expiration: 3600 * 24,
   },
   TV_SHOW_SEASONS_BY_TMDB_ID: {
-    prefix: (tmdbId: number) => `tvShow:tmdbId:${tmdbId}:season`,
+    prefix: (tmdbId: number) => `tvShow:detail:tmdbId:${tmdbId}:season`,
     expiration: 3600 * 24,
   },
   HARDCOVER_SEARCH_BOOKS: {
@@ -62,39 +38,60 @@ export const CACHE_KEYS: CacheKeys<
     expiration: 3600 * 24,
   },
   HARDCOVER_BOOK_BY_ID: {
-    prefix: (id: number) => `hardcover:detail:book:${id}`,
+    prefix: (hardcoverId: number) => `hardcover:detail:book:${hardcoverId}`,
     expiration: 3600 * 24,
   },
-  IGDB_ACCESS_TOKEN: {
-    prefix: () => `igdb:accessToken`,
-    expiration: 0,
-  },
+  IGDB_ACCESS_TOKEN: "igdb:token",
   IGDB_SEARCH_GAMES: {
     prefix: (query: string) => `igdb:search:game:${query}`,
     expiration: 3600 * 24,
   },
   IGDB_GAME_BY_ID: {
-    prefix: (id: number) => `igdb:game:id:${id}`,
+    prefix: (igdbId: number) => `igdb:detail:game:id:${igdbId}`,
     expiration: 3600 * 24,
   },
   JIKAN_SEARCH_ANIMES: {
-    prefix: (query: string) => `jikan:search:anime:${query}`,
+    prefix: (filters: Record<string, any>) => `jikan:search:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   JIKAN_SEARCH_MANGAS: {
-    prefix: (query: string) => `jikan:search:manga:${query}`,
+    prefix: (filters: Record<string, any>) => `jikan:search:manga:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
+  JIKAN_ANIME_GENRES: {
+    prefix: "jikan:genres:anime",
+    expiration: 3600 * 24,
+  },
+  JIKAN_MANGA_GENRES: {
+    prefix: "jikan:genres:manga",
     expiration: 3600 * 24,
   },
   JIKAN_ANIME_BY_ID: {
-    prefix: (malId: number) => `jikan:anime:id:${malId}`,
+    prefix: (malId: number) => `jikan:detail:anime:id:${malId}`,
     expiration: 3600 * 24,
   },
   JIKAN_ANIME_EPISODES_BY_ID: {
-    prefix: (malId: number) => `jikan:anime:id:${malId}:episode`,
+    prefix: (malId: number) => `jikan:detail:anime:id:${malId}:episode`,
+    expiration: 3600 * 24,
+  },
+  JIKAN_ANIME_RECOMMENDATIONS: {
+    prefix: (filters: Record<string, any>) => `jikan:recommendations:anime:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
+  JIKAN_MANGA_RECOMMENDATIONS: {
+    prefix: (filters: Record<string, any>) => `jikan:recommendations:manga:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
+  JIKAN_TOP_ANIMES: {
+    prefix: (filters: Record<string, any>) => `jikan:top:anime:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
+  JIKAN_TOP_MANGAS: {
+    prefix: (filters: Record<string, any>) => `jikan:top:manga:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   JIKAN_MANGA_BY_ID: {
-    prefix: (malId: number) => `jikan:manga:id:${malId}`,
+    prefix: (malId: number) => `jikan:detail:manga:id:${malId}`,
     expiration: 3600 * 24,
   },
   TMDB_SEARCH_MOVIES: {
@@ -106,15 +103,15 @@ export const CACHE_KEYS: CacheKeys<
     expiration: 3600 * 24,
   },
   TMDB_MOVIE_BY_ID: {
-    prefix: (tmdbId: number) => `tmdb:movie:id:${tmdbId}`,
+    prefix: (tmdbId: number) => `tmdb:detail:movie:id:${tmdbId}`,
     expiration: 3600 * 24,
   },
   TMDB_TV_SHOW_BY_ID: {
-    prefix: (tmdbId: number) => `tmdb:tvShow:id:${tmdbId}`,
+    prefix: (tmdbId: number) => `tmdb:detail:tvShow:id:${tmdbId}`,
     expiration: 3600 * 24,
   },
   TMDB_TV_SHOW_SEASONS_BY_ID: {
-    prefix: (tmdbId: number) => `tmdb:tvShow:id:${tmdbId}:season`,
+    prefix: (tmdbId: number) => `tmdb:detail:tvShow:id:${tmdbId}:season`,
     expiration: 3600 * 24,
   },
-};
+} as const;
