@@ -31,7 +31,7 @@ describe("JikanService", () => {
       const cached = [{ malId: 1, title: "Naruto", type: "TV", airedFrom: null, imageUrl: null }];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.searchAnimes("Naruto");
+      const result = await service.searchAnimes("Naruto" as any);
 
       expect(result).toEqual(cached);
       expect(mockHttpService.get).not.toHaveBeenCalled();
@@ -50,18 +50,21 @@ describe("JikanService", () => {
                 type: "TV",
                 aired: { from: "2002-10-03T00:00:00+00:00" },
                 images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto.jpg" } },
+                genres: [],
+                status: "Finished Airing",
               },
             ],
+            pagination: { has_next_page: false, items: { total: 1, count: 1 } },
           },
         }),
       );
 
-      const result = await service.searchAnimes("Naruto");
+      const result = await service.searchAnimes({ query: "Naruto" });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].malId).toBe(20);
-      expect(result[0].title).toBe("Naruto");
-      expect(result[0].imageUrl).toBe("https://cdn.myanimelist.net/naruto.jpg");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].malId).toBe(20);
+      expect(result.items[0].title).toBe("Naruto");
+      expect(result.items[0].imageUrl).toBe("https://cdn.myanimelist.net/naruto.jpg");
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -69,14 +72,14 @@ describe("JikanService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.searchAnimes("Naruto")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchAnimes("Naruto" as any)).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
-      await expect(service.searchAnimes("unknown")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchAnimes("unknown" as any)).rejects.toBeInstanceOf(AppException);
     });
   });
 
@@ -85,7 +88,7 @@ describe("JikanService", () => {
       const cached = [{ malId: 1, title: "Naruto", type: "Manga", publishedFrom: null, imageUrl: null }];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.searchMangas("Naruto");
+      const result = await service.searchMangas("Naruto" as any);
 
       expect(result).toEqual(cached);
       expect(mockHttpService.get).not.toHaveBeenCalled();
@@ -104,17 +107,20 @@ describe("JikanService", () => {
                 type: "Manga",
                 published: { from: "1999-09-21T00:00:00+00:00" },
                 images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto-manga.jpg" } },
+                genres: [],
+                status: "Finished",
               },
             ],
+            pagination: { has_next_page: false, items: { total: 1, count: 1 } },
           },
         }),
       );
 
-      const result = await service.searchMangas("Naruto");
+      const result = await service.searchMangas({ query: "Naruto" });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].malId).toBe(11);
-      expect(result[0].title).toBe("Naruto");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].malId).toBe(11);
+      expect(result.items[0].title).toBe("Naruto");
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -122,7 +128,7 @@ describe("JikanService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.searchMangas("Naruto")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchMangas("Naruto" as any)).rejects.toBeInstanceOf(AppException);
     });
   });
 
