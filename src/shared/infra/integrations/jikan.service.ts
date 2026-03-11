@@ -716,8 +716,7 @@ export class JikanService {
       const paginationData = recommendationsResponse.data.pagination;
 
       const items = itemsData
-        .map((rec: any) => rec.entry)
-        .flat()
+        .flatMap((rec: any) => rec.entry)
         .map((anime: any) => ({
           malId: anime.mal_id,
           title: anime.title,
@@ -765,8 +764,7 @@ export class JikanService {
       const paginationData = recommendationsResponse.data.pagination;
 
       const items = itemsData
-        .map((rec: any) => rec.entry)
-        .flat()
+        .flatMap((rec: any) => rec.entry)
         .map((manga: any) => ({
           malId: manga.mal_id,
           title: manga.title,
