@@ -22,7 +22,7 @@ export enum TMDBTVShowFilter {
   Popular = "popular",
 }
 
-export interface TMDBTopAnimeOptions {
+export interface TMDBTopMovieOptions {
   page?: number;
   filter: TMDBMovieFilter;
 }
@@ -246,7 +246,7 @@ export class TMDBService {
     }
   }
 
-  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopAnimeOptions): Promise<TMDBTopMovieResult[]> {
+  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions): Promise<TMDBTopMovieResult[]> {
     const TMDB_MOVIE_FILTER_PATH: Record<TMDBMovieFilter, string> = {
       [TMDBMovieFilter.Airing]: "movie/now_playing",
       [TMDBMovieFilter.Upcoming]: "discover/movie",
