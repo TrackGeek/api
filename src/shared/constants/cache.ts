@@ -98,6 +98,10 @@ export const CACHE_KEYS = {
     prefix: (query: string) => `tmdb:search:movie:${query}`,
     expiration: 3600 * 24,
   },
+  TMDB_TOP_MOVIES: {
+    prefix: (filters: Record<string, any>) => `jikan:top:anime:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
   TMDB_SEARCH_TV_SHOWS: {
     prefix: (query: string) => `tmdb:search:tvShow:${query}`,
     expiration: 3600 * 24,

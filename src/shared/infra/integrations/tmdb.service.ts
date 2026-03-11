@@ -2,12 +2,39 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from "@/shared/constants/cache";
+
+export enum TMDBMovieFilter {
+  Airing = "airing",
+  Upcoming = "upcoming",
+  Trending = "trending",
+  Popular = "popular",
+}
+
+export enum TMDBTVShowFilter {
+  Airing = "airing",
+  Upcoming = "upcoming",
+  Trending = "trending",
+  Popular = "popular",
+}
+
+export interface TMDBTopAnimeOptions {
+  page?: number;
+  filter: TMDBMovieFilter;
+}
 
 export interface TMDBSearchMovieResult {
+  tmdbId: number;
+  name: string;
+  releaseDate: Date | null;
+  posterUrl: string | null;
+}
+
+export interface TMDBTopMovieResult {
   tmdbId: number;
   name: string;
   releaseDate: Date | null;
@@ -215,6 +242,59 @@ export class TMDBService {
 
       this.logger.error(`Failed to search movies from TMDB API for query "${query}": ${error.message}`, error.stack);
 
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopAnimeOptions): Promise<TMDBTopMovieResult[]> {
+    const TMDB_MOVIE_FILTER_PATH: Record<TMDBMovieFilter, string> = {
+      [TMDBMovieFilter.Airing]: "movie/now_playing",
+      [TMDBMovieFilter.Upcoming]: "discover/movie",
+      [TMDBMovieFilter.Trending]: "trending/movie/day",
+      [TMDBMovieFilter.Popular]: "movie/popular",
+    };
+
+    try {
+      const topMoviesOptions = { page, filter };
+      const topMoviesKey = CACHE_KEYS.TMDB_TOP_MOVIES.prefix({ ...topMoviesOptions });
+
+      const cachedTopMovies = await this.cacheService.get<TMDBTopMovieResult[]>(topMoviesKey);
+      if (cachedTopMovies) return cachedTopMovies;
+
+      const path = TMDB_MOVIE_FILTER_PATH[filter];
+      const params: Record<string, any> = { page };
+
+      if (filter === TMDBMovieFilter.Upcoming) {
+        const today = new Date();
+        const futureDate = new Date();
+        futureDate.setMonth(today.getMonth() + 3);
+        const toISO = (d: Date) => d.toISOString().split("T")[0];
+
+        params["primary_release_date.gte"] = toISO(today);
+        params["primary_release_date.lte"] = toISO(futureDate);
+      }
+
+      const topMovieResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/${path}`, {
+          params,
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const movies = topMovieResponse.data.results.map((movie: any) => ({
+        tmdbId: movie.id,
+        name: movie.title,
+        releaseDate: movie.release_date ? new Date(movie.release_date) : null,
+        posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+      }));
+
+      await this.cacheService.set(topMoviesKey, movies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
+
+      return movies;
+    } catch (error) {
+      this.logger.error("Failed to fetch top movies from TMDB API", error);
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }

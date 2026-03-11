@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { TopMovieDto } from "@/modules/movie/dto/top-movie.dto";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import { SearchMovieDto } from "../dto/search-movie.dto";
 import { MovieService } from "../service/movie.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Movie")
 @Controller("/movie")
@@ -13,6 +14,13 @@ export class MovieController {
   @Get("/search")
   async searchMovies(@Query() searchMovieDto: SearchMovieDto) {
     const movies = await this.movieService.searchMovies(searchMovieDto);
+
+    return { movies };
+  }
+
+  @Get("/top")
+  async upcomingMovies(@Query() query: TopMovieDto) {
+    const movies = await this.movieService.topMovies(query);
 
     return { movies };
   }

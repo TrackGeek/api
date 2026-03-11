@@ -1,5 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Movie } from "@prisma/generated/client";
+import { MovieCreateInput, MovieUpdateInput } from "@prisma/generated/models";
+import { TopMovieDto } from "@/modules/movie/dto/top-movie.dto";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -8,8 +11,6 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import type { SearchMovieDto } from "../dto/search-movie.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { MovieCreateInput, MovieUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class MovieService {
@@ -21,6 +22,10 @@ export class MovieService {
 
   async searchMovies(searchMovieDto: SearchMovieDto) {
     return this.integrationsService.tmdb.searchMovies(searchMovieDto.query);
+  }
+
+  async topMovies(topMovieDto: TopMovieDto) {
+    return this.integrationsService.tmdb.topMovies(topMovieDto);
   }
 
   async getMovieById(id: number) {
