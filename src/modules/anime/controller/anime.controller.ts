@@ -5,7 +5,7 @@ import { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import { SearchAnimeDto } from "../dto/search-anime.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { AnimeRecommendationsDto } from "../dto/anime-recommendations.dto";
-import { TopAnimeDto } from '../dto/top-anime.dto';
+import { TopAnimeDto } from "../dto/top-anime.dto";
 
 @ApiTags("Anime")
 @Controller("/anime")
@@ -25,7 +25,7 @@ export class AnimeController {
 
     return { filters };
   }
-  
+
   @Get("/top")
   async topAnimes(@Query() query: TopAnimeDto) {
     const animes = await this.animeService.topAnimes(query);

@@ -19,7 +19,7 @@ import {
   JikanAnimeType,
 } from "@/shared/infra/integrations/jikan.service";
 import { AnimeRecommendationsDto } from "../dto/anime-recommendations.dto";
-import { TopAnimeDto } from '../dto/top-anime.dto';
+import { TopAnimeDto } from "../dto/top-anime.dto";
 
 @Injectable()
 export class AnimeService {
@@ -35,7 +35,7 @@ export class AnimeService {
       startDate: searchAnimeDto.year,
     });
   }
-  
+
   async topAnimes(topAnimeDto: TopAnimeDto) {
     return this.integrationsService.jikan.topAnimes(topAnimeDto);
   }

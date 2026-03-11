@@ -5,7 +5,7 @@ import { SearchMangaDto } from "../dto/search-manga.dto";
 import { MangaService } from "../service/manga.service";
 import { ApiTags } from "@nestjs/swagger";
 import { MangaRecommendationsDto } from "../dto/manga-recommendations.dto";
-import { TopMangaDto } from '../dto/top-manga.dto';
+import { TopMangaDto } from "../dto/top-manga.dto";
 
 @ApiTags("Manga")
 @Controller("/manga")
@@ -25,7 +25,7 @@ export class MangaController {
 
     return { filters };
   }
-  
+
   @Get("/top")
   async topMangas(@Query() query: TopMangaDto) {
     const mangas = await this.mangaService.topMangas(query);

@@ -18,7 +18,7 @@ import {
   JikanMangaType,
   JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
-import { TopMangaDto } from '../dto/top-manga.dto';
+import { TopMangaDto } from "../dto/top-manga.dto";
 
 @Injectable()
 export class MangaService {
@@ -31,7 +31,7 @@ export class MangaService {
   async searchMangas(searchMangaDto: SearchMangaDto) {
     return this.integrationsService.jikan.searchMangas(searchMangaDto);
   }
-  
+
   async topMangas(topMangaDto: TopMangaDto) {
     return this.integrationsService.jikan.topMangas(topMangaDto);
   }
