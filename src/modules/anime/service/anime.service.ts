@@ -11,6 +11,15 @@ import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
+import {
+  JikanAnimeOrderBy,
+  JikanAnimeRatings,
+  JikanSort,
+  JikanAnimeStatus,
+  JikanAnimeType,
+} from "@/shared/infra/integrations/jikan.service";
+import { AnimeRecommendationsDto } from "../dto/anime-recommendations.dto";
+import { TopAnimeDto } from '../dto/top-anime.dto';
 
 @Injectable()
 export class AnimeService {
@@ -21,7 +30,36 @@ export class AnimeService {
   ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
-    return this.integrationsService.jikan.searchAnimes(searchAnimeDto.query);
+    return this.integrationsService.jikan.searchAnimes({
+      ...searchAnimeDto,
+      startDate: searchAnimeDto.year,
+    });
+  }
+  
+  async topAnimes(topAnimeDto: TopAnimeDto) {
+    return this.integrationsService.jikan.topAnimes(topAnimeDto);
+  }
+
+  async animeRecommendations(animeRecommendationsDto: AnimeRecommendationsDto) {
+    return this.integrationsService.jikan.animeRecommendations(animeRecommendationsDto);
+  }
+
+  async animeFilters() {
+    const types = Object.values(JikanAnimeType);
+    const status = Object.values(JikanAnimeStatus);
+    const ratings = Object.values(JikanAnimeRatings);
+    const orderBy = Object.values(JikanAnimeOrderBy);
+    const sort = Object.values(JikanSort);
+    const genres = await this.integrationsService.jikan.getAnimeGenres();
+
+    return {
+      types,
+      genres,
+      status,
+      ratings,
+      orderBy,
+      sort,
+    };
   }
 
   async getAnimeByMalId(malId: number) {
