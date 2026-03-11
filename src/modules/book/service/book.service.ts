@@ -36,7 +36,7 @@ export class BookService {
     });
 
     if (!book) {
-      const hardcoverBook = await this.integrationsService.hardcover.getBookById(hardcoverId);
+      const hardcoverBook = await this.integrationsService.hardcover.getBookByHardcoverId(hardcoverId);
 
       book = await this.databaseService.book.create({
         data: hardcoverBook as unknown as BookCreateInput,
@@ -72,7 +72,7 @@ export class BookService {
       await this.cacheService.delete(CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(refreshBookDto.hardcoverId));
     }
 
-    const hardcoverBook = await this.integrationsService.hardcover.getBookById(refreshBookDto.hardcoverId);
+    const hardcoverBook = await this.integrationsService.hardcover.getBookByHardcoverId(refreshBookDto.hardcoverId);
 
     await this.databaseService.book.update({
       where: { hardcoverId: refreshBookDto.hardcoverId },
