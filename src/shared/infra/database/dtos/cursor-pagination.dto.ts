@@ -26,5 +26,9 @@ export class CursorPaginationResultDto<T> {
 
   readonly hasNextPage: boolean;
 
+  readonly count: number;
+
+  readonly total: number;
+
   readonly items: T[];
 }

@@ -17,9 +17,11 @@ export interface DatabaseArgs {
   select?: any;
 }
 
-const DEFAULT_PAGE = 1;
-const DEFAULT_ITEMS_PER_PAGE = 12;
-const DEFAULT_CURSOR_FIELD = "id";
+export const DEFAULT_PAGINATION_PAGE = 1;
+
+export const DEFAULT_PAGINATION_ITEMS_PER_PAGE = 20;
+
+const DEFAULT_PAGINATION_CURSOR_FIELD = "id";
 
 @Injectable()
 export class DatabaseService extends PrismaClient {
@@ -38,8 +40,8 @@ export class DatabaseService extends PrismaClient {
   ): Promise<OffsetPaginationResultDto<R>> {
     const {
       model,
-      page = DEFAULT_PAGE,
-      itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
+      page = DEFAULT_PAGINATION_PAGE,
+      itemsPerPage = DEFAULT_PAGINATION_ITEMS_PER_PAGE,
       omit = {},
       select = {},
       where = {},
@@ -47,9 +49,12 @@ export class DatabaseService extends PrismaClient {
       orderBy = {},
     } = params;
 
-    const [count, items] = await Promise.all([
-      (this[model as DatabaseModel] as any).count({ where }),
-      (this[model as DatabaseModel] as any).findMany({
+    const modelInstance = this[model as DatabaseModel] as any;
+
+    const [total, count, items] = await Promise.all([
+      modelInstance.count(),
+      modelInstance.count({ where }),
+      modelInstance.findMany({
         take: itemsPerPage,
         skip: (page - 1) * itemsPerPage,
         where,
@@ -62,6 +67,7 @@ export class DatabaseService extends PrismaClient {
     const pages = Math.ceil(count / itemsPerPage);
 
     return {
+      total,
       count,
       pages,
       inPage: page,
@@ -76,17 +82,19 @@ export class DatabaseService extends PrismaClient {
   ): Promise<CursorPaginationResultDto<R>> {
     const {
       model,
-      itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
+      itemsPerPage = DEFAULT_PAGINATION_ITEMS_PER_PAGE,
       cursor,
       omit = {},
       where = {},
       select = {},
       include = {},
       orderBy = {},
-      cursorField = DEFAULT_CURSOR_FIELD,
+      cursorField = DEFAULT_PAGINATION_CURSOR_FIELD,
     } = params;
 
-    const data = await (this[model as DatabaseModel] as any).findMany({
+    const modelInstance = this[model as DatabaseModel] as any;
+
+    const data = await modelInstance.findMany({
       take: itemsPerPage + 1,
       omit,
       where,
@@ -108,9 +116,13 @@ export class DatabaseService extends PrismaClient {
 
     const nextCursor = hasNextPage && items.length > 0 ? items[items.length - 1][cursorField] : null;
 
+    const total = await modelInstance.count();
+
     return {
       nextCursor,
       hasNextPage,
+      count: data.length,
+      total,
       items: items as R[],
     };
   }

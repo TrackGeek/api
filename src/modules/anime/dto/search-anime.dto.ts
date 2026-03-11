@@ -1,7 +1,51 @@
-import { IsNotEmpty, MinLength } from "class-validator";
+import {
+  JikanAnimeType,
+  JikanAnimeStatus,
+  JikanAnimeRatings,
+  JikanSort,
+  JikanAnimeOrderBy,
+} from "@/shared/infra/integrations/jikan.service";
+import { Type } from "class-transformer";
+import { IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 
 export class SearchAnimeDto {
-  @IsNotEmpty()
-  @MinLength(3)
-  readonly query: string;
+  @IsOptional()
+  readonly query?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  @IsOptional()
+  readonly page?: number;
+
+  @IsEnum(JikanAnimeType)
+  @IsOptional()
+  readonly type?: JikanAnimeType;
+
+  @IsEnum(JikanAnimeStatus)
+  @IsOptional()
+  readonly status?: JikanAnimeStatus;
+
+  @IsEnum(JikanAnimeRatings)
+  @IsOptional()
+  readonly rating?: JikanAnimeRatings;
+
+  @Matches(/^\w+(?:,\w+)*$/)
+  @IsOptional()
+  readonly genres?: string;
+
+  @IsEnum(JikanAnimeOrderBy)
+  @IsOptional()
+  readonly orderBy?: JikanAnimeOrderBy;
+
+  @IsEnum(JikanSort)
+  @IsOptional()
+  readonly sort?: JikanSort;
+
+  @Matches(/^[a-zA-Z]$/)
+  @IsOptional()
+  readonly letter?: string;
+
+  @IsOptional()
+  readonly year?: string;
 }

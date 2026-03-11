@@ -131,7 +131,7 @@ describe("HardcoverService", () => {
       const cached = { hardcoverId: 12345, title: "Dune" };
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.getBookById(12345);
+      const result = await service.getBookByHardcoverId(12345);
 
       expect(result).toEqual(cached);
       expect(mockHttpService.post).not.toHaveBeenCalled();
@@ -144,7 +144,7 @@ describe("HardcoverService", () => {
         .mockReturnValueOnce(of({ data: { data: { book_categories: bookCategoriesData } } }))
         .mockReturnValueOnce(of({ data: { data: { books_by_pk: bookData } } }));
 
-      const result = await service.getBookById(12345);
+      const result = await service.getBookByHardcoverId(12345);
 
       expect(result.hardcoverId).toBe(12345);
       expect(result.title).toBe("Dune");
@@ -158,14 +158,14 @@ describe("HardcoverService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.post.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.getBookById(12345)).rejects.toBeInstanceOf(AppException);
+      await expect(service.getBookByHardcoverId(12345)).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.post.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
-      await expect(service.getBookById(99999)).rejects.toBeInstanceOf(AppException);
+      await expect(service.getBookByHardcoverId(99999)).rejects.toBeInstanceOf(AppException);
     });
   });
 });

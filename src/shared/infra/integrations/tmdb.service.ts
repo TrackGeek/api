@@ -7,14 +7,14 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "../cache/cache.service";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 
-export interface SearchMovieResult {
+export interface TMDBSearchMovieResult {
   tmdbId: number;
   name: string;
   releaseDate: Date | null;
   posterUrl: string | null;
 }
 
-export interface SearchTVShowResult {
+export interface TMDBSearchTVShowResult {
   tmdbId: number;
   name: string;
   firstAirDate: Date | null;
@@ -173,9 +173,9 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchMovies(query: string): Promise<SearchMovieResult[]> {
+  async searchMovies(query: string): Promise<TMDBSearchMovieResult[]> {
     try {
-      const cachedMovies = await this.cacheService.get<SearchMovieResult[]>(
+      const cachedMovies = await this.cacheService.get<TMDBSearchMovieResult[]>(
         CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix(query),
       );
 
@@ -219,9 +219,9 @@ export class TMDBService {
     }
   }
 
-  async searchTVShows(query: string): Promise<SearchTVShowResult[]> {
+  async searchTVShows(query: string): Promise<TMDBSearchTVShowResult[]> {
     try {
-      const cachedTVShows = await this.cacheService.get<SearchTVShowResult[]>(
+      const cachedTVShows = await this.cacheService.get<TMDBSearchTVShowResult[]>(
         CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix(query),
       );
 

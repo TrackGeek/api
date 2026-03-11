@@ -11,6 +11,14 @@ import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
+import { MangaRecommendationsDto } from "../dto/manga-recommendations.dto";
+import {
+  JikanMangaOrderBy,
+  JikanMangaStatus,
+  JikanMangaType,
+  JikanSort,
+} from "@/shared/infra/integrations/jikan.service";
+import { TopMangaDto } from "../dto/top-manga.dto";
 
 @Injectable()
 export class MangaService {
@@ -21,7 +29,31 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    return this.integrationsService.jikan.searchMangas(searchMangaDto.query);
+    return this.integrationsService.jikan.searchMangas(searchMangaDto);
+  }
+
+  async topMangas(topMangaDto: TopMangaDto) {
+    return this.integrationsService.jikan.topMangas(topMangaDto);
+  }
+
+  async mangaFilters() {
+    const types = Object.values(JikanMangaType);
+    const status = Object.values(JikanMangaStatus);
+    const orderBy = Object.values(JikanMangaOrderBy);
+    const sort = Object.values(JikanSort);
+    const genres = await this.integrationsService.jikan.getMangaGenres();
+
+    return {
+      types,
+      genres,
+      status,
+      orderBy,
+      sort,
+    };
+  }
+
+  async mangaRecommendations(mangaRecommendationsDto: MangaRecommendationsDto) {
+    return this.integrationsService.jikan.mangaRecommendations(mangaRecommendationsDto);
   }
 
   async getMangaByMalId(malId: number) {
