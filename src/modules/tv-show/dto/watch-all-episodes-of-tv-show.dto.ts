@@ -1,8 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { IsUUID } from "class-validator";
 
 export class WatchAllEpisodesOfTVShowDto {
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "ID of the user",
     example: "1",
     type: "string",

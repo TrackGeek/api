@@ -6,7 +6,7 @@ export class RefreshTVShowDto {
   @ApiProperty({
     description: "ID of the TV show",
     example: 14424,
-    type: "number",
+    type: "integer",
   })
   readonly tmdbId: number;
 }

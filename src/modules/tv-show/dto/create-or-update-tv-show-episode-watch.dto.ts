@@ -12,14 +12,16 @@ export class CreateOrUpdateTVShowEpisodeWatchDto {
   @IsInt()
   @IsPositive()
   @ApiProperty({
-    type: "number",
+    type: "integer",
+    minimum: 1,
   })
   readonly season: number;
 
   @IsInt()
   @IsPositive()
   @ApiProperty({
-    type: "number",
+    type: "integer",
+    minimum: 1,
   })
   readonly episode: number;
 
