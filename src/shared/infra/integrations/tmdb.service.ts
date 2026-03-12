@@ -381,8 +381,8 @@ export class TMDBService {
         futureDate.setMonth(today.getMonth() + 3);
         const toISO = (d: Date) => d.toISOString().split("T")[0];
 
-        params["primary_release_date.gte"] = toISO(today);
-        params["primary_release_date.lte"] = toISO(futureDate);
+        params["air_date.gte"] = toISO(today);
+        params["air_date.lte"] = toISO(futureDate);
       }
 
       const topTVShowsResponse = await firstValueFrom(
