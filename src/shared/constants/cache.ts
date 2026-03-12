@@ -106,6 +106,10 @@ export const CACHE_KEYS = {
     prefix: (query: string) => `tmdb:search:tvShow:${query}`,
     expiration: 3600 * 24,
   },
+  TMDB_TOP_TV_SHOWS: {
+    prefix: (filters: Record<string, any>) => `tmdb:top:tvShow:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
   TMDB_MOVIE_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:detail:movie:id:${tmdbId}`,
     expiration: 3600 * 24,
