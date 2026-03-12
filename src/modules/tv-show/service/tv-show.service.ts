@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { TvShow } from "@prisma/generated/client";
 import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
-import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show";
+import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";

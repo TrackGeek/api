@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
-import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show";
+import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { SearchTVShowDto } from "../dto/search-tv-show.dto";
 import { TVShowService } from "../service/tv-show.service";

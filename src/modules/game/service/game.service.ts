@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Game } from "@prisma/generated/client";
-
+import { GameCreateInput, GameUpdateInput } from "@prisma/generated/models";
+import { TopGameDto } from "@/modules/game/dto/top-game.dto";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -9,8 +11,6 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { GameCreateInput, GameUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class GameService {
@@ -22,6 +22,10 @@ export class GameService {
 
   async searchGames(searchGameDto: SearchGameDto) {
     return this.integrationsService.igdb.searchGames(searchGameDto.query);
+  }
+
+  async topGames(topGameDto: TopGameDto) {
+    return this.integrationsService.igdb.topGames(topGameDto);
   }
 
   async getGameByIgdbId(igdbId: number) {
