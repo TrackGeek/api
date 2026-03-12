@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { TopGameDto } from "@/modules/game/dto/top-game.dto";
 import { RefreshGameDto } from "../dto/refresh-game.dto";
 import { SearchGameDto } from "../dto/search-game.dto";
 import { GameService } from "../service/game.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Game")
 @Controller("/game")
@@ -15,6 +16,13 @@ export class GameController {
     const games = await this.gameService.searchGames(query);
 
     return { games };
+  }
+
+  @Get("/top")
+  async topGames(@Query() query: TopGameDto) {
+    const topGames = await this.gameService.topGames(query);
+
+    return { topGames };
   }
 
   @Post("/refresh")

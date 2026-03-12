@@ -46,6 +46,10 @@ export const CACHE_KEYS = {
     prefix: (query: string) => `igdb:search:game:${query}`,
     expiration: 3600 * 24,
   },
+  IGDB_TOP_GAMES: {
+    prefix: (filters: Record<string, any>) => `igdb:top:game:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
   IGDB_GAME_BY_ID: {
     prefix: (igdbId: number) => `igdb:detail:game:id:${igdbId}`,
     expiration: 3600 * 24,

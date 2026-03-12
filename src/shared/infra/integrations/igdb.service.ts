@@ -2,10 +2,45 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from "@/shared/constants/cache";
+
+export enum IGDBGameFilter {
+  Popular = "popular",
+  Coming = "coming",
+  Antecipated = "antecipated",
+  RecentlyReleased = "recentlyReleased",
+}
+
+export interface IGDBTopGameOptions {
+  page?: number;
+  filter?: IGDBGameFilter;
+}
+
+export interface IGDBTopGameResult {
+  igdbId: number;
+  slug: string;
+  name: string;
+  involvedCompanies: {
+    checksum: string | null;
+    companyName: string | null;
+    developer: boolean;
+  }[];
+  platforms: {
+    checksum: string | null;
+    name: string | null;
+  }[];
+  artworks: {
+    checksum: string | null;
+    type: string | null;
+    url: string | null;
+  }[];
+  coverUrl: string | null;
+  firstReleaseDate: Date | null;
+}
 
 export interface IGDBSearchGameResult {
   igdbId: number;
@@ -274,6 +309,139 @@ export class IGDBService {
         CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query),
         games,
         CACHE_KEYS.IGDB_SEARCH_GAMES.expiration,
+      );
+
+      return games;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+      }
+
+      throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async topGames({ page = DEFAULT_PAGINATION_PAGE, filter }: IGDBTopGameOptions): Promise<IGDBTopGameResult[]> {
+    const accessToken = await this.getAccessToken();
+
+    try {
+      const topGamesOptions = { page, filter };
+      const cachedGames = await this.cacheService.get<IGDBTopGameResult[]>(
+        CACHE_KEYS.IGDB_TOP_GAMES.prefix({ ...topGamesOptions }),
+      );
+
+      if (cachedGames) {
+        // return cachedGames;
+      }
+      const now = Math.floor(Date.now() / 1000);
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
+      const ninetyDaysAhead = now + 90 * 24 * 60 * 60;
+      const offset = (page - 1) * 10;
+      const twoYearsAgo = now - 2 * 365 * 24 * 60 * 60;
+
+      const queries: Record<IGDBGameFilter, string> = {
+        popular: `
+  fields 
+    slug, name, cover.url,
+			artworks.checksum, artworks.artwork_type.name, artworks.url,
+    platforms.checksum, platforms.name,
+    involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+    first_release_date;
+  where rating_count > 50
+    & rating >= 70
+    & first_release_date > ${twoYearsAgo}
+    & first_release_date < ${now}
+    & cover != null;
+  sort rating_count desc;
+  limit 10;
+  offset ${offset};
+`,
+
+        coming: `
+  fields 
+    slug, name, cover.url,
+			artworks.checksum, artworks.artwork_type.name, artworks.url,
+    platforms.checksum, platforms.name,
+    involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+    first_release_date;
+  where first_release_date > ${now}
+    & first_release_date < ${ninetyDaysAhead}
+    & cover != null;
+  sort first_release_date asc;
+  limit 10;
+  offset ${offset};
+`,
+        antecipated: `
+    fields 
+      slug, name, cover.url,
+			artworks.checksum, artworks.artwork_type.name, artworks.url,
+      platforms.checksum, platforms.name,
+      involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+      first_release_date;
+    where first_release_date > ${now}
+      & cover != null
+      & hypes != null;
+    sort hypes desc;
+    limit 10;
+    offset ${offset};
+  `,
+        recentlyReleased: `
+    fields 
+      slug, name, cover.url,
+			artworks.checksum, artworks.artwork_type.name, artworks.url,
+      platforms.checksum, platforms.name,
+      involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+      first_release_date;
+    where first_release_date > ${thirtyDaysAgo}
+      & first_release_date < ${now}
+      & cover != null
+      & rating_count > 5;
+    sort first_release_date desc;
+    limit 10;
+    offset ${offset};
+  `,
+      };
+
+      const gamesResponse = await firstValueFrom(
+        this.httpService.post(`${this.IGDB_API_URL}/games`, queries[filter as IGDBGameFilter], {
+          headers: {
+            "Client-ID": this.configService.get<string>("IGDB_CLIENT_ID"),
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }),
+      );
+
+      const gamesData = gamesResponse.data;
+
+      const games = gamesData.map((game: any) => ({
+        igdbId: game.id,
+        slug: game.slug,
+        name: game.name,
+        involvedCompanies:
+          game?.involved_companies?.map((company: any) => ({
+            checksum: company?.checksum ?? null,
+            companyName: company?.company?.name ?? null,
+            developer: company?.developer ?? false,
+          })) ?? [],
+        artworks:
+          game?.artworks?.map((artwork: any) => ({
+            checksum: artwork?.checksum ?? null,
+            type: artwork?.artwork_type?.name ?? null,
+            url: artwork?.url ? `https:${artwork.url.replace("t_thumb", "t_1080p")}` : null,
+          })) ?? [],
+        platforms:
+          game?.platforms?.map((platform: any) => ({
+            checksum: platform?.checksum ?? null,
+            name: platform?.name ?? null,
+          })) ?? [],
+        coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
+        firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
+      }));
+
+      await this.cacheService.set(
+        CACHE_KEYS.IGDB_TOP_GAMES.prefix({ ...topGamesOptions }),
+        games,
+        CACHE_KEYS.IGDB_TOP_GAMES.expiration,
       );
 
       return games;
