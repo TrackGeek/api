@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsPositive } from "class-validator";
-import { TMDBMovieFilter } from "@/shared/infra/integrations/tmdb.service";
+import { TMDBTVShowFilter } from "@/shared/infra/integrations/tmdb.service";
 
-export class TopMovieDto {
+export class TopTvShowDto {
   @Type(() => Number)
   @IsInt()
   @IsPositive()
@@ -14,9 +14,9 @@ export class TopMovieDto {
   })
   readonly page?: number;
 
-  @IsEnum(TMDBMovieFilter)
+  @IsEnum(TMDBTVShowFilter)
   @ApiProperty({
-    enum: TMDBMovieFilter,
+    enum: TMDBTVShowFilter,
   })
-  readonly filter: TMDBMovieFilter;
+  readonly filter: TMDBTVShowFilter;
 }

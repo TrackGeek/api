@@ -19,7 +19,7 @@ export class MovieController {
   }
 
   @Get("/top")
-  async upcomingMovies(@Query() query: TopMovieDto) {
+  async topMovies(@Query() query: TopMovieDto) {
     const movies = await this.movieService.topMovies(query);
 
     return { movies };

@@ -1,47 +1,94 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateTVShowReviewDto {
   @IsDecimal()
   @Max(10)
   @Min(0)
+  @ApiProperty({
+    type: "number",
+    minimum: 0,
+    maximum: 10,
+  })
   readonly overall: number;
 
   @IsDecimal()
   @IsOptional()
   @Max(10)
   @Min(0)
+  @ApiPropertyOptional({
+    type: "number",
+    minimum: 0,
+    maximum: 10,
+  })
   readonly direction?: number;
 
   @IsDecimal()
   @IsOptional()
   @Max(10)
   @Min(0)
+  @ApiPropertyOptional({
+    type: "number",
+    minimum: 0,
+    maximum: 10,
+  })
   readonly production?: number;
 
   @IsDecimal()
   @IsOptional()
   @Max(10)
   @Min(0)
+  @ApiPropertyOptional({
+    type: "number",
+    minimum: 0,
+    maximum: 10,
+  })
   readonly acting?: number;
 
   @IsOptional()
   @MaxLength(250)
+  @ApiPropertyOptional({
+    type: "string",
+    maxLength: 250,
+  })
   readonly summary?: string;
 
   @IsOptional()
   @MaxLength(1000)
+  @ApiPropertyOptional({
+    type: "string",
+    maxLength: 1000,
+  })
   readonly notes?: string;
 
   @IsOptional()
   @MaxLength(500)
+  @ApiPropertyOptional({
+    type: "string",
+    maxLength: 500,
+  })
   readonly story?: string;
 
   @IsBoolean()
   @IsOptional()
+  @ApiPropertyOptional({
+    type: "boolean",
+    default: true,
+  })
   readonly recommended?: boolean;
 
   @IsNotEmpty()
+  @ApiProperty({
+    description: "ID of the TV show",
+    example: "14424",
+    type: "string",
+  })
   readonly tvShowId: string;
 
+  @ApiProperty({
+    description: "ID of the user",
+    example: "1",
+    type: "string",
+  })
   readonly userId: string;
 }

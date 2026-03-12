@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { SearchTVShowDto } from "../dto/search-tv-show.dto";
 import { TVShowService } from "../service/tv-show.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("TV Show")
 @Controller("/tv")
@@ -15,6 +16,13 @@ export class TVShowController {
     const tvShows = await this.tvShowService.searchTVShows(query);
 
     return { tvShows };
+  }
+
+  @Get("/top")
+  async topTVShows(@Query() query: TopTvShowDto) {
+    const topTVShows = await this.tvShowService.topTVShows(query);
+
+    return { topTVShows };
   }
 
   @Post("/refresh")

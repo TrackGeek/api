@@ -27,6 +27,11 @@ export interface TMDBTopMovieOptions {
   filter: TMDBMovieFilter;
 }
 
+export interface TMDBTopTVShowsOptions {
+  page?: number;
+  filter: TMDBTVShowFilter;
+}
+
 export interface TMDBSearchMovieResult {
   tmdbId: number;
   name: string;
@@ -38,6 +43,13 @@ export interface TMDBTopMovieResult {
   tmdbId: number;
   name: string;
   releaseDate: Date | null;
+  posterUrl: string | null;
+}
+
+export interface TMDBTopTVShowResult {
+  tmdbId: number;
+  name: string;
+  firstAirDate: Date | null;
   posterUrl: string | null;
 }
 
@@ -341,6 +353,61 @@ export class TMDBService {
 
       this.logger.error(`Failed to search TV shows from TMDB API for query "${query}": ${error.message}`, error.stack);
 
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions): Promise<TMDBTopTVShowResult[]> {
+    const TMDB_TV_SHOWS_FILTER_PATH: Record<TMDBTVShowFilter, string> = {
+      [TMDBTVShowFilter.Airing]: "tv/airing_today",
+      [TMDBTVShowFilter.Upcoming]: "discover/tv",
+      [TMDBTVShowFilter.Trending]: "trending/tv/day",
+      [TMDBTVShowFilter.Popular]: "tv/popular",
+    };
+
+    try {
+      const topTVShowsOptions = { page, filter };
+      const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({ ...topTVShowsOptions });
+
+      const cachedTopTVShows = await this.cacheService.get<TMDBTopTVShowResult[]>(topTVShowsKey);
+      if (cachedTopTVShows) return cachedTopTVShows;
+
+      const path = TMDB_TV_SHOWS_FILTER_PATH[filter];
+      const params: Record<string, any> = { page };
+
+      if (filter === TMDBTVShowFilter.Upcoming) {
+        const today = new Date();
+        const futureDate = new Date();
+        futureDate.setMonth(today.getMonth() + 3);
+        const toISO = (d: Date) => d.toISOString().split("T")[0];
+
+        params["air_date.gte"] = toISO(today);
+        params["air_date.lte"] = toISO(futureDate);
+      }
+
+      const topTVShowsResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/${path}`, {
+          params,
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const tvShowsData = topTVShowsResponse.data;
+
+      const tvShows = tvShowsData.results.map((show: any) => ({
+        tmdbId: show.id,
+        name: show.name,
+        firstAirDate: show.first_air_date ? new Date(show.first_air_date) : null,
+        posterUrl: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
+      }));
+
+      await this.cacheService.set(topTVShowsKey, tvShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
+
+      return tvShows;
+    } catch (error) {
+      this.logger.error("Failed to fetch top TV shows from TMDB API", error);
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
