@@ -321,7 +321,10 @@ export class IGDBService {
     }
   }
 
-  async topGames({ page = DEFAULT_PAGINATION_PAGE, filter }: IGDBTopGameOptions): Promise<IGDBTopGameResult[]> {
+  async topGames({
+    page = DEFAULT_PAGINATION_PAGE,
+    filter = IGDBGameFilter.Popular,
+  }: IGDBTopGameOptions): Promise<IGDBTopGameResult[]> {
     const accessToken = await this.getAccessToken();
 
     try {
@@ -331,7 +334,7 @@ export class IGDBService {
       );
 
       if (cachedGames) {
-        // return cachedGames;
+        return cachedGames;
       }
       const now = Math.floor(Date.now() / 1000);
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60;

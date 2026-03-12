@@ -106,7 +106,7 @@ export class CreateGameReviewDto {
   readonly screenshots?: string[];
 
   @IsNotEmpty()
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "ID of the game",
     example: "019ce334-c8ac-7883-949d-948f53218272",
     type: "string",

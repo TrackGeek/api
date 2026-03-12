@@ -13,7 +13,7 @@ export class CreateOrUpdateGameProgressDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: "integer",
     minimum: 1,
   })
