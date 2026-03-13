@@ -31,7 +31,7 @@ export interface HardcoverTopBookResult {
   id: number;
   title: string;
   alternativeTitles: string[];
-  authors: string[];
+  authors: { name: string; id: number }[];
   imageUrl: string;
 }
 
@@ -256,7 +256,6 @@ export class HardcoverService {
         ),
       );
 
-      console.log(topBookResponse.data);
       const topData = topBookResponse.data.data.books;
 
       const books = topData.map((book) => ({
@@ -280,7 +279,7 @@ export class HardcoverService {
       }
 
       this.logger.error(
-        `Failed to get top books from Hardcover API for query "${{ page, filter }}": ${error.message}`,
+        `Failed to get top books from Hardcover API for page=${page}, filter=${filter}: ${error.message}`,
         error.stack,
       );
 
