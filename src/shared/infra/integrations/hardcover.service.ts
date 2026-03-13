@@ -2,10 +2,21 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from "@/shared/constants/cache";
+
+export enum HardcoverBookFilter {
+  Trending = "trending",
+  ComingSoon = "comingSoon",
+}
+
+export interface HardcoverTopBookOptions {
+  page?: number;
+  filter?: HardcoverBookFilter;
+}
 
 export interface HardcoverSearchBookResult {
   id: number;
@@ -14,6 +25,14 @@ export interface HardcoverSearchBookResult {
   authors: string[];
   imageUrl: string;
   genres: string[];
+}
+
+export interface HardcoverTopBookResult {
+  id: number;
+  title: string;
+  alternativeTitles: string[];
+  authors: string[];
+  imageUrl: string;
 }
 
 export interface HardcoverEdition {
@@ -37,6 +56,14 @@ export interface HardcoverBookDetails {
     name: string;
   } | null;
   bookStatus: unknown;
+  contributions: {
+    contribution: string;
+    author: {
+      name: string;
+      id: number;
+      image: { url: string | null };
+    };
+  }[];
   canonical: {
     id: number;
     image: { url: string | null };
@@ -145,6 +172,115 @@ export class HardcoverService {
 
       this.logger.error(
         `Failed to search books from Hardcover API for query "${query}": ${error.message}`,
+        error.stack,
+      );
+
+      throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async topBooks({
+    page = DEFAULT_PAGINATION_PAGE,
+    filter = HardcoverBookFilter.Trending,
+  }: HardcoverTopBookOptions): Promise<HardcoverTopBookResult[]> {
+    try {
+      const topBooksOptions = { page, filter };
+      const cachedBooks = await this.cacheService.get<HardcoverTopBookResult[]>(
+        CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({ ...topBooksOptions }),
+      );
+
+      if (cachedBooks) {
+        return cachedBooks;
+      }
+
+      const queries: Record<HardcoverBookFilter, string> = {
+        trending: `
+          query TrendingBooks {
+            books(
+              order_by: { users_read_count: desc }
+              limit: 20
+              offset: ${(page - 1) * 20}
+            ) {
+              id
+              title
+              image {
+                url
+              }
+              contributions {
+                author {
+                  id
+                  name
+                }
+              }
+              alternative_titles
+            }
+          }
+        `,
+        comingSoon: `
+          query UpcomingBooks {
+            books(
+              where: { release_date: { _gt: "${new Date().toISOString().split("T")[0]}" } }
+              order_by: { release_date: asc }
+              limit: 20
+              offset: ${(page - 1) * 20}
+            ) { 
+              id
+              title 
+              image {
+                url
+              }
+              contributions {
+                author {
+                  id
+                  name
+                }
+              }
+              alternative_titles
+            }
+          }
+        `,
+      };
+
+      const topBookResponse = await firstValueFrom(
+        this.httpService.post(
+          this.HARDCOVER_API_URL,
+          {
+            query: queries[filter],
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get<string>("HARDCOVER_API_KEY")}`,
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      );
+
+      console.log(topBookResponse.data);
+      const topData = topBookResponse.data.data.books;
+
+      const books = topData.map((book) => ({
+        id: Number(book.id),
+        title: book.title,
+        alternativeTitles: book.alternative_titles,
+        authors: book.contributions.map(({ author }) => ({ name: author.name, id: author.id })),
+        imageUrl: book.image?.url ?? "",
+      }));
+
+      await this.cacheService.set(
+        CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({ ...topBooksOptions }),
+        books,
+        CACHE_KEYS.HARDCOVER_TOP_BOOKS.expiration,
+      );
+
+      return books;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
+      }
+
+      this.logger.error(
+        `Failed to get top books from Hardcover API for query "${{ page, filter }}": ${error.message}`,
         error.stack,
       );
 
@@ -288,6 +424,16 @@ export class HardcoverService {
 									title
 								}
 								alternative_titles
+								contributions {
+								  contribution
+                  author {
+                    id
+                    name
+                    image {
+                      url
+                    }
+                  }
+                }
 							}
 						}
 					`,
@@ -317,6 +463,7 @@ export class HardcoverService {
           : [],
         bookCategory: bookCategories.find((category) => category.id === bookData.book_category_id) ?? null,
         bookStatus: bookData.bookStatus,
+        contributions: bookData.contributions,
         canonical: bookData.canonical,
         compilation: bookData.compilation,
         curationStatus: bookData.curation_status,

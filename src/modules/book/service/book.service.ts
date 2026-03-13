@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Book } from "@prisma/generated/client";
-
+import { BookCreateInput, BookUpdateInput } from "@prisma/generated/models";
+import { TopBookDto } from "@/modules/book/dto/top-book.dto";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -9,8 +11,6 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { BookCreateInput, BookUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class BookService {
@@ -22,6 +22,10 @@ export class BookService {
 
   async searchBooks(searchBookDto: SearchBookDto) {
     return this.integrationsService.hardcover.searchBooks(searchBookDto.query);
+  }
+
+  async topBooks(topBookDto: TopBookDto) {
+    return this.integrationsService.hardcover.topBooks(topBookDto);
   }
 
   async getBookByHardcoverId(hardcoverId: number) {
