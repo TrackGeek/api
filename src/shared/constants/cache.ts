@@ -37,6 +37,10 @@ export const CACHE_KEYS = {
     prefix: (query: string) => `hardcover:search:book:${query}`,
     expiration: 3600 * 24,
   },
+  HARDCOVER_TOP_BOOKS: {
+    prefix: (filters: Record<string, any>) => `hardcover:top:book:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
   HARDCOVER_BOOK_BY_ID: {
     prefix: (hardcoverId: number) => `hardcover:detail:book:${hardcoverId}`,
     expiration: 3600 * 24,

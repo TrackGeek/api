@@ -316,6 +316,7 @@ model Book {
   id                     String    @id @default(uuid(7))
   hardcoverId            Int       @unique
   title                  String
+  contributions          Json?
   alternativeTitles      Json?
   audioSeconds           Int?
   taggings               Json?
