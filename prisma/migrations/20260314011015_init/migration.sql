@@ -1,5 +1,8 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('User', 'Premium', 'Contributor', 'Moderator', 'Administrator');
+CREATE TYPE "UserRole" AS ENUM ('User', 'Contributor', 'Moderator', 'Administrator');
+
+-- CreateEnum
+CREATE TYPE "UserTier" AS ENUM ('Tracker', 'Archivist', 'ArchiveMaster');
 
 -- CreateEnum
 CREATE TYPE "CommentType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book', 'Profile');
@@ -22,6 +25,12 @@ CREATE TYPE "ListType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Bo
 -- CreateEnum
 CREATE TYPE "FavoriteType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book');
 
+-- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('Pending', 'Completed', 'Failed');
+
+-- CreateEnum
+CREATE TYPE "PaymentFrequency" AS ENUM ('OneTime', 'Monthly');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -31,6 +40,8 @@ CREATE TABLE "User" (
     "image" TEXT,
     "username" TEXT,
     "displayUsername" TEXT,
+    "tier" "UserTier",
+    "tierStartedAt" TIMESTAMP(3),
     "role" "UserRole" NOT NULL DEFAULT 'User',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -367,7 +378,7 @@ CREATE TABLE "TVShow" (
     "lastAirDate" TIMESTAMP(3),
     "lastEpisodeToAir" JSONB,
     "name" TEXT,
-    "nextEpisodeToAir" TEXT,
+    "nextEpisodeToAir" JSONB,
     "networks" JSONB,
     "numberOfEpisodes" INTEGER,
     "numberOfSeasons" INTEGER,
@@ -706,6 +717,25 @@ CREATE TABLE "Favorite" (
     CONSTRAINT "Favorite_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Payment" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "value" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL,
+    "status" "PaymentStatus" NOT NULL,
+    "frequency" "PaymentFrequency" NOT NULL,
+    "checkoutSessionId" TEXT NOT NULL,
+    "customerId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "expiredAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -873,6 +903,9 @@ CREATE UNIQUE INDEX "Favorite_userId_gameId_key" ON "Favorite"("userId", "gameId
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Favorite_userId_bookId_key" ON "Favorite"("userId", "bookId");
+
+-- CreateIndex
+CREATE INDEX "Payment_userId_idx" ON "Payment"("userId");
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1059,3 +1092,6 @@ ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_gameId_fkey" FOREIGN KEY ("gameI
 
 -- AddForeignKey
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES "Book"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

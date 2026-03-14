@@ -10,23 +10,30 @@ datasource db {
 
 enum UserRole {
   User
-  Premium
   Contributor
   Moderator
   Administrator
 }
 
+enum UserTier {
+  Tracker
+  Archivist
+  ArchiveMaster
+}
+
 model User {
-  id              String   @id
+  id              String    @id
   name            String
   email           String
-  emailVerified   Boolean  @default(false)
+  emailVerified   Boolean   @default(false)
   image           String?
   username        String?
   displayUsername String?
-  role            UserRole @default(User)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  tier            UserTier?
+  tierStartedAt   DateTime?
+  role            UserRole  @default(User)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   profile               Profile?
   sessions              Session[]
@@ -53,6 +60,7 @@ model User {
   bookReviews           BookReview[]
   favorites             Favorite[]
   userMedals            UserMedal[]
+  payments              Payment[]
 
   @@unique([email])
   @@unique([username])
@@ -451,7 +459,7 @@ model TvShow {
   lastAirDate         DateTime?
   lastEpisodeToAir    Json?
   name                String?
-  nextEpisodeToAir    String?
+  nextEpisodeToAir    Json?
   networks            Json?
   numberOfEpisodes    Int?
   numberOfSeasons     Int?
@@ -893,4 +901,35 @@ model Favorite {
   @@unique([userId, movieId])
   @@unique([userId, gameId])
   @@unique([userId, bookId])
+}
+
+enum PaymentStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum PaymentFrequency {
+  OneTime
+  Monthly
+}
+
+model Payment {
+  id                String           @id @default(uuid(7))
+  name              String
+  value             Int
+  currency          String
+  status            PaymentStatus
+  frequency         PaymentFrequency
+  checkoutSessionId String
+  customerId        String
+  productId         String
+  userId            String
+  expiredAt         DateTime
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
