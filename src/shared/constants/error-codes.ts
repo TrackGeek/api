@@ -199,4 +199,16 @@ export const ERROR_CODES = {
     code: "TV_SHOW_SEASONS_NOT_FOUND",
     status: 404,
   },
+  STRIPE_WEBHOOK_ERROR: {
+    code: "STRIPE_WEBHOOK_ERROR",
+    status: 400,
+  },
+  STRIPE_PRODUCT_NOT_FOUND: {
+    code: "STRIPE_PRODUCT_NOT_FOUND",
+    status: 404,
+  },
+  STRIPE_PRICE_NOT_FOUND: {
+    code: "STRIPE_PRICE_NOT_FOUND",
+    status: 404,
+  }
 } as const;

@@ -2,6 +2,7 @@ import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import bodyParser from "body-parser";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
@@ -11,6 +12,7 @@ async function bootstrap() {
   const logger = new Logger("Bootstrap");
 
   const app = await NestFactory.create(AppModule, {
+    rawBody: true,
     bodyParser: false,
     cors: {
       origin: process.env.WEB_URL,
