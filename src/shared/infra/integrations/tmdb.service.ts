@@ -299,6 +299,10 @@ export class TMDBService {
         tmdbId: movie.id,
         name: movie.title,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
+        backdropUrl: movie.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${movie.backdrop_path}`
+          : null,
+        overview: movie.overview,
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
 
@@ -401,6 +405,10 @@ export class TMDBService {
         name: show.name,
         firstAirDate: show.first_air_date ? new Date(show.first_air_date) : null,
         posterUrl: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
+        backdropUrl: show.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${show.backdrop_path}`
+          : null,
+        tagline: show.overview,
       }));
 
       await this.cacheService.set(topTVShowsKey, tvShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);

@@ -344,65 +344,67 @@ export class IGDBService {
 
       const queries: Record<IGDBGameFilter, string> = {
         popular: `
-  fields 
-    slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-    platforms.checksum, platforms.name,
-    involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-    first_release_date;
-  where rating_count > 50
-    & rating >= 70
-    & first_release_date > ${twoYearsAgo}
-    & first_release_date < ${now}
-    & cover != null;
-  sort rating_count desc;
-  limit 10;
-  offset ${offset};
-`,
-
+          fields 
+            slug, name, cover.url,
+		        artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where rating_count > 50
+            & rating >= 70
+            & first_release_date > ${twoYearsAgo}
+            & first_release_date < ${now}
+            & cover != null;
+          sort rating_count desc;
+          limit 16;
+          offset ${offset};
+        `,
         coming: `
-  fields 
-    slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-    platforms.checksum, platforms.name,
-    involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-    first_release_date;
-  where first_release_date > ${now}
-    & first_release_date < ${ninetyDaysAhead}
-    & cover != null;
-  sort first_release_date asc;
-  limit 10;
-  offset ${offset};
-`,
+          fields 
+            slug, name, cover.url,
+		        artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where first_release_date > ${now}
+            & first_release_date < ${ninetyDaysAhead}
+            & cover != null;
+          sort first_release_date asc;
+          limit 16;
+          offset ${offset};
+        `,
         antecipated: `
-    fields 
-      slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-      platforms.checksum, platforms.name,
-      involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-      first_release_date;
-    where first_release_date > ${now}
-      & cover != null
-      & hypes != null;
-    sort hypes desc;
-    limit 10;
-    offset ${offset};
-  `,
+          fields 
+            slug, name, cover.url,
+			      artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where first_release_date > ${now}
+            & cover != null
+            & hypes != null;
+          sort hypes desc;
+          limit 16;
+          offset ${offset};
+        `,
         recentlyReleased: `
-    fields 
-      slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-      platforms.checksum, platforms.name,
-      involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-      first_release_date;
-    where first_release_date > ${thirtyDaysAgo}
-      & first_release_date < ${now}
-      & cover != null
-      & rating_count > 5;
-    sort first_release_date desc;
-    limit 10;
-    offset ${offset};
-  `,
+          fields 
+            slug, name, cover.url,
+			      artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where first_release_date > ${thirtyDaysAgo}
+            & first_release_date < ${now}
+            & cover != null;
+          sort first_release_date desc;
+          limit 16;
+          offset ${offset};
+        `,
       };
 
       const gamesResponse = await firstValueFrom(
@@ -437,6 +439,7 @@ export class IGDBService {
             checksum: platform?.checksum ?? null,
             name: platform?.name ?? null,
           })) ?? [],
+        summary: game?.summary,
         coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
         firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));

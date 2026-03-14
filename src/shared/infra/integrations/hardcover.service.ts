@@ -213,6 +213,8 @@ export class HardcoverService {
                 }
               }
               alternative_titles
+              description
+              release_year
             }
           }
         `,
@@ -236,6 +238,8 @@ export class HardcoverService {
                 }
               }
               alternative_titles
+              description
+              release_year
             }
           }
         `,
@@ -264,6 +268,8 @@ export class HardcoverService {
         alternativeTitles: book.alternative_titles,
         authors: book.contributions.map(({ author }) => ({ name: author.name, id: author.id })),
         imageUrl: book.image?.url ?? "",
+        releaseYear: book.release_year,
+        description: book.description,
       }));
 
       await this.cacheService.set(
