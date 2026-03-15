@@ -3,7 +3,6 @@ import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-p
 
 export class GetAnimeReviewsDto extends OffsetPaginationParamsDto {
   @IsOptional()
-  @IsUUID()
   readonly animeId: string;
 
   @IsOptional()
