@@ -547,23 +547,17 @@ export class TMDBService {
       }
 
       const tvShowResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/tv/${id}`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+        this.httpService.get(
+          `${this.TMDB_API_URL}/tv/${id}?append_to_response=credits%2Cimages%2Cvideos%2Cexternal_ids`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+            },
           },
-        }),
-      );
-
-      const creditsResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/credits`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
+        ),
       );
 
       const tvShowData = tvShowResponse.data;
-      const creditsData = creditsResponse.data;
 
       const tvShow = {
         tmdbId: tvShowData.id,
@@ -633,18 +627,25 @@ export class TMDBService {
         status: tvShowData.status,
         tagline: tvShowData.tagline,
         type: tvShowData.type,
-        cast: creditsData.cast.map((castMember: any) => ({
+        cast: tvShowData.credits.cast.map((castMember: any) => ({
           id: castMember.id,
           name: castMember.name,
           character: castMember.character,
           profileUrl: castMember.profile_path ? `https://image.tmdb.org/t/p/w500${castMember.profile_path}` : null,
         })),
-        crew: creditsData.crew.map((crewMember: any) => ({
+        crew: tvShowData.credits.crew.map((crewMember: any) => ({
           id: crewMember.id,
           name: crewMember.name,
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
+        backdrops: tvShowData.images.backdrops.map(
+          (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
+        ),
+        trailerId:
+          tvShowData.videos.results.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ??
+          null,
+        external: tvShowData.external_ids,
       } as TMDBTVShowDetails;
 
       await this.cacheService.set(

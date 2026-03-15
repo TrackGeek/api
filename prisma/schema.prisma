@@ -452,7 +452,7 @@ model TvShow {
   lastAirDate         DateTime?
   lastEpisodeToAir    Json?
   name                String?
-  nextEpisodeToAir    String?
+  nextEpisodeToAir    Json?
   networks            Json?
   numberOfEpisodes    Int?
   numberOfSeasons     Int?
@@ -469,6 +469,9 @@ model TvShow {
   type                String?
   cast                Json?
   crew                Json?
+  trailerId           String?
+  external            Json?
+  backdrops           String[]
   lastRefreshedAt     DateTime  @default(now())
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
