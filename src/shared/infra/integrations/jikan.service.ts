@@ -808,7 +808,7 @@ export class JikanService {
         explicitGenres: animeFullData.explicit_genres ? animeFullData.explicit_genres.map((genre) => genre.name) : [],
         themes: animeFullData.themes ? animeFullData.themes.map((theme) => theme.name) : [],
         demographics: animeFullData.demographics ? animeFullData.demographics.map((demo) => demo.name) : [],
-        external: animeFullData.external ? animeFullData.external.map((ext) => ext.name) : [],
+        external: animeFullData.external ? animeFullData.external : [],
         characters,
         cast,
         videos,
@@ -921,7 +921,7 @@ export class JikanService {
             relationType: relation.relation,
             entry: relation.entry.map((entry) => ({
               malId: entry.mal_id,
-              title: entry.title,
+              title: entry.name,
               type: entry.type,
             })),
           }))
@@ -959,7 +959,7 @@ export class JikanService {
         explicitGenres: mangaFullData.explicit_genres ? mangaFullData.explicit_genres.map((genre) => genre.name) : [],
         themes: mangaFullData.themes ? mangaFullData.themes.map((theme) => theme.name) : [],
         demographics: mangaFullData.demographics ? mangaFullData.demographics.map((demo) => demo.name) : [],
-        external: mangaFullData.external ? mangaFullData.external.map((ext) => ext.name) : [],
+        external: mangaFullData.external ? mangaFullData.external : [],
         characters,
         relations,
       } as JikanMangaDetails;

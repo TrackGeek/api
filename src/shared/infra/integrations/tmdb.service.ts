@@ -65,9 +65,8 @@ export interface TMDBMovieDetails {
   imdbId: string | null;
   backdropUrl: string | null;
   belongsToCollection: {
+    id: string;
     name: string;
-    posterUrl: string | null;
-    backdropUrl: string | null;
   } | null;
   budget: number;
   genres: string[];
@@ -105,14 +104,9 @@ export interface TMDBMovieDetails {
     job: string;
     profileUrl: string | null;
   }[];
-  videos: {
-    id: string;
-    key: string;
-    name: string;
-    site: string;
-    type: string;
-    publishedAt: Date | null;
-  }[];
+  trailerId: string | null;
+  external: string[];
+  backdrops: string[];
 }
 
 export interface TMDBTVShowDetails {
@@ -183,6 +177,9 @@ export interface TMDBTVShowDetails {
     job: string;
     profileUrl: string | null;
   }[];
+  trailerId: string | null;
+  external: string[];
+  backdrops: string[];
 }
 
 export interface TMDBTVShowSeason {
@@ -429,35 +426,17 @@ export class TMDBService {
       }
 
       const movieResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/movie/${id}`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+        this.httpService.get(
+          `${this.TMDB_API_URL}/movie/${id}?append_to_response=credits%2Cvideos%2Cexternal_ids%2Cimages`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+            },
           },
-        }),
-      );
-
-      const creditsResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/credits`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
+        ),
       );
 
       const movieData = movieResponse.data;
-      const creditsData = creditsResponse.data;
-
-      const videosResponse = movieData?.video
-        ? await firstValueFrom(
-            this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/videos`, {
-              headers: {
-                Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-              },
-            }),
-          )
-        : null;
-
-      const videosData = videosResponse ? videosResponse.data.results : [];
 
       const movie = {
         tmdbId: movieData.id,
@@ -465,13 +444,8 @@ export class TMDBService {
         backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/w500${movieData.backdrop_path}` : null,
         belongsToCollection: movieData.belongs_to_collection
           ? {
+              id: movieData.belongs_to_collection.id,
               name: movieData.belongs_to_collection.name,
-              posterUrl: movieData.belongs_to_collection.poster_path
-                ? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.poster_path}`
-                : null,
-              backdropUrl: movieData.belongs_to_collection.backdrop_path
-                ? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.backdrop_path}`
-                : null,
             }
           : {},
         budget: movieData.budget,
@@ -498,26 +472,25 @@ export class TMDBService {
         })),
         status: movieData.status,
         title: movieData.title,
-        cast: creditsData.cast.map((castMember: any) => ({
+        cast: movieData.credits.cast.map((castMember: any) => ({
           id: castMember.id,
           name: castMember.name,
           character: castMember.character,
           profileUrl: castMember.profile_path ? `https://image.tmdb.org/t/p/w500${castMember.profile_path}` : null,
         })),
-        crew: creditsData.crew.map((crewMember: any) => ({
+        crew: movieData.credits.crew.map((crewMember: any) => ({
           id: crewMember.id,
           name: crewMember.name,
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
-        videos: videosData?.map((video: any) => ({
-          id: video.id,
-          key: video.key,
-          name: video.name,
-          site: video.site,
-          type: video.type,
-          publishedAt: video.published_at ? new Date(video.published_at) : null,
-        })),
+        trailerId:
+          movieData.videos.results.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ??
+          null,
+        backdrops: movieData.images.backdrops.map(
+          (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
+        ),
+        external: movieData.external_ids,
       } as TMDBMovieDetails;
 
       await this.cacheService.set(

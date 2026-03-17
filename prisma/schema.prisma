@@ -296,11 +296,13 @@ model Game {
   standaloneExpansions  Json?
   storyline             Json?
   summary               String?
+  themes                String[]
   totalRating           Float?
   totalRatingCount      Int?
   versionParent         Json?
   versionTitle          Json?
   videos                Json?
+  websites              Json?
   lastRefreshedAt       DateTime  @default(now())
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -343,6 +345,7 @@ model Book {
   slug                   String
   state                  String?
   editions               Json?
+  series                 Json?
   lastRefreshedAt        DateTime  @default(now())
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
@@ -512,6 +515,9 @@ model Movie {
   cast                Json?
   crew                Json?
   posterUrl           String?
+  trailerId           String?
+  external            Json?
+  backdrops           String[]
   lastRefreshedAt     DateTime  @default(now())
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
