@@ -65,7 +65,7 @@ export interface TMDBMovieDetails {
   imdbId: string | null;
   backdropUrl: string | null;
   belongsToCollection: {
-    id: string;
+    id: number;
     name: string;
   } | null;
   budget: number;
@@ -105,7 +105,7 @@ export interface TMDBMovieDetails {
     profileUrl: string | null;
   }[];
   trailerId: string | null;
-  external: string[];
+  external: Record<string, unknown> | null;
   backdrops: string[];
 }
 
@@ -178,7 +178,7 @@ export interface TMDBTVShowDetails {
     profileUrl: string | null;
   }[];
   trailerId: string | null;
-  external: string[];
+  external: Record<string, unknown> | null;
   backdrops: string[];
 }
 
@@ -438,6 +438,10 @@ export class TMDBService {
 
       const movieData = movieResponse.data;
 
+      const movieCredits = movieData.credits ?? { cast: [], crew: [] };
+      const movieVideos = movieData.videos?.results ?? [];
+      const movieBackdrops = movieData.images?.backdrops ?? [];
+
       const movie = {
         tmdbId: movieData.id,
         imdbId: movieData.imdb_id,
@@ -472,22 +476,20 @@ export class TMDBService {
         })),
         status: movieData.status,
         title: movieData.title,
-        cast: movieData.credits.cast.map((castMember: any) => ({
+        cast: movieCredits.cast.map((castMember: any) => ({
           id: castMember.id,
           name: castMember.name,
           character: castMember.character,
           profileUrl: castMember.profile_path ? `https://image.tmdb.org/t/p/w500${castMember.profile_path}` : null,
         })),
-        crew: movieData.credits.crew.map((crewMember: any) => ({
+        crew: movieCredits.crew.map((crewMember: any) => ({
           id: crewMember.id,
           name: crewMember.name,
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
-        trailerId:
-          movieData.videos.results.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ??
-          null,
-        backdrops: movieData.images.backdrops.map(
+        trailerId: movieVideos.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ?? null,
+        backdrops: movieBackdrops.map(
           (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
         ),
         external: movieData.external_ids,
@@ -531,6 +533,9 @@ export class TMDBService {
       );
 
       const tvShowData = tvShowResponse.data;
+      const tvShowCredits = tvShowData.credits ?? { cast: [], crew: [] };
+      const tvShowVideos = tvShowData.videos?.results ?? [];
+      const tvShowBackdrops = tvShowData.images?.backdrops ?? [];
 
       const tvShow = {
         tmdbId: tvShowData.id,
@@ -600,24 +605,22 @@ export class TMDBService {
         status: tvShowData.status,
         tagline: tvShowData.tagline,
         type: tvShowData.type,
-        cast: tvShowData.credits.cast.map((castMember: any) => ({
+        cast: tvShowCredits.cast.map((castMember: any) => ({
           id: castMember.id,
           name: castMember.name,
           character: castMember.character,
           profileUrl: castMember.profile_path ? `https://image.tmdb.org/t/p/w500${castMember.profile_path}` : null,
         })),
-        crew: tvShowData.credits.crew.map((crewMember: any) => ({
+        crew: tvShowCredits.crew.map((crewMember: any) => ({
           id: crewMember.id,
           name: crewMember.name,
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
-        backdrops: tvShowData.images.backdrops.map(
+        backdrops: tvShowBackdrops.map(
           (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
         ),
-        trailerId:
-          tvShowData.videos.results.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ??
-          null,
+        trailerId: tvShowVideos.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ?? null,
         external: tvShowData.external_ids,
       } as TMDBTVShowDetails;
 

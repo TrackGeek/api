@@ -344,7 +344,8 @@ export class IGDBService {
       const now = Math.floor(Date.now() / 1000);
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
       const ninetyDaysAhead = now + 90 * 24 * 60 * 60;
-      const offset = (page - 1) * 10;
+      const pageSize = 16;
+      const offset = (page - 1) * pageSize;
       const twoYearsAgo = now - 2 * 365 * 24 * 60 * 60;
 
       const queries: Record<IGDBGameFilter, string> = {
@@ -362,7 +363,7 @@ export class IGDBService {
             & first_release_date < ${now}
             & cover != null;
           sort rating_count desc;
-          limit 16;
+          limit ${pageSize};
           offset ${offset};
         `,
         coming: `
@@ -377,7 +378,7 @@ export class IGDBService {
             & first_release_date < ${ninetyDaysAhead}
             & cover != null;
           sort first_release_date asc;
-          limit 16;
+          limit ${pageSize};
           offset ${offset};
         `,
         antecipated: `
@@ -392,7 +393,7 @@ export class IGDBService {
             & cover != null
             & hypes != null;
           sort hypes desc;
-          limit 16;
+          limit ${pageSize};
           offset ${offset};
         `,
         recentlyReleased: `
@@ -407,7 +408,7 @@ export class IGDBService {
             & first_release_date < ${now}
             & cover != null;
           sort first_release_date desc;
-          limit 16;
+          limit ${pageSize};
           offset ${offset};
         `,
       };
