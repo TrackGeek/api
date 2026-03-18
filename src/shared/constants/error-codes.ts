@@ -210,5 +210,17 @@ export const ERROR_CODES = {
   STRIPE_PRICE_NOT_FOUND: {
     code: "STRIPE_PRICE_NOT_FOUND",
     status: 404,
-  }
+  },
+  STRIPE_SUBSCRIPTION_NOT_FOUND: {
+    code: "STRIPE_SUBSCRIPTION_NOT_FOUND",
+    status: 404,
+  },
+  PAYMENT_NOT_FOUND: {
+    code: "PAYMENT_NOT_FOUND",
+    status: 404,
+  },
+  STRIPE_SUBSCRIPTION_NO_UPGRADE: {
+    code: "STRIPE_SUBSCRIPTION_NO_UPGRADE",
+    status: 400,
+  },
 } as const;

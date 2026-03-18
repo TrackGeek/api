@@ -10,7 +10,11 @@ import {
   MAGIC_LINK_JOB,
   RESET_PASSWORD_JOB,
   FEED_EVENT_FLUSH_AGGREGATION_JOB,
+  PAYMENT_SUCCESS_JOB,
+  SUBSCRIPTION_CANCELLED_JOB,
 } from "@/shared/constants/job";
+import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
+import { SubscriptionCancelledEmailDto } from "../email/dto/subscription-cancelled-email.dto";
 
 type QueueName = typeof EMAIL_QUEUE | typeof FEED_EVENT_QUEUE;
 
@@ -18,7 +22,9 @@ type JobName =
   | typeof FEED_EVENT_JOB
   | typeof MAGIC_LINK_JOB
   | typeof RESET_PASSWORD_JOB
-  | typeof FEED_EVENT_FLUSH_AGGREGATION_JOB;
+  | typeof FEED_EVENT_FLUSH_AGGREGATION_JOB
+  | typeof PAYMENT_SUCCESS_JOB
+  | typeof SUBSCRIPTION_CANCELLED_JOB;
 
 @Injectable()
 export class QueueService {
@@ -31,7 +37,7 @@ export class QueueService {
     private readonly feedEventQueue: Queue,
   ) {}
 
-  async addJob(queueName: QueueName, jobName: JobName, data: unknown, options?: JobsOptions) {
+  private async addJob(queueName: QueueName, jobName: JobName, data: unknown, options?: JobsOptions) {
     try {
       const queues = {
         [EMAIL_QUEUE]: this.emailQueue,
@@ -50,8 +56,10 @@ export class QueueService {
     await this.addJob(FEED_EVENT_QUEUE, FEED_EVENT_JOB, feedEventDto);
   }
 
-  async toFeedEventFlushAggregationJob(feedEventFlushAggregationDto: { aggKey: string }, options?: JobsOptions) {
-    await this.addJob(FEED_EVENT_QUEUE, FEED_EVENT_FLUSH_AGGREGATION_JOB, feedEventFlushAggregationDto, options);
+  async toFeedEventFlushAggregationJob(feedEventFlushAggregationDto: { aggKey: string; windowsMs: number }) {
+    await this.addJob(FEED_EVENT_QUEUE, FEED_EVENT_FLUSH_AGGREGATION_JOB, feedEventFlushAggregationDto, {
+      delay: feedEventFlushAggregationDto.windowsMs,
+    });
   }
 
   async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {
@@ -60,5 +68,13 @@ export class QueueService {
 
   async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
     await this.addJob(EMAIL_QUEUE, RESET_PASSWORD_JOB, resetPasswordEmailDto);
+  }
+
+  async toPaymentSuccessJob(paymentSuccessEmailDto: PaymentSuccessEmailDto) {
+    await this.addJob(EMAIL_QUEUE, PAYMENT_SUCCESS_JOB, paymentSuccessEmailDto);
+  }
+
+  async toSubscriptionCancelledJob(subscriptionCancelledEmailDto: SubscriptionCancelledEmailDto) {
+    await this.addJob(EMAIL_QUEUE, SUBSCRIPTION_CANCELLED_JOB, subscriptionCancelledEmailDto);
   }
 }

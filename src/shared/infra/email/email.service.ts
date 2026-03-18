@@ -4,9 +4,10 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import handlebars from "handlebars";
 import { ResendService } from "nestjs-resend";
-import { extractNameFromEmail } from "@/shared/utils/email";
 import { MagicLinkEmailDto } from "./dto/magic-link-email.dto";
 import { ResetPasswordEmailDto } from "./dto/reset-password-email.dto";
+import { PaymentSuccessEmailDto } from "./dto/payment-success-email.dto";
+import { SubscriptionCancelledEmailDto } from "./dto/subscription-cancelled-email.dto";
 
 @Injectable()
 export class EmailService {
@@ -25,26 +26,38 @@ export class EmailService {
   }
 
   async sendMagicLinkEmail(magicLinkEmailDto: MagicLinkEmailDto) {
-    const { email, url } = magicLinkEmailDto;
-
-    const name = extractNameFromEmail(email);
-
     await this.resendService.send({
       from: this.configService.get<string>("RESEND_FROM")!,
-      to: email,
+      to: magicLinkEmailDto.email,
       subject: "Sign in to TrackGeek",
-      html: this.getHtmlTemplate("magic-link-email", { name, url }),
+      html: this.getHtmlTemplate("magic-link-email", magicLinkEmailDto),
     });
   }
 
   async sendResetPasswordEmail(resetPasswordEmailDto: ResetPasswordEmailDto) {
-    const { name, email, url } = resetPasswordEmailDto;
-
     await this.resendService.send({
       from: this.configService.get<string>("RESEND_FROM")!,
-      to: email,
+      to: resetPasswordEmailDto.email,
       subject: "Reset your password for TrackGeek",
-      html: this.getHtmlTemplate("reset-password-email", { name, url }),
+      html: this.getHtmlTemplate("reset-password-email", resetPasswordEmailDto),
+    });
+  }
+
+  async sendPaymentSuccessEmail(paymentSuccessEmailDto: PaymentSuccessEmailDto) {
+    await this.resendService.send({
+      from: this.configService.get<string>("RESEND_FROM")!,
+      to: paymentSuccessEmailDto.email,
+      subject: "Thank you for your payment!",
+      html: this.getHtmlTemplate("payment-success-email", paymentSuccessEmailDto),
+    });
+  }
+
+  async sendSubscriptionCancelledEmail(subscriptionCancelledEmailDto: SubscriptionCancelledEmailDto) {
+    await this.resendService.send({
+      from: this.configService.get<string>("RESEND_FROM")!,
+      to: subscriptionCancelledEmailDto.email,
+      subject: "Your subscription has been cancelled",
+      html: this.getHtmlTemplate("subscription-cancelled-email", subscriptionCancelledEmailDto),
     });
   }
 }

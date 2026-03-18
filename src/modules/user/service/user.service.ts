@@ -37,7 +37,7 @@ export class UserService {
     return user;
   }
 
-  getName(name: string, email: string) {
+  getName(name: string | null | undefined, email: string) {
     return name && name?.length > 0 ? name : extractNameFromEmail(email);
   }
 

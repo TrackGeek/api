@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment confirmed – TrackGeek</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0e0e12; font-family: Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #0e0e12; padding: 48px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 580px;">
+
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <img src="https://i.ibb.co/Cpc2Hxpq/Track-Geek-Branco.png" alt="TrackGeek" width="160" style="display: block; border: 0;" />
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color: oklch(21% 0.006 285.885); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+
+              <!-- Green top bar -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background: linear-gradient(90deg, #10b981, #34d399); height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>
+                </tr>
+              </table>
+
+              <!-- Header -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 40px 40px 28px 40px;">
+                    <!-- Checkmark icon -->
+                    <div style="display: inline-block; width: 56px; height: 56px; background-color: rgba(16,185,129,0.12); border-radius: 50%; text-align: center; line-height: 56px; margin-bottom: 20px;">
+                      <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2705/72.png" alt="✅" width="28" height="28" style="vertical-align: middle;" />
+                    </div>
+                    <h1 style="margin: 0 0 10px 0; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1.25;">
+                      Payment confirmed
+                    </h1>
+                    <p style="margin: 0; color: #8b8b9e; font-size: 16px; line-height: 1.6;">
+                      {{#if isSubscription}}
+                        Your <strong style="color: #34d399;">{{ tier }}</strong> subscription is now active.
+                      {{else}}
+                        {{#if isDonate}}
+                          {{#if tier}}
+                            Thank you for your donation — your <strong style="color: #34d399;">{{ tier }}</strong> tier is now active.
+                          {{else}}
+                            Thank you for your donation. We truly appreciate your support!
+                          {{/if}}
+                        {{else}}
+                          Your payment was processed successfully.
+                        {{/if}}
+                      {{/if}}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Details table -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 0 40px 28px 40px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; overflow: hidden;">
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">ID</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ paymentId }}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Account</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ name }} - {{ email }}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Type</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">
+                          {{#if isSubscription}}Subscription{{else}}{{#if isDonate}}Donation{{else}}Payment{{/if}}{{/if}}
+                        </td>
+                      </tr>
+                      {{#if tier}}
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Tier</td>
+                        <td style="padding: 13px 16px; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">
+                          <span style="color: #10b981; font-weight: 600;">{{ tier }}</span>
+                        </td>
+                      </tr>
+                      {{/if}}
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Subtotal</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ subtotal }}</td>
+                      </tr>
+                      {{#if discount}}
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Discount</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">-{{ discount }}</td>
+                      </tr>
+                      {{/if}}
+                      <tr>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; font-weight: 600;">Total</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 14px; font-weight: 700; text-align: right;">{{ total }}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA -->
+              {{#if invoiceUrl}}
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 0 40px 40px 40px;">
+                    <a href="{{ invoiceUrl }}" style="display: inline-block; background: linear-gradient(90deg, #10b981, #34d399); color: #ffffff; font-size: 15px; font-weight: 700; padding: 13px 32px; text-decoration: none; border-radius: 8px; letter-spacing: 0.3px;">
+                      View invoice →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              {{/if}}
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 28px;">
+              <p style="margin: 0; color: #4a4a5a; font-size: 12px; line-height: 1.6;">
+                Keep this email as your payment confirmation.<br />
+                © 2026 TrackGeek. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

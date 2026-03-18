@@ -28,7 +28,7 @@ import { UploadModule } from "./shared/infra/upload/upload.module";
 import { HealthModule } from "./shared/infra/health/health.module";
 import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
 import { MetricsModule } from "./shared/infra/metrics/metrics.module";
-import { PaymentModule } from './modules/payment/payment.module';
+import { PaymentModule } from "./modules/payment/payment.module";
 
 @Module({
   imports: [
@@ -63,7 +63,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     AnimeModule,
     FavoriteModule,
     ListModule,
-    PaymentModule
+    PaymentModule,
   ],
   providers: [
     {

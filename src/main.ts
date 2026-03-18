@@ -12,13 +12,22 @@ async function bootstrap() {
   const logger = new Logger("Bootstrap");
 
   const app = await NestFactory.create(AppModule, {
-    rawBody: true,
     bodyParser: false,
     cors: {
       origin: process.env.WEB_URL,
       credentials: true,
     },
   });
+
+  app.use(
+    bodyParser.json({
+      verify: (req: any, _res: any, buffer: any) => {
+        if (req?.originalUrl?.startsWith("/stripe/webhook")) {
+          req.rawBody = buffer;
+        }
+      },
+    }),
+  );
 
   app.use(helmet());
 

@@ -1,58 +1,90 @@
 import {
   Controller,
+  Delete,
   Get,
   Headers,
   Logger,
   Post,
   Req,
+  Session,
+  UseGuards,
   type RawBodyRequest,
 } from "@nestjs/common";
 import { StripeService } from "../service/stripe.service";
-import { ApiTags } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
-import Stripe from 'stripe';
-import { AppException } from '@/shared/exceptions/app.exceptions';
-import { ERROR_CODES } from '@/shared/constants/error-codes';
-import { ClientIp, type ClientIpType } from '@/shared/decorators/client-ip.decorator';
+import { ApiTags } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
+import Stripe from "stripe";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AuthGuard, OptionalAuth, type UserSession } from "@thallesp/nestjs-better-auth";
 
 @ApiTags("Stripe")
 @Controller("/stripe")
 export class StripeController {
   private readonly logger = new Logger(StripeController.name);
-  
+
   constructor(
     private readonly stripeService: StripeService,
     private readonly configService: ConfigService,
   ) {}
-  
+
+  @UseGuards(AuthGuard)
+  @OptionalAuth()
   @Get("/product")
-  async getProducts(@ClientIp() clientIp: ClientIpType) {
-    const products = await this.stripeService.getProducts(clientIp)
-    
-    return { products }
+  async getProducts(@Session() session: UserSession | null) {
+    const products = await this.stripeService.getProducts({
+      userId: session?.user?.id ?? null,
+    });
+
+    return { products };
   }
-  
-  @Post('/webhook')
-  webhook(
-    @Req() req: RawBodyRequest<Request>,
-    @Headers('stripe-signature') signature: string,
-  ) {
-    const stripeWebhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET') as string;
-    
+
+  @UseGuards(AuthGuard)
+  @Get("/subscription")
+  async getCurrentSubscription(@Session() session: UserSession | null) {
+    const subscription = await this.stripeService.getCurrentSubscription(session?.user?.id!);
+
+    return { subscription };
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete("/subscription")
+  async cancelCurrentSubscription(@Session() session: UserSession | null) {
+    const subscription = await this.stripeService.cancelCurrentSubscription(session?.user?.id!);
+
+    return { subscription };
+  }
+
+  @Post("/webhook")
+  async webhook(@Req() req: RawBodyRequest<Request>, @Headers("stripe-signature") signature: string) {
+    const stripeWebhookSecret = this.configService.get<string>("STRIPE_WEBHOOK_SECRET") as string;
+
     let event: Stripe.Event;
-    
+
     try {
-      event = this.stripeService.client.webhooks.constructEvent(
-        req.rawBody as Buffer,
-        signature,
-        stripeWebhookSecret,
-      );
+      event = this.stripeService.client.webhooks.constructEvent(req.rawBody as Buffer, signature, stripeWebhookSecret);
     } catch (error) {
-      this.logger.error('Stripe webhook signature verification failed.', error);
-      
-      throw new AppException(ERROR_CODES.STRIPE_WEBHOOK_ERROR)
+      this.logger.error("Stripe webhook signature verification failed.", error);
+
+      throw new AppException(ERROR_CODES.STRIPE_WEBHOOK_ERROR);
     }
     
-    this.logger.log(event)
+    switch (event.type) {
+      case "checkout.session.completed": {
+        await this.stripeService.handleCheckoutSessionCompletedEvent(event);
+
+        break;
+      }
+      
+      case "customer.subscription.deleted": {
+        await this.stripeService.handleSubscriptionDeletedEvent(event);
+
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
   }
 }

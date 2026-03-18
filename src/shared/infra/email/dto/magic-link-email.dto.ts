@@ -1,4 +1,4 @@
-import { IsEmail, IsUrl } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, IsUrl } from "class-validator";
 
 export class MagicLinkEmailDto {
   @IsEmail()
@@ -6,4 +6,8 @@ export class MagicLinkEmailDto {
 
   @IsUrl()
   readonly url: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly name: string;
 }

@@ -80,8 +80,21 @@ export function getAuthConfig(params: AuthConfigParams) {
     },
     user: {
       additionalFields: {
+        tier: {
+          type: "string",
+          required: false,
+        },
+        tierStartedAt: {
+          type: "string",
+          required: false,
+        },
+        role: {
+          type: "string",
+          required: true,
+        },
         profile: {
           type: "json",
+          required: false,
         },
       },
     },
@@ -158,7 +171,16 @@ export function getAuthConfig(params: AuthConfigParams) {
       lastLoginMethod(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          await queueService.toMagicLinkJob({ email, url });
+          const user = await databaseService.user.findUnique({
+            where: { email },
+            select: { name: true },
+          })
+          
+          await queueService.toMagicLinkJob({
+            name: userService.getName(user?.name, email),
+            email,
+            url
+          });
         },
       }),
     ],
