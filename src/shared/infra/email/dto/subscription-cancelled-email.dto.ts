@@ -3,12 +3,11 @@ import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 export class SubscriptionCancelledEmailDto {
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  readonly userName: string;
 
   @IsEmail()
-  readonly email: string;
-
+  readonly userEmail: string;
+  
   @IsString()
-  @IsNotEmpty()
-  readonly tier: string;
+  readonly value: string;
 }

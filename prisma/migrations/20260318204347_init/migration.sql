@@ -44,6 +44,7 @@ CREATE TABLE "User" (
     "tierStartedAt" TIMESTAMP(3),
     "role" "UserRole" NOT NULL DEFAULT 'User',
     "stripeCustomerId" TEXT,
+    "accumulatedMoney" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -721,38 +722,24 @@ CREATE TABLE "Favorite" (
 CREATE TABLE "Payment" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "subtotalValue" INTEGER NOT NULL,
-    "discountValue" INTEGER,
-    "totalValue" INTEGER NOT NULL,
+    "value" INTEGER NOT NULL,
     "currency" TEXT NOT NULL,
     "status" "PaymentStatus" NOT NULL,
     "frequency" "PaymentFrequency" NOT NULL,
     "stripeInvoiceUrl" TEXT,
     "stripeChargeId" TEXT,
     "stripePaymentIntentId" TEXT,
+    "stripeSubscriptionId" TEXT,
+    "stripeCheckoutSessionUrl" TEXT NOT NULL,
     "stripeCheckoutSessionId" TEXT NOT NULL,
     "stripeCustomerId" TEXT NOT NULL,
     "stripeProductId" TEXT NOT NULL,
-    "stripePromotionCodeId" TEXT,
-    "stripeSubscriptionId" TEXT,
     "userId" TEXT NOT NULL,
     "expiredAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "UpgradeCoupon" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "targetTier" TEXT NOT NULL,
-    "promotionCodeId" TEXT NOT NULL,
-    "discountAmount" DOUBLE PRECISION NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "UpgradeCoupon_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -1123,6 +1110,3 @@ ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_bookId_fkey" FOREIGN KEY ("bookI
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "UpgradeCoupon" ADD CONSTRAINT "UpgradeCoupon_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

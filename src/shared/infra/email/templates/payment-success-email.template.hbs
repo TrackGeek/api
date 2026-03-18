@@ -41,20 +41,14 @@
                       Payment confirmed
                     </h1>
                     <p style="margin: 0; color: #8b8b9e; font-size: 16px; line-height: 1.6;">
-                      {{#if isSubscription}}
-                        Your <strong style="color: #34d399;">{{ tier }}</strong> subscription is now active.
-                      {{else}}
-                        {{#if isDonate}}
-                          {{#if tier}}
-                            Thank you for your donation — your <strong style="color: #34d399;">{{ tier }}</strong> tier is now active.
-                          {{else}}
-                            Thank you for your donation. We truly appreciate your support!
-                          {{/if}}
-                        {{else}}
-                          Your payment was processed successfully.
-                        {{/if}}
-                      {{/if}}
+                      Your payment was processed successfully.
                     </p>
+                    
+                    {{#if tier}}
+                      <p style="margin: 0; color: #8b8b9e; font- Your payment was processed successfully.size: 16px; line-height: 1.6;">
+                        You are now a {{ tier }} member. Enjoy your perks and thank you for supporting TrackGeek!
+                      </p>
+                    {{/if}}
                   </td>
                 </tr>
               </table>
@@ -70,35 +64,11 @@
                       </tr>
                       <tr>
                         <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Account</td>
-                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ name }} - {{ email }}</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ userName }} - {{ userEmail }}</td>
                       </tr>
                       <tr>
-                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Type</td>
-                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">
-                          {{#if isSubscription}}Subscription{{else}}{{#if isDonate}}Donation{{else}}Payment{{/if}}{{/if}}
-                        </td>
-                      </tr>
-                      {{#if tier}}
-                      <tr>
-                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Tier</td>
-                        <td style="padding: 13px 16px; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">
-                          <span style="color: #10b981; font-weight: 600;">{{ tier }}</span>
-                        </td>
-                      </tr>
-                      {{/if}}
-                      <tr>
-                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Subtotal</td>
-                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ subtotal }}</td>
-                      </tr>
-                      {{#if discount}}
-                      <tr>
-                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Discount</td>
-                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">-{{ discount }}</td>
-                      </tr>
-                      {{/if}}
-                      <tr>
-                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; font-weight: 600;">Total</td>
-                        <td style="padding: 13px 16px; color: #ffffff; font-size: 14px; font-weight: 700; text-align: right;">{{ total }}</td>
+                        <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; font-weight: 600;">Value</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 14px; font-weight: 700; text-align: right;">{{ value }}</td>
                       </tr>
                     </table>
                   </td>

@@ -46,7 +46,7 @@ export class EmailService {
   async sendPaymentSuccessEmail(paymentSuccessEmailDto: PaymentSuccessEmailDto) {
     await this.resendService.send({
       from: this.configService.get<string>("RESEND_FROM")!,
-      to: paymentSuccessEmailDto.email,
+      to: paymentSuccessEmailDto.userEmail,
       subject: "Thank you for your payment!",
       html: this.getHtmlTemplate("payment-success-email", paymentSuccessEmailDto),
     });
@@ -55,7 +55,7 @@ export class EmailService {
   async sendSubscriptionCancelledEmail(subscriptionCancelledEmailDto: SubscriptionCancelledEmailDto) {
     await this.resendService.send({
       from: this.configService.get<string>("RESEND_FROM")!,
-      to: subscriptionCancelledEmailDto.email,
+      to: subscriptionCancelledEmailDto.userEmail,
       subject: "Your subscription has been cancelled",
       html: this.getHtmlTemplate("subscription-cancelled-email", subscriptionCancelledEmailDto),
     });

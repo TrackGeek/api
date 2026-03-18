@@ -16,9 +16,11 @@ import { ConfigService } from "@nestjs/config";
 import Stripe from "stripe";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { AuthGuard, OptionalAuth, type UserSession } from "@thallesp/nestjs-better-auth";
+import { AuthGuard, type UserSession } from "@thallesp/nestjs-better-auth";
+import { ClientIp, type ClientIpType } from '@/shared/decorators/client-ip.decorator';
+import { getUserCurrency } from '@/shared/utils/currency';
 
-@ApiTags("Stripe")
+@ApiTags("Payment")
 @Controller("/stripe")
 export class StripeController {
   private readonly logger = new Logger(StripeController.name);
@@ -27,16 +29,19 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly configService: ConfigService,
   ) {}
+  
+  @Get("/currency")
+  async getCurrency(@ClientIp() clientIp: ClientIpType) {
+    const currency = await getUserCurrency(clientIp);
 
-  @UseGuards(AuthGuard)
-  @OptionalAuth()
-  @Get("/product")
-  async getProducts(@Session() session: UserSession | null) {
-    const products = await this.stripeService.getProducts({
-      userId: session?.user?.id ?? null,
-    });
+    return { currency };
+  }
 
-    return { products };
+  @Get("/price")
+  async getPrices(@ClientIp() clientIp: ClientIpType) {
+    const prices = await this.stripeService.getPrices(clientIp);
+
+    return { prices };
   }
 
   @UseGuards(AuthGuard)

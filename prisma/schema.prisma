@@ -62,7 +62,6 @@ model User {
   favorites             Favorite[]
   userMedals            UserMedal[]
   payments              Payment[]
-  upgradeCoupons        UpgradeCoupon[]
 
   @@unique([email])
   @@unique([username])
@@ -918,41 +917,28 @@ enum PaymentFrequency {
 }
 
 model Payment {
-  id                      String           @id @default(uuid(7))
-  name                    String
-  subtotalValue           Int
-  discountValue           Int?
-  totalValue              Int
-  currency                String
-  status                  PaymentStatus
-  frequency               PaymentFrequency
-  stripeInvoiceUrl        String?
-  stripeChargeId          String?
-  stripePaymentIntentId   String?
-  stripeSubscriptionId    String?
-  stripePromotionCodeId   String?
-  stripeCheckoutSessionId String
-  stripeCustomerId        String
-  stripeProductId         String
-  userId                  String
-  expiredAt               DateTime
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
+  id                       String           @id @default(uuid(7))
+  name                     String
+  value                    Int
+  currency                 String
+  status                   PaymentStatus
+  frequency                PaymentFrequency
+  stripeInvoiceUrl         String?
+  stripeChargeId           String?
+  stripePaymentIntentId    String?
+  stripeSubscriptionId     String?
+  stripeCheckoutSessionUrl String
+  stripeCheckoutSessionId  String
+  stripeCustomerId         String
+  stripeProductId          String
+  userId                   String
+  expiredAt                DateTime
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([stripeCheckoutSessionId])
   @@index([userId, status, createdAt])
   @@index([stripeProductId])
-}
-
-model UpgradeCoupon {
-  id              String   @id @default(cuid())
-  userId          String
-  targetTier      String
-  promotionCodeId String
-  discountAmount  Float
-  createdAt       DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

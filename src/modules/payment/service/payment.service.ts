@@ -7,11 +7,9 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { PaymentFrequency, PaymentStatus } from "@prisma/generated/enums";
 import { GetPaymentsDto } from "../dto/get-payments.dto";
 import { PaymentFindManyArgs } from "@prisma/generated/models";
-import { capitalizeFirstLetter, toCamelCase } from "@/shared/utils/string";
-import { CreatePaymentDto, PaymentType } from "../dto/create-payment.dto";
-import Stripe from "stripe";
-import { UpgradeCoupon } from "@prisma/generated/client";
-import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
+import { CreatePaymentDto } from "../dto/create-payment.dto";
+import { getUserCurrency } from '@/shared/utils/currency';
+import { DEFAULT_CURRENCY } from '@/shared/constants/payment';
 
 @Injectable()
 export class PaymentService {
@@ -22,10 +20,7 @@ export class PaymentService {
   ) {}
 
   async createPayment(dto: CreatePaymentDto) {
-    const { type, productId, userId } = dto;
-
-    const isDonate = type === PaymentType.Donate;
-    const isSubscription = dto.frequency === PaymentFrequency.Monthly;
+    const { userId, frequency, value, clientIp } = dto;
 
     const user = await this.databaseService.user.findUnique({
       where: { id: userId },
@@ -34,37 +29,25 @@ export class PaymentService {
     if (!user) {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
-
-    const stripeProduct = await this.stripeService.client.products.retrieve(productId);
-
-    if (!stripeProduct) {
-      throw new AppException(ERROR_CODES.STRIPE_PRODUCT_NOT_FOUND);
-    }
-
-    let stripePrice: Stripe.Price | null = null;
-
-    if (!isDonate) {
-      stripePrice = await this.stripeService.client.prices.retrieve(dto.priceId!);
-
-      if (!stripePrice) {
-        throw new AppException(ERROR_CODES.STRIPE_PRICE_NOT_FOUND);
-      }
-
-      const paymentAlreadyExists = await this.databaseService.payment.findFirst({
-        where: {
-          userId,
-          stripeProductId: productId,
-          status: PaymentStatus.Pending,
+    
+    const paymentAlreadyExists = await this.databaseService.payment.findFirst({
+      where: {
+        value,
+        userId,
+        status: PaymentStatus.Pending,
+        frequency,
+        expiredAt: {
+          gt: new Date(),
         },
-      });
-
-      if (paymentAlreadyExists && paymentAlreadyExists.expiredAt > new Date()) {
-        const session = await this.stripeService.client.checkout.sessions.retrieve(
-          paymentAlreadyExists.stripeCheckoutSessionId,
-        );
-
-        return { id: session.id, url: session.url };
+      },
+      select: {
+        stripeCheckoutSessionId: true,
+        stripeCheckoutSessionUrl: true,
       }
+    });
+
+    if (paymentAlreadyExists) {
+      return paymentAlreadyExists;
     }
     
     let stripeCustomerId = user?.stripeCustomerId ?? null;
@@ -77,53 +60,48 @@ export class PaymentService {
         data: { stripeCustomerId },
       });
     }
+    
+    const isSubscription = frequency === PaymentFrequency.Monthly;
+    
+    const currentSubscription = await this.stripeService.getCurrentSubscription(userId);
+    
+    if (isSubscription && currentSubscription && currentSubscription.status === "active") {
+      throw new AppException(ERROR_CODES.ACTIVE_SUBSCRIPTION_EXISTS);
+    }
+    
+    const donateProduct = await this.stripeService.donateProduct();
+    
+    const currency = await getUserCurrency(clientIp);
 
     const expiredAt = new Date();
 
-    expiredAt.setMinutes(expiredAt.getMinutes() + 30);
-
-    let upgradeCoupon: UpgradeCoupon | null = null;
-
-    if (!isDonate) {
-      const productEnum = capitalizeFirstLetter(toCamelCase(stripeProduct.name));
-
-      upgradeCoupon = await this.databaseService.upgradeCoupon.findFirst({
-        where: { userId, targetTier: productEnum },
-      });
-    }
-
-    const subtotalValue = isDonate ? dto.value! : stripePrice!.unit_amount!;
-    const discountValue = upgradeCoupon?.discountAmount ?? 0;
-    const totalValue = subtotalValue - discountValue;
+    expiredAt.setHours(expiredAt.getHours() + 1);
+    
+    const priceId = await this.stripeService.getOrCreatePrice(donateProduct.id, value, currency, isSubscription);
+    
+    const valueToEur = await this.stripeService.convertCurrency(value, currency, DEFAULT_CURRENCY);
 
     const session = await this.stripeService.client.checkout.sessions.create({
       mode: isSubscription ? "subscription" : "payment",
       customer: stripeCustomerId,
       success_url: `${this.configService.get<string>("WEB_URL")}/donate/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.configService.get<string>("WEB_URL")}/donate/error`,
-      metadata: { userId: user.id },
+      metadata: { userId: user.id, valueToEur: valueToEur.value },
       expires_at: Math.floor(expiredAt.getTime() / 1000),
-      line_items: isDonate
-        ? [{ quantity: 1, price_data: { currency: DEFAULT_CURRENCY, product: productId, unit_amount: totalValue } }]
-        : [{ quantity: 1, price: dto.priceId! }],
-      ...(upgradeCoupon && {
-        discounts: [{ promotion_code: upgradeCoupon.promotionCodeId }],
-      }),
+      line_items: [{ quantity: 1, price: priceId }],
     });
 
     await this.databaseService.payment.create({
       data: {
-        name: stripeProduct.name,
-        subtotalValue,
-        discountValue: discountValue || null,
-        totalValue,
-        currency: DEFAULT_CURRENCY,
+        name: donateProduct?.name!,
+        value,
+        currency,
         status: PaymentStatus.Pending,
         frequency: dto.frequency ?? PaymentFrequency.OneTime,
+        stripeCheckoutSessionUrl: session.url!,
         stripeCheckoutSessionId: session.id,
         stripeCustomerId,
-        stripeProductId: productId,
-        stripePromotionCodeId: upgradeCoupon?.promotionCodeId ?? null,
+        stripeProductId: donateProduct?.id!,
         userId,
         expiredAt,
       },

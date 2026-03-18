@@ -203,6 +203,10 @@ export const ERROR_CODES = {
     code: "STRIPE_WEBHOOK_ERROR",
     status: 400,
   },
+  STRIPE_DONATE_PRODUCT_NOT_FOUND: {
+    code: "STRIPE_DONATE_PRODUCT_NOT_FOUND",
+    status: 404,
+  },
   STRIPE_PRODUCT_NOT_FOUND: {
     code: "STRIPE_PRODUCT_NOT_FOUND",
     status: 404,
@@ -221,6 +225,10 @@ export const ERROR_CODES = {
   },
   STRIPE_SUBSCRIPTION_NO_UPGRADE: {
     code: "STRIPE_SUBSCRIPTION_NO_UPGRADE",
+    status: 400,
+  },
+  ACTIVE_SUBSCRIPTION_EXISTS: {
+    code: "ACTIVE_SUBSCRIPTION_EXISTS",
     status: 400,
   },
 } as const;

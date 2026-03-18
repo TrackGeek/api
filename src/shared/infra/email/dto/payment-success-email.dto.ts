@@ -1,18 +1,12 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
 
 export class PaymentSuccessEmailDto {
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  readonly userName: string;
 
   @IsEmail()
-  readonly email: string;
-
-  @IsBoolean()
-  readonly isSubscription: boolean;
-
-  @IsBoolean()
-  readonly isDonate: boolean;
+  readonly userEmail: string;
 
   @IsString()
   @IsOptional()
@@ -25,12 +19,5 @@ export class PaymentSuccessEmailDto {
   readonly invoiceUrl: string;
 
   @IsString()
-  readonly subtotal: string;
-
-  @IsString()
-  @IsOptional()
-  readonly discount?: string | null;
-
-  @IsString()
-  readonly total: string;
+  readonly value: string;
 }

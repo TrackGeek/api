@@ -1,46 +1,54 @@
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { formatValue } from "@/shared/utils/currency";
-import { capitalizeFirstLetter, toCamelCase } from "@/shared/utils/string";
-import { Injectable } from "@nestjs/common";
+import { formatValue, getUserCurrency } from "@/shared/utils/currency";
+import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaymentFrequency, PaymentStatus, UserTier } from "@prisma/generated/enums";
+import { PaymentStatus } from "@prisma/generated/enums";
 import Stripe from "stripe";
 import { QueueService } from "@/shared/infra/queue/queue.service";
-import { GetProductsDto } from "../dto/get-products.dto";
 import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import type { ClientIpType } from '@/shared/decorators/client-ip.decorator';
+import { PerkService } from './perk.service';
+import { HttpService } from '@nestjs/axios';
+import { CacheService } from '@/shared/infra/cache/cache.service';
+import { CACHE_KEYS } from '@/shared/constants/cache';
+import { firstValueFrom } from 'rxjs';
 
-export interface StripeProduct {
+export interface PriceValue {
+  raw: number;
+  formatted: string;
+  currency: string;
+}
+
+export interface Price {
   id: string;
-  title: string;
-  enum: string;
-  description: string | null;
-  imageUrl: string | null;
-  prices: Array<{
-    id: string;
-    frequency: PaymentFrequency;
-    value: {
-      raw: number;
-      formatted: string;
-      discount: {
-        promotionCodeId: string;
-        discountedRaw: number;
-        discountedFormatted: string;
-        percentage: number | null;
-      } | null;
-    };
-  }>;
+  productId: string | null;
+  value: {
+    converted: PriceValue;
+    original: PriceValue;
+  };
+}
+
+interface ConvertValue {
+  value: number;
+  currency: string;
 }
 
 @Injectable()
 export class StripeService {
+  private readonly logger = new Logger(StripeService.name);
+  
   private stripe: Stripe;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    @Inject(forwardRef(() => PerkService))
+    private readonly perkService: PerkService,
+    private readonly httpService: HttpService,
+    private readonly cacheService: CacheService,
   ) {
     const token = this.configService.get<string>("STRIPE_SECRET_KEY") as string;
     const apiVersion = "2026-02-25.clover";
@@ -73,64 +81,153 @@ export class StripeService {
 
     return customerId;
   }
+  
+  async donateProduct(): Promise<Stripe.Product> {
+    const donateProduct = await this.client.products
+      .list({ active: true, limit: 100 })
+      .then(res => res.data?.[0]?.name === "Donate" ? res.data?.[0] : null)
+      .catch(() => null);
+      
+    if (!donateProduct) {
+      throw new AppException(ERROR_CODES.STRIPE_DONATE_PRODUCT_NOT_FOUND);
+    }
+    
+    return donateProduct;
+  }
+  
+  async convertCurrency(value: number, from: string, to: string): Promise<ConvertValue> {
+    try {
+      if (from.toLowerCase() === to.toLowerCase()) {
+        return { value, currency: from };
+      }
+      
+      const cachedCurrency = await this.cacheService.get<ConvertValue>(
+        CACHE_KEYS.CONVERT_CURRENCY.prefix(value, from, to),
+      );
+  
+      if (cachedCurrency) {
+        return cachedCurrency;
+      }
+      
+      const currencyResponse = await firstValueFrom(
+        this.httpService.get(
+          "https://www.revolut.com/api/exchange/quote",
+          {
+            params: {
+              amount: value,
+              country: "GB",
+              localeCode: "pt-BR",
+              isRecipientAmount: false,
+              toCurrency: to.toUpperCase(),
+              fromCurrency: from.toUpperCase(),
+            },
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
+              'Accept': 'application/json, text/plain, */*',
+              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+              'Referer': 'https://www.revolut.com/',
+              'Origin': 'https://www.revolut.com',
+            },
+          },
+        ),
+      );
+      
+      const currencyData = currencyResponse.data;
+      
+      const currency: ConvertValue = {
+        value: currencyData?.recipient?.amount,
+        currency: currencyData?.recipient?.currency?.toLowerCase(),
+      }
+      
+      await this.cacheService.set<ConvertValue>(
+        CACHE_KEYS.CONVERT_CURRENCY.prefix(value, from, to),
+        currency,
+        CACHE_KEYS.CONVERT_CURRENCY.expiration
+      );
+      
+      return currency;
+    } catch (error) {
+      this.logger.error("Error converting currency", error);
+      
+      return {
+        value,
+        currency: from,
+      }
+    }
+  }
 
-  async getProducts(getProductsDto?: GetProductsDto): Promise<StripeProduct[]> {
-    const prices = await this.client.prices.list({
-      currency: DEFAULT_CURRENCY,
-      active: true,
-      expand: ["data.product"],
-    });
+  async getPrices(clientIp?: ClientIpType): Promise<Price[]> {
+    const userCurrency = await getUserCurrency(clientIp);
+    const donateProduct = await this.donateProduct();
 
-    const upgradeCoupons = getProductsDto?.userId
-      ? await this.databaseService.upgradeCoupon.findMany({
-          where: { userId: getProductsDto.userId },
-        })
-      : [];
+    const prices = [300, 500, 1000, 1500, 2500, 5000];
 
-    const productsMap = new Map<string, any>();
+    const values = await Promise.all(
+      prices.map(async (price, index) => {
+        const convertedCurrency = await this.convertCurrency(price, DEFAULT_CURRENCY, userCurrency);
+        
+        return {
+          id: `price_${index + 1}`,
+          productId: donateProduct?.id ?? null,
+          value: {
+            converted: {
+              raw: convertedCurrency.value,
+              formatted: formatValue(convertedCurrency.value, convertedCurrency.currency),
+              currency: convertedCurrency.currency,
+            },
+            original: {
+              raw: price,
+              formatted: formatValue(price, DEFAULT_CURRENCY),
+              currency: DEFAULT_CURRENCY,
+            }
+          },
+        }
+      })
+    )
 
-    for (const price of prices.data) {
-      const product = price.product as Stripe.Product;
+    return values.sort((a, b) => a.value.converted.raw - b.value.converted.raw);
+  }
 
-      if (!productsMap.has(product.id)) {
-        productsMap.set(product.id, {
-          id: product.id,
-          title: product.name,
-          enum: capitalizeFirstLetter(toCamelCase(product.name)),
-          description: product.description,
-          imageUrl: product.images?.[0] ?? null,
-          prices: [],
-        });
+  async getOrCreatePrice(productId: string, unitAmount: number, currency: string, isSubscription: boolean): Promise<string> {
+    let lastId: string | undefined;
+
+    while (true) {
+      const page = await this.client.prices.list({
+        product: productId,
+        currency: currency.toLowerCase(),
+        active: true,
+        limit: 100,
+        ...(lastId ? { starting_after: lastId } : {}),
+      });
+
+      const match = page.data.find((p) => {
+        const sameAmount = p.unit_amount === unitAmount;
+        const sameType = isSubscription
+          ? p.recurring?.interval === 'month'
+          : p.type === 'one_time';
+          
+        return sameAmount && sameType;
+      });
+
+      if (match) {
+        return match.id;
       }
 
-      const productEnum = capitalizeFirstLetter(toCamelCase(product.name));
-      const coupon = upgradeCoupons.find((c) => c.targetTier === productEnum);
+      if (!page.has_more) {
+        break;
+      }
 
-      const rawPrice = price.unit_amount!;
-      const discountAmount = coupon ? coupon.discountAmount : 0;
-      const discountedPrice = Math.max(rawPrice - discountAmount, 0);
-      const discountPercentage = discountAmount > 0 ? Math.round((discountAmount / rawPrice) * 100) : null;
-
-      productsMap.get(product.id).prices.push({
-        id: price.id,
-        frequency: price.recurring ? PaymentFrequency.Monthly : PaymentFrequency.OneTime,
-        value: {
-          raw: rawPrice,
-          formatted: formatValue(rawPrice, price.currency),
-          currency: price.currency,
-          discount: coupon
-            ? {
-                promotionCodeId: coupon.promotionCodeId,
-                discountedRaw: discountedPrice,
-                discountedFormatted: formatValue(discountedPrice, price.currency),
-                percentage: discountPercentage,
-              }
-            : null,
-        },
-      });
+      lastId = page.data[page.data.length - 1].id;
     }
 
-    return Array.from(productsMap.values()).sort((a, b) => a.prices[0].value.raw - b.prices[0].value.raw);
+    const created = await this.client.prices.create({
+      product: productId,
+      unit_amount: unitAmount,
+      currency: currency.toLowerCase(),
+      ...(isSubscription ? { recurring: { interval: 'month' } } : {}),
+    });
+
+    return created.id;
   }
 
   async getCurrentSubscription(userId: string) {
@@ -156,15 +253,16 @@ export class StripeService {
     const item = subscription.items.data[0];
     const price = item?.price;
     
-    const products = await this.getProducts();
-    
-    const product = products.find((p) => p.id === price?.product);
+    const donateProduct = await this.donateProduct();
 
     return {
       id: subscription.id,
       status: subscription.status,
       renewsAt: new Date(item.current_period_end * 1000),
-      product,
+      product: {
+        id: donateProduct.id,
+        name: donateProduct.name,
+      },
       price: {
         raw: price?.unit_amount ?? 0,
         formatted: formatValue(price?.unit_amount ?? 0, price?.currency ?? DEFAULT_CURRENCY),
@@ -210,25 +308,32 @@ export class StripeService {
     }
     
     const isSubscription = sessionEvent.mode === "subscription";
-    const productEnum = capitalizeFirstLetter(toCamelCase(payment.name));
-    const isDonate = !Object.values(UserTier).includes(productEnum as UserTier);
 
+    const stripeCharge = await this.client.charges
+      .list({ customer: payment.stripeCustomerId, limit: 1 })
+      .then((list) => list?.data?.[0] ?? null)
+      .catch(() => null);
+      
+    const stripeChargeId = stripeCharge?.id ?? null;
     const stripeSubscriptionId =  isSubscription ? sessionEvent?.subscription as string : null
-    
-    const stripeInvoiceUrl = await this.client.invoices
-      .list({ customer: payment.stripeCustomerId, limit: 1 })
-      .then((invoice) => invoice?.data?.[0]?.hosted_invoice_url ?? null)
-      .catch(() => null);
-    
-    const stripePaymentIntentId = await this.client.paymentIntents
-      .list({ customer: payment.stripeCustomerId, limit: 1 })
-      .then((list) => list?.data?.[0]?.id ?? null)
-      .catch(() => null);
-    
-    const stripeChargeId = await this.client.charges
-      .list({ customer: payment.stripeCustomerId, limit: 1 })
-      .then((list) => list?.data?.[0]?.id ?? null)
-      .catch(() => null);
+      
+    let stripePaymentIntentId: string | null = null;
+    let stripeInvoiceUrl: string | null = null;
+      
+    if (isSubscription) {
+      stripePaymentIntentId =  await this.client.paymentIntents
+        .list({ customer: payment.stripeCustomerId, limit: 1 })
+        .then((list) => list?.data?.[0]?.id ?? null)
+        .catch(() => null);
+        
+      stripeInvoiceUrl = await this.client.invoices
+        .list({ customer: payment.stripeCustomerId, limit: 1 })
+        .then((invoice) => invoice?.data?.[0]?.hosted_invoice_url ?? null)
+        .catch(() => null);
+    } else {
+      stripePaymentIntentId = sessionEvent?.payment_intent as string;
+      stripeInvoiceUrl = stripeCharge?.receipt_url ?? null; 
+    }
 
     await this.databaseService.payment.update({
       where: {
@@ -242,72 +347,36 @@ export class StripeService {
         stripeSubscriptionId,
       },
     });
-
-    const totalDonated = await this.databaseService.payment.aggregate({
+    
+    const user = await this.databaseService.user.update({
       where: {
-        userId: payment.userId,
-        status: PaymentStatus.Succeeded,
+        id: payment.userId,
       },
-      _sum: {
-        totalValue: true,
+      data: {
+        accumulatedMoney: {
+          increment: sessionEvent.metadata?.valueToEur ? Number(sessionEvent.metadata.valueToEur) : 0,
+        },
       },
-    });
-
-    const totalValue = totalDonated._sum.totalValue ?? payment.totalValue;
-
-    const tiers = await this.getProducts().then((products) =>
-      products.filter((p) => Object.values(UserTier).includes(p.enum as UserTier)),
-    );
-
-    const sortedTiers = [...tiers].sort((a, b) => {
-      const aMin = Math.min(...a.prices.map((p) => p.value.raw));
-      const bMin = Math.min(...b.prices.map((p) => p.value.raw));
-
-      return aMin - bMin;
-    });
-
-    const tierToGive = [...sortedTiers]
-      .reverse()
-      .find((tier) => tier.prices.some((price) => price.value.raw <= totalValue)) as StripeProduct | undefined;
-
-    let upgradedTier: StripeProduct | null = null;
-
-    if (tierToGive) {
-      const currentTierIndex = sortedTiers.findIndex((t) => t.enum === payment.user?.tier);
-      const newTierIndex = sortedTiers.findIndex((t) => t.enum === tierToGive.enum);
-
-      if (newTierIndex > currentTierIndex) {
-        upgradedTier = tierToGive;
-
-        await this.databaseService.user.update({
-          where: {
-            id: payment.userId,
-          },
-          data: {
-            tier: tierToGive.enum as UserTier,
-          },
-        });
+      select: {
+        id: true,
+        accumulatedMoney: true,
       }
-    }
-
-    if (isSubscription && stripeSubscriptionId) {
-      const activeSubscriptions = await this.client.subscriptions.list({
-        customer: payment.stripeCustomerId,
-        status: "active",
+    });
+    
+    const perkToGive = await this.perkService.perkToGive(user.accumulatedMoney, payment.user.tier);
+    
+    if (perkToGive) {
+      await this.databaseService.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          tier: perkToGive.name,
+          tierStartedAt: new Date(),
+        },
       });
-
-      for (const sub of activeSubscriptions.data) {
-        if (sub.id !== stripeSubscriptionId) {
-          await this.client.subscriptions.cancel(sub.id, {
-            prorate: false,
-            cancellation_details: {
-              comment: "Subscription upgrade.",
-            },
-          });
-        }
-      }
     }
-
+    
     const contributorMedal = await this.databaseService.medal.findUnique({
       where: { name: "contributor" },
     });
@@ -330,85 +399,13 @@ export class StripeService {
       }
     }
 
-    const currentTier = tierToGive ?? sortedTiers.find((t) => t.enum === payment.user?.tier);
-    const currentTierIndex = sortedTiers.findIndex((t) => t.enum === currentTier?.enum);
-    const upgradableTiers = sortedTiers.slice(currentTierIndex + 1);
-
-    const obsoleteCoupons = await this.databaseService.upgradeCoupon.findMany({
-      where: {
-        userId: payment.userId,
-        targetTier: { in: sortedTiers.slice(0, currentTierIndex + 1).map((t) => t.enum) },
-      },
-    });
-
-    for (const obsolete of obsoleteCoupons) {
-      await this.client.promotionCodes.update(obsolete.promotionCodeId, { active: false });
-      await this.databaseService.upgradeCoupon.delete({ where: { id: obsolete.id } });
-    }
-
-    for (const targetTier of upgradableTiers) {
-      const targetPrice = Math.min(...targetTier.prices.map((p) => p.value.raw));
-      const discountAmount = Math.min(totalValue, targetPrice - 1);
-
-      if (discountAmount <= 0) continue;
-
-      const existingCoupon = await this.databaseService.upgradeCoupon.findFirst({
-        where: {
-          userId: payment.userId,
-          targetTier: targetTier.enum,
-        },
-      });
-
-      if (existingCoupon) {
-        await this.client.promotionCodes.update(existingCoupon.promotionCodeId, {
-          active: false,
-        });
-
-        await this.databaseService.upgradeCoupon.delete({
-          where: { id: existingCoupon.id },
-        });
-      }
-
-      const coupon = await this.client.coupons.create({
-        amount_off: discountAmount,
-        currency: DEFAULT_CURRENCY,
-        duration: "once",
-        name: `Upgrade to ${targetTier.title}`.slice(0, 40),
-        applies_to: {
-          products: [targetTier.id],
-        },
-      });
-
-      const promotionCode = await this.client.promotionCodes.create({
-        promotion: {
-          type: "coupon",
-          coupon: coupon.id,
-        },
-        customer: payment.stripeCustomerId,
-        max_redemptions: 1,
-      });
-
-      await this.databaseService.upgradeCoupon.create({
-        data: {
-          userId: payment.userId,
-          targetTier: targetTier.enum,
-          promotionCodeId: promotionCode.id,
-          discountAmount,
-        },
-      });
-    }
-
     await this.queueService.toPaymentSuccessJob({
       paymentId: payment.id,
-      name: payment.user!.name,
-      email: payment.user!.email,
+      userName: payment.user!.name,
+      userEmail: payment.user!.email,
       invoiceUrl: stripeInvoiceUrl ?? "",
-      isDonate,
-      isSubscription,
-      tier: upgradedTier?.title ?? null,
-      subtotal: formatValue(payment.subtotalValue, payment.currency),
-      discount: payment.discountValue ? formatValue(payment.discountValue, payment.currency) : null,
-      total: formatValue(payment.totalValue, payment.currency),
+      tier: perkToGive?.name ?? null,
+      value: formatValue(payment.value, payment.currency),
     });
   }
   
@@ -426,14 +423,18 @@ export class StripeService {
     if (!user) {
       return;
     }
-
-    const productId = subscription.items.data[0]?.price.product as string;
-    const product = await this.client.products.retrieve(productId);
+    
+    const payment = await this.databaseService.payment.findFirst({
+      where: {
+        userId: user.id,
+        stripeSubscriptionId: subscription.id,
+      },
+    });
 
     await this.queueService.toSubscriptionCancelledJob({
-      name: user.name,
-      email: user.email,
-      tier: product.name,
+      userName: user.name,
+      userEmail: user.email,
+      value: formatValue(payment!.value, payment!.currency),
     });
   }
 }
