@@ -1,7 +1,7 @@
-import type { ClientIpType } from '@/shared/decorators/client-ip.decorator';
+import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
 import { PaymentFrequency } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsString, Max, Min } from "class-validator";
+import { IsEnum, IsInt, Max, Min } from "class-validator";
 
 export class CreatePaymentDto {
   @IsEnum(PaymentFrequency)
@@ -14,6 +14,6 @@ export class CreatePaymentDto {
   readonly value: number;
 
   readonly userId: string;
-  
+
   readonly clientIp: ClientIpType;
 }

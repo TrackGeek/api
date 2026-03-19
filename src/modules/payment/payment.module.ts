@@ -1,11 +1,11 @@
-import { Global, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 
 import { StripeController } from "./controller/stripe.controller";
 import { PaymentController } from "./controller/payment.controller";
 import { PaymentService } from "./service/payment.service";
 import { StripeService } from "./service/stripe.service";
-import { PerkController } from './controller/perk.controller';
-import { PerkService } from './service/perk.service';
+import { PerkController } from "./controller/perk.controller";
+import { PerkService } from "./service/perk.service";
 
 @Module({
   imports: [],

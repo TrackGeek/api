@@ -8,8 +8,8 @@ import { PaymentFrequency, PaymentStatus } from "@prisma/generated/enums";
 import { GetPaymentsDto } from "../dto/get-payments.dto";
 import { PaymentFindManyArgs } from "@prisma/generated/models";
 import { CreatePaymentDto } from "../dto/create-payment.dto";
-import { getUserCurrency } from '@/shared/utils/currency';
-import { DEFAULT_CURRENCY } from '@/shared/constants/payment';
+import { getUserCurrency } from "@/shared/utils/currency";
+import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
 
 @Injectable()
 export class PaymentService {
@@ -29,7 +29,7 @@ export class PaymentService {
     if (!user) {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
-    
+
     const paymentAlreadyExists = await this.databaseService.payment.findFirst({
       where: {
         value,
@@ -43,7 +43,7 @@ export class PaymentService {
       select: {
         stripeCheckoutSessionId: true,
         stripeCheckoutSessionUrl: true,
-      }
+      },
     });
 
     if (paymentAlreadyExists) {
@@ -52,9 +52,9 @@ export class PaymentService {
         url: paymentAlreadyExists.stripeCheckoutSessionUrl,
       };
     }
-    
+
     let stripeCustomerId = user?.stripeCustomerId ?? null;
-    
+
     if (!stripeCustomerId) {
       stripeCustomerId = await this.stripeService.getCustomerId(user.name, user.email);
 
@@ -63,25 +63,25 @@ export class PaymentService {
         data: { stripeCustomerId },
       });
     }
-    
+
     const isSubscription = frequency === PaymentFrequency.Monthly;
-    
+
     const currentSubscription = await this.stripeService.getCurrentSubscription(userId);
-    
+
     if (isSubscription && currentSubscription && currentSubscription.status === "active") {
       throw new AppException(ERROR_CODES.ACTIVE_SUBSCRIPTION_EXISTS);
     }
-    
+
     const donateProduct = await this.stripeService.donateProduct();
-    
+
     const currency = await getUserCurrency(clientIp);
 
     const expiredAt = new Date();
 
     expiredAt.setHours(expiredAt.getHours() + 1);
-    
+
     const priceId = await this.stripeService.getOrCreatePrice(donateProduct.id, value, currency, isSubscription);
-    
+
     const valueToEur = await this.stripeService.convertCurrency(value, currency, DEFAULT_CURRENCY);
 
     const session = await this.stripeService.client.checkout.sessions.create({
@@ -96,7 +96,7 @@ export class PaymentService {
 
     await this.databaseService.payment.create({
       data: {
-        name: donateProduct?.name!,
+        name: donateProduct.name,
         value,
         currency,
         status: PaymentStatus.Pending,
@@ -104,7 +104,7 @@ export class PaymentService {
         stripeCheckoutSessionUrl: session.url!,
         stripeCheckoutSessionId: session.id,
         stripeCustomerId,
-        stripeProductId: donateProduct?.id!,
+        stripeProductId: donateProduct.id,
         userId,
         expiredAt,
       },

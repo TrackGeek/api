@@ -8,12 +8,12 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import type { ClientIpType } from '@/shared/decorators/client-ip.decorator';
-import { PerkService } from './perk.service';
-import { HttpService } from '@nestjs/axios';
-import { CacheService } from '@/shared/infra/cache/cache.service';
-import { CACHE_KEYS } from '@/shared/constants/cache';
-import { firstValueFrom } from 'rxjs';
+import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { PerkService } from "./perk.service";
+import { HttpService } from "@nestjs/axios";
+import { CacheService } from "@/shared/infra/cache/cache.service";
+import { CACHE_KEYS } from "@/shared/constants/cache";
+import { firstValueFrom } from "rxjs";
 
 export interface PriceValue {
   raw: number;
@@ -38,7 +38,7 @@ interface ConvertValue {
 @Injectable()
 export class StripeService {
   private readonly logger = new Logger(StripeService.name);
-  
+
   private stripe: Stripe;
 
   constructor(
@@ -81,78 +81,76 @@ export class StripeService {
 
     return customerId;
   }
-  
+
   async donateProduct(): Promise<Stripe.Product> {
     const donateProduct = await this.client.products
       .list({ active: true, limit: 100 })
-      .then(res => res.data?.[0]?.name === "Donate" ? res.data?.[0] : null)
+      .then((res) => (res.data?.[0]?.name === "Donate" ? res.data?.[0] : null))
       .catch(() => null);
-      
+
     if (!donateProduct) {
       throw new AppException(ERROR_CODES.STRIPE_DONATE_PRODUCT_NOT_FOUND);
     }
-    
+
     return donateProduct;
   }
-  
+
   async convertCurrency(value: number, from: string, to: string): Promise<ConvertValue> {
     try {
       if (from.toLowerCase() === to.toLowerCase()) {
         return { value, currency: from };
       }
-      
+
       const cachedCurrency = await this.cacheService.get<ConvertValue>(
         CACHE_KEYS.CONVERT_CURRENCY.prefix(value, from, to),
       );
-  
+
       if (cachedCurrency) {
         return cachedCurrency;
       }
-      
+
       const currencyResponse = await firstValueFrom(
-        this.httpService.get(
-          "https://www.revolut.com/api/exchange/quote",
-          {
-            params: {
-              amount: value,
-              country: "GB",
-              localeCode: "pt-BR",
-              isRecipientAmount: false,
-              toCurrency: to.toUpperCase(),
-              fromCurrency: from.toUpperCase(),
-            },
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-              'Accept': 'application/json, text/plain, */*',
-              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-              'Referer': 'https://www.revolut.com/',
-              'Origin': 'https://www.revolut.com',
-            },
+        this.httpService.get("https://www.revolut.com/api/exchange/quote", {
+          params: {
+            amount: value,
+            country: "GB",
+            localeCode: "pt-BR",
+            isRecipientAmount: false,
+            toCurrency: to.toUpperCase(),
+            fromCurrency: from.toUpperCase(),
           },
-        ),
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+            Accept: "application/json, text/plain, */*",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            Referer: "https://www.revolut.com/",
+            Origin: "https://www.revolut.com",
+          },
+        }),
       );
-      
+
       const currencyData = currencyResponse.data;
-      
+
       const currency: ConvertValue = {
         value: currencyData?.recipient?.amount,
         currency: currencyData?.recipient?.currency?.toLowerCase(),
-      }
-      
+      };
+
       await this.cacheService.set<ConvertValue>(
         CACHE_KEYS.CONVERT_CURRENCY.prefix(value, from, to),
         currency,
-        CACHE_KEYS.CONVERT_CURRENCY.expiration
+        CACHE_KEYS.CONVERT_CURRENCY.expiration,
       );
-      
+
       return currency;
     } catch (error) {
       this.logger.error("Error converting currency", error);
-      
+
       return {
         value,
         currency: from,
-      }
+      };
     }
   }
 
@@ -165,7 +163,7 @@ export class StripeService {
     const values = await Promise.all(
       prices.map(async (price, index) => {
         const convertedCurrency = await this.convertCurrency(price, DEFAULT_CURRENCY, userCurrency);
-        
+
         return {
           id: `price_${index + 1}`,
           productId: donateProduct?.id ?? null,
@@ -179,16 +177,21 @@ export class StripeService {
               raw: price,
               formatted: formatValue(price / 100, DEFAULT_CURRENCY),
               currency: DEFAULT_CURRENCY,
-            }
+            },
           },
-        }
-      })
-    )
+        };
+      }),
+    );
 
     return values.sort((a, b) => a.value.converted.raw - b.value.converted.raw);
   }
 
-  async getOrCreatePrice(productId: string, unitAmount: number, currency: string, isSubscription: boolean): Promise<string> {
+  async getOrCreatePrice(
+    productId: string,
+    unitAmount: number,
+    currency: string,
+    isSubscription: boolean,
+  ): Promise<string> {
     let lastId: string | undefined;
 
     while (true) {
@@ -202,10 +205,8 @@ export class StripeService {
 
       const match = page.data.find((p) => {
         const sameAmount = p.unit_amount === unitAmount;
-        const sameType = isSubscription
-          ? p.recurring?.interval === 'month'
-          : p.type === 'one_time';
-          
+        const sameType = isSubscription ? p.recurring?.interval === "month" : p.type === "one_time";
+
         return sameAmount && sameType;
       });
 
@@ -224,7 +225,7 @@ export class StripeService {
       product: productId,
       unit_amount: unitAmount,
       currency: currency.toLowerCase(),
-      ...(isSubscription ? { recurring: { interval: 'month' } } : {}),
+      ...(isSubscription ? { recurring: { interval: "month" } } : {}),
     });
 
     return created.id;
@@ -243,7 +244,7 @@ export class StripeService {
       customer: user?.stripeCustomerId,
       limit: 1,
     });
-    
+
     const subscription = subscriptions?.data?.[0] ?? null;
 
     if (!subscription) {
@@ -252,7 +253,7 @@ export class StripeService {
 
     const item = subscription.items.data[0];
     const price = item?.price;
-    
+
     const donateProduct = await this.donateProduct();
 
     return {
@@ -268,7 +269,7 @@ export class StripeService {
         formatted: formatValue((price?.unit_amount ?? 0) / 100, price?.currency ?? DEFAULT_CURRENCY),
         currency: price?.currency ?? DEFAULT_CURRENCY,
       },
-    }
+    };
   }
 
   async cancelCurrentSubscription(userId: string) {
@@ -306,33 +307,33 @@ export class StripeService {
     if (!payment || sessionEvent.payment_status !== "paid") {
       return;
     }
-    
+
     const isSubscription = sessionEvent.mode === "subscription";
 
     const stripeCharge = await this.client.charges
       .list({ customer: payment.stripeCustomerId, limit: 1 })
       .then((list) => list?.data?.[0] ?? null)
       .catch(() => null);
-      
+
     const stripeChargeId = stripeCharge?.id ?? null;
-    const stripeSubscriptionId =  isSubscription ? sessionEvent?.subscription as string : null
-      
+    const stripeSubscriptionId = isSubscription ? (sessionEvent?.subscription as string) : null;
+
     let stripePaymentIntentId: string | null = null;
     let stripeInvoiceUrl: string | null = null;
-      
+
     if (isSubscription) {
-      stripePaymentIntentId =  await this.client.paymentIntents
+      stripePaymentIntentId = await this.client.paymentIntents
         .list({ customer: payment.stripeCustomerId, limit: 1 })
         .then((list) => list?.data?.[0]?.id ?? null)
         .catch(() => null);
-        
+
       stripeInvoiceUrl = await this.client.invoices
         .list({ customer: payment.stripeCustomerId, limit: 1 })
         .then((invoice) => invoice?.data?.[0]?.hosted_invoice_url ?? null)
         .catch(() => null);
     } else {
       stripePaymentIntentId = sessionEvent?.payment_intent as string;
-      stripeInvoiceUrl = stripeCharge?.receipt_url ?? null; 
+      stripeInvoiceUrl = stripeCharge?.receipt_url ?? null;
     }
 
     await this.databaseService.payment.update({
@@ -347,7 +348,7 @@ export class StripeService {
         stripeSubscriptionId,
       },
     });
-    
+
     const user = await this.databaseService.user.update({
       where: {
         id: payment.userId,
@@ -360,11 +361,11 @@ export class StripeService {
       select: {
         id: true,
         accumulatedMoney: true,
-      }
+      },
     });
-    
+
     const perkToGive = await this.perkService.perkToGive(user.accumulatedMoney, payment.user.tier);
-    
+
     if (perkToGive) {
       await this.databaseService.user.update({
         where: {
@@ -376,7 +377,7 @@ export class StripeService {
         },
       });
     }
-    
+
     const contributorMedal = await this.databaseService.medal.findUnique({
       where: { name: "contributor" },
     });
@@ -409,7 +410,7 @@ export class StripeService {
       value: formatValue(payment.value / 100, payment.currency),
     });
   }
-  
+
   async handleInvoicePaymentSucceededEvent(event: Stripe.Event) {
     const invoice = event.data.object as Stripe.Invoice;
 
@@ -428,14 +429,14 @@ export class StripeService {
     if (!user) {
       return;
     }
-    
+
     const subscriptions = await this.client.subscriptions.list({
       customer: invoice.customer as string,
       limit: 1,
     });
-    
+
     const subscription = subscriptions?.data?.[0] ?? null;
-    
+
     if (subscription?.status !== "active") {
       return;
     }
@@ -504,9 +505,9 @@ export class StripeService {
       customer: invoice.customer as string,
       limit: 1,
     });
-    
+
     const subscription = subscriptions?.data?.[0] ?? null;
-    
+
     if (subscription?.status !== "active") {
       return;
     }
@@ -518,7 +519,7 @@ export class StripeService {
       },
       orderBy: { createdAt: "desc" },
     });
-    
+
     if (!payment) {
       return;
     }
@@ -549,7 +550,7 @@ export class StripeService {
     if (!user) {
       return;
     }
-    
+
     const payment = await this.databaseService.payment.findFirst({
       where: {
         userId: user.id,

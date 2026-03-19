@@ -17,8 +17,8 @@ import Stripe from "stripe";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AuthGuard, type UserSession } from "@thallesp/nestjs-better-auth";
-import { ClientIp, type ClientIpType } from '@/shared/decorators/client-ip.decorator';
-import { getUserCurrency } from '@/shared/utils/currency';
+import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { getUserCurrency } from "@/shared/utils/currency";
 
 @ApiTags("Payment")
 @Controller("/stripe")
@@ -29,7 +29,7 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly configService: ConfigService,
   ) {}
-  
+
   @Get("/currency")
   async getCurrency(@ClientIp() clientIp: ClientIpType) {
     const currency = await getUserCurrency(clientIp);
@@ -46,16 +46,16 @@ export class StripeController {
 
   @UseGuards(AuthGuard)
   @Get("/subscription")
-  async getCurrentSubscription(@Session() session: UserSession | null) {
-    const subscription = await this.stripeService.getCurrentSubscription(session?.user?.id!);
+  async getCurrentSubscription(@Session() session: UserSession) {
+    const subscription = await this.stripeService.getCurrentSubscription(session.user.id);
 
     return { subscription };
   }
 
   @UseGuards(AuthGuard)
   @Delete("/subscription")
-  async cancelCurrentSubscription(@Session() session: UserSession | null) {
-    const subscription = await this.stripeService.cancelCurrentSubscription(session?.user?.id!);
+  async cancelCurrentSubscription(@Session() session: UserSession) {
+    const subscription = await this.stripeService.cancelCurrentSubscription(session.user.id);
 
     return { subscription };
   }
@@ -73,20 +73,20 @@ export class StripeController {
 
       throw new AppException(ERROR_CODES.STRIPE_WEBHOOK_ERROR);
     }
-    
+
     switch (event.type) {
       case "checkout.session.completed": {
         await this.stripeService.handleCheckoutSessionCompletedEvent(event);
 
         break;
       }
-      
+
       case "invoice.payment_succeeded": {
         await this.stripeService.handleInvoicePaymentSucceededEvent(event);
-        
+
         break;
       }
-      
+
       case "invoice.payment_failed": {
         await this.stripeService.handleInvoicePaymentFailedEvent(event);
 

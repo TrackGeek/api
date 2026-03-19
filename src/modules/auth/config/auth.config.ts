@@ -174,12 +174,12 @@ export function getAuthConfig(params: AuthConfigParams) {
           const user = await databaseService.user.findUnique({
             where: { email },
             select: { name: true },
-          })
-          
+          });
+
           await queueService.toMagicLinkJob({
             name: userService.getName(user?.name, email),
             email,
-            url
+            url,
           });
         },
       }),

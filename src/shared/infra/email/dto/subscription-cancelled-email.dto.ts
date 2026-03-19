@@ -7,7 +7,7 @@ export class SubscriptionCancelledEmailDto {
 
   @IsEmail()
   readonly userEmail: string;
-  
+
   @IsString()
   readonly value: string;
 }

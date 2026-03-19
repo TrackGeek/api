@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreatePaymentDto } from "../dto/create-payment.dto";
 import { GetPaymentsDto } from "../dto/get-payments.dto";
-import { ClientIp, type ClientIpType } from '@/shared/decorators/client-ip.decorator';
+import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
 
 @ApiTags("Payment")
 @Controller("/payment")
@@ -17,7 +17,7 @@ export class PaymentController {
   async createPayment(
     @Session() session: UserSession,
     @Body() createPaymentDto: CreatePaymentDto,
-    @ClientIp() clientIp: ClientIpType
+    @ClientIp() clientIp: ClientIpType,
   ) {
     const payment = await this.paymentService.createPayment({
       ...createPaymentDto,

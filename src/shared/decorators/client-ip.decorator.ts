@@ -22,7 +22,7 @@ function extractIp(req: Request): string {
 
   if (forwarded) {
     const first = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(",")[0];
-    
+
     return first.trim();
   }
 
@@ -31,7 +31,7 @@ function extractIp(req: Request): string {
 
 function isLocalIp(ip: string): boolean {
   const normalized = ip.replace(/^::ffff:/i, "");
-  
+
   return LOCAL_IP_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
