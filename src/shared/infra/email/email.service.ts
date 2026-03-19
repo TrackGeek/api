@@ -8,6 +8,7 @@ import { MagicLinkEmailDto } from "./dto/magic-link-email.dto";
 import { ResetPasswordEmailDto } from "./dto/reset-password-email.dto";
 import { PaymentSuccessEmailDto } from "./dto/payment-success-email.dto";
 import { SubscriptionCancelledEmailDto } from "./dto/subscription-cancelled-email.dto";
+import { PaymentFailedEmailDto } from "./dto/payment-failed-email.dto";
 
 @Injectable()
 export class EmailService {
@@ -58,6 +59,15 @@ export class EmailService {
       to: subscriptionCancelledEmailDto.userEmail,
       subject: "Your subscription has been cancelled",
       html: this.getHtmlTemplate("subscription-cancelled-email", subscriptionCancelledEmailDto),
+    });
+  }
+
+  async sendPaymentFailedEmail(paymentFailedEmailDto: PaymentFailedEmailDto) {
+    await this.resendService.send({
+      from: this.configService.get<string>("RESEND_FROM")!,
+      to: paymentFailedEmailDto.userEmail,
+      subject: "Payment failed – we'll retry automatically",
+      html: this.getHtmlTemplate("payment-failed-email", paymentFailedEmailDto),
     });
   }
 }

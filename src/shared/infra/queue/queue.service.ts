@@ -11,9 +11,11 @@ import {
   RESET_PASSWORD_JOB,
   FEED_EVENT_FLUSH_AGGREGATION_JOB,
   PAYMENT_SUCCESS_JOB,
+  PAYMENT_FAILED_JOB,
   SUBSCRIPTION_CANCELLED_JOB,
 } from "@/shared/constants/job";
 import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
+import { PaymentFailedEmailDto } from "../email/dto/payment-failed-email.dto";
 import { SubscriptionCancelledEmailDto } from "../email/dto/subscription-cancelled-email.dto";
 
 type QueueName = typeof EMAIL_QUEUE | typeof FEED_EVENT_QUEUE;
@@ -24,6 +26,7 @@ type JobName =
   | typeof RESET_PASSWORD_JOB
   | typeof FEED_EVENT_FLUSH_AGGREGATION_JOB
   | typeof PAYMENT_SUCCESS_JOB
+  | typeof PAYMENT_FAILED_JOB
   | typeof SUBSCRIPTION_CANCELLED_JOB;
 
 @Injectable()
@@ -72,6 +75,10 @@ export class QueueService {
 
   async toPaymentSuccessJob(paymentSuccessEmailDto: PaymentSuccessEmailDto) {
     await this.addJob(EMAIL_QUEUE, PAYMENT_SUCCESS_JOB, paymentSuccessEmailDto);
+  }
+
+  async toPaymentFailedJob(paymentFailedEmailDto: PaymentFailedEmailDto) {
+    await this.addJob(EMAIL_QUEUE, PAYMENT_FAILED_JOB, paymentFailedEmailDto);
   }
 
   async toSubscriptionCancelledJob(subscriptionCancelledEmailDto: SubscriptionCancelledEmailDto) {

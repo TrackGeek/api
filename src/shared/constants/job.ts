@@ -9,3 +9,5 @@ export const RESET_PASSWORD_JOB = "reset-password-job";
 export const PAYMENT_SUCCESS_JOB = "payment-success-job";
 
 export const SUBSCRIPTION_CANCELLED_JOB = "subscription-cancelled-job";
+
+export const PAYMENT_FAILED_JOB = "payment-failed-job";

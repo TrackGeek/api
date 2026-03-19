@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Subscription cancelled – TrackGeek</title>
+  <title>Payment failed – TrackGeek</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0e0e12; font-family: Arial, sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #0e0e12; padding: 48px 20px;">
@@ -22,10 +22,10 @@
           <tr>
             <td style="background-color: oklch(21% 0.006 285.885); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
 
-              <!-- Top bar -->
+              <!-- Red top bar -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="background: linear-gradient(90deg, #10b981, #34d399); height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>
+                  <td style="background: linear-gradient(90deg, #ef4444, #f87171); height: 4px; font-size: 0; line-height: 0;">&nbsp;</td>
                 </tr>
               </table>
 
@@ -33,11 +33,14 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding: 40px 40px 28px 40px;">
+                    <div style="display: inline-block; width: 56px; height: 56px; background-color: rgba(239,68,68,0.12); border-radius: 50%; text-align: center; line-height: 56px; margin-bottom: 20px;">
+                      <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/274c/72.png" alt="❌" width="28" height="28" style="vertical-align: middle;" />
+                    </div>
                     <h1 style="margin: 0 0 10px 0; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1.25;">
-                      Subscription cancelled
+                      Payment failed
                     </h1>
                     <p style="margin: 0; color: #8b8b9e; font-size: 16px; line-height: 1.6;">
-                      Your subscription has been cancelled and will not renew.
+                      We were unable to process your subscription renewal. We'll retry automatically.
                     </p>
                   </td>
                 </tr>
@@ -50,7 +53,7 @@
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; overflow: hidden;">
                       <tr>
                         <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.07);">Account</td>
-                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07); text-decoration: none;">{{ userName }} - {{ userEmail }}</td>
+                        <td style="padding: 13px 16px; color: #ffffff; font-size: 13px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.07);">{{ userName }} - {{ userEmail }}</td>
                       </tr>
                       <tr>
                         <td style="padding: 13px 16px; color: #8b8b9e; font-size: 13px; font-weight: 600;">Value</td>
@@ -65,10 +68,10 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding: 0 40px 40px 40px;">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15); border-radius: 8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15); border-radius: 8px;">
                       <tr>
                         <td style="padding: 14px 18px; color: #8b8b9e; font-size: 13px; line-height: 1.6;">
-                          If this was a mistake, you can resubscribe at any time on TrackGeek. Your history and data remain intact.
+                          Please make sure your payment method is up to date. If the issue persists, your subscription may be cancelled automatically by Stripe after multiple failed attempts.
                         </td>
                       </tr>
                     </table>

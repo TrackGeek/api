@@ -47,7 +47,10 @@ export class PaymentService {
     });
 
     if (paymentAlreadyExists) {
-      return paymentAlreadyExists;
+      return {
+        id: paymentAlreadyExists.stripeCheckoutSessionId,
+        url: paymentAlreadyExists.stripeCheckoutSessionUrl,
+      };
     }
     
     let stripeCustomerId = user?.stripeCustomerId ?? null;
@@ -84,7 +87,7 @@ export class PaymentService {
     const session = await this.stripeService.client.checkout.sessions.create({
       mode: isSubscription ? "subscription" : "payment",
       customer: stripeCustomerId,
-      success_url: `${this.configService.get<string>("WEB_URL")}/donate/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${this.configService.get<string>("WEB_URL")}/donate/success?sessionId={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.configService.get<string>("WEB_URL")}/donate/error`,
       metadata: { userId: user.id, valueToEur: valueToEur.value },
       expires_at: Math.floor(expiredAt.getTime() / 1000),
@@ -139,10 +142,10 @@ export class PaymentService {
     return payments;
   }
 
-  async getPaymentByCheckoutSessionId(checkoutSessionId: string) {
+  async getPaymentById(id: string) {
     const payment = await this.databaseService.payment.findFirst({
       where: {
-        stripeCheckoutSessionId: checkoutSessionId,
+        id,
       },
     });
 

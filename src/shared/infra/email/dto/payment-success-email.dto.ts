@@ -14,9 +14,13 @@ export class PaymentSuccessEmailDto {
 
   @IsUUID()
   readonly paymentId: string;
+  
+  @IsUrl()
+  readonly paymentLink: string;
 
   @IsUrl()
-  readonly invoiceUrl: string;
+  @IsOptional()
+  readonly invoiceUrl?: string | null;
 
   @IsString()
   readonly value: string;

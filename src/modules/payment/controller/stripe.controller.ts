@@ -81,6 +81,18 @@ export class StripeController {
         break;
       }
       
+      case "invoice.payment_succeeded": {
+        await this.stripeService.handleInvoicePaymentSucceededEvent(event);
+        
+        break;
+      }
+      
+      case "invoice.payment_failed": {
+        await this.stripeService.handleInvoicePaymentFailedEvent(event);
+
+        break;
+      }
+
       case "customer.subscription.deleted": {
         await this.stripeService.handleSubscriptionDeletedEvent(event);
 

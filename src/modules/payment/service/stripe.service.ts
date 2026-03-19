@@ -172,12 +172,12 @@ export class StripeService {
           value: {
             converted: {
               raw: convertedCurrency.value,
-              formatted: formatValue(convertedCurrency.value, convertedCurrency.currency),
+              formatted: formatValue(convertedCurrency.value / 100, convertedCurrency.currency),
               currency: convertedCurrency.currency,
             },
             original: {
               raw: price,
-              formatted: formatValue(price, DEFAULT_CURRENCY),
+              formatted: formatValue(price / 100, DEFAULT_CURRENCY),
               currency: DEFAULT_CURRENCY,
             }
           },
@@ -265,7 +265,7 @@ export class StripeService {
       },
       price: {
         raw: price?.unit_amount ?? 0,
-        formatted: formatValue(price?.unit_amount ?? 0, price?.currency ?? DEFAULT_CURRENCY),
+        formatted: formatValue((price?.unit_amount ?? 0) / 100, price?.currency ?? DEFAULT_CURRENCY),
         currency: price?.currency ?? DEFAULT_CURRENCY,
       },
     }
@@ -401,14 +401,140 @@ export class StripeService {
 
     await this.queueService.toPaymentSuccessJob({
       paymentId: payment.id,
+      paymentLink: `${this.configService.get<string>("WEB_URL")}/billing?paymentId=${payment.id}`,
       userName: payment.user!.name,
       userEmail: payment.user!.email,
-      invoiceUrl: stripeInvoiceUrl ?? "",
+      invoiceUrl: stripeInvoiceUrl ?? null,
       tier: perkToGive?.name ?? null,
-      value: formatValue(payment.value, payment.currency),
+      value: formatValue(payment.value / 100, payment.currency),
     });
   }
   
+  async handleInvoicePaymentSucceededEvent(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+
+    if (invoice.billing_reason === "subscription_create") {
+      return;
+    }
+
+    if (invoice.status !== "paid") {
+      return;
+    }
+
+    const user = await this.databaseService.user.findFirst({
+      where: { stripeCustomerId: invoice.customer as string },
+    });
+
+    if (!user) {
+      return;
+    }
+    
+    const subscriptions = await this.client.subscriptions.list({
+      customer: invoice.customer as string,
+      limit: 1,
+    });
+    
+    const subscription = subscriptions?.data?.[0] ?? null;
+    
+    if (subscription?.status !== "active") {
+      return;
+    }
+
+    const payment = await this.databaseService.payment.findFirst({
+      where: {
+        userId: user.id,
+        stripeSubscriptionId: subscription.id,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!payment) {
+      return;
+    }
+
+    const stripeInvoiceUrl = invoice.hosted_invoice_url ?? null;
+    const valueToEur = await this.convertCurrency(invoice.amount_paid, invoice.currency, DEFAULT_CURRENCY);
+
+    const newPayment = await this.databaseService.payment.create({
+      data: {
+        name: payment.name,
+        value: invoice.amount_paid,
+        currency: invoice.currency,
+        status: PaymentStatus.Succeeded,
+        frequency: payment.frequency,
+        stripeInvoiceUrl,
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: invoice.customer as string,
+        stripeProductId: payment.stripeProductId,
+        userId: user.id,
+      },
+    });
+
+    await this.databaseService.user.update({
+      where: { id: user.id },
+      data: {
+        accumulatedMoney: {
+          increment: valueToEur.value,
+        },
+      },
+    });
+
+    await this.queueService.toPaymentSuccessJob({
+      paymentId: newPayment.id,
+      paymentLink: `${this.configService.get<string>("WEB_URL")}/billing?paymentId=${newPayment.id}`,
+      userName: user.name,
+      userEmail: user.email,
+      invoiceUrl: stripeInvoiceUrl ?? null,
+      value: formatValue(invoice.amount_paid / 100, invoice.currency),
+    });
+  }
+
+  async handleInvoicePaymentFailedEvent(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+
+    const user = await this.databaseService.user.findFirst({
+      where: { stripeCustomerId: invoice.customer as string },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    const subscriptions = await this.client.subscriptions.list({
+      customer: invoice.customer as string,
+      limit: 1,
+    });
+    
+    const subscription = subscriptions?.data?.[0] ?? null;
+    
+    if (subscription?.status !== "active") {
+      return;
+    }
+
+    const payment = await this.databaseService.payment.findFirst({
+      where: {
+        userId: user.id,
+        stripeSubscriptionId: subscription.id,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    
+    if (!payment) {
+      return;
+    }
+
+    await this.databaseService.payment.update({
+      where: { id: payment.id },
+      data: { status: PaymentStatus.Failed },
+    });
+
+    await this.queueService.toPaymentFailedJob({
+      userName: user.name,
+      userEmail: user.email,
+      value: formatValue(invoice.amount_due / 100, invoice.currency),
+    });
+  }
+
   async handleSubscriptionDeletedEvent(event: Stripe.Event) {
     const subscription = event.data.object as Stripe.Subscription;
 
@@ -434,7 +560,7 @@ export class StripeService {
     await this.queueService.toSubscriptionCancelledJob({
       userName: user.name,
       userEmail: user.email,
-      value: formatValue(payment!.value, payment!.currency),
+      value: formatValue(payment!.value / 100, payment!.currency),
     });
   }
 }

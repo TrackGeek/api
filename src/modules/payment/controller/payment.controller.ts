@@ -40,9 +40,9 @@ export class PaymentController {
     return { payments };
   }
 
-  @Get("/detail/:checkoutSessionId")
-  async getPaymentDetail(@Param("checkoutSessionId") checkoutSessionId: string) {
-    const payment = await this.paymentService.getPaymentByCheckoutSessionId(checkoutSessionId);
+  @Get("/detail/:paymentId")
+  async getPaymentDetail(@Param("paymentId") paymentId: string) {
+    const payment = await this.paymentService.getPaymentById(paymentId);
 
     return { payment };
   }
