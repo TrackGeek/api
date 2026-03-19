@@ -90,7 +90,7 @@ export function getAuthConfig(params: AuthConfigParams) {
         },
         role: {
           type: "string",
-          required: true,
+          required: false,
         },
         profile: {
           type: "json",
