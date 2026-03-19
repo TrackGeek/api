@@ -237,11 +237,13 @@ CREATE TABLE "Game" (
     "standaloneExpansions" JSONB,
     "storyline" JSONB,
     "summary" TEXT,
+    "themes" TEXT[],
     "totalRating" DOUBLE PRECISION,
     "totalRatingCount" INTEGER,
     "versionParent" JSONB,
     "versionTitle" JSONB,
     "videos" JSONB,
+    "websites" JSONB,
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -254,6 +256,7 @@ CREATE TABLE "Book" (
     "id" TEXT NOT NULL,
     "hardcoverId" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
+    "contributions" JSONB,
     "alternativeTitles" JSONB,
     "audioSeconds" INTEGER,
     "taggings" JSONB,
@@ -280,6 +283,7 @@ CREATE TABLE "Book" (
     "slug" TEXT NOT NULL,
     "state" TEXT,
     "editions" JSONB,
+    "series" JSONB,
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -396,6 +400,9 @@ CREATE TABLE "TVShow" (
     "type" TEXT,
     "cast" JSONB,
     "crew" JSONB,
+    "trailerId" TEXT,
+    "external" JSONB,
+    "backdrops" TEXT[],
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -430,6 +437,9 @@ CREATE TABLE "Movie" (
     "cast" JSONB,
     "crew" JSONB,
     "posterUrl" TEXT,
+    "trailerId" TEXT,
+    "external" JSONB,
+    "backdrops" TEXT[],
     "lastRefreshedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -647,13 +657,25 @@ CREATE TABLE "GameReview" (
     "summary" TEXT,
     "notes" TEXT,
     "recommended" BOOLEAN,
-    "screenshots" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "userId" TEXT NOT NULL,
     "gameId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "GameReview_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "GameReviewScreenshot" (
+    "id" TEXT NOT NULL,
+    "description" TEXT,
+    "url" TEXT NOT NULL,
+    "isSpoiler" BOOLEAN NOT NULL,
+    "gameReviewId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "GameReviewScreenshot_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -872,6 +894,9 @@ CREATE UNIQUE INDEX "MovieReview_userId_movieId_key" ON "MovieReview"("userId", 
 CREATE UNIQUE INDEX "GameReview_userId_gameId_key" ON "GameReview"("userId", "gameId");
 
 -- CreateIndex
+CREATE INDEX "GameReviewScreenshot_gameReviewId_idx" ON "GameReviewScreenshot"("gameReviewId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "BookReview_userId_bookId_key" ON "BookReview"("userId", "bookId");
 
 -- CreateIndex
@@ -1056,6 +1081,9 @@ ALTER TABLE "GameReview" ADD CONSTRAINT "GameReview_userId_fkey" FOREIGN KEY ("u
 
 -- AddForeignKey
 ALTER TABLE "GameReview" ADD CONSTRAINT "GameReview_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GameReviewScreenshot" ADD CONSTRAINT "GameReviewScreenshot_gameReviewId_fkey" FOREIGN KEY ("gameReviewId") REFERENCES "GameReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "BookReview" ADD CONSTRAINT "BookReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
