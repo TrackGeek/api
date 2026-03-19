@@ -185,10 +185,7 @@ export class HardcoverService {
     }
   }
 
-  async topBooks({
-    page = DEFAULT_PAGINATION_PAGE,
-    filter = HardcoverBookFilter.Trending,
-  }: HardcoverTopBookOptions): Promise<HardcoverTopBookResult[]> {
+  async topBooks({ page = DEFAULT_PAGINATION_PAGE, filter = HardcoverBookFilter.Trending }: HardcoverTopBookOptions) {
     try {
       const topBooksOptions = { page, filter };
       const cachedBooks = await this.cacheService.get<HardcoverTopBookResult[]>(
@@ -202,10 +199,16 @@ export class HardcoverService {
       const queries: Record<HardcoverBookFilter, string> = {
         trending: `
           query TrendingBooks {
+            books_aggregate {
+              aggregate {
+                count
+              }
+            }
+            
             books(
               order_by: { users_read_count: desc }
-              limit: 20
-              offset: ${(page - 1) * 20}
+              limit: 16
+              offset: ${(page - 1) * 16}
             ) {
               id
               title
@@ -226,11 +229,19 @@ export class HardcoverService {
         `,
         comingSoon: `
           query UpcomingBooks {
+            books_aggregate(
+              where: { release_date: { _gt: "${new Date().toISOString().split("T")[0]}" } }
+            ) {
+              aggregate {
+                count
+              }
+            }
+            
             books(
               where: { release_date: { _gt: "${new Date().toISOString().split("T")[0]}" } }
               order_by: { release_date: asc }
-              limit: 20
-              offset: ${(page - 1) * 20}
+              limit: 16
+              offset: ${(page - 1) * 16}
             ) { 
               id
               title 
@@ -266,25 +277,56 @@ export class HardcoverService {
         ),
       );
 
-      const topData = topBookResponse.data.data.books;
+      if (!topBookResponse.data?.data) {
+        new Error("API Response returned null");
+      }
 
-      const books = topData.map((book) => ({
+      const responseData = topBookResponse.data.data;
+
+      if (!responseData.books_aggregate) {
+        this.logger.error("Response unexpected:", JSON.stringify(responseData));
+        new Error("Response does not contain books_aggregate");
+      }
+
+      const topData = responseData.books || [];
+      const totalCount = responseData.books_aggregate?.aggregate?.count || 0;
+
+      const items = topData.map((book) => ({
         id: Number(book.id),
         title: book.title,
         alternativeTitles: book.alternative_titles,
-        authors: book.contributions.map(({ author }) => ({ name: author.name, id: author.id })),
+        authors: book.contributions?.map(({ author }) => ({ name: author.name, id: author.id })) || [],
         imageUrl: book.image?.url ?? "",
         releaseYear: book.release_year,
         description: book.description,
       }));
 
+      const limit = 16;
+      const currentOffset = (page - 1) * limit;
+
+      const paginationData = {
+        has_next_page: currentOffset + limit < totalCount,
+        items: {
+          total: totalCount,
+          count: topData.length,
+        },
+      };
+
+      const topBooks = {
+        hasNextPage: paginationData.has_next_page,
+        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
+        total: paginationData.items.total,
+        count: paginationData.items.count,
+        items,
+      };
+
       await this.cacheService.set(
         CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({ ...topBooksOptions }),
-        books,
+        topBooks,
         CACHE_KEYS.HARDCOVER_TOP_BOOKS.expiration,
       );
 
-      return books;
+      return topBooks;
     } catch (error) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
