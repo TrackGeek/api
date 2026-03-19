@@ -13,6 +13,7 @@ export type FeedEventJobData = FeedEventDto;
 
 export interface FeedEventFlushAggregationJobData {
   aggKey: string;
+  windowsMs: number;
 }
 
 @Processor(FEED_EVENT_QUEUE, { concurrency: 10 })
@@ -42,7 +43,7 @@ export class FeedEventProcessor extends WorkerHost {
       const isLeader = await this.cacheService.redis.set(lockKey, "1", { NX: true, PX: windowsMs });
 
       if (isLeader) {
-        await this.queueService.toFeedEventFlushAggregationJob({ aggKey }, { delay: windowsMs });
+        await this.queueService.toFeedEventFlushAggregationJob({ aggKey, windowsMs });
 
         this.logger.log(`Aggregation window opened: ${aggKey}`);
       }

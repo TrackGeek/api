@@ -10,23 +10,31 @@ datasource db {
 
 enum UserRole {
   User
-  Premium
-  Contributor
   Moderator
   Administrator
 }
 
+enum UserTier {
+  Tracker
+  Archivist
+  ArchiveMaster
+}
+
 model User {
-  id              String   @id
-  name            String
-  email           String
-  emailVerified   Boolean  @default(false)
-  image           String?
-  username        String?
-  displayUsername String?
-  role            UserRole @default(User)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String    @id
+  name             String
+  email            String
+  emailVerified    Boolean   @default(false)
+  image            String?
+  username         String?
+  displayUsername  String?
+  tier             UserTier?
+  tierStartedAt    DateTime?
+  role             UserRole  @default(User)
+  stripeCustomerId String?
+  accumulatedMoney Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   profile               Profile?
   sessions              Session[]
@@ -53,6 +61,7 @@ model User {
   bookReviews           BookReview[]
   favorites             Favorite[]
   userMedals            UserMedal[]
+  payments              Payment[]
 
   @@unique([email])
   @@unique([username])
@@ -122,14 +131,15 @@ model Profile {
 }
 
 model Medal {
-  id          String   @id @default(uuid(7))
-  name        String
-  description String
-  imageUrl    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid(7))
+  name      String
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   userMedals UserMedal[]
+
+  @@unique([name])
 }
 
 model UserMedal {
@@ -546,8 +556,8 @@ model AnimeEpisodeWatch {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  anime Anime @relation(fields: [animeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, animeId, episode])
   @@index([userId, status])
@@ -563,8 +573,8 @@ model TvShowEpisodeWatch {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id])
-  tvShow TvShow @relation(fields: [tvShowId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tvShowId, season, episode])
   @@index([userId, status])
@@ -592,8 +602,8 @@ model AnimeProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  anime Anime @relation(fields: [animeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, animeId])
 }
@@ -610,8 +620,8 @@ model MangaProgress {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  manga Manga @relation(fields: [mangaId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
 
   @@unique([userId, mangaId])
 }
@@ -627,8 +637,8 @@ model TvShowProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id])
-  tvShow TvShow @relation(fields: [tvShowId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tvShowId])
   @@map("TVShowProgress")
@@ -645,8 +655,8 @@ model MovieProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  movie Movie @relation(fields: [movieId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
 }
@@ -662,8 +672,8 @@ model GameProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  game Game @relation(fields: [gameId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   @@unique([userId, gameId])
 }
@@ -680,8 +690,8 @@ model BookProgress {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
   @@unique([userId, bookId])
 }
@@ -704,8 +714,8 @@ model AnimeReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  anime Anime @relation(fields: [animeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, animeId])
 }
@@ -725,8 +735,8 @@ model MangaReview {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  manga Manga @relation(fields: [mangaId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
 
   @@unique([userId, mangaId])
 }
@@ -746,8 +756,8 @@ model TvShowReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id])
-  tvShow TvShow @relation(fields: [tvShowId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tvShowId])
   @@map("TVShowReview")
@@ -768,8 +778,8 @@ model MovieReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
-  movie Movie @relation(fields: [movieId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
 }
@@ -791,8 +801,8 @@ model GameReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  game Game @relation(fields: [gameId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   @@unique([userId, gameId])
 }
@@ -811,8 +821,8 @@ model BookReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
   @@unique([userId, bookId])
 }
@@ -903,4 +913,42 @@ model Favorite {
   @@unique([userId, movieId])
   @@unique([userId, gameId])
   @@unique([userId, bookId])
+}
+
+enum PaymentStatus {
+  Pending
+  Succeeded
+  Failed
+}
+
+enum PaymentFrequency {
+  OneTime
+  Monthly
+}
+
+model Payment {
+  id                       String           @id @default(uuid(7))
+  name                     String
+  value                    Int
+  currency                 String
+  status                   PaymentStatus
+  frequency                PaymentFrequency
+  stripeInvoiceUrl         String?
+  stripeChargeId           String?
+  stripePaymentIntentId    String?
+  stripeSubscriptionId     String?
+  stripeCheckoutSessionUrl String?
+  stripeCheckoutSessionId  String?
+  stripeCustomerId         String
+  stripeProductId          String
+  userId                   String
+  expiredAt                DateTime?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([stripeCheckoutSessionId])
+  @@index([userId, status, createdAt])
+  @@index([stripeProductId])
 }

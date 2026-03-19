@@ -2,6 +2,7 @@ import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import bodyParser from "body-parser";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
@@ -17,6 +18,16 @@ async function bootstrap() {
       credentials: true,
     },
   });
+
+  app.use(
+    bodyParser.json({
+      verify: (req: any, _res: any, buffer: any) => {
+        if (req?.originalUrl?.startsWith("/stripe/webhook")) {
+          req.rawBody = buffer;
+        }
+      },
+    }),
+  );
 
   app.use(helmet());
 

@@ -8,6 +8,7 @@ export async function buildMergedDocument(app: INestApplication, betterAuthInsta
     .setTitle("TrackGeek")
     .setDescription("The TrackGeek API documentation")
     .setVersion("1.0.0")
+    .addBearerAuth()
     .build();
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);

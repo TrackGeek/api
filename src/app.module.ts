@@ -28,14 +28,15 @@ import { UploadModule } from "./shared/infra/upload/upload.module";
 import { HealthModule } from "./shared/infra/health/health.module";
 import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
 import { MetricsModule } from "./shared/infra/metrics/metrics.module";
+import { PaymentModule } from "./modules/payment/payment.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot({
       throttlers: [
-        { name: "read", ttl: 60_000, limit: 30, blockDuration: 300_000 },
-        { name: "write", ttl: 60_000, limit: 5, blockDuration: 300_000 },
+        { name: "read", ttl: 60_000, limit: 60, blockDuration: 300_000 },
+        { name: "write", ttl: 60_000, limit: 30, blockDuration: 300_000 },
       ],
     }),
     MetricsModule,
@@ -62,6 +63,7 @@ import { MetricsModule } from "./shared/infra/metrics/metrics.module";
     AnimeModule,
     FavoriteModule,
     ListModule,
+    PaymentModule,
   ],
   providers: [
     {

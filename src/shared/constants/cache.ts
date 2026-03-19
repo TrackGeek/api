@@ -130,4 +130,8 @@ export const CACHE_KEYS = {
     prefix: (tmdbId: number) => `tmdb:detail:tvShow:id:${tmdbId}:season`,
     expiration: 3600 * 24,
   },
+  CONVERT_CURRENCY: {
+    prefix: (value: number, from: string, to: string) => `currency:convert:${value}:${from}:${to}`,
+    expiration: 3600 * 6,
+  },
 } as const;

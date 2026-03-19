@@ -4,7 +4,13 @@ import { Job } from "bullmq";
 
 import { EmailService } from "@/shared/infra/email/email.service";
 import { EMAIL_QUEUE } from "@/shared/constants/queue";
-import { MAGIC_LINK_JOB, RESET_PASSWORD_JOB } from "@/shared/constants/job";
+import {
+  MAGIC_LINK_JOB,
+  PAYMENT_FAILED_JOB,
+  PAYMENT_SUCCESS_JOB,
+  RESET_PASSWORD_JOB,
+  SUBSCRIPTION_CANCELLED_JOB,
+} from "@/shared/constants/job";
 
 @Processor(EMAIL_QUEUE, { concurrency: 10 })
 export class EmailProcessor extends WorkerHost {
@@ -23,6 +29,24 @@ export class EmailProcessor extends WorkerHost {
 
     if (job.name === RESET_PASSWORD_JOB) {
       await this.emailService.sendResetPasswordEmail(job.data);
+
+      return;
+    }
+
+    if (job.name === PAYMENT_SUCCESS_JOB) {
+      await this.emailService.sendPaymentSuccessEmail(job.data);
+
+      return;
+    }
+
+    if (job.name === SUBSCRIPTION_CANCELLED_JOB) {
+      await this.emailService.sendSubscriptionCancelledEmail(job.data);
+
+      return;
+    }
+
+    if (job.name === PAYMENT_FAILED_JOB) {
+      await this.emailService.sendPaymentFailedEmail(job.data);
 
       return;
     }

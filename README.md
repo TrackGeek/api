@@ -72,16 +72,16 @@ Clone the project
 git clone https://github.com/TrackGeek/api.git
 ```
 
-Fill the .env with the variables from .env.example
-
-```bash
-cp .env.example .env
-```
-
 Go to the project directory
 
 ```bash
 cd api
+```
+
+Fill the .env with the variables from .env.example
+
+```bash
+cp .env.example .env
 ```
 
 Install dependencies
@@ -101,6 +101,7 @@ Run database commands
 ```bash
 npm run prisma:migrate
 npm run prisma:generate
+npm run prisma:seed
 ```
 
 Start the server

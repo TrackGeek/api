@@ -199,4 +199,36 @@ export const ERROR_CODES = {
     code: "TV_SHOW_SEASONS_NOT_FOUND",
     status: 404,
   },
+  STRIPE_WEBHOOK_ERROR: {
+    code: "STRIPE_WEBHOOK_ERROR",
+    status: 400,
+  },
+  STRIPE_DONATE_PRODUCT_NOT_FOUND: {
+    code: "STRIPE_DONATE_PRODUCT_NOT_FOUND",
+    status: 404,
+  },
+  STRIPE_PRODUCT_NOT_FOUND: {
+    code: "STRIPE_PRODUCT_NOT_FOUND",
+    status: 404,
+  },
+  STRIPE_PRICE_NOT_FOUND: {
+    code: "STRIPE_PRICE_NOT_FOUND",
+    status: 404,
+  },
+  STRIPE_SUBSCRIPTION_NOT_FOUND: {
+    code: "STRIPE_SUBSCRIPTION_NOT_FOUND",
+    status: 404,
+  },
+  PAYMENT_NOT_FOUND: {
+    code: "PAYMENT_NOT_FOUND",
+    status: 404,
+  },
+  STRIPE_SUBSCRIPTION_NO_UPGRADE: {
+    code: "STRIPE_SUBSCRIPTION_NO_UPGRADE",
+    status: 400,
+  },
+  ACTIVE_SUBSCRIPTION_EXISTS: {
+    code: "ACTIVE_SUBSCRIPTION_EXISTS",
+    status: 400,
+  },
 } as const;
