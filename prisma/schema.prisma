@@ -927,12 +927,12 @@ model Payment {
   stripeChargeId           String?
   stripePaymentIntentId    String?
   stripeSubscriptionId     String?
-  stripeCheckoutSessionUrl String
-  stripeCheckoutSessionId  String
+  stripeCheckoutSessionUrl String?
+  stripeCheckoutSessionId  String?
   stripeCustomerId         String
   stripeProductId          String
   userId                   String
-  expiredAt                DateTime
+  expiredAt                DateTime?
   createdAt                DateTime         @default(now())
   updatedAt                DateTime         @updatedAt
 
