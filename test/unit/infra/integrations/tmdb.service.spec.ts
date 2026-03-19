@@ -150,9 +150,12 @@ describe("TMDBService", () => {
       video: false,
     };
 
-    const creditsData = {
-      cast: [{ id: 1, name: "Leonardo DiCaprio", character: "Cobb", profile_path: "/leo.jpg" }],
-      crew: [{ id: 2, name: "Christopher Nolan", job: "Director", profile_path: null }],
+    const movieDataWithCredits = {
+      ...movieData,
+      credits: {
+        cast: [{ id: 1, name: "Leonardo DiCaprio", character: "Cobb", profile_path: "/leo.jpg" }],
+        crew: [{ id: 2, name: "Christopher Nolan", job: "Director", profile_path: null }],
+      },
     };
 
     it("should return cached movie when cache hit", async () => {
@@ -168,7 +171,7 @@ describe("TMDBService", () => {
     it("should fetch movie details, credits and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get.mockReturnValueOnce(of({ data: movieData })).mockReturnValueOnce(of({ data: creditsData }));
+      mockHttpService.get.mockReturnValueOnce(of({ data: movieDataWithCredits }));
 
       const result = await service.getMovieById(27205);
 
@@ -219,9 +222,12 @@ describe("TMDBService", () => {
       type: "Scripted",
     };
 
-    const creditsData = {
-      cast: [{ id: 17419, name: "Bryan Cranston", character: "Walter White", profile_path: "/bryan.jpg" }],
-      crew: [],
+    const tvShowDataWithCredits = {
+      ...tvShowData,
+      credits: {
+        cast: [{ id: 17419, name: "Bryan Cranston", character: "Walter White", profile_path: "/bryan.jpg" }],
+        crew: [],
+      },
     };
 
     it("should return cached TV show when cache hit", async () => {
@@ -237,7 +243,7 @@ describe("TMDBService", () => {
     it("should fetch TV show details and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get.mockReturnValueOnce(of({ data: tvShowData })).mockReturnValueOnce(of({ data: creditsData }));
+      mockHttpService.get.mockReturnValueOnce(of({ data: tvShowDataWithCredits }));
 
       const result = await service.getTVShowById(1396);
 
