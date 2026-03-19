@@ -50,6 +50,8 @@ export interface HardcoverBookDetails {
   taggings: {
     id: number;
     tag: string;
+    category: string;
+    categoryId: number;
   }[];
   bookCategory: {
     id: number;
@@ -96,6 +98,10 @@ export interface HardcoverBookDetails {
   state: string;
   subtitle: string | null;
   editions: HardcoverEdition[];
+  series: {
+    series_id: number;
+    details: string | null;
+  };
 }
 
 @Injectable()
@@ -213,6 +219,8 @@ export class HardcoverService {
                 }
               }
               alternative_titles
+              description
+              release_year
             }
           }
         `,
@@ -236,6 +244,8 @@ export class HardcoverService {
                 }
               }
               alternative_titles
+              description
+              release_year
             }
           }
         `,
@@ -264,6 +274,8 @@ export class HardcoverService {
         alternativeTitles: book.alternative_titles,
         authors: book.contributions.map(({ author }) => ({ name: author.name, id: author.id })),
         imageUrl: book.image?.url ?? "",
+        releaseYear: book.release_year,
+        description: book.description,
       }));
 
       await this.cacheService.set(
@@ -456,7 +468,15 @@ export class HardcoverService {
         taggings: bookData.taggings
           ? [
               ...new Map(
-                bookData.taggings.map((tagging) => [tagging.tag.id, { id: tagging.tag.id, tag: tagging.tag.tag }]),
+                bookData.taggings.map((tagging) => [
+                  tagging.tag.id,
+                  {
+                    id: tagging.tag.id,
+                    tag: tagging.tag.tag,
+                    category: tagging.tag.category,
+                    categoryId: tagging.tag.categoryId,
+                  },
+                ]),
               ).values(),
             ]
           : [],
@@ -529,6 +549,7 @@ export class HardcoverService {
               language: edition.language?.language ?? null,
             }))
           : [],
+        series: bookData.book_series,
       } as HardcoverBookDetails;
 
       await this.cacheService.set(

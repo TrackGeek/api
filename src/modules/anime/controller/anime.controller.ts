@@ -1,11 +1,10 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
-import { AnimeService } from "../service/anime.service";
 import { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import { SearchAnimeDto } from "../dto/search-anime.dto";
-import { ApiTags } from "@nestjs/swagger";
-import { AnimeRecommendationsDto } from "../dto/anime-recommendations.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
+import { AnimeService } from "../service/anime.service";
 
 @ApiTags("Anime")
 @Controller("/anime")
@@ -29,13 +28,6 @@ export class AnimeController {
   @Get("/top")
   async topAnimes(@Query() query: TopAnimeDto) {
     const animes = await this.animeService.topAnimes(query);
-
-    return { animes };
-  }
-
-  @Get("/recommendation")
-  async animeRecommendations(@Query() query: AnimeRecommendationsDto) {
-    const animes = await this.animeService.animeRecommendations(query);
 
     return { animes };
   }

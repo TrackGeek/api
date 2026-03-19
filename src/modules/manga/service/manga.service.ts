@@ -1,23 +1,21 @@
 import { Injectable } from "@nestjs/common";
 import { Manga } from "@prisma/generated/client";
-
+import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
-import type { SearchMangaDto } from "../dto/search-manga.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
-import { MangaRecommendationsDto } from "../dto/manga-recommendations.dto";
 import {
   JikanMangaOrderBy,
   JikanMangaStatus,
   JikanMangaType,
   JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
+import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
+import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { TopMangaDto } from "../dto/top-manga.dto";
 
 @Injectable()
@@ -50,10 +48,6 @@ export class MangaService {
       orderBy,
       sort,
     };
-  }
-
-  async mangaRecommendations(mangaRecommendationsDto: MangaRecommendationsDto) {
-    return this.integrationsService.jikan.mangaRecommendations(mangaRecommendationsDto);
   }
 
   async getMangaByMalId(malId: number) {

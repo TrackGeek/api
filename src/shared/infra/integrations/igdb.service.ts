@@ -165,7 +165,7 @@ export interface IGDBGameDetails {
   }[];
   name: string | null;
   parentGame: {
-    checksum: string | null;
+    id: string | null;
     name: string | null;
     slug: string | null;
     coverUrl: string | null;
@@ -193,6 +193,7 @@ export interface IGDBGameDetails {
   slug: string | null;
   standaloneExpansions: IGDBGameRef[];
   summary: string | null;
+  themes: string[];
   versionParent: {
     checksum: string | null;
     name: string | null;
@@ -204,6 +205,10 @@ export interface IGDBGameDetails {
     checksum: string | null;
     name: string | null;
     videoId: string | null;
+  }[];
+  websites: {
+    name: string | null;
+    url: string | null;
   }[];
 }
 
@@ -339,70 +344,73 @@ export class IGDBService {
       const now = Math.floor(Date.now() / 1000);
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
       const ninetyDaysAhead = now + 90 * 24 * 60 * 60;
-      const offset = (page - 1) * 10;
+      const pageSize = 16;
+      const offset = (page - 1) * pageSize;
       const twoYearsAgo = now - 2 * 365 * 24 * 60 * 60;
 
       const queries: Record<IGDBGameFilter, string> = {
         popular: `
-  fields 
-    slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-    platforms.checksum, platforms.name,
-    involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-    first_release_date;
-  where rating_count > 50
-    & rating >= 70
-    & first_release_date > ${twoYearsAgo}
-    & first_release_date < ${now}
-    & cover != null;
-  sort rating_count desc;
-  limit 10;
-  offset ${offset};
-`,
-
+          fields 
+            slug, name, cover.url,
+		        artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where rating_count > 50
+            & rating >= 70
+            & first_release_date > ${twoYearsAgo}
+            & first_release_date < ${now}
+            & cover != null;
+          sort rating_count desc;
+          limit ${pageSize};
+          offset ${offset};
+        `,
         coming: `
-  fields 
-    slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-    platforms.checksum, platforms.name,
-    involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-    first_release_date;
-  where first_release_date > ${now}
-    & first_release_date < ${ninetyDaysAhead}
-    & cover != null;
-  sort first_release_date asc;
-  limit 10;
-  offset ${offset};
-`,
+          fields 
+            slug, name, cover.url,
+		        artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where first_release_date > ${now}
+            & first_release_date < ${ninetyDaysAhead}
+            & cover != null;
+          sort first_release_date asc;
+          limit ${pageSize};
+          offset ${offset};
+        `,
         antecipated: `
-    fields 
-      slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-      platforms.checksum, platforms.name,
-      involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-      first_release_date;
-    where first_release_date > ${now}
-      & cover != null
-      & hypes != null;
-    sort hypes desc;
-    limit 10;
-    offset ${offset};
-  `,
+          fields 
+            slug, name, cover.url,
+			      artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where first_release_date > ${now}
+            & cover != null
+            & hypes != null;
+          sort hypes desc;
+          limit ${pageSize};
+          offset ${offset};
+        `,
         recentlyReleased: `
-    fields 
-      slug, name, cover.url,
-			artworks.checksum, artworks.artwork_type.name, artworks.url,
-      platforms.checksum, platforms.name,
-      involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
-      first_release_date;
-    where first_release_date > ${thirtyDaysAgo}
-      & first_release_date < ${now}
-      & cover != null
-      & rating_count > 5;
-    sort first_release_date desc;
-    limit 10;
-    offset ${offset};
-  `,
+          fields 
+            slug, name, cover.url,
+			      artworks.checksum, artworks.artwork_type.name, artworks.url,
+            platforms.checksum, platforms.name,
+            involved_companies.checksum, involved_companies.company.name, involved_companies.developer,
+            summary,
+            first_release_date;
+          where first_release_date > ${thirtyDaysAgo}
+            & first_release_date < ${now}
+            & cover != null;
+          sort first_release_date desc;
+          limit ${pageSize};
+          offset ${offset};
+        `,
       };
 
       const gamesResponse = await firstValueFrom(
@@ -437,6 +445,7 @@ export class IGDBService {
             checksum: platform?.checksum ?? null,
             name: platform?.name ?? null,
           })) ?? [],
+        summary: game?.summary,
         coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
         firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));
@@ -482,7 +491,7 @@ export class IGDBService {
 					artworks.url,
 					bundles.name,
 					bundles.slug,
-					bundles.checksum,
+					bundles.id,
 					bundles.cover.url,
 					checksum,
 					collections.checksum,
@@ -493,24 +502,24 @@ export class IGDBService {
 					created_at,
 					dlcs.name,
 					dlcs.slug,
-					dlcs.checksum,
+					dlcs.id,
 					dlcs.cover.url,
 					expanded_games.name,
 					expanded_games.slug,
-					expanded_games.checksum,
+					expanded_games.id,
 					expanded_games.cover.url,
 					expansions.name,
 					expansions.slug,
-					expansions.checksum,
+					expansions.id,
 					expansions.cover.url,
 					external_games.game.name,
 					external_games.game.slug,
-					external_games.game.checksum,
+					external_games.game.id,
 					external_games.game.cover.url,
 					first_release_date,
 					forks.name,
 					forks.slug,
-					forks.checksum,
+					forks.id,
 					forks.cover.url,
 					franchise.name,
 					franchise.slug,
@@ -521,7 +530,7 @@ export class IGDBService {
 					franchise.games.cover.url,
 					franchises.name,
 					franchises.slug,
-					franchises.checksum,
+					franchises.id,
 					franchises.games.name,
 					franchises.games.slug,
 					franchises.games.checksum,
@@ -570,7 +579,7 @@ export class IGDBService {
 					name,
 					parent_game.name,
 					parent_game.slug,
-					parent_game.checksum,
+					parent_game.id,
 					parent_game.cover.url,
 					platforms.checksum,
 					platforms.name,
@@ -579,29 +588,30 @@ export class IGDBService {
 					player_perspectives.checksum,
 					ports.name,
 					ports.slug,
-					ports.checksum,
+					ports.id,
 					ports.cover.url,
 					release_dates.date,
 					remakes.name,
 					remakes.slug,
-					remakes.checksum,
+					remakes.id,
 					remakes.cover.url,
 					remasters.name,
 					remasters.slug,
-					remasters.checksum,
+					remasters.id,
 					remasters.cover.url,
 					screenshots.checksum,
 					screenshots.image_id,
 					similar_games.name,
 					similar_games.slug,
-					similar_games.checksum,
+					similar_games.id,
 					similar_games.cover.url,
 					slug,
 					standalone_expansions.name,
 					standalone_expansions.slug,
-					standalone_expansions.checksum,
+					standalone_expansions.id,
 					standalone_expansions.cover.url,
 					summary,
+					themes.name,
 					version_parent.name,
 					version_parent.slug,
 					version_parent.checksum,
@@ -609,7 +619,9 @@ export class IGDBService {
 					version_title,
 					videos.checksum,
 					videos.name,
-					videos.video_id;
+					videos.video_id,
+					websites.url,
+					websites.type.type;
 				where id = ${id};
 				limit 1;
 			`;
@@ -652,6 +664,7 @@ export class IGDBService {
         checksum: gameData?.checksum ?? null,
         bundles:
           gameData?.bundles?.map((bundle: any) => ({
+            id: bundle?.id ?? null,
             name: bundle?.name ?? null,
             slug: bundle?.slug ?? null,
             coverUrl: bundle?.cover?.url ? `https:${bundle.cover.url.replace("t_thumb", "t_cover_big")}` : null,
@@ -666,28 +679,28 @@ export class IGDBService {
         coverUrl: gameData.cover?.url ? `https:${gameData.cover.url.replace("t_thumb", "t_cover_big")}` : null,
         dlcs:
           gameData?.dlcs?.map((dlc: any) => ({
-            checksum: dlc?.checksum ?? null,
+            id: dlc?.id ?? null,
             name: dlc?.name ?? null,
             slug: dlc?.slug ?? null,
             coverUrl: dlc?.cover?.url ? `https:${dlc.cover.url.replace("t_thumb", "t_cover_big")}` : null,
           })) ?? [],
         expandedGames:
           gameData?.expanded_games?.map((expGame: any) => ({
-            checksum: expGame?.checksum ?? null,
+            id: expGame?.id ?? null,
             name: expGame?.name ?? null,
             slug: expGame?.slug ?? null,
             coverUrl: expGame?.cover?.url ? `https:${expGame.cover.url.replace("t_thumb", "t_cover_big")}` : null,
           })) ?? [],
         expansions:
           gameData?.expansions?.map((expansion: any) => ({
-            checksum: expansion?.checksum ?? null,
+            id: expansion?.id ?? null,
             name: expansion?.name ?? null,
             slug: expansion?.slug ?? null,
             coverUrl: expansion?.cover?.url ? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}` : null,
           })) ?? [],
         externalGames:
           gameData?.external_games?.map((extGame: any) => ({
-            checksum: extGame?.game?.checksum ?? null,
+            id: extGame?.game?.id ?? null,
             name: extGame?.game?.name ?? null,
             slug: extGame?.game?.slug ?? null,
             coverUrl: extGame?.game?.cover?.url
@@ -697,7 +710,7 @@ export class IGDBService {
         firstReleaseDate: gameData.first_release_date ? new Date(gameData.first_release_date * 1000) : null,
         forks:
           gameData?.forks?.map((fork: any) => ({
-            checksum: fork?.checksum ?? null,
+            id: fork?.id ?? null,
             name: fork?.name ?? null,
             slug: fork?.slug ?? null,
             coverUrl: fork?.cover?.url ? `https:${fork.cover.url.replace("t_thumb", "t_cover_big")}` : null,
@@ -711,7 +724,7 @@ export class IGDBService {
           : {},
         franchises:
           gameData?.franchises?.map((franchise: any) => ({
-            checksum: franchise?.checksum ?? null,
+            id: franchise?.id ?? null,
             name: franchise?.name ?? null,
             slug: franchise?.slug ?? null,
           })) ?? [],
@@ -784,7 +797,7 @@ export class IGDBService {
         name: gameData?.name ?? null,
         parentGame: gameData?.parent_game
           ? {
-              checksum: gameData.parent_game.checksum ?? null,
+              id: gameData.parent_game.id ?? null,
               name: gameData.parent_game.name ?? null,
               slug: gameData.parent_game.slug ?? null,
               coverUrl: gameData.parent_game.cover?.url
@@ -805,7 +818,7 @@ export class IGDBService {
           })) ?? [],
         ports:
           gameData?.ports?.map((port: any) => ({
-            checksum: port?.checksum ?? null,
+            id: port?.id ?? null,
             name: port?.name ?? null,
             slug: port?.slug ?? null,
             coverUrl: port?.cover?.url ? `https:${port.cover.url.replace("t_thumb", "t_cover_big")}` : null,
@@ -816,14 +829,14 @@ export class IGDBService {
           })) ?? [],
         remakes:
           gameData?.remakes?.map((remake: any) => ({
-            checksum: remake?.checksum ?? null,
+            id: remake?.id ?? null,
             name: remake?.name ?? null,
             slug: remake?.slug ?? null,
             coverUrl: remake?.cover?.url ? `https:${remake.cover.url.replace("t_thumb", "t_cover_big")}` : null,
           })) ?? [],
         remasters:
           gameData?.remasters?.map((remaster: any) => ({
-            checksum: remaster?.checksum ?? null,
+            id: remaster?.id ?? null,
             name: remaster?.name ?? null,
             slug: remaster?.slug ?? null,
             coverUrl: remaster?.cover?.url ? `https:${remaster.cover.url.replace("t_thumb", "t_cover_big")}` : null,
@@ -837,7 +850,7 @@ export class IGDBService {
           })) ?? [],
         similarGames:
           gameData?.similar_games?.map((simGame: any) => ({
-            checksum: simGame?.checksum ?? null,
+            id: simGame?.id ?? null,
             name: simGame?.name ?? null,
             slug: simGame?.slug ?? null,
             coverUrl: simGame?.cover?.url ? `https:${simGame.cover.url.replace("t_thumb", "t_cover_big")}` : null,
@@ -845,12 +858,13 @@ export class IGDBService {
         slug: gameData?.slug ?? null,
         standaloneExpansions:
           gameData?.standalone_expansions?.map((expansion: any) => ({
-            checksum: expansion?.checksum ?? null,
+            id: expansion?.id ?? null,
             name: expansion?.name ?? null,
             slug: expansion?.slug ?? null,
             coverUrl: expansion?.cover?.url ? `https:${expansion.cover.url.replace("t_thumb", "t_cover_big")}` : null,
           })) ?? [],
         summary: gameData?.summary ?? null,
+        themes: gameData?.themes?.map((t: any) => t.name),
         versionParent: gameData?.version_parent
           ? {
               checksum: gameData.version_parent.checksum ?? null,
@@ -868,6 +882,10 @@ export class IGDBService {
             name: video?.name ?? null,
             videoId: video?.video_id ? `https://www.youtube.com/embed/${video.video_id}` : null,
           })) ?? [],
+        websites: gameData?.websites?.map((website: any) => ({
+          name: website?.type?.type ?? null,
+          url: website?.url ?? null,
+        })),
       } as IGDBGameDetails;
 
       await this.cacheService.set(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id), game, CACHE_KEYS.IGDB_GAME_BY_ID.expiration);

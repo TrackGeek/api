@@ -1,24 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { Anime } from "@prisma/generated/client";
-
+import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
-import type { SearchAnimeDto } from "../dto/search-anime.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
 import {
   JikanAnimeOrderBy,
   JikanAnimeRatings,
-  JikanSort,
   JikanAnimeStatus,
   JikanAnimeType,
+  JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
-import { AnimeRecommendationsDto } from "../dto/anime-recommendations.dto";
+import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
+import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
 
 @Injectable()
@@ -38,10 +36,6 @@ export class AnimeService {
 
   async topAnimes(topAnimeDto: TopAnimeDto) {
     return this.integrationsService.jikan.topAnimes(topAnimeDto);
-  }
-
-  async animeRecommendations(animeRecommendationsDto: AnimeRecommendationsDto) {
-    return this.integrationsService.jikan.animeRecommendations(animeRecommendationsDto);
   }
 
   async animeFilters() {
