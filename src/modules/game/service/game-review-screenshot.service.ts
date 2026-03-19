@@ -16,6 +16,7 @@ export class GameReviewScreenshotService {
       model: "gameReviewScreenshot",
       itemsPerPage: getGameReviewScreenshotsDto.itemsPerPage,
       page: getGameReviewScreenshotsDto.page,
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       where: {
         ...(getGameReviewScreenshotsDto.gameReviewId && {
           gameReviewId: getGameReviewScreenshotsDto.gameReviewId,

@@ -13,7 +13,11 @@ export function AtLeastOneOf(fields: string[], validationOptions?: ValidationOpt
       validator: {
         validate(_value: any, args: any) {
           const obj = args.object;
-          return fields.some((field) => obj[field] !== undefined && obj[field] !== null && obj[field] !== "");
+          return fields.some((field) => {
+            const value = obj[field];
+            if (typeof value === "string") return value.trim().length > 0;
+            return value !== undefined && value !== null;
+          });
         },
       },
     });
