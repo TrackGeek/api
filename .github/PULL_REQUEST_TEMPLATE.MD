@@ -8,7 +8,7 @@
 
 - [ ] I read the [PR Guidelines](https://github.com/TrackGeek/api/blob/main/.github/CONTRIBUTING.md)
 - [ ] I linted and formatted the code by running `npm run check`
-- [ ] The PR title follows th
+- [ ] The PR title follows the
   repo's [commit conventions](https://github.com/TrackGeek/api/blob/main/.github/COMMIT_CONVENTION.md)
 
 ## Screenshots

@@ -2,15 +2,56 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
-import { CACHE_KEYS } from "@/shared/constants/cache";
+
+export enum TMDBMovieFilter {
+  Airing = "airing",
+  Upcoming = "upcoming",
+  Trending = "trending",
+  Popular = "popular",
+}
+
+export enum TMDBTVShowFilter {
+  Airing = "airing",
+  Upcoming = "upcoming",
+  Trending = "trending",
+  Popular = "popular",
+}
+
+export interface TMDBTopMovieOptions {
+  page?: number;
+  filter: TMDBMovieFilter;
+}
+
+export interface TMDBTopTVShowsOptions {
+  page?: number;
+  filter: TMDBTVShowFilter;
+}
 
 export interface TMDBSearchMovieResult {
   tmdbId: number;
   name: string;
   releaseDate: Date | null;
+  posterUrl: string | null;
+}
+
+export interface TMDBTopMovieResult {
+  tmdbId: number;
+  name: string;
+  releaseDate: Date | null;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  overview: string | null;
+}
+
+export interface TMDBTopTVShowResult {
+  tmdbId: number;
+  name: string;
+  firstAirDate: Date | null;
   posterUrl: string | null;
 }
 
@@ -26,9 +67,8 @@ export interface TMDBMovieDetails {
   imdbId: string | null;
   backdropUrl: string | null;
   belongsToCollection: {
+    id: number;
     name: string;
-    posterUrl: string | null;
-    backdropUrl: string | null;
   } | null;
   budget: number;
   genres: string[];
@@ -66,14 +106,9 @@ export interface TMDBMovieDetails {
     job: string;
     profileUrl: string | null;
   }[];
-  videos: {
-    id: string;
-    key: string;
-    name: string;
-    site: string;
-    type: string;
-    publishedAt: Date | null;
-  }[];
+  trailerId: string | null;
+  external: Record<string, unknown> | null;
+  backdrops: string[];
 }
 
 export interface TMDBTVShowDetails {
@@ -144,6 +179,9 @@ export interface TMDBTVShowDetails {
     job: string;
     profileUrl: string | null;
   }[];
+  trailerId: string | null;
+  external: Record<string, unknown> | null;
+  backdrops: string[];
 }
 
 export interface TMDBTVShowSeason {
@@ -219,6 +257,63 @@ export class TMDBService {
     }
   }
 
+  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions): Promise<TMDBTopMovieResult[]> {
+    const TMDB_MOVIE_FILTER_PATH: Record<TMDBMovieFilter, string> = {
+      [TMDBMovieFilter.Airing]: "movie/now_playing",
+      [TMDBMovieFilter.Upcoming]: "discover/movie",
+      [TMDBMovieFilter.Trending]: "trending/movie/day",
+      [TMDBMovieFilter.Popular]: "movie/popular",
+    };
+
+    try {
+      const topMoviesOptions = { page, filter };
+      const topMoviesKey = CACHE_KEYS.TMDB_TOP_MOVIES.prefix({ ...topMoviesOptions });
+
+      const cachedTopMovies = await this.cacheService.get<TMDBTopMovieResult[]>(topMoviesKey);
+      if (cachedTopMovies) return cachedTopMovies;
+
+      const path = TMDB_MOVIE_FILTER_PATH[filter];
+      const params: Record<string, any> = { page };
+
+      if (filter === TMDBMovieFilter.Upcoming) {
+        const today = new Date();
+        const futureDate = new Date();
+        futureDate.setMonth(today.getMonth() + 3);
+        const toISO = (d: Date) => d.toISOString().split("T")[0];
+
+        params["primary_release_date.gte"] = toISO(today);
+        params["primary_release_date.lte"] = toISO(futureDate);
+      }
+
+      const topMovieResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/${path}`, {
+          params,
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const movies = topMovieResponse.data.results.map((movie: any) => ({
+        tmdbId: movie.id,
+        name: movie.title,
+        releaseDate: movie.release_date ? new Date(movie.release_date) : null,
+        backdropUrl: movie.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${movie.backdrop_path}`
+          : null,
+        overview: movie.overview,
+        posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+      }));
+
+      await this.cacheService.set(topMoviesKey, movies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
+
+      return movies;
+    } catch (error) {
+      this.logger.error("Failed to fetch top movies from TMDB API", error);
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
   async searchTVShows(query: string): Promise<TMDBSearchTVShowResult[]> {
     try {
       const cachedTVShows = await this.cacheService.get<TMDBSearchTVShowResult[]>(
@@ -265,6 +360,65 @@ export class TMDBService {
     }
   }
 
+  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions): Promise<TMDBTopTVShowResult[]> {
+    const TMDB_TV_SHOWS_FILTER_PATH: Record<TMDBTVShowFilter, string> = {
+      [TMDBTVShowFilter.Airing]: "tv/airing_today",
+      [TMDBTVShowFilter.Upcoming]: "discover/tv",
+      [TMDBTVShowFilter.Trending]: "trending/tv/day",
+      [TMDBTVShowFilter.Popular]: "tv/popular",
+    };
+
+    try {
+      const topTVShowsOptions = { page, filter };
+      const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({ ...topTVShowsOptions });
+
+      const cachedTopTVShows = await this.cacheService.get<TMDBTopTVShowResult[]>(topTVShowsKey);
+      if (cachedTopTVShows) return cachedTopTVShows;
+
+      const path = TMDB_TV_SHOWS_FILTER_PATH[filter];
+      const params: Record<string, any> = { page };
+
+      if (filter === TMDBTVShowFilter.Upcoming) {
+        const today = new Date();
+        const futureDate = new Date();
+        futureDate.setMonth(today.getMonth() + 3);
+        const toISO = (d: Date) => d.toISOString().split("T")[0];
+
+        params["air_date.gte"] = toISO(today);
+        params["air_date.lte"] = toISO(futureDate);
+      }
+
+      const topTVShowsResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/${path}`, {
+          params,
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const tvShowsData = topTVShowsResponse.data;
+
+      const tvShows = tvShowsData.results.map((show: any) => ({
+        tmdbId: show.id,
+        name: show.name,
+        firstAirDate: show.first_air_date ? new Date(show.first_air_date) : null,
+        posterUrl: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
+        backdropUrl: show.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${show.backdrop_path}`
+          : null,
+        tagline: show.overview,
+      }));
+
+      await this.cacheService.set(topTVShowsKey, tvShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
+
+      return tvShows;
+    } catch (error) {
+      this.logger.error("Failed to fetch top TV shows from TMDB API", error);
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
   async getMovieById(id: number): Promise<TMDBMovieDetails> {
     try {
       const cachedMovie = await this.cacheService.get<TMDBMovieDetails>(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id));
@@ -274,35 +428,21 @@ export class TMDBService {
       }
 
       const movieResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/movie/${id}`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+        this.httpService.get(
+          `${this.TMDB_API_URL}/movie/${id}?append_to_response=credits%2Cvideos%2Cexternal_ids%2Cimages`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+            },
           },
-        }),
-      );
-
-      const creditsResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/credits`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
+        ),
       );
 
       const movieData = movieResponse.data;
-      const creditsData = creditsResponse.data;
 
-      const videosResponse = movieData?.video
-        ? await firstValueFrom(
-            this.httpService.get(`${this.TMDB_API_URL}/movie/${id}/videos`, {
-              headers: {
-                Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-              },
-            }),
-          )
-        : null;
-
-      const videosData = videosResponse ? videosResponse.data.results : [];
+      const movieCredits = movieData.credits ?? { cast: [], crew: [] };
+      const movieVideos = movieData.videos?.results ?? [];
+      const movieBackdrops = movieData.images?.backdrops ?? [];
 
       const movie = {
         tmdbId: movieData.id,
@@ -310,15 +450,10 @@ export class TMDBService {
         backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/w500${movieData.backdrop_path}` : null,
         belongsToCollection: movieData.belongs_to_collection
           ? {
+              id: movieData.belongs_to_collection.id,
               name: movieData.belongs_to_collection.name,
-              posterUrl: movieData.belongs_to_collection.poster_path
-                ? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.poster_path}`
-                : null,
-              backdropUrl: movieData.belongs_to_collection.backdrop_path
-                ? `https://image.tmdb.org/t/p/w500${movieData.belongs_to_collection.backdrop_path}`
-                : null,
             }
-          : {},
+          : null,
         budget: movieData.budget,
         genres: movieData.genres.map((genre: any) => genre.name),
         homepage: movieData.homepage,
@@ -343,26 +478,23 @@ export class TMDBService {
         })),
         status: movieData.status,
         title: movieData.title,
-        cast: creditsData.cast.map((castMember: any) => ({
+        cast: movieCredits.cast.map((castMember: any) => ({
           id: castMember.id,
           name: castMember.name,
           character: castMember.character,
           profileUrl: castMember.profile_path ? `https://image.tmdb.org/t/p/w500${castMember.profile_path}` : null,
         })),
-        crew: creditsData.crew.map((crewMember: any) => ({
+        crew: movieCredits.crew.map((crewMember: any) => ({
           id: crewMember.id,
           name: crewMember.name,
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
-        videos: videosData?.map((video: any) => ({
-          id: video.id,
-          key: video.key,
-          name: video.name,
-          site: video.site,
-          type: video.type,
-          publishedAt: video.published_at ? new Date(video.published_at) : null,
-        })),
+        trailerId: movieVideos.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ?? null,
+        backdrops: movieBackdrops.map(
+          (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
+        ),
+        external: movieData.external_ids,
       } as TMDBMovieDetails;
 
       await this.cacheService.set(
@@ -392,23 +524,20 @@ export class TMDBService {
       }
 
       const tvShowResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/tv/${id}`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+        this.httpService.get(
+          `${this.TMDB_API_URL}/tv/${id}?append_to_response=credits%2Cimages%2Cvideos%2Cexternal_ids`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+            },
           },
-        }),
-      );
-
-      const creditsResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/credits`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
+        ),
       );
 
       const tvShowData = tvShowResponse.data;
-      const creditsData = creditsResponse.data;
+      const tvShowCredits = tvShowData.credits ?? { cast: [], crew: [] };
+      const tvShowVideos = tvShowData.videos?.results ?? [];
+      const tvShowBackdrops = tvShowData.images?.backdrops ?? [];
 
       const tvShow = {
         tmdbId: tvShowData.id,
@@ -478,18 +607,23 @@ export class TMDBService {
         status: tvShowData.status,
         tagline: tvShowData.tagline,
         type: tvShowData.type,
-        cast: creditsData.cast.map((castMember: any) => ({
+        cast: tvShowCredits.cast.map((castMember: any) => ({
           id: castMember.id,
           name: castMember.name,
           character: castMember.character,
           profileUrl: castMember.profile_path ? `https://image.tmdb.org/t/p/w500${castMember.profile_path}` : null,
         })),
-        crew: creditsData.crew.map((crewMember: any) => ({
+        crew: tvShowCredits.crew.map((crewMember: any) => ({
           id: crewMember.id,
           name: crewMember.name,
           job: crewMember.job,
           profileUrl: crewMember.profile_path ? `https://image.tmdb.org/t/p/w500${crewMember.profile_path}` : null,
         })),
+        backdrops: tvShowBackdrops.map(
+          (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
+        ),
+        trailerId: tvShowVideos.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ?? null,
+        external: tvShowData.external_ids,
       } as TMDBTVShowDetails;
 
       await this.cacheService.set(

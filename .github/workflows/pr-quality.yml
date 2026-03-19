@@ -24,9 +24,7 @@ jobs:
           allowed-target-branches: "next"
           blocked-target-branches: ""
           allowed-source-branches: ""
-          blocked-source-branches: |
-            main
-            develop
+          blocked-source-branches: ""
 
           # PR Quality Checks
           max-negative-reactions: 0

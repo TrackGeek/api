@@ -37,6 +37,10 @@ export const CACHE_KEYS = {
     prefix: (query: string) => `hardcover:search:book:${query}`,
     expiration: 3600 * 24,
   },
+  HARDCOVER_TOP_BOOKS: {
+    prefix: (filters: Record<string, any>) => `hardcover:top:book:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
   HARDCOVER_BOOK_BY_ID: {
     prefix: (hardcoverId: number) => `hardcover:detail:book:${hardcoverId}`,
     expiration: 3600 * 24,
@@ -44,6 +48,10 @@ export const CACHE_KEYS = {
   IGDB_ACCESS_TOKEN: "igdb:token",
   IGDB_SEARCH_GAMES: {
     prefix: (query: string) => `igdb:search:game:${query}`,
+    expiration: 3600 * 24,
+  },
+  IGDB_TOP_GAMES: {
+    prefix: (filters: Record<string, any>) => `igdb:top:game:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   IGDB_GAME_BY_ID: {
@@ -98,8 +106,16 @@ export const CACHE_KEYS = {
     prefix: (query: string) => `tmdb:search:movie:${query}`,
     expiration: 3600 * 24,
   },
+  TMDB_TOP_MOVIES: {
+    prefix: (filters: Record<string, any>) => `tmdb:top:movie:${filtersToString(filters)}`,
+    expiration: 3600 * 24,
+  },
   TMDB_SEARCH_TV_SHOWS: {
     prefix: (query: string) => `tmdb:search:tvShow:${query}`,
+    expiration: 3600 * 24,
+  },
+  TMDB_TOP_TV_SHOWS: {
+    prefix: (filters: Record<string, any>) => `tmdb:top:tvShow:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   TMDB_MOVIE_BY_ID: {

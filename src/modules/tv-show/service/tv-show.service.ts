@@ -1,5 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { TvShow } from "@prisma/generated/client";
+import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
+import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -8,8 +11,6 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
 
 @Injectable()
 export class TVShowService {
@@ -21,6 +22,10 @@ export class TVShowService {
 
   async searchTVShows(searchTVShowDto: SearchTVShowDto) {
     return this.integrationsService.tmdb.searchTVShows(searchTVShowDto.query);
+  }
+
+  async topTVShows(topTvShowDto: TopTvShowDto) {
+    return this.integrationsService.tmdb.topTVShows(topTvShowDto);
   }
 
   async getTVShowByTmdbId(tmdbId: number) {

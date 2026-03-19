@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
-import { BookService } from "../service/book.service";
+import { TopBookDto } from "@/modules/book/dto/top-book.dto";
 import { RefreshBookDto } from "../dto/refresh-book.dto";
 import { SearchBookDto } from "../dto/search-book.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { BookService } from "../service/book.service";
 
 @ApiTags("Book")
 @Controller("/book")
@@ -15,6 +16,13 @@ export class BookController {
     const books = await this.bookService.searchBooks(query);
 
     return { books };
+  }
+
+  @Get("/top")
+  async topBooks(@Query() query: TopBookDto) {
+    const topBooks = await this.bookService.topBooks(query);
+
+    return { topBooks };
   }
 
   @Post("/refresh")
