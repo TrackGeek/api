@@ -44,6 +44,8 @@ export interface TMDBTopMovieResult {
   name: string;
   releaseDate: Date | null;
   posterUrl: string | null;
+  backdropUrl: string | null;
+  overview: string | null;
 }
 
 export interface TMDBTopTVShowResult {
@@ -451,7 +453,7 @@ export class TMDBService {
               id: movieData.belongs_to_collection.id,
               name: movieData.belongs_to_collection.name,
             }
-          : {},
+          : null,
         budget: movieData.budget,
         genres: movieData.genres.map((genre: any) => genre.name),
         homepage: movieData.homepage,
