@@ -795,16 +795,30 @@ model GameReview {
   summary     String?
   notes       String?
   recommended Boolean?
-  screenshots String[] @default([])
   userId      String
   gameId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game                  Game                   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameReviewScreenshots GameReviewScreenshot[]
 
   @@unique([userId, gameId])
+}
+
+model GameReviewScreenshot {
+  id           String   @id @default(uuid(7))
+  description  String?
+  url          String
+  isSpoiler    Boolean
+  gameReviewId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  gameReview GameReview @relation(fields: [gameReviewId], references: [id], onDelete: Cascade)
+
+  @@index([gameReviewId])
 }
 
 model BookReview {
