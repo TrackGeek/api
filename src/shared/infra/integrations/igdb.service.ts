@@ -326,10 +326,7 @@ export class IGDBService {
     }
   }
 
-  async topGames({
-    page = DEFAULT_PAGINATION_PAGE,
-    filter = IGDBGameFilter.Popular,
-  }: IGDBTopGameOptions): Promise<IGDBTopGameResult[]> {
+  async topGames({ page = DEFAULT_PAGINATION_PAGE, filter = IGDBGameFilter.Popular }: IGDBTopGameOptions) {
     const accessToken = await this.getAccessToken();
 
     try {
@@ -424,7 +421,7 @@ export class IGDBService {
 
       const gamesData = gamesResponse.data;
 
-      const games = gamesData.map((game: any) => ({
+      const items = gamesData.map((game: any) => ({
         igdbId: game.id,
         slug: game.slug,
         name: game.name,
@@ -450,13 +447,22 @@ export class IGDBService {
         firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));
 
+      const hasNextPage = items.length === pageSize;
+
+      const topGames = {
+        hasNextPage,
+        nextCursor: hasNextPage ? page + 1 : null,
+        count: items.length,
+        items,
+      };
+
       await this.cacheService.set(
         CACHE_KEYS.IGDB_TOP_GAMES.prefix({ ...topGamesOptions }),
-        games,
+        topGames,
         CACHE_KEYS.IGDB_TOP_GAMES.expiration,
       );
 
-      return games;
+      return topGames;
     } catch (error) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
