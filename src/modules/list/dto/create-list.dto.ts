@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ListType } from "@prisma/generated/enums";
-import { IsEnum, IsNotEmpty, IsOptional } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsUUID } from "class-validator";
 
 export class CreateListDto {
   @IsNotEmpty()
@@ -15,6 +15,6 @@ export class CreateListDto {
   @ApiPropertyOptional({ type: "string" })
   readonly description?: string;
 
-  @ApiProperty({ type: "string", format: "uuid" })
+  @ApiProperty({ type: "string" })
   readonly userId: string;
 }

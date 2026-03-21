@@ -30,7 +30,7 @@ export class CreateReactionDto {
   @ApiProperty({ enum: ReactionType })
   readonly type: ReactionType;
 
-  @ApiProperty({ type: "string", format: "uuid" })
+  @ApiProperty({ type: "string" })
   readonly userId: string;
 
   @IsEmoji()

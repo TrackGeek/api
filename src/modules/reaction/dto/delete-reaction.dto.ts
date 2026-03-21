@@ -4,6 +4,6 @@ export class DeleteReactionDto {
   @ApiProperty({ type: "string" })
   readonly reactionId: string;
 
-  @ApiProperty({ type: "string", format: "uuid" })
+  @ApiProperty({ type: "string" })
   readonly userId: string;
 }

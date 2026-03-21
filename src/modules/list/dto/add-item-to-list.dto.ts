@@ -62,10 +62,11 @@ export class AddItemToListDto {
   @ApiProperty({ enum: ListType })
   readonly type: ListType;
 
+  @IsUUID("7", { message: "listId must be a valid UUID" })
   @ApiProperty({ type: "string", format: "uuid" })
   readonly listId: string;
 
-  @ApiProperty({ type: "string", format: "uuid" })
+  @ApiProperty({ type: "string" })
   readonly userId: string;
 
   @ValidateNested()

@@ -85,7 +85,7 @@ export class CreateCommentDto {
   @ApiProperty({ enum: CommentType })
   readonly type: CommentType;
 
-  @ApiProperty({ type: "string", format: "uuid" })
+  @ApiProperty({ type: "string" })
   readonly userId: string;
 
   @IsNotEmpty()

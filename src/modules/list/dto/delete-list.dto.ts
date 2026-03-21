@@ -6,6 +6,6 @@ export class DeleteListDto {
   @ApiProperty({ type: "string", format: "uuid" })
   readonly listId: string;
 
-  @ApiProperty({ type: "string", format: "uuid" })
+  @ApiProperty({ type: "string" })
   readonly userId: string;
 }

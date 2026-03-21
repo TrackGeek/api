@@ -278,14 +278,14 @@ export class HardcoverService {
       );
 
       if (!topBookResponse.data?.data) {
-        new Error("API Response returned null");
+        throw new Error("API Response returned null");
       }
 
       const responseData = topBookResponse.data.data;
 
       if (!responseData.books_aggregate) {
         this.logger.error("Response unexpected:", JSON.stringify(responseData));
-        new Error("Response does not contain books_aggregate");
+        throw new Error("Response does not contain books_aggregate");
       }
 
       const topData = responseData.books || [];
