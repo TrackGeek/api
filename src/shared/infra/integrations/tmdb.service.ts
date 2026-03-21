@@ -257,7 +257,7 @@ export class TMDBService {
     }
   }
 
-  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions): Promise<TMDBTopMovieResult[]> {
+  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions) {
     const TMDB_MOVIE_FILTER_PATH: Record<TMDBMovieFilter, string> = {
       [TMDBMovieFilter.Airing]: "movie/now_playing",
       [TMDBMovieFilter.Upcoming]: "discover/movie",
@@ -269,7 +269,7 @@ export class TMDBService {
       const topMoviesOptions = { page, filter };
       const topMoviesKey = CACHE_KEYS.TMDB_TOP_MOVIES.prefix({ ...topMoviesOptions });
 
-      const cachedTopMovies = await this.cacheService.get<TMDBTopMovieResult[]>(topMoviesKey);
+      const cachedTopMovies = await this.cacheService.get(topMoviesKey);
       if (cachedTopMovies) return cachedTopMovies;
 
       const path = TMDB_MOVIE_FILTER_PATH[filter];
@@ -294,7 +294,17 @@ export class TMDBService {
         }),
       );
 
-      const movies = topMovieResponse.data.results.map((movie: any) => ({
+      const responseData = topMovieResponse.data;
+
+      const paginationData = {
+        has_next_page: responseData.page < responseData.total_pages,
+        items: {
+          total: responseData.total_results,
+          count: responseData.results.length,
+        },
+      };
+
+      const items = responseData.results.map((movie: any) => ({
         tmdbId: movie.id,
         name: movie.title,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
@@ -305,9 +315,17 @@ export class TMDBService {
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
 
-      await this.cacheService.set(topMoviesKey, movies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
+      const topMovies = {
+        hasNextPage: paginationData.has_next_page,
+        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
+        total: paginationData.items.total,
+        count: paginationData.items.count,
+        items,
+      };
 
-      return movies;
+      await this.cacheService.set(topMoviesKey, topMovies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
+
+      return topMovies;
     } catch (error) {
       this.logger.error("Failed to fetch top movies from TMDB API", error);
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
@@ -360,7 +378,7 @@ export class TMDBService {
     }
   }
 
-  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions): Promise<TMDBTopTVShowResult[]> {
+  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions) {
     const TMDB_TV_SHOWS_FILTER_PATH: Record<TMDBTVShowFilter, string> = {
       [TMDBTVShowFilter.Airing]: "tv/airing_today",
       [TMDBTVShowFilter.Upcoming]: "discover/tv",
@@ -372,7 +390,7 @@ export class TMDBService {
       const topTVShowsOptions = { page, filter };
       const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({ ...topTVShowsOptions });
 
-      const cachedTopTVShows = await this.cacheService.get<TMDBTopTVShowResult[]>(topTVShowsKey);
+      const cachedTopTVShows = await this.cacheService.get(topTVShowsKey);
       if (cachedTopTVShows) return cachedTopTVShows;
 
       const path = TMDB_TV_SHOWS_FILTER_PATH[filter];
@@ -399,7 +417,15 @@ export class TMDBService {
 
       const tvShowsData = topTVShowsResponse.data;
 
-      const tvShows = tvShowsData.results.map((show: any) => ({
+      const paginationData = {
+        has_next_page: tvShowsData.page < tvShowsData.total_pages,
+        items: {
+          total: tvShowsData.total_results,
+          count: tvShowsData.results.length,
+        },
+      };
+
+      const items = tvShowsData.results.map((show: any) => ({
         tmdbId: show.id,
         name: show.name,
         firstAirDate: show.first_air_date ? new Date(show.first_air_date) : null,
@@ -410,9 +436,17 @@ export class TMDBService {
         tagline: show.overview,
       }));
 
-      await this.cacheService.set(topTVShowsKey, tvShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
+      const topTVShows = {
+        hasNextPage: paginationData.has_next_page,
+        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
+        total: paginationData.items.total,
+        count: paginationData.items.count,
+        items,
+      };
 
-      return tvShows;
+      await this.cacheService.set(topTVShowsKey, topTVShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
+
+      return topTVShows;
     } catch (error) {
       this.logger.error("Failed to fetch top TV shows from TMDB API", error);
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
