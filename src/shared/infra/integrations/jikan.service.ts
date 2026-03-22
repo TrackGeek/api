@@ -118,6 +118,7 @@ export interface JikanSearchAnime {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanSearchMangaOptions {
@@ -141,6 +142,7 @@ export interface JikanSearchManga {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanTopAnimeOptions {
@@ -158,6 +160,7 @@ export interface JikanTopAnime {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanTopMangaOptions {
@@ -174,6 +177,7 @@ export interface JikanTopManga {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanGenre {
@@ -386,6 +390,7 @@ export class JikanService {
         status: anime.status,
         imageUrl: anime.images?.jpg?.image_url ?? null,
         genres: anime.genres ? anime.genres.map((genre) => genre.name) : [],
+        isAdult: anime.genres ? anime.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
       const animes = {
@@ -466,6 +471,7 @@ export class JikanService {
         status: manga.status,
         imageUrl: manga.images?.jpg?.image_url ?? null,
         genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
+        isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
       const mangas = {
@@ -595,6 +601,7 @@ export class JikanService {
         trailerUrl: anime.trailer?.embed_url ?? null,
         synopsis: anime.synopsis ?? null,
         genres: anime.genres ? anime.genres.map((genre) => genre.name) : [],
+        isAdult: anime.genres ? anime.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
       const topAnimes = {
@@ -654,6 +661,7 @@ export class JikanService {
         synopsis: manga.synopsis,
         imageUrl: manga.images?.jpg?.image_url ?? null,
         genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
+        isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
       const topMangas = {
