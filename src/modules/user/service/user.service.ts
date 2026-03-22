@@ -6,7 +6,8 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
 import { GetFollowersDto } from "../dto/get-followers.dto";
-import { FollowingFindManyArgs } from "@prisma/generated/models";
+import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
+import { SearchUserDto } from "../dto/search-user.dto";
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,33 @@ export class UserService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
   ) {}
+
+  async searchUser(searchUserDto: SearchUserDto) {
+    const users = await this.databaseService.offsetPagination<UserFindManyArgs>({
+      model: "user",
+      itemsPerPage: searchUserDto.itemsPerPage,
+      page: searchUserDto.page,
+      where: {
+        OR: [
+          { name: { contains: searchUserDto.query, mode: "insensitive" } },
+          { username: { contains: searchUserDto.query, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        profile: {
+          select: {
+            id: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return users;
+  }
 
   async getUserById(id: string) {
     const user = this.databaseService.user.findUnique({

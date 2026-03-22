@@ -1,26 +1,35 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { UserService } from "../service/user.service";
 import { ApiTags } from "@nestjs/swagger";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { GetFollowingDto } from "../dto/get-following.dto";
+import { SearchUserDto } from "../dto/search-user.dto";
 
 @ApiTags("User")
 @Controller("/user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get("/:username")
+  @Get("/username/:username")
   async getUserByUsername(@Param("username") username: string) {
     const user = await this.userService.getUserByUsername(username);
 
     return { user };
   }
 
-  @Post("/follow/:followingId")
-  @UseGuards(AuthGuard)
-  async followUser(@Session() session: UserSession, @Param("followingId", new ParseUUIDPipe()) followingId: string) {
-    await this.userService.followUser(session.user.id, followingId);
+  @Get("/id/:id")
+  async getUserById(@Param("id") id: string) {
+    const user = await this.userService.getUserById(id);
+
+    return { user };
+  }
+
+  @Get("/search")
+  async searchUser(@Query() searchUserDto: SearchUserDto) {
+    const users = await this.userService.searchUser(searchUserDto);
+
+    return { users };
   }
 
   @Post("/unfollow/:unfollowId")
@@ -30,14 +39,14 @@ export class UserController {
   }
 
   @Get("/follower")
-  async follow(@Param() getFollowersDto: GetFollowersDto) {
+  async follow(@Query() getFollowersDto: GetFollowersDto) {
     const followers = await this.userService.getFollwoers(getFollowersDto);
 
     return { followers };
   }
 
   @Get("/following")
-  async getFollowing(@Param() getFollowingDto: GetFollowingDto) {
+  async getFollowing(@Query() getFollowingDto: GetFollowingDto) {
     const following = await this.userService.getFollowing(getFollowingDto);
 
     return { following };
