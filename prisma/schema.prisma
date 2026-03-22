@@ -540,6 +540,7 @@ model Movie {
 }
 
 enum WatchEpisodeStatus {
+  NotWatched
   Watching
   Completed
   Paused
@@ -582,6 +583,7 @@ model TvShowEpisodeWatch {
 }
 
 enum ProgressStatus {
+  NotStarted
   Watching
   Playing
   Reading
