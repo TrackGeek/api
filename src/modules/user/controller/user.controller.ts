@@ -4,7 +4,7 @@ import { UserService } from "../service/user.service";
 import { ApiTags } from "@nestjs/swagger";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { GetFollowingDto } from "../dto/get-following.dto";
-import { SearchUserDto } from '../dto/search-user.dto';
+import { SearchUserDto } from "../dto/search-user.dto";
 
 @ApiTags("User")
 @Controller("/user")
@@ -17,14 +17,14 @@ export class UserController {
 
     return { user };
   }
-  
+
   @Get("/id/:id")
   async getUserById(@Param("id") id: string) {
     const user = await this.userService.getUserById(id);
 
-    return { user } ;
+    return { user };
   }
-  
+
   @Get("/search")
   async searchUser(@Query() searchUserDto: SearchUserDto) {
     const users = await this.userService.searchUser(searchUserDto);

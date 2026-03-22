@@ -7,7 +7,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
-import { SearchUserDto } from '../dto/search-user.dto';
+import { SearchUserDto } from "../dto/search-user.dto";
 
 @Injectable()
 export class UserService {
@@ -15,7 +15,7 @@ export class UserService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
   ) {}
-  
+
   async searchUser(searchUserDto: SearchUserDto) {
     const users = await this.databaseService.offsetPagination<UserFindManyArgs>({
       model: "user",
@@ -37,7 +37,7 @@ export class UserService {
             avatarUrl: true,
           },
         },
-      }
+      },
     });
 
     return users;
