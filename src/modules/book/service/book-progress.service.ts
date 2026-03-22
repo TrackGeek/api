@@ -43,8 +43,8 @@ export class BookProgressService {
       itemsPerPage: getBookProgressDto.itemsPerPage,
       page: getBookProgressDto.page,
       where: {
-        userId: getBookProgressDto.userId,
-        bookId: getBookProgressDto.bookId,
+        ...(getBookProgressDto.bookId && { bookId: getBookProgressDto.bookId }),
+        ...(getBookProgressDto.userId && { userId: getBookProgressDto.userId }),
       },
       include: {
         book: true,

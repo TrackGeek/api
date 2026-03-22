@@ -38,9 +38,8 @@ export class ListController {
   @Get("/user/:userId")
   async getListsByUserId(@Param("userId", new ParseUUIDPipe()) userId: string, @Query() query: GetListsByUserIdDto) {
     const lists = await this.listService.getListsByUserId({
+      ...query,
       userId,
-      itemsPerPage: query.itemsPerPage,
-      page: query.page,
     });
 
     return { lists };
@@ -56,9 +55,8 @@ export class ListController {
   @Get("/:listId/item")
   async getItemsByListId(@Param("listId", new ParseUUIDPipe()) listId: string, @Query() query: GetItemsByListIdDto) {
     const listItems = await this.listService.getItemsByListId({
+      ...query,
       listId,
-      itemsPerPage: query.itemsPerPage,
-      page: query.page,
     });
 
     return { listItems };

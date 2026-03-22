@@ -98,8 +98,8 @@ export class TVShowReviewService {
       itemsPerPage: getTVShowReviewsDto.itemsPerPage,
       page: getTVShowReviewsDto.page,
       where: {
-        tvShowId: getTVShowReviewsDto.tvShowId,
-        userId: getTVShowReviewsDto.userId,
+        ...(getTVShowReviewsDto.userId && { userId: getTVShowReviewsDto.userId }),
+        ...(getTVShowReviewsDto.tvShowId && { tvShowId: getTVShowReviewsDto.tvShowId }),
       },
       include: {
         tvShow: {

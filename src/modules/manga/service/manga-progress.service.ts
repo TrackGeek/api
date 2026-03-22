@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { GetMangaProgressesByUserIdDto } from "../dto/get-manga-progresses-by-user-id.dto";
+import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 import { MangaProgressFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
@@ -51,14 +51,14 @@ export class MangaProgressService {
     });
   }
 
-  async getMangaProgressesByUserId(getMangaProgressesByUserIdDto: GetMangaProgressesByUserIdDto) {
-    const mangaProgresses = await this.databaseService.offsetPagination<MangaProgressFindManyArgs>({
+  async getMangaProgress(getMangaProgressDto: GetMangaProgressDto) {
+    const mangaProgress = await this.databaseService.offsetPagination<MangaProgressFindManyArgs>({
       model: "mangaProgress",
-      itemsPerPage: getMangaProgressesByUserIdDto.itemsPerPage,
-      page: getMangaProgressesByUserIdDto.page,
+      itemsPerPage: getMangaProgressDto.itemsPerPage,
+      page: getMangaProgressDto.page,
       where: {
-        userId: getMangaProgressesByUserIdDto.userId,
-        mangaId: getMangaProgressesByUserIdDto.mangaId,
+        ...(getMangaProgressDto.mangaId && { mangaId: getMangaProgressDto.mangaId }),
+        ...(getMangaProgressDto.userId && { userId: getMangaProgressDto.userId }),
       },
       include: {
         manga: true,
@@ -78,6 +78,6 @@ export class MangaProgressService {
       },
     });
 
-    return mangaProgresses;
+    return mangaProgress;
   }
 }

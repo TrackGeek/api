@@ -91,8 +91,8 @@ export class GameReviewService {
       itemsPerPage: getGameReviewsDto.itemsPerPage,
       page: getGameReviewsDto.page,
       where: {
-        gameId: getGameReviewsDto.gameId,
-        userId: getGameReviewsDto.userId,
+        ...(getGameReviewsDto.gameId && { gameId: getGameReviewsDto.gameId }),
+        ...(getGameReviewsDto.userId && { userId: getGameReviewsDto.userId }),
       },
       include: {
         game: true,

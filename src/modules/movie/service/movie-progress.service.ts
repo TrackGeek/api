@@ -35,8 +35,8 @@ export class MovieProgressService {
       itemsPerPage: getMovieProgressDto.itemsPerPage,
       page: getMovieProgressDto.page,
       where: {
-        userId: getMovieProgressDto.userId,
-        movieId: getMovieProgressDto.movieId,
+        ...(getMovieProgressDto.userId && { userId: getMovieProgressDto.userId }),
+        ...(getMovieProgressDto.movieId && { movieId: getMovieProgressDto.movieId }),
       },
       include: {
         movie: true,

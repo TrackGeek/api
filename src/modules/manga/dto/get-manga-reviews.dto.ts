@@ -1,10 +1,12 @@
-import { IsOptional } from "class-validator";
+import { IsOptional, IsUUID } from "class-validator";
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
 export class GetMangaReviewsDto extends OffsetPaginationParamsDto {
   @IsOptional()
-  readonly mangaId: string;
+  @IsUUID()
+  readonly mangaId?: string;
 
   @IsOptional()
-  readonly userId: string;
+  @IsUUID()
+  readonly userId?: string;
 }

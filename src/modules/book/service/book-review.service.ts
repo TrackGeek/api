@@ -89,8 +89,8 @@ export class BookReviewService {
       itemsPerPage: getBookReviewsDto.itemsPerPage,
       page: getBookReviewsDto.page,
       where: {
-        bookId: getBookReviewsDto.bookId,
-        userId: getBookReviewsDto.userId,
+        ...(getBookReviewsDto.bookId && { bookId: getBookReviewsDto.bookId }),
+        ...(getBookReviewsDto.userId && { userId: getBookReviewsDto.userId }),
       },
       include: {
         book: true,

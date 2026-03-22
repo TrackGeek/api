@@ -2,8 +2,9 @@ import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-p
 import { IsOptional, IsUUID } from "class-validator";
 
 export class GetAnimeProgressDto extends OffsetPaginationParamsDto {
+  @IsOptional()
   @IsUUID()
-  readonly userId: string;
+  readonly userId?: string;
 
   @IsOptional()
   @IsUUID()

@@ -41,8 +41,8 @@ export class TVShowProgressService {
       itemsPerPage: getTVShowProgressDto.itemsPerPage,
       page: getTVShowProgressDto.page,
       where: {
-        userId: getTVShowProgressDto.userId,
-        tvShowId: getTVShowProgressDto.tvShowId,
+        ...(getTVShowProgressDto.userId && { userId: getTVShowProgressDto.userId }),
+        ...(getTVShowProgressDto.tvShowId && { tvShowId: getTVShowProgressDto.tvShowId }),
       },
       include: {
         tvShow: {

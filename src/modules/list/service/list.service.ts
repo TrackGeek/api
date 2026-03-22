@@ -165,7 +165,7 @@ export class ListService {
       model: "list",
       itemsPerPage: getListsByUserIdDto.itemsPerPage,
       page: getListsByUserIdDto.page,
-      where: { userId: getListsByUserIdDto.userId },
+      where: { userId: getListsByUserIdDto.userId, type: getListsByUserIdDto.type },
       include: {
         user: {
           select: {

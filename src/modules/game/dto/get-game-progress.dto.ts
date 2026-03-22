@@ -4,12 +4,13 @@ import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-p
 
 export class GetGameProgressDto extends OffsetPaginationParamsDto {
   @IsUUID()
+  @IsOptional()
   @ApiProperty({
     description: "ID of the user",
     example: "019ce334-a06a-78bc-9178-93f7274610ee",
     type: "string",
   })
-  readonly userId: string;
+  readonly userId?: string;
 
   @IsOptional()
   @IsUUID()

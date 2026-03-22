@@ -101,8 +101,8 @@ export class AnimeReviewService {
       itemsPerPage: getAnimeReviewsDto.itemsPerPage,
       page: getAnimeReviewsDto.page,
       where: {
-        animeId: getAnimeReviewsDto.animeId,
-        userId: getAnimeReviewsDto.userId,
+        ...(getAnimeReviewsDto.animeId && { animeId: getAnimeReviewsDto.animeId }),
+        ...(getAnimeReviewsDto.userId && { userId: getAnimeReviewsDto.userId }),
       },
       include: {
         anime: {

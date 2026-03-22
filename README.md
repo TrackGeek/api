@@ -7,7 +7,7 @@
 </h1>
 
 <h4 align="center">
-  <samp>API for a unified media tracking platform, with progress, statistics, and social authentication.</samp>
+  <samp>API for a unified media tracking platform, with progress, reviews, statistics, and social features.</samp>
 </h4>
 
 <p align="center">
@@ -17,30 +17,62 @@
   <img src="https://img.shields.io/badge/PostgreSQL-99e3a0?style=for-the-badge&logo=postgresql&logoColor=004b38">
   <img src="https://img.shields.io/badge/Redis-99e3a0?style=for-the-badge&logo=redis&logoColor=004b38">
   <br>
+  <img src="https://img.shields.io/badge/BullMQ-99e3a0?style=for-the-badge&logo=bull&logoColor=004b38">
   <img src="https://img.shields.io/badge/Docker-99e3a0?style=for-the-badge&logo=docker&logoColor=004b38">
   <img src="https://img.shields.io/badge/Swagger-99e3a0?style=for-the-badge&logo=swagger&logoColor=004b38">
+  <img src="https://img.shields.io/badge/Stripe-99e3a0?style=for-the-badge&logo=stripe&logoColor=004b38">
   <a href="https://translate.trackgeek.net"><img src="https://img.shields.io/badge/Crowdin-99e3a0?style=for-the-badge&logo=crowdin&logoColor=004b38"></a>
 </p>
+
+## <samp>About</samp>
+
+<samp>
+
+TrackGeek API is a NestJS-based backend that powers a unified media tracking platform. Users can track their progress across six different media types — **Anime**, **Manga**, **TV Shows**, **Movies**, **Games**, and **Books** — while interacting with a social community through reviews, comments, reactions, and activity feeds.
+
+The API integrates with external media databases (Jikan, TMDB, IGDB, Hardcover) to provide rich metadata and uses background job processing for async tasks like email delivery and feed event aggregation.
+
+</samp>
 
 ## <samp>Features</samp>
 
 <samp>
 
-- RESTful API with Swagger/OpenAPI documentation;
-- Track games, anime, movies, TV shows, books, and manga with advanced progress system;
-- Custom lists management;
-- User profiles with customization (avatars, banners, colors, timezone);
-- Social features (followers/following system);
-- Comments and reactions system;
-- Feed events for activity tracking;
-- Favorites system;
-- Authentication with social providers (Google, GitHub, Discord, etc);
-- File upload system;
-- Email notifications with Resend;
-- Background job processing with BullMQ;
+**Media Tracking**
+- Track progress across 6 media types: Anime, Manga, TV Shows, Movies, Games, and Books;
+- Episode-level tracking for Anime and TV Shows (per season/episode);
+- Progress statuses: Watching, Playing, Reading, Completed, Paused, Dropped, Planning;
+- Detailed review system with media-specific rating criteria (e.g., animation/sound for anime, gameplay/graphics for games);
+- Screenshot uploads for game reviews.
+
+**Social Features**
+- Follow/unfollow users;
+- Comments on media and user profiles;
+- Emoji reactions on comments and feed events;
+- Activity feed with event aggregation (new follows, favorites, reviews, progress updates);
+- Custom lists for organizing media collections;
+- Favorites system.
+
+**User Management**
+- OAuth authentication with 10 social providers (Google, GitHub, Discord, Twitch, Kick, Twitter, Slack, Microsoft, Notion, Spotify);
+- Magic link and password-based authentication;
+- Customizable profiles (avatar, banner, color, bio, language, timezone);
+- Medal/achievement system;
+- Tiered subscription plans (Tracker, Archivist, ArchiveMaster).
+
+**Payments**
+- Stripe integration for subscriptions and one-time payments;
+- Webhook handling for payment lifecycle events;
+- Transactional email notifications for payment success, failure, and cancellation.
+
+**Infrastructure**
+- Background job processing with BullMQ (email delivery, feed event aggregation);
 - Redis caching for performance optimization;
-- Full validation and error handling;
-- Integration with external media APIs.
+- Prometheus metrics collection and monitoring;
+- Rate limiting with configurable read/write throttlers;
+- Internationalization (i18n) support;
+- File uploads via ImgBB integration;
+- Swagger/OpenAPI documentation with Scalar API Reference.
 
 </samp>
 
@@ -48,23 +80,95 @@
 
 <samp>
 
-- NestJS
-- Prisma ORM
-- PostgreSQL
-- Redis
-- BullMQ
-- Better Auth
-- JWT
-- Swagger/OpenAPI
-- Resend
-- Biome
-- Jest
+| Category | Technology |
+|---|---|
+| Framework | NestJS 11 |
+| Language | TypeScript 5.7 |
+| ORM | Prisma 7 |
+| Database | PostgreSQL 18 |
+| Cache / Queue | Redis 6, BullMQ |
+| Authentication | Better Auth (OAuth2, Magic Link, Credentials) |
+| Payments | Stripe |
+| Email | Resend + Handlebars templates |
+| Monitoring | Prometheus + prom-client |
+| API Docs | Swagger/OpenAPI + Scalar |
+| Linting | Biome |
+| Testing | Vitest (unit), Playwright (e2e), k6 (load) |
+| Containerization | Docker Compose |
+
+</samp>
+
+## <samp>External Integrations</samp>
+
+<samp>
+
+| Service | Purpose |
+|---|---|
+| [Jikan](https://jikan.moe) | Anime and Manga metadata (MyAnimeList) |
+| [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata |
+| [IGDB](https://www.igdb.com) | Video Games metadata |
+| [Hardcover](https://hardcover.app) | Books metadata |
+| [ImgBB](https://imgbb.com) | Image hosting for uploads |
+| [Stripe](https://stripe.com) | Payment processing |
+| [Resend](https://resend.com) | Transactional email delivery |
+
+</samp>
+
+## <samp>Project Structure</samp>
+
+<samp>
+
+```
+src/
+├── main.ts                          # Application bootstrap
+├── app.module.ts                    # Root module
+├── modules/
+│   ├── admin/                       # Admin operations
+│   ├── anime/                       # Anime tracking, reviews, episodes
+│   ├── auth/                        # Authentication (Better Auth)
+│   ├── book/                        # Book tracking and reviews
+│   ├── comment/                     # Comments system
+│   ├── favorite/                    # Favorites management
+│   ├── feed-event/                  # Activity feed and aggregation
+│   ├── game/                        # Game tracking, reviews, screenshots
+│   ├── list/                        # Custom lists
+│   ├── manga/                       # Manga tracking and reviews
+│   ├── movie/                       # Movie tracking and reviews
+│   ├── payment/                     # Stripe payments and webhooks
+│   ├── profile/                     # User profile customization
+│   ├── reaction/                    # Emoji reactions
+│   ├── tv-show/                     # TV Show tracking, reviews, episodes
+│   └── user/                        # User management
+└── shared/
+    ├── constants/                   # Queue and job name constants
+    ├── decorators/                  # Custom decorators
+    ├── exceptions/                  # Custom exceptions
+    ├── filters/                     # HTTP exception filter
+    ├── guards/                      # Throttler guard
+    ├── interceptors/                # Metrics interceptor
+    ├── utils/                       # Utility functions
+    ├── validators/                  # Custom validators
+    └── infra/
+        ├── cache/                   # Redis cache module
+        ├── cron/                    # Scheduled tasks
+        ├── database/                # Prisma database service
+        ├── docs/                    # Swagger/Scalar setup
+        ├── email/                   # Resend email service + templates
+        ├── health/                  # Health check endpoints
+        ├── i18n/                    # Internationalization
+        ├── integrations/            # External API clients (Jikan, TMDB, IGDB, Hardcover)
+        ├── metrics/                 # Prometheus metrics
+        ├── queue/                   # BullMQ queue setup and processors
+        └── upload/                  # File upload service (ImgBB)
+```
 
 </samp>
 
 ## <samp>Run Locally</samp>
 
 <samp>
+
+**Prerequisites:** Node.js, Docker, and Docker Compose.
 
 Clone the project
 
@@ -78,7 +182,7 @@ Go to the project directory
 cd api
 ```
 
-Fill the .env with the variables from .env.example
+Copy the environment file and fill in the required variables
 
 ```bash
 cp .env.example .env
@@ -90,25 +194,81 @@ Install dependencies
 npm install
 ```
 
-Start containers
+Start PostgreSQL and Redis containers
 
 ```bash
 docker compose up -d
 ```
 
-Run database commands
+Run database migrations, generate Prisma client, and seed data
 
 ```bash
-npm run prisma:migrate
-npm run prisma:generate
-npm run prisma:seed
+npm run db:run
 ```
 
-Start the server
+Start the development server
 
 ```bash
 npm run dev
 ```
+
+The API will be available at `http://localhost:40287` with documentation at `http://localhost:40287/docs`.
+
+</samp>
+
+## <samp>Scripts</samp>
+
+<samp>
+
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development server with hot reload |
+| `npm run build` | Build for production |
+| `npm start` | Start production server |
+| `npm run db:run` | Run migrations, generate client, and seed |
+| `npm run prisma:migrate` | Run database migrations |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:seed` | Seed the database |
+| `npm run test:unit` | Run unit tests (Vitest) |
+| `npm run test:unit:watch` | Run unit tests in watch mode |
+| `npm run test:unit:cov` | Run unit tests with coverage |
+| `npm run test:e2e` | Run end-to-end tests (Playwright) |
+| `npm run test:load` | Run load tests (k6) |
+| `npm run lint` | Run Biome linter |
+| `npm run check` | Run Biome checks |
+| `npm run format:fix` | Format code with Biome |
+| `npm run types` | Type check with TypeScript |
+
+</samp>
+
+## <samp>Environment Variables</samp>
+
+<samp>
+
+| Variable | Description |
+|---|---|
+| `PORT` | Server port (default: `40287`) |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Redis connection string |
+| `BETTER_AUTH_URL` | Auth base URL |
+| `BETTER_AUTH_SECRET` | Auth secret key |
+| `WEB_URL` | Frontend URL for CORS |
+| `GOOGLE_CLIENT_ID/SECRET` | Google OAuth credentials |
+| `DISCORD_CLIENT_ID/SECRET` | Discord OAuth credentials |
+| `GITHUB_CLIENT_ID/SECRET` | GitHub OAuth credentials |
+| `TWITCH_CLIENT_ID/SECRET` | Twitch OAuth credentials |
+| `KICK_CLIENT_ID/SECRET` | Kick OAuth credentials |
+| `TWITTER_CLIENT_ID/SECRET` | Twitter OAuth credentials |
+| `SLACK_CLIENT_ID/SECRET` | Slack OAuth credentials |
+| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth credentials |
+| `NOTION_CLIENT_ID/SECRET` | Notion OAuth credentials |
+| `SPOTIFY_CLIENT_ID/SECRET` | Spotify OAuth credentials |
+| `RESEND_API_KEY` | Resend API key for emails |
+| `RESEND_FROM` | Sender email address |
+| `IMGBB_API_KEY` | ImgBB API key for image uploads |
+| `HARDCOVER_API_KEY` | Hardcover API key for books |
+| `TMDB_API_KEY` | TMDB API key for movies/TV shows |
+| `IGDB_CLIENT_ID/SECRET` | IGDB credentials for games |
 
 </samp>
 

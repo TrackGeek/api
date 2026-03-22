@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } f
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { MangaProgressService } from "../service/manga-progress.service";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
-import { GetMangaProgressesByUserIdDto } from "../dto/get-manga-progresses-by-user-id.dto";
+import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Manga")
@@ -21,8 +21,8 @@ export class MangaProgressController {
   }
 
   @Get("/")
-  async getMangaProgressesByUserId(@Query() query: GetMangaProgressesByUserIdDto) {
-    const mangaProgresses = await this.mangaProgressService.getMangaProgressesByUserId(query);
+  async getMangaProgress(@Query() query: GetMangaProgressDto) {
+    const mangaProgresses = await this.mangaProgressService.getMangaProgress(query);
 
     return { mangaProgresses };
   }

@@ -5,6 +5,8 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
+import { GetFollowersDto } from '../dto/get-followers.dto';
+import { FollowingFindManyArgs } from '@prisma/generated/models';
 
 @Injectable()
 export class UserService {
@@ -18,6 +20,26 @@ export class UserService {
       where: { id },
       include: {
         profile: true,
+      },
+      omit: {
+        stripeCustomerId: true,
+        accumulatedMoney: true,
+        image: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppException(ERROR_CODES.USER_NOT_FOUND);
+    }
+
+    return user;
+  }
+  
+  async getUserByUsername(username: string) {
+    const user = this.databaseService.user.findUnique({
+      where: { username },
+      include: {
+        profile: true,
         _count: {
           select: {
             followers: true,
@@ -26,6 +48,8 @@ export class UserService {
         },
       },
       omit: {
+        stripeCustomerId: true,
+        accumulatedMoney: true,
         image: true,
       },
     });
@@ -137,5 +161,57 @@ export class UserService {
         },
       },
     });
+  }
+  
+  async getFollwoers(getFollowersDto: GetFollowersDto) {
+    const followers = await this.databaseService.offsetPagination<FollowingFindManyArgs>({
+      model: "following",
+      itemsPerPage: getFollowersDto.itemsPerPage,
+      page: getFollowersDto.page,
+      where: { followingId: getFollowersDto.userId },
+      include: {
+        follower: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return followers;
+  }
+  
+  async getFollowing(getFollowingDto: GetFollowersDto) {
+    const following = await this.databaseService.offsetPagination<FollowingFindManyArgs>({
+      model: "following",
+      itemsPerPage: getFollowingDto.itemsPerPage,
+      page: getFollowingDto.page,
+      where: { followerId: getFollowingDto.userId },
+      include: {
+        following: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return following;
   }
 }
