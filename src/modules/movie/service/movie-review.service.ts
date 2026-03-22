@@ -90,8 +90,8 @@ export class MovieReviewService {
       itemsPerPage: getMovieReviewsDto.itemsPerPage,
       page: getMovieReviewsDto.page,
       where: {
-        movieId: getMovieReviewsDto.movieId,
-        userId: getMovieReviewsDto.userId,
+        ...(getMovieReviewsDto.userId && { userId: getMovieReviewsDto.userId }),
+        ...(getMovieReviewsDto.movieId && { movieId: getMovieReviewsDto.movieId }),
       },
       include: {
         movie: true,

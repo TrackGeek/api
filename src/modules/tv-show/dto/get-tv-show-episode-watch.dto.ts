@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsUUID } from "class-validator";
 
 export class GetTVShowEpisodeWatchDto {
+  @IsUUID()
   @ApiProperty({
     description: "ID of the user",
     example: "1",

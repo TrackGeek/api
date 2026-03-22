@@ -4,12 +4,13 @@ import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-p
 
 export class GetMovieProgressDto extends OffsetPaginationParamsDto {
   @IsUUID()
+  @IsOptional()
   @ApiProperty({
     description: "ID of the user",
     example: "1",
     type: "string",
   })
-  readonly userId: string;
+  readonly userId?: string;
 
   @IsOptional()
   @IsUUID()

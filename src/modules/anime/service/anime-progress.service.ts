@@ -41,8 +41,8 @@ export class AnimeProgressService {
       itemsPerPage: getAnimeProgressDto.itemsPerPage,
       page: getAnimeProgressDto.page,
       where: {
-        userId: getAnimeProgressDto.userId,
-        animeId: getAnimeProgressDto.animeId,
+        ...(getAnimeProgressDto.animeId && { animeId: getAnimeProgressDto.animeId }),
+        ...(getAnimeProgressDto.userId && { userId: getAnimeProgressDto.userId }),
       },
       include: {
         anime: {

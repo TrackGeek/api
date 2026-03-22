@@ -41,8 +41,8 @@ export class GameProgressService {
       itemsPerPage: getGameProgressDto.itemsPerPage,
       page: getGameProgressDto.page,
       where: {
-        userId: getGameProgressDto.userId,
-        gameId: getGameProgressDto.gameId,
+        ...(getGameProgressDto.gameId && { gameId: getGameProgressDto.gameId }),
+        ...(getGameProgressDto.userId && { userId: getGameProgressDto.userId }),
       },
       include: {
         game: true,

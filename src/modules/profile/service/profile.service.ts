@@ -10,7 +10,7 @@ export class ProfileService {
     private readonly databaseService: DatabaseService,
     private readonly uploadService: UploadService,
   ) {}
-
+  
   async createProfile(createProfileDto: CreateProfileDto) {
     return this.databaseService.profile.create({
       data: {

@@ -9,7 +9,7 @@ export class GetTVShowReviewsDto extends OffsetPaginationParamsDto {
     example: "14424",
     type: "string",
   })
-  readonly tvShowId: string;
+  readonly tvShowId?: string;
 
   @IsOptional()
   @ApiPropertyOptional({
@@ -17,5 +17,5 @@ export class GetTVShowReviewsDto extends OffsetPaginationParamsDto {
     example: "1",
     type: "string",
   })
-  readonly userId: string;
+  readonly userId?: string;
 }

@@ -90,8 +90,8 @@ export class MangaReviewService {
       itemsPerPage: getMangaReviewsDto.itemsPerPage,
       page: getMangaReviewsDto.page,
       where: {
-        mangaId: getMangaReviewsDto.mangaId,
-        userId: getMangaReviewsDto.userId,
+        ...(getMangaReviewsDto.mangaId && { mangaId: getMangaReviewsDto.mangaId }),
+        ...(getMangaReviewsDto.userId && { userId: getMangaReviewsDto.userId }),
       },
       include: {
         manga: true,
