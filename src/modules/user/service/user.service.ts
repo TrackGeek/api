@@ -5,8 +5,8 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
-import { GetFollowersDto } from '../dto/get-followers.dto';
-import { FollowingFindManyArgs } from '@prisma/generated/models';
+import { GetFollowersDto } from "../dto/get-followers.dto";
+import { FollowingFindManyArgs } from "@prisma/generated/models";
 
 @Injectable()
 export class UserService {
@@ -34,7 +34,7 @@ export class UserService {
 
     return user;
   }
-  
+
   async getUserByUsername(username: string) {
     const user = this.databaseService.user.findUnique({
       where: { username },
@@ -162,7 +162,7 @@ export class UserService {
       },
     });
   }
-  
+
   async getFollwoers(getFollowersDto: GetFollowersDto) {
     const followers = await this.databaseService.offsetPagination<FollowingFindManyArgs>({
       model: "following",
@@ -188,7 +188,7 @@ export class UserService {
 
     return followers;
   }
-  
+
   async getFollowing(getFollowingDto: GetFollowersDto) {
     const following = await this.databaseService.offsetPagination<FollowingFindManyArgs>({
       model: "following",

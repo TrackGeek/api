@@ -1,20 +1,20 @@
 import { Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { UserService } from "../service/user.service";
-import { ApiTags } from '@nestjs/swagger';
-import { GetFollowersDto } from '../dto/get-followers.dto';
-import { GetFollowingDto } from '../dto/get-following.dto';
+import { ApiTags } from "@nestjs/swagger";
+import { GetFollowersDto } from "../dto/get-followers.dto";
+import { GetFollowingDto } from "../dto/get-following.dto";
 
 @ApiTags("User")
 @Controller("/user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  
+
   @Get("/:username")
   async getUserByUsername(@Param("username") username: string) {
     const user = await this.userService.getUserByUsername(username);
-    
-    return { user }
+
+    return { user };
   }
 
   @Post("/follow/:followingId")
@@ -28,18 +28,18 @@ export class UserController {
   async unfollowUser(@Session() session: UserSession, @Param("unfollowId", new ParseUUIDPipe()) unfollowId: string) {
     await this.userService.unfollowUser(session.user.id, unfollowId);
   }
-  
+
   @Get("/follower")
   async follow(@Param() getFollowersDto: GetFollowersDto) {
     const followers = await this.userService.getFollwoers(getFollowersDto);
-    
-    return { followers }
+
+    return { followers };
   }
 
   @Get("/following")
   async getFollowing(@Param() getFollowingDto: GetFollowingDto) {
     const following = await this.userService.getFollowing(getFollowingDto);
-    
-    return { following }
+
+    return { following };
   }
 }
