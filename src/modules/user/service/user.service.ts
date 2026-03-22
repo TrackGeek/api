@@ -18,6 +18,26 @@ export class UserService {
       where: { id },
       include: {
         profile: true,
+      },
+      omit: {
+        stripeCustomerId: true,
+        accumulatedMoney: true,
+        image: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppException(ERROR_CODES.USER_NOT_FOUND);
+    }
+
+    return user;
+  }
+  
+  async getUserByUsername(username: string) {
+    const user = this.databaseService.user.findUnique({
+      where: { username },
+      include: {
+        profile: true,
         _count: {
           select: {
             followers: true,
@@ -26,6 +46,8 @@ export class UserService {
         },
       },
       omit: {
+        stripeCustomerId: true,
+        accumulatedMoney: true,
         image: true,
       },
     });

@@ -1,11 +1,20 @@
-import { Controller, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { UserService } from "../service/user.service";
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags("User")
 @Controller("/user")
 @UseGuards(AuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
+  
+  @Get("/:username")
+  async getUserByUsername(@Param("username") username: string) {
+    const user = await this.userService.getUserByUsername(username);
+    
+    return { user }
+  }
 
   @Post("/follow/:followingId")
   async followUser(@Session() session: UserSession, @Param("followingId", new ParseUUIDPipe()) followingId: string) {
