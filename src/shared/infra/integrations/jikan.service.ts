@@ -757,6 +757,18 @@ export class JikanService {
             }))
           : [],
       };
+      
+      let numberOfEpisodes = animeFullData.episodes;
+      
+      if (numberOfEpisodes === null) {
+        const episodesResponse = await firstValueFrom(
+          this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
+            params: { page: 1 },
+          }),
+        );
+        
+        numberOfEpisodes = episodesResponse?.data?.data?.[0]?.mal_id ?? null;
+      }
 
       const anime = {
         malId: animeFullData.mal_id,
@@ -771,7 +783,7 @@ export class JikanService {
         titles: animeFullData.titles,
         type: animeFullData.type,
         source: animeFullData.source,
-        numberOfEpisodes: animeFullData.episodes,
+        numberOfEpisodes,
         status: animeFullData.status,
         aired: animeFullData.aired,
         duration: animeFullData.duration,
