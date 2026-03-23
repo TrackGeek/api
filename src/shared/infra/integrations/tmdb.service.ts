@@ -463,8 +463,11 @@ export class TMDBService {
 
       const movieResponse = await firstValueFrom(
         this.httpService.get(
-          `${this.TMDB_API_URL}/movie/${id}?append_to_response=credits%2Cvideos%2Cexternal_ids%2Cimages`,
+          `${this.TMDB_API_URL}/movie/${id}`,
           {
+            params: {
+              append_to_response: "credits,videos,external_ids,images",
+            },
             headers: {
               Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
             },
