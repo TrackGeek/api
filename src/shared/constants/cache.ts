@@ -79,7 +79,7 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24,
   },
   JIKAN_ANIME_EPISODES_BY_ID: {
-    prefix: (malId: number) => `jikan:detail:anime:id:${malId}:episode`,
+    prefix: ({ malId, ...filters }: Record<string, any>) => `jikan:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   JIKAN_ANIME_RECOMMENDATIONS: {

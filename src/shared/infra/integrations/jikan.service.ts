@@ -143,6 +143,11 @@ export interface JikanSearchManga {
   genres: string[];
 }
 
+export interface JikanAnimeEpisodeOptions {
+  malId: number;
+  page?: number;
+}
+
 export interface JikanTopAnimeOptions {
   page?: number;
   type?: JikanAnimeType;
@@ -845,61 +850,45 @@ export class JikanService {
     }
   }
 
-  async getAnimeEpisodesById(id: number): Promise<JikanAnimeEpisode[]> {
+  async getAnimeEpisodesById({ malId, page = DEFAULT_PAGINATION_PAGE }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
     try {
-      const cachedEpisodes = await this.cacheService.get<JikanAnimeEpisode[]>(
-        CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id),
-      );
+      const cacheKey = `${CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({ malId, page })}`;
+      const cached = await this.cacheService.get<JikanPagination<JikanAnimeEpisode>>(cacheKey);
 
-      if (cachedEpisodes) {
-        return cachedEpisodes;
+      if (cached) {
+        return cached;
       }
 
-      const episodesData: any[] = [];
-
-      let page = 1;
-      let hasNextPage = true;
-
-      while (hasNextPage) {
-        const videosResponse = await firstValueFrom(
-          this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
-            params: { page },
-          }),
-        );
-
-        episodesData.push(...videosResponse.data.data);
-
-        hasNextPage = videosResponse.data.pagination.has_next_page;
-        page++;
-
-        if (hasNextPage) {
-          await firstValueFrom(timer(500));
-        }
-      }
-
-      const episodes =
-        episodesData.length > 0
-          ? episodesData.map((video) => ({
-              malId: video.mal_id,
-              title: video.title,
-              episodeNumber: video.episode,
-              imageUrl: video.images?.jpg?.image_url ?? null,
-            }))
-          : [];
-
-      await this.cacheService.set(
-        CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix(id),
-        episodes,
-        CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration,
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.JIKAN_API_URL}/anime/${malId}/videos/episodes`, {
+          params: { page },
+        }),
       );
 
-      return episodes;
+      const paginationData = response.data.pagination;
+      
+      const items: JikanAnimeEpisode[] = (response.data.data ?? []).map((video: any) => ({
+        malId: video.mal_id,
+        title: video.title,
+        episodeNumber: video.episode,
+        imageUrl: video.images?.jpg?.image_url ?? null,
+      }));
+
+      const result: JikanPagination<JikanAnimeEpisode> = {
+        hasNextPage: paginationData.has_next_page,
+        nextCursor: paginationData.has_next_page ? page + 1 : null,
+        items,
+      };
+
+      await this.cacheService.set(cacheKey, result, CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration);
+
+      return result;
     } catch (error) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch anime episodes for ID ${id} from Jikan API`, error);
+      this.logger.error(`Failed to fetch anime episodes for ID ${malId} from Jikan API`, error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
