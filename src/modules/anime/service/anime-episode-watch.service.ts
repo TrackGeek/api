@@ -25,11 +25,11 @@ export class AnimeEpisodeWatchService {
     if (!anime) {
       throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
     }
-    
+
     if (anime.numberOfEpisodes === null) {
       throw new AppException(ERROR_CODES.ANIME_EPISODES_NOT_FOUND);
     }
-      
+
     if (all !== undefined) {
       const episodeNumbers = Array.from({ length: anime.numberOfEpisodes! }, (_, i) => i + 1);
 

@@ -19,7 +19,7 @@ import {
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
-import { GetAnimeEpisodesByMalIdDto } from '../dto/get-anime-episdoes-by-mal-id.dto';
+import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episdoes-by-mal-id.dto";
 
 @Injectable()
 export class AnimeService {
@@ -89,7 +89,7 @@ export class AnimeService {
     if (cachedEpisodes) {
       return cachedEpisodes;
     }
-    
+
     const anime = await this.databaseService.anime.findUnique({
       where: { malId: getAnimeEpisodesByMalIdDto.malId },
       select: { episodes: true },
@@ -111,9 +111,9 @@ export class AnimeService {
         data: { episodes: [...existingEpisodes, ...newEpisodes] } as unknown as AnimeUpdateInput,
       });
     }
-    
+
     await this.cacheService.set(cachedEpisodesKey, episdoes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
-    
+
     return episdoes;
   }
 

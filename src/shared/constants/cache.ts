@@ -6,7 +6,8 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24,
   },
   ANIME_EPISODES_BY_MAL_ID: {
-    prefix: ({ malId, ...filters }: Record<string, any>) => `anime:detail:malId:${malId}:episode:${filtersToString(filters)}`,
+    prefix: ({ malId, ...filters }: Record<string, any>) =>
+      `anime:detail:malId:${malId}:episode:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   BOOK_BY_HARDCOVER_ID: {
@@ -79,7 +80,8 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24,
   },
   JIKAN_ANIME_EPISODES_BY_ID: {
-    prefix: ({ malId, ...filters }: Record<string, any>) => `jikan:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
+    prefix: ({ malId, ...filters }: Record<string, any>) =>
+      `jikan:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   JIKAN_ANIME_RECOMMENDATIONS: {

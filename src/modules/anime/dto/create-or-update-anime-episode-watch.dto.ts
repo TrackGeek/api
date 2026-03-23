@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, ValidateIf } from "class-validator";
+import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsPositive, ValidateIf } from "class-validator";
 
 export class CreateOrUpdateAnimeEpisodeWatchDto {
   @IsNotEmpty()

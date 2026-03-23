@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable, Logger } from "@nestjs/common";
-import { firstValueFrom, timer } from "rxjs";
+import { firstValueFrom } from "rxjs";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -762,16 +762,16 @@ export class JikanService {
             }))
           : [],
       };
-      
+
       let numberOfEpisodes = animeFullData.episodes;
-      
+
       if (numberOfEpisodes === null) {
         const episodesResponse = await firstValueFrom(
           this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
             params: { page: 1 },
           }),
         );
-        
+
         numberOfEpisodes = episodesResponse?.data?.data?.[0]?.mal_id ?? null;
       }
 
@@ -850,7 +850,10 @@ export class JikanService {
     }
   }
 
-  async getAnimeEpisodesById({ malId, page = DEFAULT_PAGINATION_PAGE }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
+  async getAnimeEpisodesById({
+    malId,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
     try {
       const cacheKey = `${CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({ malId, page })}`;
       const cached = await this.cacheService.get<JikanPagination<JikanAnimeEpisode>>(cacheKey);
@@ -866,7 +869,7 @@ export class JikanService {
       );
 
       const paginationData = response.data.pagination;
-      
+
       const items: JikanAnimeEpisode[] = (response.data.data ?? []).map((video: any) => ({
         malId: video.mal_id,
         title: video.title,

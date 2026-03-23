@@ -13,7 +13,10 @@ export class AnimeEpisodeWatchController {
   @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async createOrUpdateAnimeEpisodeWatch(@Session() session: UserSession, @Body() body: CreateOrUpdateAnimeEpisodeWatchDto) {
+  async createOrUpdateAnimeEpisodeWatch(
+    @Session() session: UserSession,
+    @Body() body: CreateOrUpdateAnimeEpisodeWatchDto,
+  ) {
     await this.animeEpisodeWatchService.createOrUpdateAnimeEpisodeWatch({
       ...body,
       userId: session.user.id,
