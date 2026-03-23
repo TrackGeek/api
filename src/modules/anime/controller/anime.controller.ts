@@ -5,7 +5,7 @@ import { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
 import { AnimeService } from "../service/anime.service";
-import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episdoes-by-mal-id.dto";
+import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 
 @ApiTags("Anime")
 @Controller("/anime")

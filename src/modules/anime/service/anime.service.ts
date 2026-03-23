@@ -19,7 +19,7 @@ import {
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
-import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episdoes-by-mal-id.dto";
+import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 
 @Injectable()
 export class AnimeService {
