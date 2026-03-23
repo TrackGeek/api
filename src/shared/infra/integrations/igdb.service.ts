@@ -11,6 +11,7 @@ import { CacheService } from "../cache/cache.service";
 export interface IGDBPagination<I> {
   nextCursor: number | null;
   hasNextPage: boolean;
+  count: number;
   items: I[];
 }
 
@@ -264,21 +265,24 @@ export class IGDBService {
     }
   }
 
-  async searchGames({ query, page = DEFAULT_PAGINATION_PAGE }: IGDBSearchGameOptions): Promise<IGDBPagination<IGDBSearchGameResult>> {
+  async searchGames({
+    query,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: IGDBSearchGameOptions): Promise<IGDBPagination<IGDBSearchGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {
       const cachedGamesKey = CACHE_KEYS.IGDB_SEARCH_GAMES.prefix({
         query,
-        page
+        page,
       });
-      
+
       const cachedGames = await this.cacheService.get<IGDBPagination<IGDBSearchGameResult>>(cachedGamesKey);
 
       if (cachedGames) {
         return cachedGames;
       }
-      
+
       const pageSize = 16;
       const offset = (page - 1) * pageSize;
 
@@ -328,7 +332,7 @@ export class IGDBService {
         coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
         firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));
-      
+
       const hasNextPage = items.length === pageSize;
 
       const games = {
@@ -338,11 +342,7 @@ export class IGDBService {
         items,
       };
 
-      await this.cacheService.set(
-        cachedGamesKey,
-        games,
-        CACHE_KEYS.IGDB_SEARCH_GAMES.expiration,
-      );
+      await this.cacheService.set(cachedGamesKey, games, CACHE_KEYS.IGDB_SEARCH_GAMES.expiration);
 
       return games;
     } catch (error) {
@@ -354,7 +354,10 @@ export class IGDBService {
     }
   }
 
-  async topGames({ page = DEFAULT_PAGINATION_PAGE, filter = IGDBGameFilter.Popular }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
+  async topGames({
+    page = DEFAULT_PAGINATION_PAGE,
+    filter = IGDBGameFilter.Popular,
+  }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {

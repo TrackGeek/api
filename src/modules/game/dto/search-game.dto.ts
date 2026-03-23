@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
 
 export class SearchGameDto {
@@ -11,7 +11,7 @@ export class SearchGameDto {
     type: "string",
   })
   readonly query: string;
-  
+
   @Type(() => Number)
   @IsInt()
   @IsPositive()

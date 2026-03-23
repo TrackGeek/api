@@ -8,6 +8,13 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
 
+export interface HardcoverPagination<I> {
+  nextCursor: number | null;
+  hasNextPage: boolean;
+  count: number;
+  items: I[];
+}
+
 export enum HardcoverBookFilter {
   Trending = "trending",
   ComingSoon = "comingSoon",
@@ -121,10 +128,10 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchBooks({ query, page = DEFAULT_PAGINATION_PAGE }: HardcoverSearchBookOptions) {
+  async searchBooks({ query, page = DEFAULT_PAGINATION_PAGE }: HardcoverSearchBookOptions): Promise<HardcoverPagination<HardcoverSearchBookResult>> {
     try {
       const cachedBooksKey = CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix({ query, page });
-      const cachedBooks = await this.cacheService.get(cachedBooksKey);
+      const cachedBooks = await this.cacheService.get<HardcoverPagination<HardcoverSearchBookResult>>(cachedBooksKey);
 
       if (cachedBooks) {
         return cachedBooks;
@@ -180,11 +187,7 @@ export class HardcoverService {
         items,
       };
 
-      await this.cacheService.set(
-        cachedBooksKey,
-        books,
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration,
-      );
+      await this.cacheService.set(cachedBooksKey, books, CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration);
 
       return books;
     } catch (error) {

@@ -8,6 +8,13 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
 
+export interface IGDBPagination<I> {
+  nextCursor: number | null;
+  hasNextPage: boolean;
+  count: number;
+  items: I[];
+}
+
 export enum TMDBMovieFilter {
   Airing = "airing",
   Upcoming = "upcoming",
@@ -221,10 +228,10 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchMovies({ query, page = DEFAULT_PAGINATION_PAGE }: TMDBSearchMovieOptions) {
+  async searchMovies({ query, page = DEFAULT_PAGINATION_PAGE }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
     try {
       const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page });
-      const cachedMovies = await this.cacheService.get(cachedMoviesKey);
+      const cachedMovies = await this.cacheService.get<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey);
 
       if (cachedMovies) {
         return cachedMovies;
@@ -257,11 +264,7 @@ export class TMDBService {
         items,
       };
 
-      await this.cacheService.set(
-        cachedMoviesKey,
-        movies,
-        CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration,
-      );
+      await this.cacheService.set(cachedMoviesKey, movies, CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration);
 
       return movies;
     } catch (error) {
@@ -350,10 +353,10 @@ export class TMDBService {
     }
   }
 
-  async searchTVShows({ query, page = DEFAULT_PAGINATION_PAGE }: TMDBSearchTVShowOptions) {
+  async searchTVShows({ query, page = DEFAULT_PAGINATION_PAGE }: TMDBSearchTVShowOptions): Promise<IGDBPagination<TMDBSearchTVShowResult>> {
     try {
       const cachedTVShowsKey = CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix({ query, page });
-      const cachedTVShows = await this.cacheService.get(cachedTVShowsKey);
+      const cachedTVShows = await this.cacheService.get<IGDBPagination<TMDBSearchTVShowResult>>(cachedTVShowsKey);
 
       if (cachedTVShows) {
         return cachedTVShows;
@@ -386,11 +389,7 @@ export class TMDBService {
         items,
       };
 
-      await this.cacheService.set(
-        cachedTVShowsKey,
-        tvShows,
-        CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration,
-      );
+      await this.cacheService.set(cachedTVShowsKey, tvShows, CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration);
 
       return tvShows;
     } catch (error) {

@@ -30,7 +30,7 @@ describe("TMDBService", () => {
       const cachedMovies = [{ tmdbId: 1, name: "Inception", releaseDate: null, posterUrl: null }];
       mockCacheService.get.mockResolvedValue(cachedMovies);
 
-      const result = await service.searchMovies("Inception");
+      const result = await service.searchMovies({ query: "Inception" });
 
       expect(result).toEqual(cachedMovies);
       expect(mockHttpService.get).not.toHaveBeenCalled();
@@ -54,13 +54,13 @@ describe("TMDBService", () => {
         }),
       );
 
-      const result = await service.searchMovies("Inception");
+      const result = await service.searchMovies({ query: "Inception" }) as any;
 
-      expect(result).toHaveLength(1);
-      expect(result[0].tmdbId).toBe(27205);
-      expect(result[0].name).toBe("Inception");
-      expect(result[0].posterUrl).toBe("https://image.tmdb.org/t/p/w500/poster.jpg");
-      expect(result[0].releaseDate).toBeInstanceOf(Date);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].tmdbId).toBe(27205);
+      expect(result.items[0].name).toBe("Inception");
+      expect(result.items[0].posterUrl).toBe("https://image.tmdb.org/t/p/w500/poster.jpg");
+      expect(result.items[0].releaseDate).toBeInstanceOf(Date);
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -68,14 +68,14 @@ describe("TMDBService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.searchMovies("Inception")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchMovies({ query: "Inception" })).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException with 404 status when movie not found", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
-      await expect(service.searchMovies("unknown")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchMovies({ query: "unknown" })).rejects.toBeInstanceOf(AppException);
     });
   });
 
@@ -84,7 +84,7 @@ describe("TMDBService", () => {
       const cached = [{ tmdbId: 1, name: "Breaking Bad", firstAirDate: null, posterUrl: null }];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.searchTVShows("Breaking Bad");
+      const result = await service.searchTVShows({ query: "Breaking Bad" });
 
       expect(result).toEqual(cached);
       expect(mockHttpService.get).not.toHaveBeenCalled();
@@ -108,20 +108,20 @@ describe("TMDBService", () => {
         }),
       );
 
-      const result = await service.searchTVShows("Breaking Bad");
+      const result = await service.searchTVShows({ query: "Breaking Bad" }) as any;
 
-      expect(result).toHaveLength(1);
-      expect(result[0].tmdbId).toBe(1396);
-      expect(result[0].name).toBe("Breaking Bad");
-      expect(result[0].posterUrl).toBe("https://image.tmdb.org/t/p/w500/poster.jpg");
-      expect(result[0].firstAirDate).toBeInstanceOf(Date);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].tmdbId).toBe(1396);
+      expect(result.items[0].name).toBe("Breaking Bad");
+      expect(result.items[0].posterUrl).toBe("https://image.tmdb.org/t/p/w500/poster.jpg");
+      expect(result.items[0].firstAirDate).toBeInstanceOf(Date);
     });
 
     it("should throw AppException when request fails", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.searchTVShows("Breaking Bad")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchTVShows({ query: "Breaking Bad" })).rejects.toBeInstanceOf(AppException);
     });
   });
 
