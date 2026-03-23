@@ -13,6 +13,11 @@ export enum HardcoverBookFilter {
   ComingSoon = "comingSoon",
 }
 
+export interface HardcoverSearchBookOptions {
+  query: string;
+  page?: number;
+}
+
 export interface HardcoverTopBookOptions {
   page?: number;
   filter?: HardcoverBookFilter;
@@ -116,15 +121,16 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchBooks(query: string): Promise<HardcoverSearchBookResult[]> {
+  async searchBooks({ query, page = DEFAULT_PAGINATION_PAGE }: HardcoverSearchBookOptions) {
     try {
-      const cachedBooks = await this.cacheService.get<HardcoverSearchBookResult[]>(
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
-      );
+      const cachedBooksKey = CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix({ query, page });
+      const cachedBooks = await this.cacheService.get(cachedBooksKey);
 
       if (cachedBooks) {
         return cachedBooks;
       }
+
+      const pageSize = 16;
 
       const searchResponse = await firstValueFrom(
         this.httpService.post(
@@ -135,7 +141,8 @@ export class HardcoverService {
 							search(
 								query: "${query}",
 								query_type: "book",
-								per_page: 10
+								per_page: ${pageSize},
+								page: ${page}
 							) {
 								results
 							}
@@ -155,7 +162,7 @@ export class HardcoverService {
 
       const hits = searchData.results.hits;
 
-      const books = hits.map((hit) => ({
+      const items = hits.map((hit) => ({
         id: Number(hit.document.id),
         title: hit.document.title,
         alternativeTitles: hit.document.alternative_titles,
@@ -164,8 +171,17 @@ export class HardcoverService {
         genres: hit.document.genres ?? [],
       }));
 
+      const hasNextPage = items.length === pageSize;
+
+      const books = {
+        hasNextPage,
+        nextCursor: hasNextPage ? page + 1 : null,
+        count: items.length,
+        items,
+      };
+
       await this.cacheService.set(
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
+        cachedBooksKey,
         books,
         CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration,
       );

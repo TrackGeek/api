@@ -8,6 +8,12 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
 
+export interface IGDBPagination<I> {
+  nextCursor: number | null;
+  hasNextPage: boolean;
+  items: I[];
+}
+
 export enum IGDBGameFilter {
   Popular = "popular",
   Coming = "coming",
@@ -40,6 +46,11 @@ export interface IGDBTopGameResult {
   }[];
   coverUrl: string | null;
   firstReleaseDate: Date | null;
+}
+
+export interface IGDBSearchGameOptions {
+  query: string;
+  page?: number;
 }
 
 export interface IGDBSearchGameResult {
@@ -253,21 +264,26 @@ export class IGDBService {
     }
   }
 
-  async searchGames(query: string): Promise<IGDBSearchGameResult[]> {
+  async searchGames({ query, page = DEFAULT_PAGINATION_PAGE }: IGDBSearchGameOptions): Promise<IGDBPagination<IGDBSearchGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGames = await this.cacheService.get<IGDBSearchGameResult[]>(
-        CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query),
-      );
+      const cachedGamesKey = CACHE_KEYS.IGDB_SEARCH_GAMES.prefix({
+        query,
+        page
+      });
+      
+      const cachedGames = await this.cacheService.get<IGDBPagination<IGDBSearchGameResult>>(cachedGamesKey);
 
       if (cachedGames) {
         return cachedGames;
       }
+      
+      const pageSize = 16;
+      const offset = (page - 1) * pageSize;
 
       const igdbQuery = `
-        search "${query}";
-        fields 
+        fields
           slug,
           name,
           cover.url,
@@ -277,7 +293,10 @@ export class IGDBService {
           involved_companies.company.name,
           involved_companies.developer,
           first_release_date;
-        limit 10;
+        where name ~ *"${query}"*;
+        sort popularity desc;
+        limit ${pageSize};
+        offset ${offset};
       `;
 
       const gamesResponse = await firstValueFrom(
@@ -291,7 +310,7 @@ export class IGDBService {
 
       const gamesData = gamesResponse.data;
 
-      const games = gamesData.map((game: any) => ({
+      const items = gamesData.map((game: any) => ({
         igdbId: game.id,
         slug: game.slug,
         name: game.name,
@@ -309,9 +328,18 @@ export class IGDBService {
         coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
         firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));
+      
+      const hasNextPage = items.length === pageSize;
+
+      const games = {
+        hasNextPage,
+        nextCursor: hasNextPage ? page + 1 : null,
+        count: items.length,
+        items,
+      };
 
       await this.cacheService.set(
-        CACHE_KEYS.IGDB_SEARCH_GAMES.prefix(query),
+        cachedGamesKey,
         games,
         CACHE_KEYS.IGDB_SEARCH_GAMES.expiration,
       );
@@ -326,12 +354,12 @@ export class IGDBService {
     }
   }
 
-  async topGames({ page = DEFAULT_PAGINATION_PAGE, filter = IGDBGameFilter.Popular }: IGDBTopGameOptions) {
+  async topGames({ page = DEFAULT_PAGINATION_PAGE, filter = IGDBGameFilter.Popular }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {
       const topGamesOptions = { page, filter };
-      const cachedGames = await this.cacheService.get<IGDBTopGameResult[]>(
+      const cachedGames = await this.cacheService.get<IGDBPagination<IGDBTopGameResult>>(
         CACHE_KEYS.IGDB_TOP_GAMES.prefix({ ...topGamesOptions }),
       );
 

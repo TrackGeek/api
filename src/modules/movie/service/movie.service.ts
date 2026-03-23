@@ -21,7 +21,7 @@ export class MovieService {
   ) {}
 
   async searchMovies(searchMovieDto: SearchMovieDto) {
-    return this.integrationsService.tmdb.searchMovies(searchMovieDto.query);
+    return this.integrationsService.tmdb.searchMovies(searchMovieDto);
   }
 
   async topMovies(topMovieDto: TopMovieDto) {

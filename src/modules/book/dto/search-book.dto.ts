@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, MinLength } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsInt, IsNotEmpty, IsOptional, IsPositive, MinLength } from "class-validator";
 
 export class SearchBookDto {
   @IsNotEmpty()
@@ -10,4 +11,14 @@ export class SearchBookDto {
     type: "string",
   })
   readonly query: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: "number",
+    default: 1,
+  })
+  readonly page?: number;
 }
