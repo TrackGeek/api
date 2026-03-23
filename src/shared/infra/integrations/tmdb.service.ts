@@ -228,7 +228,10 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchMovies({ query, page = DEFAULT_PAGINATION_PAGE }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
+  async searchMovies({
+    query,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
     try {
       const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page });
       const cachedMovies = await this.cacheService.get<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey);
@@ -353,7 +356,10 @@ export class TMDBService {
     }
   }
 
-  async searchTVShows({ query, page = DEFAULT_PAGINATION_PAGE }: TMDBSearchTVShowOptions): Promise<IGDBPagination<TMDBSearchTVShowResult>> {
+  async searchTVShows({
+    query,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: TMDBSearchTVShowOptions): Promise<IGDBPagination<TMDBSearchTVShowResult>> {
     try {
       const cachedTVShowsKey = CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix({ query, page });
       const cachedTVShows = await this.cacheService.get<IGDBPagination<TMDBSearchTVShowResult>>(cachedTVShowsKey);

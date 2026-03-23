@@ -63,7 +63,7 @@ describe("HardcoverService", () => {
         }),
       );
 
-      const result = await service.searchBooks({ query: "Dune" }) as any;
+      const result = (await service.searchBooks({ query: "Dune" })) as any;
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].id).toBe(12345);

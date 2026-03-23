@@ -128,7 +128,10 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchBooks({ query, page = DEFAULT_PAGINATION_PAGE }: HardcoverSearchBookOptions): Promise<HardcoverPagination<HardcoverSearchBookResult>> {
+  async searchBooks({
+    query,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: HardcoverSearchBookOptions): Promise<HardcoverPagination<HardcoverSearchBookResult>> {
     try {
       const cachedBooksKey = CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix({ query, page });
       const cachedBooks = await this.cacheService.get<HardcoverPagination<HardcoverSearchBookResult>>(cachedBooksKey);

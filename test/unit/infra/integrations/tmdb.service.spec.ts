@@ -54,7 +54,7 @@ describe("TMDBService", () => {
         }),
       );
 
-      const result = await service.searchMovies({ query: "Inception" }) as any;
+      const result = (await service.searchMovies({ query: "Inception" })) as any;
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].tmdbId).toBe(27205);
@@ -108,7 +108,7 @@ describe("TMDBService", () => {
         }),
       );
 
-      const result = await service.searchTVShows({ query: "Breaking Bad" }) as any;
+      const result = (await service.searchTVShows({ query: "Breaking Bad" })) as any;
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].tmdbId).toBe(1396);
