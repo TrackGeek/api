@@ -5,6 +5,7 @@ import { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
 import { AnimeService } from "../service/anime.service";
+import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 
 @ApiTags("Anime")
 @Controller("/anime")
@@ -46,8 +47,14 @@ export class AnimeController {
   }
 
   @Get("/detail/:malId/episode")
-  async getAnimeEpisodesByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
-    const episodes = await this.animeService.getAnimeEpisodesByMalId(malId);
+  async getAnimeEpisodesByMalId(
+    @Param("malId", new ParseIntPipe()) malId: number,
+    @Query() query: GetAnimeEpisodesByMalIdDto,
+  ) {
+    const episodes = await this.animeService.getAnimeEpisodesByMalId({
+      ...query,
+      malId,
+    });
 
     return { episodes };
   }
