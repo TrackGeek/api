@@ -8,9 +8,21 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { CacheService } from "../cache/cache.service";
 
+export interface HardcoverPagination<I> {
+  nextCursor: number | null;
+  hasNextPage: boolean;
+  count: number;
+  items: I[];
+}
+
 export enum HardcoverBookFilter {
   Trending = "trending",
   ComingSoon = "comingSoon",
+}
+
+export interface HardcoverSearchBookOptions {
+  query: string;
+  page?: number;
 }
 
 export interface HardcoverTopBookOptions {
@@ -116,15 +128,19 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async searchBooks(query: string): Promise<HardcoverSearchBookResult[]> {
+  async searchBooks({
+    query,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: HardcoverSearchBookOptions): Promise<HardcoverPagination<HardcoverSearchBookResult>> {
     try {
-      const cachedBooks = await this.cacheService.get<HardcoverSearchBookResult[]>(
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
-      );
+      const cachedBooksKey = CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix({ query, page });
+      const cachedBooks = await this.cacheService.get<HardcoverPagination<HardcoverSearchBookResult>>(cachedBooksKey);
 
       if (cachedBooks) {
         return cachedBooks;
       }
+
+      const pageSize = 16;
 
       const searchResponse = await firstValueFrom(
         this.httpService.post(
@@ -135,7 +151,8 @@ export class HardcoverService {
 							search(
 								query: "${query}",
 								query_type: "book",
-								per_page: 10
+								per_page: ${pageSize},
+								page: ${page}
 							) {
 								results
 							}
@@ -155,7 +172,7 @@ export class HardcoverService {
 
       const hits = searchData.results.hits;
 
-      const books = hits.map((hit) => ({
+      const items = hits.map((hit) => ({
         id: Number(hit.document.id),
         title: hit.document.title,
         alternativeTitles: hit.document.alternative_titles,
@@ -164,11 +181,16 @@ export class HardcoverService {
         genres: hit.document.genres ?? [],
       }));
 
-      await this.cacheService.set(
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
-        books,
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration,
-      );
+      const hasNextPage = items.length === pageSize;
+
+      const books = {
+        hasNextPage,
+        nextCursor: hasNextPage ? page + 1 : null,
+        count: items.length,
+        items,
+      };
+
+      await this.cacheService.set(cachedBooksKey, books, CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration);
 
       return books;
     } catch (error) {

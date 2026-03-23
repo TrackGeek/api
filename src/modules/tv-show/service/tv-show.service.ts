@@ -21,7 +21,7 @@ export class TVShowService {
   ) {}
 
   async searchTVShows(searchTVShowDto: SearchTVShowDto) {
-    return this.integrationsService.tmdb.searchTVShows(searchTVShowDto.query);
+    return this.integrationsService.tmdb.searchTVShows(searchTVShowDto);
   }
 
   async topTVShows(topTvShowDto: TopTvShowDto) {

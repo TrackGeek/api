@@ -21,7 +21,7 @@ export class BookService {
   ) {}
 
   async searchBooks(searchBookDto: SearchBookDto) {
-    return this.integrationsService.hardcover.searchBooks(searchBookDto.query);
+    return this.integrationsService.hardcover.searchBooks(searchBookDto);
   }
 
   async topBooks(topBookDto: TopBookDto) {

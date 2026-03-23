@@ -29,7 +29,7 @@ describe("HardcoverService", () => {
       const cached = [{ id: 1, title: "Dune", authors: ["Frank Herbert"] }];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.searchBooks("Dune");
+      const result = await service.searchBooks({ query: "Dune" });
 
       expect(result).toEqual(cached);
       expect(mockHttpService.post).not.toHaveBeenCalled();
@@ -63,13 +63,13 @@ describe("HardcoverService", () => {
         }),
       );
 
-      const result = await service.searchBooks("Dune");
+      const result = (await service.searchBooks({ query: "Dune" })) as any;
 
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe(12345);
-      expect(result[0].title).toBe("Dune");
-      expect(result[0].authors).toEqual(["Frank Herbert"]);
-      expect(result[0].imageUrl).toBe("https://hardcover.app/dune.jpg");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].id).toBe(12345);
+      expect(result.items[0].title).toBe("Dune");
+      expect(result.items[0].authors).toEqual(["Frank Herbert"]);
+      expect(result.items[0].imageUrl).toBe("https://hardcover.app/dune.jpg");
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -77,14 +77,14 @@ describe("HardcoverService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.post.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.searchBooks("Dune")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchBooks({ query: "Dune" })).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.post.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
-      await expect(service.searchBooks("unknown")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchBooks({ query: "unknown" })).rejects.toBeInstanceOf(AppException);
     });
   });
 

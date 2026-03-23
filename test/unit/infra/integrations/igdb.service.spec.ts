@@ -38,7 +38,7 @@ describe("IGDBService", () => {
       const cached = [{ igdbId: 1, name: "Elden Ring" }];
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(cached);
 
-      const result = await service.searchGames("Elden Ring");
+      const result = await service.searchGames({ query: "Elden Ring" });
 
       expect(result).toEqual(cached);
       expect(mockHttpService.post).not.toHaveBeenCalled();
@@ -64,14 +64,14 @@ describe("IGDBService", () => {
         }),
       );
 
-      const result = await service.searchGames("Elden Ring");
+      const result = await service.searchGames({ query: "Elden Ring" });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].igdbId).toBe(119171);
-      expect(result[0].name).toBe("Elden Ring");
-      expect(result[0].coverUrl).toContain("t_cover_big");
-      expect(result[0].involvedCompanies[0].companyName).toBe("FromSoftware");
-      expect(result[0].firstReleaseDate).toBeInstanceOf(Date);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].igdbId).toBe(119171);
+      expect(result.items[0].name).toBe("Elden Ring");
+      expect(result.items[0].coverUrl).toContain("t_cover_big");
+      expect(result.items[0].involvedCompanies[0].companyName).toBe("FromSoftware");
+      expect(result.items[0].firstReleaseDate).toBeInstanceOf(Date);
       expect(mockCacheService.set).toHaveBeenCalledTimes(2);
     });
 
@@ -94,7 +94,7 @@ describe("IGDBService", () => {
         }),
       );
 
-      await service.searchGames("Game");
+      await service.searchGames({ query: "Game" });
 
       expect(mockHttpService.post).toHaveBeenCalledTimes(1);
     });
@@ -103,7 +103,7 @@ describe("IGDBService", () => {
       mockCacheService.get.mockResolvedValueOnce(null);
       mockHttpService.post.mockReturnValue(throwError(() => new Error("Auth failed")));
 
-      await expect(service.searchGames("Elden Ring")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchGames({ query: "Elden Ring" })).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException when games request fails", async () => {
@@ -112,7 +112,7 @@ describe("IGDBService", () => {
         .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(throwError(() => new Error("Service down")));
 
-      await expect(service.searchGames("Elden Ring")).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchGames({ query: "Elden Ring" })).rejects.toBeInstanceOf(AppException);
     });
   });
 
