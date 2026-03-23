@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty, IsOptional, IsPositive, MinLength } from "class-validator";
+import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
 
 export class SearchBookDto {
   @IsNotEmpty()
-  @MinLength(3)
+  @IsString()
   @ApiProperty({
     description: "Lookup for a book matching a name",
     example: "The Witcher",
