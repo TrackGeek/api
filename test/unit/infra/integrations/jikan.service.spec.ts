@@ -213,7 +213,7 @@ describe("JikanService", () => {
       const cached = [{ malId: 1, title: "Pilot", episodeNumber: 1, imageUrl: null }];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.getAnimeEpisodesById(20);
+      const result = await service.getAnimeEpisodesById({ malId: 20 });
 
       expect(result).toEqual(cached);
       expect(mockHttpService.get).not.toHaveBeenCalled();
@@ -238,11 +238,11 @@ describe("JikanService", () => {
         }),
       );
 
-      const result = await service.getAnimeEpisodesById(20);
+      const result = await service.getAnimeEpisodesById({ malId: 20 });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].malId).toBe(1);
-      expect(result[0].title).toBe("Enter: Naruto Uzumaki!");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].malId).toBe(1);
+      expect(result.items[0].title).toBe("Enter: Naruto Uzumaki!");
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -250,7 +250,7 @@ describe("JikanService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.getAnimeEpisodesById(20)).rejects.toBeInstanceOf(AppException);
+      await expect(service.getAnimeEpisodesById({ malId: 20 })).rejects.toBeInstanceOf(AppException);
     });
   });
 
