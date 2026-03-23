@@ -9,6 +9,7 @@ import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
+  JikanAnimeEpisode,
   JikanAnimeOrderBy,
   JikanAnimeRatings,
   JikanAnimeStatus,
@@ -18,6 +19,7 @@ import {
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
+import { GetAnimeEpisodesByMalIdDto } from '../dto/get-anime-episdoes-by-mal-id.dto';
 
 @Injectable()
 export class AnimeService {
@@ -80,42 +82,39 @@ export class AnimeService {
     return anime;
   }
 
-  async getAnimeEpisodesByMalId(malId: number) {
-    const cachedEpisodes = await this.cacheService.get(CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(malId));
+  async getAnimeEpisodesByMalId(getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto) {
+    const cachedEpisodesKey = CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(getAnimeEpisodesByMalIdDto);
+    const cachedEpisodes = await this.cacheService.get(cachedEpisodesKey);
 
     if (cachedEpisodes) {
       return cachedEpisodes;
     }
-
+    
     const anime = await this.databaseService.anime.findUnique({
-      where: { malId },
-      select: {
-        episodes: true,
-      },
+      where: { malId: getAnimeEpisodesByMalIdDto.malId },
+      select: { episodes: true },
     });
 
     if (!anime) {
       throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
     }
 
-    let episodes: any = anime.episodes;
+    const episdoes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
 
-    if (!anime?.episodes) {
-      episodes = await this.integrationsService.jikan.getAnimeEpisodesById(malId);
+    const existingEpisodes = (anime.episodes ?? []) as unknown as JikanAnimeEpisode[];
+    const existingNumbers = new Set(existingEpisodes.map((ep) => ep.episodeNumber));
+    const newEpisodes = episdoes.items.filter((ep) => !existingNumbers.has(ep.episodeNumber));
 
+    if (newEpisodes.length > 0) {
       await this.databaseService.anime.update({
-        where: { malId },
-        data: { episodes },
+        where: { malId: getAnimeEpisodesByMalIdDto.malId },
+        data: { episodes: [...existingEpisodes, ...newEpisodes] } as unknown as AnimeUpdateInput,
       });
     }
-
-    await this.cacheService.set(
-      CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(malId),
-      episodes,
-      CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration,
-    );
-
-    return episodes;
+    
+    await this.cacheService.set(cachedEpisodesKey, episdoes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
+    
+    return episdoes;
   }
 
   async refreshAnime(refreshAnimeDto: RefreshAnimeDto) {
@@ -139,14 +138,10 @@ export class AnimeService {
     }
 
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
-    const jikanEpisodes = await this.integrationsService.jikan.getAnimeEpisodesById(refreshAnimeDto.malId);
 
     await this.databaseService.anime.update({
       where: { malId: refreshAnimeDto.malId },
-      data: {
-        ...jikanAnime,
-        episodes: jikanEpisodes,
-      } as unknown as AnimeUpdateInput,
+      data: { ...jikanAnime } as unknown as AnimeUpdateInput,
     });
 
     await this.cacheService.set(

@@ -6,7 +6,7 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24,
   },
   ANIME_EPISODES_BY_MAL_ID: {
-    prefix: (malId: number) => `anime:detail:malId:${malId}:episode`,
+    prefix: ({ malId, ...filters }: Record<string, any>) => `anime:detail:malId:${malId}:episode:${filtersToString(filters)}`,
     expiration: 3600 * 24,
   },
   BOOK_BY_HARDCOVER_ID: {
