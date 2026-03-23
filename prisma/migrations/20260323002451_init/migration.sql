@@ -17,7 +17,7 @@ CREATE TYPE "FeedEventType" AS ENUM ('NewFollower', 'NewFavorite', 'NewList', 'N
 CREATE TYPE "WatchEpisodeStatus" AS ENUM ('NotWatched', 'Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
-CREATE TYPE "ProgressStatus" AS ENUM ('NotStarted', 'Watching', 'Playing', 'Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
+CREATE TYPE "ProgressStatus" AS ENUM ('NotWatched', 'NotRead', 'NotPlayed', 'Watching', 'Playing', 'Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
 CREATE TYPE "ListType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book');
