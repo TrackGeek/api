@@ -273,37 +273,30 @@ describe("TMDBService", () => {
       expect(mockHttpService.get).not.toHaveBeenCalled();
     });
 
-    it("should fetch seasons for each season and cache", async () => {
+    it("should fetch seasons and cache", async () => {
       const tvShowData = {
-        seasons: [{ season_number: 1 }],
-      };
-      const season1Data = {
-        id: 100,
-        name: "Season 1",
-        season_number: 1,
-        air_date: "2008-01-20",
-        poster_path: "/s1.jpg",
-        episodes: [
+        seasons: [
           {
-            episode_number: 1,
-            name: "Pilot",
-            overview: "Walter White starts cooking meth.",
+            id: 100,
+            name: "Season 1",
+            season_number: 1,
+            episode_count: 7,
             air_date: "2008-01-20",
-            still_path: null,
+            poster_path: "/s1.jpg",
           },
         ],
       };
 
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get.mockReturnValueOnce(of({ data: tvShowData })).mockReturnValueOnce(of({ data: season1Data }));
+      mockHttpService.get.mockReturnValueOnce(of({ data: tvShowData }));
 
       const result = await service.getTVShowSeasonsById(1396);
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("Season 1");
-      expect(result[0].episodes).toHaveLength(1);
-      expect(result[0].episodes[0].name).toBe("Pilot");
+      expect(result[0].seasonNumber).toBe(1);
+      expect(mockCacheService.set).toHaveBeenCalled();
     });
 
     it("should throw AppException when request fails", async () => {
