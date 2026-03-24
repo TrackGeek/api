@@ -27,7 +27,11 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    return this.integrationsService.jikan.searchMangas(searchMangaDto);
+    return this.integrationsService.jikan.searchMangas({
+      ...searchMangaDto,
+      startDate: searchMangaDto.year ? `${searchMangaDto.year}-01-01` : undefined,
+      endDate: searchMangaDto.year ? `${searchMangaDto.year}-12-31` : undefined,
+    });
   }
 
   async topMangas(topMangaDto: TopMangaDto) {

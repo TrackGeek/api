@@ -25,7 +25,7 @@ export class SearchMangaDto {
   @IsOptional()
   readonly status?: JikanMangaStatus;
 
-  @Matches(/^\w+(?:,\w+)*$/)
+  @Matches(/^\d+(?:,\d+)*$/)
   @IsOptional()
   readonly genres?: string;
 
@@ -40,4 +40,8 @@ export class SearchMangaDto {
   @Matches(/^[a-zA-Z]$/)
   @IsOptional()
   readonly letter?: string;
+  
+  @IsOptional()
+  @Matches(/^\d{4}$/)
+  readonly year?: string;
 }

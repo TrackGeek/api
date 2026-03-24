@@ -352,7 +352,7 @@ export class JikanService {
   }: JikanSearchAnimeOptions): Promise<JikanPagination<JikanSearchAnime>> {
     try {
       const searchAnimeOptions = {
-        q: query,
+        query,
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
         page,
         rating,
@@ -376,7 +376,20 @@ export class JikanService {
 
       const animesResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/anime`, {
-          params: { ...searchAnimeOptions },
+          params: {
+            q: searchAnimeOptions.query,
+            page: searchAnimeOptions.page,
+            limit: searchAnimeOptions.limit,
+            rating: searchAnimeOptions.rating,
+            sort: searchAnimeOptions.sort,
+            order_by: searchAnimeOptions.orderBy,
+            status: searchAnimeOptions.status,
+            type: searchAnimeOptions.type,
+            genres: searchAnimeOptions.genres,
+            letter: searchAnimeOptions.letter,
+            start_date: searchAnimeOptions.startDate,
+            end_date: searchAnimeOptions.endDate,
+          },
         }),
       );
 
@@ -433,7 +446,7 @@ export class JikanService {
   }: JikanSearchMangaOptions): Promise<JikanPagination<JikanSearchManga>> {
     try {
       const searchMangaOptions = {
-        q: query,
+        query: query,
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
         page,
         sort,
@@ -456,7 +469,19 @@ export class JikanService {
 
       const mangasResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/manga`, {
-          params: { ...searchMangaOptions },
+          params: {
+            q: searchMangaOptions.query,
+            limit: searchMangaOptions.limit,
+            page: searchMangaOptions.page,
+            sort: searchMangaOptions.sort,
+            status: searchMangaOptions.status,
+            order_by: searchMangaOptions.orderBy,
+            type: searchMangaOptions.type,
+            genres: searchMangaOptions.genres,
+            letter: searchMangaOptions.letter,
+            start_date: searchMangaOptions.startDate,
+            end_date: searchMangaOptions.endDate,
+          },
         }),
       );
 

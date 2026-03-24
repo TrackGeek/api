@@ -33,7 +33,8 @@ export class AnimeService {
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
     return this.integrationsService.jikan.searchAnimes({
       ...searchAnimeDto,
-      startDate: searchAnimeDto.year,
+      startDate: searchAnimeDto.year ? `${searchAnimeDto.year}-01-01` : undefined,
+      endDate: searchAnimeDto.year ? `${searchAnimeDto.year}-12-31` : undefined,
     });
   }
 

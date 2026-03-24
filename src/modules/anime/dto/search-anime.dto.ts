@@ -30,7 +30,7 @@ export class SearchAnimeDto {
   @IsOptional()
   readonly rating?: JikanAnimeRatings;
 
-  @Matches(/^\w+(?:,\w+)*$/)
+  @Matches(/^\d+(?:,\d+)*$/)
   @IsOptional()
   readonly genres?: string;
 
@@ -47,5 +47,6 @@ export class SearchAnimeDto {
   readonly letter?: string;
 
   @IsOptional()
+  @Matches(/^\d{4}$/)
   readonly year?: string;
 }
