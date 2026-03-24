@@ -3,6 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 import { GameProgressFindManyArgs } from "@prisma/generated/models";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 
 @Injectable()
 export class GameProgressService {
@@ -32,6 +34,21 @@ export class GameProgressService {
         completedAt,
         startedAt,
       },
+    });
+  }
+
+  async deleteGameProgress(gameProgressId: string, userId: string) {
+    const gameProgress = await this.databaseService.gameProgress.findUnique({
+      where: { id: gameProgressId },
+      select: { userId: true },
+    });
+
+    if (!gameProgress || gameProgress.userId !== userId) {
+      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
+    }
+
+    await this.databaseService.gameProgress.delete({
+      where: { id: gameProgressId },
     });
   }
 

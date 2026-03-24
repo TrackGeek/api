@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { GameProgressService } from "../service/game-progress.service";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
@@ -18,6 +18,13 @@ export class GameProgressController {
       ...body,
       userId: session.user.id,
     });
+  }
+
+  @Delete("/:gameProgressId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteGameProgress(@Session() session: UserSession, @Param("gameProgressId") gameProgressId: string) {
+    await this.gameProgressService.deleteGameProgress(gameProgressId, session.user.id);
   }
 
   @Get("/")

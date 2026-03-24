@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { BookProgressService } from "../service/book-progress.service";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
@@ -18,6 +18,13 @@ export class BookProgressController {
       ...body,
       userId: session.user.id,
     });
+  }
+
+  @Delete("/:bookProgressId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteBookProgress(@Session() session: UserSession, @Param("bookProgressId") bookProgressId: string) {
+    await this.bookProgressService.deleteBookProgress(bookProgressId, session.user.id);
   }
 
   @Get("/")

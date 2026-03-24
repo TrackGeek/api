@@ -3,6 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
 import { BookProgressFindManyArgs } from "@prisma/generated/models";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 
 @Injectable()
 export class BookProgressService {
@@ -34,6 +36,21 @@ export class BookProgressService {
         completedAt,
         startedAt,
       },
+    });
+  }
+
+  async deleteBookProgress(bookProgressId: string, userId: string) {
+    const bookProgress = await this.databaseService.bookProgress.findUnique({
+      where: { id: bookProgressId },
+      select: { userId: true },
+    });
+
+    if (!bookProgress || bookProgress.userId !== userId) {
+      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
+    }
+
+    await this.databaseService.bookProgress.delete({
+      where: { id: bookProgressId },
     });
   }
 

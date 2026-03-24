@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { TVShowProgressService } from "../service/tv-show-progress.service";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
@@ -18,6 +18,13 @@ export class TVShowProgressController {
       ...body,
       userId: session.user.id,
     });
+  }
+
+  @Delete("/:tvShowProgressId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTVShowProgress(@Session() session: UserSession, @Param("tvShowProgressId") tvShowProgressId: string) {
+    await this.tvShowProgressService.deleteTVShowProgress(tvShowProgressId, session.user.id);
   }
 
   @Get("/")

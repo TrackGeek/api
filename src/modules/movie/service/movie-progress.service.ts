@@ -3,6 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateMovieProgressDto } from "../dto/create-or-update-movie-progress.dto";
 import { GetMovieProgressDto } from "../dto/get-movie-progress.dto";
 import { MovieProgressFindManyArgs } from "@prisma/generated/models";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 
 @Injectable()
 export class MovieProgressService {
@@ -26,6 +28,21 @@ export class MovieProgressService {
         userId,
         status,
       },
+    });
+  }
+
+  async deleteMovieProgress(movieProgressId: string, userId: string) {
+    const movieProgress = await this.databaseService.movieProgress.findUnique({
+      where: { id: movieProgressId },
+      select: { userId: true },
+    });
+
+    if (!movieProgress || movieProgress.userId !== userId) {
+      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
+    }
+
+    await this.databaseService.movieProgress.delete({
+      where: { id: movieProgressId },
     });
   }
 

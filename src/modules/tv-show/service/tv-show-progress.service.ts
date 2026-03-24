@@ -3,6 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 
 @Injectable()
 export class TVShowProgressService {
@@ -33,6 +35,26 @@ export class TVShowProgressService {
         startedAt,
       },
     });
+  }
+
+  async deleteTVShowProgress(tvShowProgressId: string, userId: string) {
+    const tvShowProgress = await this.databaseService.tvShowProgress.findUnique({
+      where: { id: tvShowProgressId },
+      select: { tvShowId: true, userId: true },
+    });
+
+    if (!tvShowProgress || tvShowProgress.userId !== userId) {
+      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
+    }
+
+    await this.databaseService.$transaction([
+      this.databaseService.tvShowEpisodeWatch.deleteMany({
+        where: { tvShowId: tvShowProgress.tvShowId, userId },
+      }),
+      this.databaseService.tvShowProgress.delete({
+        where: { id: tvShowProgressId },
+      }),
+    ]);
   }
 
   async getTVShowProgress(getTVShowProgressDto: GetTVShowProgressDto) {

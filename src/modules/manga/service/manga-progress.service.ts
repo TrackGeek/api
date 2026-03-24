@@ -51,6 +51,21 @@ export class MangaProgressService {
     });
   }
 
+  async deleteMangaProgress(mangaProgressId: string, userId: string) {
+    const mangaProgress = await this.databaseService.mangaProgress.findUnique({
+      where: { id: mangaProgressId },
+      select: { userId: true },
+    });
+
+    if (!mangaProgress || mangaProgress.userId !== userId) {
+      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
+    }
+
+    await this.databaseService.mangaProgress.delete({
+      where: { id: mangaProgressId },
+    });
+  }
+
   async getMangaProgress(getMangaProgressDto: GetMangaProgressDto) {
     const mangaProgress = await this.databaseService.offsetPagination<MangaProgressFindManyArgs>({
       model: "mangaProgress",
