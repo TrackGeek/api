@@ -206,14 +206,16 @@ export interface TMDBTVShowSeason {
   name: string;
   seasonNumber: number;
   airDate: Date | null;
+  numberOfEpisodes: number;
   posterUrl: string | null;
-  episodes: {
-    episodeNumber: number;
-    name: string;
-    overview: string | null;
-    airDate: Date | null;
-    stillUrl: string | null;
-  }[];
+}
+
+export interface TMDBTVShowSeasonEpisode {
+  episodeNumber: number;
+  name: string;
+  overview: string | null;
+  airDate: Date | null;
+  stillUrl: string | null;
 }
 
 @Injectable()
@@ -484,16 +486,16 @@ export class TMDBService {
     }
   }
 
-  async getMovieById(id: number): Promise<TMDBMovieDetails> {
+  async getMovieById(tmdbId: number): Promise<TMDBMovieDetails> {
     try {
-      const cachedMovie = await this.cacheService.get<TMDBMovieDetails>(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id));
+      const cachedMovie = await this.cacheService.get<TMDBMovieDetails>(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(tmdbId));
 
       if (cachedMovie) {
         return cachedMovie;
       }
 
       const movieResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/movie/${id}`, {
+        this.httpService.get(`${this.TMDB_API_URL}/movie/${tmdbId}`, {
           params: {
             append_to_response: "credits,videos,external_ids,images",
           },
@@ -563,7 +565,7 @@ export class TMDBService {
       } as TMDBMovieDetails;
 
       await this.cacheService.set(
-        CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(id),
+        CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(tmdbId),
         movie,
         CACHE_KEYS.TMDB_MOVIE_BY_ID.expiration,
       );
@@ -574,15 +576,15 @@ export class TMDBService {
         throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch movie details for ID ${id} from TMDB API: ${error.message}`, error.stack);
+      this.logger.error(`Failed to fetch movie details for ID ${tmdbId} from TMDB API: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
 
-  async getTVShowById(id: number): Promise<TMDBTVShowDetails> {
+  async getTVShowById(tmdbId: number): Promise<TMDBTVShowDetails> {
     try {
-      const cachedTVShow = await this.cacheService.get<TMDBTVShowDetails>(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id));
+      const cachedTVShow = await this.cacheService.get<TMDBTVShowDetails>(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(tmdbId));
 
       if (cachedTVShow) {
         return cachedTVShow;
@@ -590,7 +592,7 @@ export class TMDBService {
 
       const tvShowResponse = await firstValueFrom(
         this.httpService.get(
-          `${this.TMDB_API_URL}/tv/${id}?append_to_response=credits%2Cimages%2Cvideos%2Cexternal_ids`,
+          `${this.TMDB_API_URL}/tv/${tmdbId}?append_to_response=credits%2Cimages%2Cvideos%2Cexternal_ids`,
           {
             headers: {
               Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
@@ -692,7 +694,7 @@ export class TMDBService {
       } as TMDBTVShowDetails;
 
       await this.cacheService.set(
-        CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(id),
+        CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(tmdbId),
         tvShow,
         CACHE_KEYS.TMDB_TV_SHOW_BY_ID.expiration,
       );
@@ -703,7 +705,10 @@ export class TMDBService {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch TV show details for ID ${id} from TMDB API: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to fetch TV show details for ID ${tmdbId} from TMDB API: ${error.message}`,
+        error.stack,
+      );
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
@@ -729,34 +734,14 @@ export class TMDBService {
 
       const tvShowData = tvShowResponse.data;
 
-      const seasons: any[] = [];
-
-      for (const season of tvShowData.seasons) {
-        const seasonResponse = await firstValueFrom(
-          this.httpService.get(`${this.TMDB_API_URL}/tv/${id}/season/${season.season_number}`, {
-            headers: {
-              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-            },
-          }),
-        );
-
-        const seasonData = seasonResponse.data;
-
-        seasons.push({
-          id: seasonData.id,
-          name: seasonData.name,
-          seasonNumber: seasonData.season_number,
-          airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
-          posterUrl: seasonData.poster_path ? `https://image.tmdb.org/t/p/w500${seasonData.poster_path}` : null,
-          episodes: seasonData.episodes.map((episode: any) => ({
-            episodeNumber: episode.episode_number,
-            name: episode.name,
-            overview: episode.overview,
-            airDate: episode.air_date ? new Date(episode.air_date) : null,
-            stillUrl: episode.still_path ? `https://image.tmdb.org/t/p/w500${episode.still_path}` : null,
-          })),
-        });
-      }
+      const seasons = tvShowData.seasons.map((season: any) => ({
+        id: season.id,
+        name: season.name,
+        seasonNumber: season.season_number,
+        numberOfEpisodes: season.episode_count,
+        airDate: season.air_date ? new Date(season.air_date) : null,
+        posterUrl: season.poster_path ? `https://image.tmdb.org/t/p/w500${season.poster_path}` : null,
+      }));
 
       await this.cacheService.set(
         CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id),
@@ -771,6 +756,56 @@ export class TMDBService {
       }
 
       this.logger.error(`Failed to fetch TV show seasons for ID ${id} from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getTVShowSeasonEpisdoesById(tmdbId: number, seasonId: number): Promise<TMDBTVShowSeasonEpisode[]> {
+    try {
+      const cachedEpisodes = await this.cacheService.get<TMDBTVShowSeasonEpisode[]>(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonId),
+      );
+
+      if (cachedEpisodes) {
+        return cachedEpisodes;
+      }
+
+      const seasonResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/tv/${tmdbId}/season/${seasonId}`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const seasonData = seasonResponse.data;
+
+      const episodes = seasonData.episodes.map((episode: any) => ({
+        seasonNumber: seasonData.season_number,
+        episodeNumber: episode.episode_number,
+        name: episode.name,
+        overview: episode.overview,
+        airDate: episode.air_date ? new Date(episode.air_date) : null,
+        stillUrl: episode.still_path ? `https://image.tmdb.org/t/p/w500${episode.still_path}` : null,
+      }));
+
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonId),
+        episodes,
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.expiration,
+      );
+
+      return episodes;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+      }
+
+      this.logger.error(
+        `Failed to fetch TV show seasons for ID ${tmdbId} season ${seasonId} from TMDB API: ${error.message}`,
+        error.stack,
+      );
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }

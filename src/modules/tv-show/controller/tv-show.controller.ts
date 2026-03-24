@@ -40,8 +40,18 @@ export class TVShowController {
 
   @Get("/detail/:tmdbId/season")
   async getTVShowSeasonsByTmdbId(@Param("tmdbId", new ParseIntPipe()) tmdbId: number) {
-    const seasons = await this.tvShowService.getTVShowSeasonsByTmdbId(tmdbId);
+    const seasons = await this.tvShowService.getTVShowSeasons(tmdbId);
 
     return { seasons };
+  }
+
+  @Get("/detail/:tmdbId/season/:seasonNumber/episode")
+  async getTVShowSeasonEpisodes(
+    @Param("tmdbId", new ParseIntPipe()) tmdbId: number,
+    @Param("seasonNumber", new ParseIntPipe()) seasonNumber: number,
+  ) {
+    const episodes = await this.tvShowService.getTVShowSeasonEpisodes(tmdbId, seasonNumber);
+
+    return { episodes };
   }
 }
