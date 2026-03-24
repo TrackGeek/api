@@ -14,6 +14,7 @@ import {
   JikanAnimeRatings,
   JikanAnimeStatus,
   JikanAnimeType,
+  JikanPagination,
   JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
@@ -99,11 +100,31 @@ export class AnimeService {
       throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
     }
 
-    const episdoes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
-
+    const JIKAN_EPISODES_PER_PAGE = 100;
+    const page = getAnimeEpisodesByMalIdDto.page ?? 1;
     const existingEpisodes = (anime.episodes ?? []) as unknown as JikanAnimeEpisode[];
+    const pageStart = (page - 1) * JIKAN_EPISODES_PER_PAGE;
+    const pageEnd = page * JIKAN_EPISODES_PER_PAGE;
+    const pageEpisodes = existingEpisodes.slice(pageStart, pageEnd);
+
+    const hasFullPage = pageEpisodes.length === JIKAN_EPISODES_PER_PAGE;
+
+    if (hasFullPage) {
+      const result: JikanPagination<JikanAnimeEpisode> = {
+        hasNextPage: existingEpisodes.length > pageEnd,
+        nextCursor: existingEpisodes.length > pageEnd ? page + 1 : null,
+        items: pageEpisodes,
+      };
+
+      await this.cacheService.set(cachedEpisodesKey, result, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
+
+      return result;
+    }
+
+    const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
+
     const existingNumbers = new Set(existingEpisodes.map((ep) => ep.episodeNumber));
-    const newEpisodes = episdoes.items.filter((ep) => !existingNumbers.has(ep.episodeNumber));
+    const newEpisodes = episodes.items.filter((ep) => !existingNumbers.has(ep.episodeNumber));
 
     if (newEpisodes.length > 0) {
       await this.databaseService.anime.update({
@@ -112,9 +133,9 @@ export class AnimeService {
       });
     }
 
-    await this.cacheService.set(cachedEpisodesKey, episdoes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
+    await this.cacheService.set(cachedEpisodesKey, episodes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
 
-    return episdoes;
+    return episodes;
   }
 
   async refreshAnime(refreshAnimeDto: RefreshAnimeDto) {
