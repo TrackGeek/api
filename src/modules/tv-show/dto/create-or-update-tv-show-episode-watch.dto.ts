@@ -1,42 +1,28 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { WatchEpisodeStatus } from "@prisma/generated/enums";
-import { IsEnum, IsInt, IsNotEmpty, IsPositive } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsPositive, ValidateNested } from "class-validator";
 
-export class CreateOrUpdateTVShowEpisodeWatchDto {
-  @IsEnum(WatchEpisodeStatus)
-  @ApiProperty({
-    enum: WatchEpisodeStatus,
-  })
-  readonly status: WatchEpisodeStatus;
-
+export class TVShowEpisodeWatchItemDto {
   @IsInt()
   @IsPositive()
-  @ApiProperty({
-    type: "integer",
-    minimum: 1,
-  })
   readonly season: number;
 
   @IsInt()
   @IsPositive()
-  @ApiProperty({
-    type: "integer",
-    minimum: 1,
-  })
   readonly episode: number;
 
+  @IsEnum(WatchEpisodeStatus)
+  readonly status: WatchEpisodeStatus;
+}
+
+export class CreateOrUpdateTVShowEpisodeWatchDto {
   @IsNotEmpty()
-  @ApiProperty({
-    description: "ID of the TV show",
-    example: "14424",
-    type: "string",
-  })
   readonly tvShowId: string;
 
-  @ApiProperty({
-    description: "ID of the user",
-    example: "1",
-    type: "string",
-  })
   readonly userId: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TVShowEpisodeWatchItemDto)
+  readonly episodes: TVShowEpisodeWatchItemDto[];
 }

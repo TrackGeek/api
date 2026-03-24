@@ -1,6 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-show-episode-watch.dto";
+import { DeleteTVShowEpisodeWatchDto } from "../dto/delete-tv-show-episode-watch.dto";
+import { DeleteAllTVShowEpisodeWatchDto } from "../dto/delete-all-tv-show-episode-watch.dto";
 import { TVShowEpisodeWatchService } from "../service/tv-show-episode-watch.service";
 import { GetTVShowEpisodeWatchDto } from "../dto/get-tv-show-episode-watch.dto";
 import { WatchAllEpisodesOfTVShowDto } from "../dto/watch-all-episodes-of-tv-show.dto";
@@ -14,7 +16,10 @@ export class TVShowEpisodeWatchController {
   @Post("/")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async createTVShowEpisodeWatch(@Session() session: UserSession, @Body() body: CreateOrUpdateTVShowEpisodeWatchDto) {
+  async createOrUpdateTVShowEpisodeWatch(
+    @Session() session: UserSession,
+    @Body() body: CreateOrUpdateTVShowEpisodeWatchDto,
+  ) {
     await this.tvShowEpisodeWatchService.createOrUpdateTVShowEpisodeWatch({
       ...body,
       userId: session.user.id,
@@ -40,5 +45,25 @@ export class TVShowEpisodeWatchController {
     });
 
     return tvShowEpisodeWatch;
+  }
+
+  @Delete("/")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTVShowEpisodeWatch(@Session() session: UserSession, @Body() body: DeleteTVShowEpisodeWatchDto) {
+    await this.tvShowEpisodeWatchService.deleteTVShowEpisodeWatch({
+      ...body,
+      userId: session.user.id,
+    });
+  }
+
+  @Delete("/all")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAllTVShowEpisodeWatch(@Session() session: UserSession, @Body() body: DeleteAllTVShowEpisodeWatchDto) {
+    await this.tvShowEpisodeWatchService.deleteAllTVShowEpisodeWatch({
+      ...body,
+      userId: session.user.id,
+    });
   }
 }
