@@ -56,7 +56,7 @@ export class ListService {
   }
 
   async addItemToList(addItemToListDto: AddItemToListDto) {
-    const { listId, userId, item } = addItemToListDto;
+    const { listId, userId, item, position } = addItemToListDto;
 
     const listAlreadyExists = await this.databaseService.list.findFirst({
       where: {
@@ -85,6 +85,7 @@ export class ListService {
     const listItem = await this.databaseService.listItem.create({
       data: {
         listId,
+        position,
         ...entityId,
       },
       include: {
