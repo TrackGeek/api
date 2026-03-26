@@ -41,13 +41,13 @@ export class CommentService {
   }
 
   async getComments(getCommentsDto: GetCommentsDto) {
-    const pagination = await this.databaseService.cursorPagination<CommentFindManyArgs>({
+    const pagination = await this.databaseService.offsetPagination<CommentFindManyArgs>({
       model: "comment",
       where: {
         type: getCommentsDto.type,
         ...getCommentsDto.item,
       },
-      cursor: getCommentsDto.cursor,
+      page: getCommentsDto.page,
       itemsPerPage: getCommentsDto.itemsPerPage,
       include: {
         user: {

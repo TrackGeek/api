@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { CursorPaginationParamsDto } from "@/shared/infra/database/dtos/cursor-pagination.dto";
+import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
-export class GetFeedEventsByUserDto extends CursorPaginationParamsDto {
+export class GetFeedEventsByUserDto extends OffsetPaginationParamsDto {
   @ApiProperty({ type: "string", format: "uuid" })
   readonly userId: string;
 }

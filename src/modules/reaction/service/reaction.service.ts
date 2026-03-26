@@ -41,13 +41,13 @@ export class ReactionService {
   }
 
   async getReactions(getReactionsDto: GetReactionsDto) {
-    const pagination = await this.databaseService.cursorPagination<ReactionFindManyArgs>({
+    const pagination = await this.databaseService.offsetPagination<ReactionFindManyArgs>({
       model: "reaction",
       where: {
         type: getReactionsDto.type,
         ...getReactionsDto.item,
       },
-      cursor: getReactionsDto.cursor,
+      page: getReactionsDto.page,
       itemsPerPage: getReactionsDto.itemsPerPage,
       include: {
         comment: true,

@@ -2,7 +2,7 @@ import { ApiExtraModels, ApiProperty } from "@nestjs/swagger";
 import { CommentType } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
 import { IsEnum, ValidateNested } from "class-validator";
-import { CursorPaginationParamsDto } from "@/shared/infra/database/dtos/cursor-pagination.dto";
+import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 import {
   AnimeCommentItemDto,
   BookCommentItemDto,
@@ -24,7 +24,7 @@ import {
   BookCommentItemDto,
   ProfileCommentItemDto,
 )
-export class GetCommentsDto extends CursorPaginationParamsDto {
+export class GetCommentsDto extends OffsetPaginationParamsDto {
   @IsEnum(CommentType)
   @ApiProperty({ enum: CommentType })
   readonly type: CommentType;
