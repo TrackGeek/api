@@ -17,7 +17,7 @@ export class FavoriteService {
   ) {}
 
   async addFavorite(addFavoriteDto: AddFavoriteDto) {
-    const { type, userId, item } = addFavoriteDto;
+    const { type, userId, item, position } = addFavoriteDto;
 
     const entityId = { ...item } as Record<string, any>;
 
@@ -25,6 +25,7 @@ export class FavoriteService {
       data: {
         type,
         userId,
+        position,
         ...entityId,
       },
       include: {
