@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateTVShowReviewDto {
-  @IsDecimal()
+  @IsNumber()
   @Max(10)
   @Min(0)
   @ApiProperty({
@@ -12,7 +12,7 @@ export class CreateTVShowReviewDto {
   })
   readonly overall: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
@@ -23,7 +23,7 @@ export class CreateTVShowReviewDto {
   })
   readonly direction?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
@@ -34,7 +34,7 @@ export class CreateTVShowReviewDto {
   })
   readonly production?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)

@@ -1,18 +1,18 @@
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateMangaReviewDto {
-  @IsDecimal()
+  @IsNumber()
   @Max(10)
   @Min(0)
   readonly overall: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   readonly art?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)

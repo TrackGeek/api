@@ -1,42 +1,42 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
 
 export class CreateAnimeReviewDto {
-  @IsDecimal()
+  @IsNumber()
   @Max(10)
   @Min(0)
   @ApiProperty({ type: "number", minimum: 0, maximum: 10 })
   readonly overall: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
   readonly story?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
   readonly characters?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
   readonly animation?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
   readonly sound?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
