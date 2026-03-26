@@ -40,7 +40,7 @@ export class SearchMangaDto {
   @Matches(/^[a-zA-Z]$/)
   @IsOptional()
   readonly letter?: string;
-  
+
   @IsOptional()
   @Matches(/^\d{4}$/)
   readonly year?: string;

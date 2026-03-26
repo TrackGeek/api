@@ -27,15 +27,65 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    return this.integrationsService.jikan.searchMangas({
+    const jikanPagination = await this.integrationsService.jikan.searchMangas({
       ...searchMangaDto,
       startDate: searchMangaDto.year ? `${searchMangaDto.year}-01-01` : undefined,
       endDate: searchMangaDto.year ? `${searchMangaDto.year}-12-31` : undefined,
     });
+
+    const items = await Promise.all(
+      jikanPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.mangaReview
+          .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const manga = await this.databaseService.manga.findUnique({
+          where: { malId: item.malId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: manga?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...jikanPagination,
+      items,
+    };
   }
 
   async topMangas(topMangaDto: TopMangaDto) {
-    return this.integrationsService.jikan.topMangas(topMangaDto);
+    const jikanPagination = await this.integrationsService.jikan.topMangas(topMangaDto);
+
+    const items = await Promise.all(
+      jikanPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.mangaReview
+          .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const manga = await this.databaseService.manga.findUnique({
+          where: { malId: item.malId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: manga?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...jikanPagination,
+      items,
+    };
   }
 
   async mangaFilters() {
@@ -55,7 +105,9 @@ export class MangaService {
   }
 
   async getMangaByMalId(malId: number) {
-    const cachedManga = await this.cacheService.get<Manga>(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId));
+    const mangaDetailKey = CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId);
+
+    const cachedManga = await this.cacheService.get<Manga>(mangaDetailKey);
 
     if (cachedManga) {
       return cachedManga;
@@ -73,9 +125,19 @@ export class MangaService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId), manga, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+    const tgReviewScore = await this.databaseService.mangaReview
+      .aggregate({ where: { manga: { malId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
 
-    return manga;
+    const mangaWithScore = {
+      ...manga,
+      tgReviewScore,
+    };
+
+    await this.cacheService.set(mangaDetailKey, mangaWithScore, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+
+    return mangaWithScore;
   }
 
   async refreshManga(refreshMangaDto: RefreshMangaDto) {
@@ -94,8 +156,10 @@ export class MangaService {
       throw new AppException(ERROR_CODES.MANGA_ALREADY_REFRESHED);
     }
 
-    if (await this.cacheService.exists(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId))) {
-      await this.cacheService.delete(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId));
+    const mangaDetailKey = CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId);
+
+    if (await this.cacheService.exists(mangaDetailKey)) {
+      await this.cacheService.delete(mangaDetailKey);
     }
 
     const jikanManga = await this.integrationsService.jikan.getMangaById(refreshMangaDto.malId);
@@ -105,10 +169,6 @@ export class MangaService {
       data: jikanManga as unknown as MangaUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId),
-      manga,
-      CACHE_KEYS.MANGA_BY_MAL_ID.expiration,
-    );
+    await this.cacheService.set(mangaDetailKey, manga, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
   }
 }
