@@ -379,6 +379,7 @@ model Anime {
   source           String?
   numberOfEpisodes Int?
   status           String?
+  isAdult          Boolean?
   aired            Json?
   duration         String?
   rating           String?
@@ -403,6 +404,7 @@ model Anime {
   cast             Json?
   videos           Json?
   episodes         Json?
+  malReviewScore   Float?
   lastRefreshedAt  DateTime @default(now())
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -422,6 +424,7 @@ model Manga {
   imageUrl         String?
   title            String
   titles           Json?
+  isAdult          Boolean?
   type             String?
   numberOfChapters Int?
   numberOfVolumes  Int?
@@ -873,6 +876,7 @@ model List {
 model ListItem {
   id       String  @id @default(uuid(7))
   listId   String
+  position Int?
   animeId  String?
   mangaId  String?
   tvShowId String?
@@ -908,6 +912,7 @@ enum FavoriteType {
 model Favorite {
   id        String       @id @default(uuid(7))
   type      FavoriteType
+  position  Int?
   userId    String
   animeId   String?
   mangaId   String?
