@@ -6,15 +6,13 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import { DatabaseService, DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
-  JikanAnimeEpisode,
   JikanAnimeOrderBy,
   JikanAnimeRatings,
   JikanAnimeStatus,
   JikanAnimeType,
-  JikanPagination,
   JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
@@ -31,15 +29,65 @@ export class AnimeService {
   ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
-    return this.integrationsService.jikan.searchAnimes({
+    const jikanPagination = await this.integrationsService.jikan.searchAnimes({
       ...searchAnimeDto,
       startDate: searchAnimeDto.year ? `${searchAnimeDto.year}-01-01` : undefined,
       endDate: searchAnimeDto.year ? `${searchAnimeDto.year}-12-31` : undefined,
     });
+
+    const items = await Promise.all(
+      jikanPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.animeReview
+          .aggregate({ where: { anime: { malId: item.malId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const anime = await this.databaseService.anime.findUnique({
+          where: { malId: item.malId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: anime?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...jikanPagination,
+      items,
+    };
   }
 
   async topAnimes(topAnimeDto: TopAnimeDto) {
-    return this.integrationsService.jikan.topAnimes(topAnimeDto);
+    const jikanPagination = await this.integrationsService.jikan.topAnimes(topAnimeDto);
+
+    const items = await Promise.all(
+      jikanPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.animeReview
+          .aggregate({ where: { anime: { malId: item.malId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const anime = await this.databaseService.anime.findUnique({
+          where: { malId: item.malId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: anime?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...jikanPagination,
+      items,
+    };
   }
 
   async animeFilters() {
@@ -61,7 +109,9 @@ export class AnimeService {
   }
 
   async getAnimeByMalId(malId: number) {
-    const cachedAnime = await this.cacheService.get<Anime>(CACHE_KEYS.ANIME_BY_MAL_ID.prefix(malId));
+    const animeDetailKey = CACHE_KEYS.ANIME_BY_MAL_ID.prefix(malId);
+
+    const cachedAnime = await this.cacheService.get<Anime>(animeDetailKey);
 
     if (cachedAnime) {
       return cachedAnime;
@@ -69,6 +119,9 @@ export class AnimeService {
 
     let anime = await this.databaseService.anime.findUnique({
       where: { malId },
+      omit: {
+        episodes: true,
+      },
     });
 
     if (!anime) {
@@ -79,12 +132,25 @@ export class AnimeService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.ANIME_BY_MAL_ID.prefix(malId), anime, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
+    const tgReviewScore = await this.databaseService.animeReview
+      .aggregate({ where: { anime: { malId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
 
-    return anime;
+    const animeWithScore = {
+      ...anime,
+      tgReviewScore,
+    };
+
+    await this.cacheService.set(animeDetailKey, animeWithScore, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
+
+    return animeWithScore;
   }
 
   async getAnimeEpisodesByMalId(getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto) {
+    const { malId, page = DEFAULT_PAGINATION_PAGE } = getAnimeEpisodesByMalIdDto;
+    const pageKey = String(page);
+
     const cachedEpisodesKey = CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(getAnimeEpisodesByMalIdDto);
     const cachedEpisodes = await this.cacheService.get(cachedEpisodesKey);
 
@@ -93,7 +159,7 @@ export class AnimeService {
     }
 
     const anime = await this.databaseService.anime.findUnique({
-      where: { malId: getAnimeEpisodesByMalIdDto.malId },
+      where: { malId },
       select: { episodes: true },
     });
 
@@ -101,38 +167,24 @@ export class AnimeService {
       throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
     }
 
-    const JIKAN_EPISODES_PER_PAGE = 100;
-    const page = getAnimeEpisodesByMalIdDto.page ?? 1;
-    const existingEpisodes = (anime.episodes ?? []) as unknown as JikanAnimeEpisode[];
-    const pageStart = (page - 1) * JIKAN_EPISODES_PER_PAGE;
-    const pageEnd = page * JIKAN_EPISODES_PER_PAGE;
-    const pageEpisodes = existingEpisodes.slice(pageStart, pageEnd);
+    const storedEpisodes = (anime.episodes ?? {}) as Record<string, unknown>;
 
-    const hasFullPage = pageEpisodes.length === JIKAN_EPISODES_PER_PAGE;
+    if (storedEpisodes[pageKey]) {
+      await this.cacheService.set(
+        cachedEpisodesKey,
+        storedEpisodes[pageKey],
+        CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration,
+      );
 
-    if (hasFullPage) {
-      const result: JikanPagination<JikanAnimeEpisode> = {
-        hasNextPage: existingEpisodes.length > pageEnd,
-        nextCursor: existingEpisodes.length > pageEnd ? page + 1 : null,
-        items: pageEpisodes,
-      };
-
-      await this.cacheService.set(cachedEpisodesKey, result, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
-
-      return result;
+      return storedEpisodes[pageKey];
     }
 
     const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
 
-    const existingNumbers = new Set(existingEpisodes.map((ep) => ep.episodeNumber));
-    const newEpisodes = episodes.items.filter((ep) => !existingNumbers.has(ep.episodeNumber));
-
-    if (newEpisodes.length > 0) {
-      await this.databaseService.anime.update({
-        where: { malId: getAnimeEpisodesByMalIdDto.malId },
-        data: { episodes: [...existingEpisodes, ...newEpisodes] } as unknown as AnimeUpdateInput,
-      });
-    }
+    await this.databaseService.anime.update({
+      where: { malId },
+      data: { episodes: { ...storedEpisodes, [pageKey]: episodes } as any },
+    });
 
     await this.cacheService.set(cachedEpisodesKey, episodes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
 
@@ -155,8 +207,10 @@ export class AnimeService {
       throw new AppException(ERROR_CODES.ANIME_ALREADY_REFRESHED);
     }
 
-    if (await this.cacheService.exists(CACHE_KEYS.ANIME_BY_MAL_ID.prefix(refreshAnimeDto.malId))) {
-      await this.cacheService.delete(CACHE_KEYS.ANIME_BY_MAL_ID.prefix(refreshAnimeDto.malId));
+    const animeDetailKey = CACHE_KEYS.ANIME_BY_MAL_ID.prefix(refreshAnimeDto.malId);
+
+    if (await this.cacheService.exists(animeDetailKey)) {
+      await this.cacheService.delete(animeDetailKey);
     }
 
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
@@ -166,10 +220,6 @@ export class AnimeService {
       data: { ...jikanAnime } as unknown as AnimeUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.ANIME_BY_MAL_ID.prefix(refreshAnimeDto.malId),
-      anime,
-      CACHE_KEYS.ANIME_BY_MAL_ID.expiration,
-    );
+    await this.cacheService.set(animeDetailKey, anime, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
   }
 }
