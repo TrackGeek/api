@@ -425,6 +425,7 @@ model Manga {
   title            String
   titles           Json?
   isAdult          Boolean?
+  malReviewScore   Float?
   type             String?
   numberOfChapters Int?
   numberOfVolumes  Int?
@@ -461,6 +462,8 @@ model TvShow {
   episodeRuntime      Int[]
   firstAirDate        DateTime?
   genres              Json?
+  isAdult             Boolean?
+  tmdbReviewScore     Float?
   homepage            String?
   inProduction        Boolean?
   languages           String[]
@@ -507,6 +510,8 @@ model Movie {
   id                  String    @id @default(uuid(7))
   tmdbId              Int       @unique
   imdbId              String?
+  isAdult             Boolean?
+  tmdbReviewScore     Float?
   belongsToCollection Json?
   budget              Int?
   genres              Json?
