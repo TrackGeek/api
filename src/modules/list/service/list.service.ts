@@ -91,10 +91,15 @@ export class ListService {
       include: {
         anime: {
           omit: {
+            relations: true,
             episodes: true,
           },
         },
-        manga: true,
+        manga: {
+          omit: {
+            relations: true,
+          }
+        },
         tvShow: {
           omit: {
             seasons: true,
@@ -204,10 +209,15 @@ export class ListService {
       include: {
         anime: {
           omit: {
+            relations: true,
             episodes: true,
           },
         },
-        manga: true,
+        manga: {
+          omit: {
+            relations: true,
+          }
+        },
         tvShow: {
           omit: {
             seasons: true,

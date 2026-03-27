@@ -139,6 +139,41 @@ export class MangaService {
 
     return mangaWithScore;
   }
+  
+  async getMangaRelationsByMalId(malId: number) {
+    const cachedRelationsKey = CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.prefix(malId);
+    const cachedRelations = await this.cacheService.get(cachedRelationsKey);
+
+    if (cachedRelations) {
+      return cachedRelations;
+    }
+    
+    const manga = await this.databaseService.manga.findUnique({
+      where: { malId },
+      select: { relations: true },
+    });
+
+    if (!manga) {
+      throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
+    }
+
+    if (manga.relations) {
+      await this.cacheService.set(cachedRelationsKey, manga.relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
+
+      return manga.relations;
+    }
+    
+    const relations = await this.integrationsService.jikan.getMangaRelationsById(malId);
+    
+    await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
+    
+    await this.databaseService.manga.update({
+      where: { malId },
+      data: { relations },
+    });
+
+    return relations
+  }
 
   async refreshManga(refreshMangaDto: RefreshMangaDto) {
     const manga = await this.databaseService.manga.findUnique({
@@ -163,10 +198,11 @@ export class MangaService {
     }
 
     const jikanManga = await this.integrationsService.jikan.getMangaById(refreshMangaDto.malId);
-
+    const jikanRelations = await this.integrationsService.jikan.getMangaRelationsById(refreshMangaDto.malId);
+    
     await this.databaseService.manga.update({
       where: { malId: refreshMangaDto.malId },
-      data: jikanManga as unknown as MangaUpdateInput,
+      data: { ...jikanManga, relations: jikanRelations } as unknown as MangaUpdateInput,
     });
 
     await this.cacheService.set(mangaDetailKey, manga, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);

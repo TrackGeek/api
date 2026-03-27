@@ -69,6 +69,7 @@ export class AnimeProgressService {
       include: {
         anime: {
           omit: {
+            relations: true,
             episodes: true,
           },
         },

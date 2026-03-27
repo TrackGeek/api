@@ -37,6 +37,7 @@ export class AnimeReviewService {
       include: {
         anime: {
           omit: {
+            relations: true,
             episodes: true,
           },
         },
@@ -69,6 +70,7 @@ export class AnimeReviewService {
       include: {
         anime: {
           omit: {
+            relations: true,
             episodes: true,
           },
         },
@@ -107,6 +109,7 @@ export class AnimeReviewService {
       include: {
         anime: {
           omit: {
+            relations: true,
             episodes: true,
           },
         },

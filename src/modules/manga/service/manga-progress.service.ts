@@ -76,7 +76,11 @@ export class MangaProgressService {
         ...(getMangaProgressDto.userId && { userId: getMangaProgressDto.userId }),
       },
       include: {
-        manga: true,
+        manga: {
+          omit: {
+            relations: true,
+          }
+        },
         user: {
           select: {
             id: true,

@@ -9,11 +9,11 @@ import { CacheService } from "../cache/cache.service";
 import { DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE } from "../database/database.service";
 
 export interface JikanPagination<I> {
-  total?: number;
-  pages?: number;
-  inPage?: number;
-  itemsInPage?: number;
-  itemsPerPage?: number;
+  total: number | null;
+  pages: number;
+  inPage: number;
+  itemsInPage: number;
+  itemsPerPage: number | null;
   items: I[];
 }
 
@@ -288,7 +288,6 @@ export interface JikanAnimeDetails {
       video: JikanVideo;
     }[];
   };
-  relations: JikanRelation[];
 }
 
 export interface JikanAnimeEpisode {
@@ -325,7 +324,6 @@ export interface JikanMangaDetails {
     imageUrl: string | null;
     role: string;
   }[];
-  relations: JikanRelation[];
 }
 
 @Injectable()
@@ -751,17 +749,6 @@ export class JikanService {
       const staffData = staffResponse.data.data;
       const charactersData = charactersResponse.data.data;
 
-      const relations = animeFullData.relations
-        ? animeFullData.relations.map((relation) => ({
-            relationType: relation.relation,
-            entry: relation.entry.map((entry) => ({
-              malId: entry.mal_id,
-              title: entry.title,
-              type: entry.type,
-            })),
-          }))
-        : [];
-
       const characters = charactersData.map((char) => ({
         malId: char.character.mal_id,
         name: char.character.name,
@@ -875,7 +862,6 @@ export class JikanService {
         characters,
         cast,
         videos,
-        relations,
         malReviewScore: animeFullData?.score ?? 0,
       } as JikanAnimeDetails;
 
@@ -892,6 +878,57 @@ export class JikanService {
       }
 
       this.logger.error(`Failed to fetch anime details for ID ${id} from Jikan API`, error);
+
+      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+    }
+  }
+  
+  async getAnimeRelationsById(id: number) {
+    try {
+      const relationsResponse = await firstValueFrom(this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/relations`));
+
+      const relationsData = relationsResponse.data.data;
+
+      const allEntries = relationsData.flatMap(
+        (relation) => relation.entry,
+      );
+
+      const imageUrlMap = new Map<number, string | null>();
+
+      if (allEntries.length > 0) {
+        const urls = allEntries.map((entry) => `${this.JIKAN_API_URL}/${entry.type === 'anime' ? 'anime' : 'manga'}/${entry.mal_id}`);
+
+        const responses = await manyRequestWithDelay({
+          httpService: this.httpService,
+          urls,
+          delayMs: 800
+        });
+
+        for (let i = 0; i < allEntries.length; i++) {
+          const entry = allEntries[i];
+          const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
+          
+          imageUrlMap.set(entry.mal_id, imageUrl);
+        }
+      }
+
+      const relations = relationsData.map((relation) => ({
+        relationType: relation.relation,
+        entry: relation.entry.map((entry) => ({
+          malId: entry.mal_id,
+          title: entry.name,
+          type: entry.type,
+          imageUrl: imageUrlMap.get(entry.mal_id) ?? null,
+        })),
+      }));
+
+      return relations;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch anime relations for ID ${id} from Jikan API`, error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
@@ -918,9 +955,11 @@ export class JikanService {
       }));
 
       return {
+        total: null,
         pages: paginationData.last_visible_page,
         inPage: page,
         itemsInPage: items.length,
+        itemsPerPage: null,
         items,
       };
     } catch (error) {
@@ -957,17 +996,6 @@ export class JikanService {
         role: char.role,
       }));
 
-      const relations = mangaFullData.relations
-        ? mangaFullData.relations.map((relation) => ({
-            relationType: relation.relation,
-            entry: relation.entry.map((entry) => ({
-              malId: entry.mal_id,
-              title: entry.name,
-              type: entry.type,
-            })),
-          }))
-        : [];
-
       const manga = {
         malId: mangaFullData.mal_id,
         url: mangaFullData.url,
@@ -1003,7 +1031,6 @@ export class JikanService {
         demographics: mangaFullData.demographics ? mangaFullData.demographics.map((demo) => demo.name) : [],
         external: mangaFullData.external ? mangaFullData.external : [],
         characters,
-        relations,
         malReviewScore: mangaFullData?.score ?? 0,
       } as JikanMangaDetails;
 
@@ -1020,6 +1047,57 @@ export class JikanService {
       }
 
       this.logger.error(`Failed to fetch manga details for ID ${id} from Jikan API`, error);
+
+      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+    }
+  }
+  
+  async getMangaRelationsById(id: number) {
+    try {
+      const relationsResponse = await firstValueFrom(this.httpService.get(`${this.JIKAN_API_URL}/manga/${id}/relations`));
+
+      const relationsData = relationsResponse.data.data;
+
+      const allEntries = relationsData.flatMap(
+        (relation) => relation.entry,
+      );
+
+      const imageUrlMap = new Map<number, string | null>();
+
+      if (allEntries.length > 0) {
+        const urls = allEntries.map((entry) => `${this.JIKAN_API_URL}/${entry.type === 'anime' ? 'anime' : 'manga'}/${entry.mal_id}`);
+
+        const responses = await manyRequestWithDelay({
+          httpService: this.httpService,
+          urls,
+          delayMs: 800
+        });
+
+        for (let i = 0; i < allEntries.length; i++) {
+          const entry = allEntries[i];
+          const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
+          
+          imageUrlMap.set(entry.mal_id, imageUrl);
+        }
+      }
+
+      const relations = relationsData.map((relation) => ({
+        relationType: relation.relation,
+        entry: relation.entry.map((entry) => ({
+          malId: entry.mal_id,
+          title: entry.name,
+          type: entry.type,
+          imageUrl: imageUrlMap.get(entry.mal_id) ?? null,
+        })),
+      }));
+
+      return relations;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch anime relations for ID ${id} from Jikan API`, error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }

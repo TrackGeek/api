@@ -121,6 +121,7 @@ export class AnimeService {
       where: { malId },
       omit: {
         episodes: true,
+        relations: true,
       },
     });
 
@@ -145,6 +146,41 @@ export class AnimeService {
     await this.cacheService.set(animeDetailKey, animeWithScore, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
 
     return animeWithScore;
+  }
+  
+  async getAnimeRelationsByMalId(malId: number) {
+    const cachedRelationsKey = CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.prefix(malId);
+    const cachedRelations = await this.cacheService.get(cachedRelationsKey);
+
+    if (cachedRelations) {
+      return cachedRelations;
+    }
+    
+    const anime = await this.databaseService.anime.findUnique({
+      where: { malId },
+      select: { relations: true },
+    });
+
+    if (!anime) {
+      throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+    }
+
+    if (anime.relations) {
+      await this.cacheService.set(cachedRelationsKey, anime.relations, CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.expiration);
+
+      return anime.relations;
+    }
+    
+    const relations = await this.integrationsService.jikan.getAnimeRelationsById(malId);
+    
+    await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.expiration);
+    
+    await this.databaseService.anime.update({
+      where: { malId },
+      data: { relations },
+    });
+
+    return relations
   }
 
   async getAnimeEpisodesByMalId(getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto) {
@@ -214,10 +250,11 @@ export class AnimeService {
     }
 
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
-
+    const jikanRelations = await this.integrationsService.jikan.getAnimeRelationsById(refreshAnimeDto.malId);
+    
     await this.databaseService.anime.update({
       where: { malId: refreshAnimeDto.malId },
-      data: { ...jikanAnime } as unknown as AnimeUpdateInput,
+      data: { ...jikanAnime, relations: jikanRelations } as unknown as AnimeUpdateInput,
     });
 
     await this.cacheService.set(animeDetailKey, anime, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
