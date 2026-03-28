@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import {Type} from "class-transformer";
+import {IsInt, IsNotEmpty, IsOptional, IsPositive, IsString} from "class-validator";
 
 export class SearchBookDto {
   @IsNotEmpty()

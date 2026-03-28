@@ -1,35 +1,36 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { UserService } from "../service/user.service";
-import { ApiTags } from "@nestjs/swagger";
-import { GetFollowersDto } from "../dto/get-followers.dto";
-import { GetFollowingDto } from "../dto/get-following.dto";
-import { SearchUserDto } from "../dto/search-user.dto";
+import {Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards} from "@nestjs/common";
+import {AuthGuard, Session, type UserSession} from "@thallesp/nestjs-better-auth";
+import {UserService} from "../service/user.service";
+import {ApiTags} from "@nestjs/swagger";
+import {GetFollowersDto} from "../dto/get-followers.dto";
+import {GetFollowingDto} from "../dto/get-following.dto";
+import {SearchUserDto} from "../dto/search-user.dto";
 
 @ApiTags("User")
 @Controller("/user")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) {
+  }
 
   @Get("/username/:username")
   async getUserByUsername(@Param("username") username: string) {
     const user = await this.userService.getUserByUsername(username);
 
-    return { user };
+    return {user};
   }
 
   @Get("/id/:id")
   async getUserById(@Param("id") id: string) {
     const user = await this.userService.getUserById(id);
 
-    return { user };
+    return {user};
   }
 
   @Get("/search")
   async searchUser(@Query() searchUserDto: SearchUserDto) {
     const users = await this.userService.searchUser(searchUserDto);
 
-    return { users };
+    return {users};
   }
 
   @Post("/unfollow/:unfollowId")
@@ -42,13 +43,13 @@ export class UserController {
   async follow(@Query() getFollowersDto: GetFollowersDto) {
     const followers = await this.userService.getFollwoers(getFollowersDto);
 
-    return { followers };
+    return {followers};
   }
 
   @Get("/following")
   async getFollowing(@Query() getFollowingDto: GetFollowingDto) {
     const following = await this.userService.getFollowing(getFollowingDto);
 
-    return { following };
+    return {following};
   }
 }
