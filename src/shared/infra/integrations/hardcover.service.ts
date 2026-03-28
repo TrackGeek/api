@@ -1,16 +1,28 @@
-import { HttpService } from "@nestjs/axios";
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { firstValueFrom } from "rxjs";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
-import { CacheService } from "../cache/cache.service";
+import {HttpService} from "@nestjs/axios";
+import {Injectable, Logger} from "@nestjs/common";
+import {ConfigService} from "@nestjs/config";
+import {firstValueFrom} from "rxjs";
+import {CACHE_KEYS} from "@/shared/constants/cache";
+import {ERROR_CODES} from "@/shared/constants/error-codes";
+import {AppException} from "@/shared/exceptions/app.exceptions";
+import {DEFAULT_PAGINATION_PAGE} from "@/shared/infra/database/database.service";
+import {CacheService} from "../cache/cache.service";
+
+export interface HardcoverPagination<I> {
+  nextCursor: number | null;
+  hasNextPage: boolean;
+  count: number;
+  items: I[];
+}
 
 export enum HardcoverBookFilter {
   Trending = "trending",
   ComingSoon = "comingSoon",
+}
+
+export interface HardcoverSearchBookOptions {
+  query: string;
+  page?: number;
 }
 
 export interface HardcoverTopBookOptions {
@@ -114,17 +126,22 @@ export class HardcoverService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
-  ) {}
+  ) {
+  }
 
-  async searchBooks(query: string): Promise<HardcoverSearchBookResult[]> {
+  async searchBooks({
+                      query,
+                      page = DEFAULT_PAGINATION_PAGE,
+                    }: HardcoverSearchBookOptions): Promise<HardcoverPagination<HardcoverSearchBookResult>> {
     try {
-      const cachedBooks = await this.cacheService.get<HardcoverSearchBookResult[]>(
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
-      );
+      const cachedBooksKey = CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix({query, page});
+      const cachedBooks = await this.cacheService.get<HardcoverPagination<HardcoverSearchBookResult>>(cachedBooksKey);
 
       if (cachedBooks) {
         return cachedBooks;
       }
+
+      const pageSize = 16;
 
       const searchResponse = await firstValueFrom(
         this.httpService.post(
@@ -135,7 +152,8 @@ export class HardcoverService {
 							search(
 								query: "${query}",
 								query_type: "book",
-								per_page: 10
+								per_page: ${pageSize},
+								page: ${page}
 							) {
 								results
 							}
@@ -155,7 +173,7 @@ export class HardcoverService {
 
       const hits = searchData.results.hits;
 
-      const books = hits.map((hit) => ({
+      const items = hits.map((hit) => ({
         id: Number(hit.document.id),
         title: hit.document.title,
         alternativeTitles: hit.document.alternative_titles,
@@ -164,11 +182,16 @@ export class HardcoverService {
         genres: hit.document.genres ?? [],
       }));
 
-      await this.cacheService.set(
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.prefix(query),
-        books,
-        CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration,
-      );
+      const hasNextPage = items.length === pageSize;
+
+      const books = {
+        hasNextPage,
+        nextCursor: hasNextPage ? page + 1 : null,
+        count: items.length,
+        items,
+      };
+
+      await this.cacheService.set(cachedBooksKey, books, CACHE_KEYS.HARDCOVER_SEARCH_BOOKS.expiration);
 
       return books;
     } catch (error) {
@@ -185,11 +208,11 @@ export class HardcoverService {
     }
   }
 
-  async topBooks({ page = DEFAULT_PAGINATION_PAGE, filter = HardcoverBookFilter.Trending }: HardcoverTopBookOptions) {
+  async topBooks({page = DEFAULT_PAGINATION_PAGE, filter = HardcoverBookFilter.Trending}: HardcoverTopBookOptions) {
     try {
-      const topBooksOptions = { page, filter };
+      const topBooksOptions = {page, filter};
       const cachedBooks = await this.cacheService.get<HardcoverTopBookResult[]>(
-        CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({ ...topBooksOptions }),
+        CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({...topBooksOptions}),
       );
 
       if (cachedBooks) {
@@ -295,7 +318,7 @@ export class HardcoverService {
         id: Number(book.id),
         title: book.title,
         alternativeTitles: book.alternative_titles,
-        authors: book.contributions?.map(({ author }) => ({ name: author.name, id: author.id })) || [],
+        authors: book.contributions?.map(({author}) => ({name: author.name, id: author.id})) || [],
         imageUrl: book.image?.url ?? "",
         releaseYear: book.release_year,
         description: book.description,
@@ -321,7 +344,7 @@ export class HardcoverService {
       };
 
       await this.cacheService.set(
-        CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({ ...topBooksOptions }),
+        CACHE_KEYS.HARDCOVER_TOP_BOOKS.prefix({...topBooksOptions}),
         topBooks,
         CACHE_KEYS.HARDCOVER_TOP_BOOKS.expiration,
       );
@@ -379,7 +402,7 @@ export class HardcoverService {
         this.httpService.post(
           this.HARDCOVER_API_URL,
           {
-            variables: { id: hardcoverId },
+            variables: {id: hardcoverId},
             query: `
 						query GetBookById($id: Int!) {
 							books_by_pk(id: $id) {
@@ -509,18 +532,18 @@ export class HardcoverService {
         audioSeconds: bookData.audio_seconds,
         taggings: bookData.taggings
           ? [
-              ...new Map(
-                bookData.taggings.map((tagging) => [
-                  tagging.tag.id,
-                  {
-                    id: tagging.tag.id,
-                    tag: tagging.tag.tag,
-                    category: tagging.tag.category,
-                    categoryId: tagging.tag.categoryId,
-                  },
-                ]),
-              ).values(),
-            ]
+            ...new Map(
+              bookData.taggings.map((tagging) => [
+                tagging.tag.id,
+                {
+                  id: tagging.tag.id,
+                  tag: tagging.tag.tag,
+                  category: tagging.tag.category,
+                  categoryId: tagging.tag.categoryId,
+                },
+              ]),
+            ).values(),
+          ]
           : [],
         bookCategory: bookCategories.find((category) => category.id === bookData.book_category_id) ?? null,
         bookStatus: bookData.bookStatus,
@@ -530,48 +553,48 @@ export class HardcoverService {
         curationStatus: bookData.curation_status,
         defaultAudioEdition: bookData.default_audio_edition
           ? {
-              id: bookData.default_audio_edition.id,
-              imageUrl: bookData.default_audio_edition.image.url ?? null,
-              title: bookData.default_audio_edition.title,
-              language: bookData.default_audio_edition.language?.language ?? null,
-            }
+            id: bookData.default_audio_edition.id,
+            imageUrl: bookData.default_audio_edition.image.url ?? null,
+            title: bookData.default_audio_edition.title,
+            language: bookData.default_audio_edition.language?.language ?? null,
+          }
           : null,
         defaultCoverEdition: bookData.default_cover_edition
           ? {
-              id: bookData.default_cover_edition.id,
-              imageUrl: bookData.default_cover_edition.image.url ?? null,
-              title: bookData.default_cover_edition.title,
-              language: bookData.default_cover_edition.language?.language ?? null,
-            }
+            id: bookData.default_cover_edition.id,
+            imageUrl: bookData.default_cover_edition.image.url ?? null,
+            title: bookData.default_cover_edition.title,
+            language: bookData.default_cover_edition.language?.language ?? null,
+          }
           : null,
         defaultEbookEdition: bookData.default_ebook_edition
           ? {
-              id: bookData.default_ebook_edition.id,
-              imageUrl: bookData.default_ebook_edition.image.url ?? null,
-              title: bookData.default_ebook_edition.title,
-              language: bookData.default_ebook_edition.language?.language ?? null,
-            }
+            id: bookData.default_ebook_edition.id,
+            imageUrl: bookData.default_ebook_edition.image.url ?? null,
+            title: bookData.default_ebook_edition.title,
+            language: bookData.default_ebook_edition.language?.language ?? null,
+          }
           : null,
         defaultPhysicalEdition: bookData.default_physical_edition
           ? {
-              id: bookData.default_physical_edition.id,
-              imageUrl: bookData.default_physical_edition.image.url ?? null,
-              title: bookData.default_physical_edition.title,
-              alternativeTitles: bookData.default_physical_edition.alternative_titles,
-              language: bookData.default_physical_edition.language?.language ?? null,
-            }
+            id: bookData.default_physical_edition.id,
+            imageUrl: bookData.default_physical_edition.image.url ?? null,
+            title: bookData.default_physical_edition.title,
+            alternativeTitles: bookData.default_physical_edition.alternative_titles,
+            language: bookData.default_physical_edition.language?.language ?? null,
+          }
           : null,
         description: bookData.description,
         editionsCount: bookData.editions_count,
         featuredBookSeries: bookData.featured_book_series
           ? {
-              id: bookData.featured_book_series.id,
-              book: {
-                id: bookData.featured_book_series.book.id,
-                title: bookData.featured_book_series.book.title,
-                imageUrl: bookData.featured_book_series.book.image.url ?? null,
-              },
-            }
+            id: bookData.featured_book_series.id,
+            book: {
+              id: bookData.featured_book_series.book.id,
+              title: bookData.featured_book_series.book.title,
+              imageUrl: bookData.featured_book_series.book.image.url ?? null,
+            },
+          }
           : {},
         headline: bookData.headline,
         imageUrl: bookData.image.url ?? null,
@@ -585,11 +608,11 @@ export class HardcoverService {
         subtitle: bookData.subtitle,
         editions: bookData.editions
           ? bookData.editions.map((edition) => ({
-              id: edition.id,
-              title: edition.title,
-              imageUrl: edition.image?.url ?? null,
-              language: edition.language?.language ?? null,
-            }))
+            id: edition.id,
+            title: edition.title,
+            imageUrl: edition.image?.url ?? null,
+            language: edition.language?.language ?? null,
+          }))
           : [],
         series: bookData.book_series,
       } as HardcoverBookDetails;

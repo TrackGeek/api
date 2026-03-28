@@ -1,23 +1,52 @@
-import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DatabaseService } from "@/shared/infra/database/database.service";
-import { QueueService } from "@/shared/infra/queue/queue.service";
-import { extractNameFromEmail } from "@/shared/utils/email";
-import { GetFollowersDto } from "../dto/get-followers.dto";
-import { FollowingFindManyArgs } from "@prisma/generated/models";
+import {Injectable} from "@nestjs/common";
+import {FeedEventType} from "@prisma/generated/enums";
+import {ERROR_CODES} from "@/shared/constants/error-codes";
+import {AppException} from "@/shared/exceptions/app.exceptions";
+import {DatabaseService} from "@/shared/infra/database/database.service";
+import {QueueService} from "@/shared/infra/queue/queue.service";
+import {extractNameFromEmail} from "@/shared/utils/email";
+import {GetFollowersDto} from "../dto/get-followers.dto";
+import {FollowingFindManyArgs, UserFindManyArgs} from "@prisma/generated/models";
+import {SearchUserDto} from "../dto/search-user.dto";
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
-  ) {}
+  ) {
+  }
+
+  async searchUser(searchUserDto: SearchUserDto) {
+    const users = await this.databaseService.offsetPagination<UserFindManyArgs>({
+      model: "user",
+      itemsPerPage: searchUserDto.itemsPerPage,
+      page: searchUserDto.page,
+      where: {
+        OR: [
+          {name: {contains: searchUserDto.query, mode: "insensitive"}},
+          {username: {contains: searchUserDto.query, mode: "insensitive"}},
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        profile: {
+          select: {
+            id: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return users;
+  }
 
   async getUserById(id: string) {
     const user = this.databaseService.user.findUnique({
-      where: { id },
+      where: {id},
       include: {
         profile: true,
       },
@@ -37,7 +66,7 @@ export class UserService {
 
   async getUserByUsername(username: string) {
     const user = this.databaseService.user.findUnique({
-      where: { username },
+      where: {username},
       include: {
         profile: true,
         _count: {
@@ -71,7 +100,7 @@ export class UserService {
     const baseUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     const usernameExists = await this.databaseService.user.findUnique({
-      where: { username: baseUsername },
+      where: {username: baseUsername},
     });
 
     const username = usernameExists ? `${baseUsername}${Math.floor(Math.random() * 10000)}` : baseUsername;
@@ -135,7 +164,7 @@ export class UserService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewFollower,
       userId,
-      metadata: { ...following },
+      metadata: {...following},
     });
   }
 
@@ -168,7 +197,7 @@ export class UserService {
       model: "following",
       itemsPerPage: getFollowersDto.itemsPerPage,
       page: getFollowersDto.page,
-      where: { followingId: getFollowersDto.userId },
+      where: {followingId: getFollowersDto.userId},
       include: {
         follower: {
           select: {
@@ -194,7 +223,7 @@ export class UserService {
       model: "following",
       itemsPerPage: getFollowingDto.itemsPerPage,
       page: getFollowingDto.page,
-      where: { followerId: getFollowingDto.userId },
+      where: {followerId: getFollowingDto.userId},
       include: {
         following: {
           select: {

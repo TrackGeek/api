@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { of, throwError } from "rxjs";
-import { JikanService } from "@/shared/infra/integrations/jikan.service";
-import { AppException } from "@/shared/exceptions/app.exceptions";
+import {describe, it, expect, vi, beforeEach} from "vitest";
+import {of, throwError} from "rxjs";
+import {JikanService} from "@/shared/infra/integrations/jikan.service";
+import {AppException} from "@/shared/exceptions/app.exceptions";
 
 vi.mock("@/shared/utils/request", () => ({
   manyRequestWithDelay: vi.fn(),
 }));
 
-import { manyRequestWithDelay } from "@/shared/utils/request";
+import {manyRequestWithDelay} from "@/shared/utils/request";
 
 const mockHttpService = {
   get: vi.fn(),
@@ -28,7 +28,7 @@ describe("JikanService", () => {
 
   describe("searchAnimes", () => {
     it("should return cached animes when cache hit", async () => {
-      const cached = [{ malId: 1, title: "Naruto", type: "TV", airedFrom: null, imageUrl: null }];
+      const cached = [{malId: 1, title: "Naruto", type: "TV", airedFrom: null, imageUrl: null}];
       mockCacheService.get.mockResolvedValue(cached);
 
       const result = await service.searchAnimes("Naruto" as any);
@@ -48,18 +48,18 @@ describe("JikanService", () => {
                 mal_id: 20,
                 title: "Naruto",
                 type: "TV",
-                aired: { from: "2002-10-03T00:00:00+00:00" },
-                images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto.jpg" } },
+                aired: {from: "2002-10-03T00:00:00+00:00"},
+                images: {jpg: {image_url: "https://cdn.myanimelist.net/naruto.jpg"}},
                 genres: [],
                 status: "Finished Airing",
               },
             ],
-            pagination: { has_next_page: false, items: { total: 1, count: 1 } },
+            pagination: {has_next_page: false, items: {total: 1, count: 1}},
           },
         }),
       );
 
-      const result = await service.searchAnimes({ query: "Naruto" });
+      const result = await service.searchAnimes({query: "Naruto"});
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].malId).toBe(20);
@@ -77,7 +77,7 @@ describe("JikanService", () => {
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
+      mockHttpService.get.mockReturnValue(throwError(() => ({response: {status: 404}})));
 
       await expect(service.searchAnimes("unknown" as any)).rejects.toBeInstanceOf(AppException);
     });
@@ -85,7 +85,7 @@ describe("JikanService", () => {
 
   describe("searchMangas", () => {
     it("should return cached mangas when cache hit", async () => {
-      const cached = [{ malId: 1, title: "Naruto", type: "Manga", publishedFrom: null, imageUrl: null }];
+      const cached = [{malId: 1, title: "Naruto", type: "Manga", publishedFrom: null, imageUrl: null}];
       mockCacheService.get.mockResolvedValue(cached);
 
       const result = await service.searchMangas("Naruto" as any);
@@ -105,18 +105,18 @@ describe("JikanService", () => {
                 mal_id: 11,
                 title: "Naruto",
                 type: "Manga",
-                published: { from: "1999-09-21T00:00:00+00:00" },
-                images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto-manga.jpg" } },
+                published: {from: "1999-09-21T00:00:00+00:00"},
+                images: {jpg: {image_url: "https://cdn.myanimelist.net/naruto-manga.jpg"}},
                 genres: [],
                 status: "Finished",
               },
             ],
-            pagination: { has_next_page: false, items: { total: 1, count: 1 } },
+            pagination: {has_next_page: false, items: {total: 1, count: 1}},
           },
         }),
       );
 
-      const result = await service.searchMangas({ query: "Naruto" });
+      const result = await service.searchMangas({query: "Naruto"});
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].malId).toBe(11);
@@ -136,15 +136,15 @@ describe("JikanService", () => {
     const animeFullData = {
       mal_id: 20,
       url: "https://myanimelist.net/anime/20",
-      images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto.jpg" } },
-      trailer: { embed_url: null, youtube_id: null, url: null },
+      images: {jpg: {image_url: "https://cdn.myanimelist.net/naruto.jpg"}},
+      trailer: {embed_url: null, youtube_id: null, url: null},
       title: "Naruto",
       titles: [],
       type: "TV",
       source: "Manga",
       episodes: 220,
       status: "Finished Airing",
-      aired: { from: "2002-10-03T00:00:00+00:00", to: "2007-02-08T00:00:00+00:00" },
+      aired: {from: "2002-10-03T00:00:00+00:00", to: "2007-02-08T00:00:00+00:00"},
       duration: "23 min per ep",
       rating: "PG-13",
       rank: 500,
@@ -156,8 +156,8 @@ describe("JikanService", () => {
       broadcast: null,
       producers: [],
       licensors: [],
-      studios: [{ mal_id: 1, type: "anime", name: "Pierrot" }],
-      genres: [{ name: "Action" }],
+      studios: [{mal_id: 1, type: "anime", name: "Pierrot"}],
+      genres: [{name: "Action"}],
       explicit_genres: [],
       themes: [],
       demographics: [],
@@ -166,7 +166,7 @@ describe("JikanService", () => {
     };
 
     it("should return cached anime when cache hit", async () => {
-      const cached = { malId: 20, title: "Naruto" };
+      const cached = {malId: 20, title: "Naruto"};
       mockCacheService.get.mockResolvedValue(cached);
 
       const result = await service.getAnimeById(20);
@@ -179,10 +179,10 @@ describe("JikanService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
       vi.mocked(manyRequestWithDelay).mockResolvedValue([
-        { data: { data: animeFullData } },
-        { data: { data: [] } },
-        { data: { data: [] } },
-        { data: { data: { promo: [], music_videos: [] } } },
+        {data: {data: animeFullData}},
+        {data: {data: []}},
+        {data: {data: []}},
+        {data: {data: {promo: [], music_videos: []}}},
       ] as any);
 
       const result = await service.getAnimeById(20);
@@ -202,7 +202,7 @@ describe("JikanService", () => {
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      vi.mocked(manyRequestWithDelay).mockRejectedValue({ response: { status: 404 } });
+      vi.mocked(manyRequestWithDelay).mockRejectedValue({response: {status: 404}});
 
       await expect(service.getAnimeById(99999)).rejects.toBeInstanceOf(AppException);
     });
@@ -210,10 +210,10 @@ describe("JikanService", () => {
 
   describe("getAnimeEpisodesById", () => {
     it("should return cached episodes when cache hit", async () => {
-      const cached = [{ malId: 1, title: "Pilot", episodeNumber: 1, imageUrl: null }];
+      const cached = [{malId: 1, title: "Pilot", episodeNumber: 1, imageUrl: null}];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.getAnimeEpisodesById(20);
+      const result = await service.getAnimeEpisodesById({malId: 20});
 
       expect(result).toEqual(cached);
       expect(mockHttpService.get).not.toHaveBeenCalled();
@@ -230,19 +230,19 @@ describe("JikanService", () => {
                 mal_id: 1,
                 title: "Enter: Naruto Uzumaki!",
                 episode: "1",
-                images: { jpg: { image_url: "https://cdn.myanimelist.net/ep1.jpg" } },
+                images: {jpg: {image_url: "https://cdn.myanimelist.net/ep1.jpg"}},
               },
             ],
-            pagination: { has_next_page: false },
+            pagination: {has_next_page: false},
           },
         }),
       );
 
-      const result = await service.getAnimeEpisodesById(20);
+      const result = await service.getAnimeEpisodesById({malId: 20});
 
-      expect(result).toHaveLength(1);
-      expect(result[0].malId).toBe(1);
-      expect(result[0].title).toBe("Enter: Naruto Uzumaki!");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].malId).toBe(1);
+      expect(result.items[0].title).toBe("Enter: Naruto Uzumaki!");
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -250,7 +250,7 @@ describe("JikanService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.getAnimeEpisodesById(20)).rejects.toBeInstanceOf(AppException);
+      await expect(service.getAnimeEpisodesById({malId: 20})).rejects.toBeInstanceOf(AppException);
     });
   });
 
@@ -258,29 +258,29 @@ describe("JikanService", () => {
     const mangaFullData = {
       mal_id: 11,
       url: "https://myanimelist.net/manga/11",
-      images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto-manga.jpg" } },
+      images: {jpg: {image_url: "https://cdn.myanimelist.net/naruto-manga.jpg"}},
       title: "Naruto",
       titles: [],
       type: "Manga",
       chapters: 700,
       volumes: 72,
       status: "Finished",
-      published: { from: "1999-09-21T00:00:00+00:00" },
+      published: {from: "1999-09-21T00:00:00+00:00"},
       rank: 100,
       popularity: 5,
       synopsis: "Naruto manga...",
-      authors: [{ mal_id: 1, type: "manga", name: "Masashi Kishimoto" }],
+      authors: [{mal_id: 1, type: "manga", name: "Masashi Kishimoto"}],
       serializations: [],
-      genres: [{ name: "Action" }],
+      genres: [{name: "Action"}],
       explicit_genres: [],
       themes: [],
-      demographics: [{ name: "Shounen" }],
+      demographics: [{name: "Shounen"}],
       external: [],
       relations: [],
     };
 
     it("should return cached manga when cache hit", async () => {
-      const cached = { malId: 11, title: "Naruto" };
+      const cached = {malId: 11, title: "Naruto"};
       mockCacheService.get.mockResolvedValue(cached);
 
       const result = await service.getMangaById(11);
@@ -293,8 +293,8 @@ describe("JikanService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
       vi.mocked(manyRequestWithDelay).mockResolvedValue([
-        { data: { data: mangaFullData } },
-        { data: { data: [] } },
+        {data: {data: mangaFullData}},
+        {data: {data: []}},
       ] as any);
 
       const result = await service.getMangaById(11);

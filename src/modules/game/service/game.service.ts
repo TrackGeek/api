@@ -21,7 +21,7 @@ export class GameService {
   ) {}
 
   async searchGames(searchGameDto: SearchGameDto) {
-    return this.integrationsService.igdb.searchGames(searchGameDto.query);
+    return this.integrationsService.igdb.searchGames(searchGameDto);
   }
 
   async topGames(topGameDto: TopGameDto) {

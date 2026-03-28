@@ -14,10 +14,10 @@ CREATE TYPE "ReactionType" AS ENUM ('Comment', 'FeedEvent');
 CREATE TYPE "FeedEventType" AS ENUM ('NewFollower', 'NewFavorite', 'NewList', 'NewListItem', 'NewReview', 'NewWatch', 'NewProgress');
 
 -- CreateEnum
-CREATE TYPE "WatchEpisodeStatus" AS ENUM ('Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
+CREATE TYPE "WatchEpisodeStatus" AS ENUM ('NotWatched', 'Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
-CREATE TYPE "ProgressStatus" AS ENUM ('Watching', 'Playing', 'Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
+CREATE TYPE "ProgressStatus" AS ENUM ('NotWatched', 'NotRead', 'NotPlayed', 'Watching', 'Playing', 'Reading', 'Completed', 'Paused', 'Dropped', 'Planning');
 
 -- CreateEnum
 CREATE TYPE "ListType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book');
