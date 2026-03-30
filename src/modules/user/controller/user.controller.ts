@@ -31,6 +31,12 @@ export class UserController {
 
     return { users };
   }
+  
+  @Post("/follow/:followId")
+  @UseGuards(AuthGuard)
+  async followUser(@Session() session: UserSession, @Param("followId", new ParseUUIDPipe()) followId: string) {
+    await this.userService.followUser(session.user.id, followId);
+  }
 
   @Post("/unfollow/:unfollowId")
   @UseGuards(AuthGuard)
@@ -39,8 +45,8 @@ export class UserController {
   }
 
   @Get("/follower")
-  async follow(@Query() getFollowersDto: GetFollowersDto) {
-    const followers = await this.userService.getFollwoers(getFollowersDto);
+  async getFollowers(@Query() getFollowersDto: GetFollowersDto) {
+    const followers = await this.userService.getFollowers(getFollowersDto);
 
     return { followers };
   }

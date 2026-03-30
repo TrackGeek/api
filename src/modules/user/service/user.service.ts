@@ -168,6 +168,10 @@ export class UserService {
   }
 
   async unfollowUser(userId: string, targetUserId: string) {
+    if (userId === targetUserId) {
+      throw new AppException(ERROR_CODES.USER_CANNOT_UNFOLLOW_SELF);
+    }
+    
     const existingFollow = await this.databaseService.following.findUnique({
       where: {
         followerId_followingId: {
@@ -191,7 +195,7 @@ export class UserService {
     });
   }
 
-  async getFollwoers(getFollowersDto: GetFollowersDto) {
+  async getFollowers(getFollowersDto: GetFollowersDto) {
     const followers = await this.databaseService.offsetPagination<FollowingFindManyArgs>({
       model: "following",
       itemsPerPage: getFollowersDto.itemsPerPage,
