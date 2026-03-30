@@ -2,8 +2,9 @@ import "dotenv/config";
 
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "./generated/client";
-import { populateMedals } from "./seeds/medals";
+import { v7 as uuid } from "uuid";
+
+import { PrismaClient, UserRole } from "./generated/client";
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -13,6 +14,82 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await populateMedals(prisma);
+  await createFirstUser(prisma);
+}
+
+export async function populateMedals(prisma: PrismaClient) {
+  const medals = await prisma.medal.createMany({
+    data: [
+      {
+        name: "contributor",
+        imageUrl: "https://i.ibb.co/99PS2x8m/logo.png",
+      },
+      {
+        name: "staff",
+        imageUrl: "https://i.ibb.co/99PS2x8m/logo.png",
+      },
+    ],
+    skipDuplicates: true,
+  });
+
+  console.log(`Inserted ${medals.count} medals.`);
+}
+
+async function createFirstUser(prisma: PrismaClient) {
+  const password = "$2a$12$VFoLlPVUMw.kcjR4L8Cdx.A4UrkBt4CWFZRLIrD1KOohG19Mc3XzC"; // "super-secure-password"
+  
+  const users = [
+    {
+      id: uuid(),
+      name: "Jhon Doe",
+      username: "jhondoe",
+      email: "jhondoe@example.com",
+    },
+    {
+      id: uuid(),
+      name: "Jane Doe",
+      username: "janedoe",
+      email: "janedoe@example.com",
+    }
+  ]
+  
+  let insertedCount = 0;
+  
+  for (const userData of users) {
+    const userExists = await prisma.user.findUnique({
+      where: { email: userData.email },
+    });
+    
+    if (!userExists) {
+      await prisma.user.create({
+        data: {
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          username: userData.username,
+          emailVerified: true,
+          role: UserRole.User,
+          profile: {
+            create: {
+              id: uuid(),
+            }
+          },
+          accounts: {
+            create: {
+              id: uuid(),
+              accountId: userData.id,
+              providerId: "credential",
+              password,
+            }
+          }
+        },
+      });
+      
+      insertedCount++;
+    }
+  }
+  
+  console.log(`Inserted ${insertedCount} users.`);
 }
 
 main()
