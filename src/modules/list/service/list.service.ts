@@ -90,24 +90,53 @@ export class ListService {
       },
       include: {
         anime: {
-          omit: {
-            relations: true,
-            episodes: true,
-          },
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          }
         },
         manga: {
-          omit: {
-            relations: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           }
         },
         tvShow: {
-          omit: {
-            seasons: true,
-          },
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
+          }
         },
-        book: true,
-        game: true,
-        movie: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          }
+        },
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          }
+        },
+        movie: {
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          }
+        },
         list: {
           select: {
             id: true,
@@ -208,24 +237,53 @@ export class ListService {
       where: { listId: getItemsByListIdDto.listId },
       include: {
         anime: {
-          omit: {
-            relations: true,
-            episodes: true,
-          },
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          }
         },
         manga: {
-          omit: {
-            relations: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           }
         },
         tvShow: {
-          omit: {
-            seasons: true,
-          },
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
+          }
         },
-        book: true,
-        game: true,
-        movie: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          }
+        },
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          }
+        },
+        movie: {
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          }
+        },
         list: {
           select: {
             id: true,
