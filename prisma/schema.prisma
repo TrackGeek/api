@@ -283,7 +283,7 @@ model Game {
   gameEngines           Json?
   gameLocalizations     Json?
   gameModes             Json?
-  gameStatus            Json?
+  gameStatus            String?
   gameType              Json?
   genres                Json?
   hypes                 Int?
