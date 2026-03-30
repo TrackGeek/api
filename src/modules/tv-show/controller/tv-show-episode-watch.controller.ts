@@ -44,7 +44,7 @@ export class TVShowEpisodeWatchController {
       userId: session.user.id,
     });
 
-    return tvShowEpisodeWatch;
+    return { tvShowEpisodeWatch };
   }
 
   @Delete("/")
