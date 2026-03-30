@@ -1,9 +1,11 @@
 import { OpenAPIObject } from "@nestjs/swagger";
 import { ApiReferenceOptions } from "@scalar/nestjs-api-reference";
 
-export function buildScalarConfig(document: OpenAPIObject): ApiReferenceOptions & { content: OpenAPIObject } {
+export function buildScalarConfig(content: OpenAPIObject): ApiReferenceOptions & { content: OpenAPIObject } {
   return {
-    content: document,
+    title: "TrackGeek API Reference",
+    pageTitle: "TrackGeek API Reference",
+    content,
     hiddenClients: true,
     hideSearch: false,
     hideModels: true,
