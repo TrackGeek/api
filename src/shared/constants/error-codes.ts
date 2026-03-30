@@ -195,6 +195,10 @@ export const ERROR_CODES = {
     code: "ANIME_EPISODES_NOT_FOUND",
     status: 404,
   },
+  EPISODE_NOT_FOUND: {
+    code: "EPISODE_NOT_FOUND",
+    status: 404,
+  },
   TV_SHOW_SEASONS_NOT_FOUND: {
     code: "TV_SHOW_SEASONS_NOT_FOUND",
     status: 404,
@@ -231,4 +235,8 @@ export const ERROR_CODES = {
     code: "ACTIVE_SUBSCRIPTION_EXISTS",
     status: 400,
   },
+  USER_CANNOT_UNFOLLOW_SELF: {
+    code: "USER_CANNOT_UNFOLLOW_SELF",
+    status: 400,
+  }
 } as const;
