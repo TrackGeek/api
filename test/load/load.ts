@@ -24,8 +24,8 @@ const JSON_HEADERS = { "Content-Type": "application/json" };
 
 export default function () {
   const credentials = {
-    email: "izakdvlpr@gmail.com",
-    password: "izakin321",
+    email: "jhondoe@example.com",
+    password: "super-secure-password",
   };
 
   const signInStart = Date.now();
