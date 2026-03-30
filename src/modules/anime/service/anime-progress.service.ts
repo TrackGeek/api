@@ -5,10 +5,15 @@ import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AnimeEpisodeWatchService } from './anime-episode-watch.service';
+import { ProgressStatus } from '@prisma/generated/enums';
 
 @Injectable()
 export class AnimeProgressService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly animeEpisodeWatchService: AnimeEpisodeWatchService
+  ) {}
 
   async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
     const { animeId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
@@ -35,6 +40,10 @@ export class AnimeProgressService {
         startedAt,
       },
     });
+    
+    if (status === ProgressStatus.Completed) {
+      await this.animeEpisodeWatchService.watchAllAnimeEpisodes({ animeId, userId });
+    }
   }
 
   async deleteAnimeProgress(animeProgressId: string, userId: string) {
@@ -68,10 +77,12 @@ export class AnimeProgressService {
       },
       include: {
         anime: {
-          omit: {
-            relations: true,
-            episodes: true,
-          },
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          }
         },
         user: {
           select: {

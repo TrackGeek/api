@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsPositive } from "class-validator";
 
 export class DeleteAnimeEpisodeWatchDto {
@@ -6,6 +7,7 @@ export class DeleteAnimeEpisodeWatchDto {
 
   readonly userId: string;
 
+  @Type(() => Number)
   @IsInt()
   @IsPositive()
   readonly episode: number;

@@ -18,11 +18,19 @@ export class AnimeEpisodeWatchService {
 
     const anime = await this.databaseService.anime.findUnique({
       where: { id: animeId },
-      select: { id: true },
+      select: { id: true, numberOfEpisodes: true },
     });
 
     if (!anime) {
       throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+    }
+
+    if (anime.numberOfEpisodes) {
+      const invalidEpisode = episodes.find(({ episode }) => episode > anime.numberOfEpisodes!);
+
+      if (invalidEpisode) {
+        throw new AppException(ERROR_CODES.EPISODE_NOT_FOUND);
+      }
     }
 
     const batchSize = 50;
@@ -123,6 +131,9 @@ export class AnimeEpisodeWatchService {
         userId: getAnimeEpisodeWatchDto.userId,
         animeId: getAnimeEpisodeWatchDto.animeId,
       },
+      orderBy: {
+        episode: "asc",
+      }
     });
 
     return animeEpisodeWatch;

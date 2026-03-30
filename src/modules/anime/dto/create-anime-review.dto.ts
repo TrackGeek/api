@@ -1,36 +1,36 @@
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
 
 export class CreateAnimeReviewDto {
-  @IsDecimal()
+  @IsNumber()
   @Max(10)
   @Min(0)
   readonly overall: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   readonly story?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   readonly characters?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   readonly animation?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)
   readonly sound?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(10)
   @Min(0)

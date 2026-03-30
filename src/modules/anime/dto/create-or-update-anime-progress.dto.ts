@@ -1,6 +1,6 @@
 import { ProgressStatus } from "@prisma/generated/enums";
-import { Transform } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsDate, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
 
 export class CreateOrUpdateAnimeProgressDto {
   @IsEnum(ProgressStatus)
@@ -17,6 +17,7 @@ export class CreateOrUpdateAnimeProgressDto {
   readonly startedAt?: Date;
 
   @IsOptional()
+  @Type(() => Date)
   @IsDate()
   readonly completedAt?: Date;
 
