@@ -21,11 +21,61 @@ export class MovieService {
   ) {}
 
   async searchMovies(searchMovieDto: SearchMovieDto) {
-    return this.integrationsService.tmdb.searchMovies(searchMovieDto);
+    const tmdbPagination = await this.integrationsService.tmdb.searchMovies(searchMovieDto);
+    
+    const items = await Promise.all(
+      tmdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.movieReview
+          .aggregate({ where: { movie: { tmdbId: item.tmdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const movie = await this.databaseService.movie.findUnique({
+          where: { tmdbId: item.tmdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: movie?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...tmdbPagination,
+      items,
+    };
   }
 
   async topMovies(topMovieDto: TopMovieDto) {
-    return this.integrationsService.tmdb.topMovies(topMovieDto);
+    const tmdbPagination = await this.integrationsService.tmdb.topMovies(topMovieDto);
+
+    const items = await Promise.all(
+      tmdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.movieReview
+          .aggregate({ where: { movie: { tmdbId: item.tmdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const movie = await this.databaseService.movie.findUnique({
+          where: { tmdbId: item.tmdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: movie?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...tmdbPagination,
+      items,
+    };
   }
 
   async getMovieById(id: number) {
@@ -46,10 +96,20 @@ export class MovieService {
         data: tmdbMovie as unknown as MovieCreateInput,
       });
     }
+    
+    const tgReviewScore = await this.databaseService.movieReview
+      .aggregate({ where: { movie: { tmdbId: id } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
 
-    await this.cacheService.set(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id), movie, CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration);
+    const movieWithScore = {
+      ...movie,
+      tgReviewScore,
+    };
 
-    return movie;
+    await this.cacheService.set(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id), movieWithScore, CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration);
+
+    return movieWithScore;
   }
 
   async refreshMovie(refreshMovieDto: RefreshMovieDto) {
