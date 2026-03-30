@@ -1,0 +1,293 @@
+### Variables
+@apiUrl = http://localhost:40287
+
+### 1. Healthz
+GET {{apiUrl}}/healthz
+
+### 2. Metrics
+GET {{apiUrl}}/prometheus
+
+### 3. Login to trackgeek-api
+# @name login
+POST {{apiUrl}}/auth/sign-in/email
+Content-Type: application/json
+
+{
+  "email": "jhondoe@example.com",
+  "password": "super-secure-password"
+}
+
+### 4. Sign out from trackgeek-api
+POST {{apiUrl}}/auth/sign-out
+
+### 5. Get user info by id
+GET {{apiUrl}}/user/id/{{login.response.body.user.id}}
+
+### 6. Get user info by username
+GET {{apiUrl}}/user/username/{{login.response.body.user.username}}
+
+### 7.1 Search user by username
+GET {{apiUrl}}/user/search?query=jhon
+
+### 7.2 Search user by name
+GET {{apiUrl}}/user/search?query=jane%20doe
+
+### 8. Get user followers
+GET {{apiUrl}}/user/follower?userId={{login.response.body.user.id}}
+
+### 9 Follow user
+POST {{apiUrl}}/user/follow/019d3fb8-dce9-715a-94a3-b093c0660f0e
+
+### 10. Get user following
+GET {{apiUrl}}/user/following?userId={{login.response.body.user.id}}
+
+### 11. Unfollow user
+POST {{apiUrl}}/user/unfollow/019d3fb8-dce9-715a-94a3-b093c0660f0e
+
+### 12. Update profile
+PATCH {{apiUrl}}/profile
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "color": "#ff0000",
+  "language": "pt-BR",
+  "timezone": "America/Sao_Paulo",
+  "about": "Hello, I'm Jhon Doe!"
+}
+
+### 13. Update profile avatar
+PATCH {{apiUrl}}/profile/avatar
+Content-Type: multipart/form-data; boundary=----FormBoundary
+Authorization: Bearer {{login.response.body.token}}
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="wesker.jpg"
+Content-Type: image/jpeg
+
+< /Users/izakdvlpr/Pictures/wesker.jpg
+------FormBoundary--
+
+### 14. Delete profile avatar
+DELETE {{apiUrl}}/profile/avatar
+Authorization: Bearer {{login.response.body.token}}
+
+### 15. Update profile banner
+PATCH {{apiUrl}}/profile/banner
+Content-Type: multipart/form-data; boundary=----FormBoundary
+Authorization: Bearer {{login.response.body.token}}
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="wesker.jpg"
+Content-Type: image/jpeg
+
+< /Users/izakdvlpr/Pictures/wesker.jpg
+------FormBoundary--
+
+### 16. Delete profile banner
+DELETE {{apiUrl}}/profile/banner
+Authorization: Bearer {{login.response.body.token}}
+
+### 17. Feed Global
+GET {{apiUrl}}/feed/global
+
+### 18. Feed User
+GET {{apiUrl}}/feed/user
+
+### 19. Upload Image
+POST {{apiUrl}}/upload/image
+Content-Type: multipart/form-data; boundary=----FormBoundary
+Authorization: Bearer {{login.response.body.token}}
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="wesker.jpg"
+Content-Type: image/jpeg
+
+< /Users/izakdvlpr/Pictures/wesker.jpg
+------FormBoundary--
+
+### 20. Perk
+GET {{apiUrl}}/perk
+
+### 21. Stripe Prices
+GET {{apiUrl}}/stripe/price
+
+### 22. Get User Currency
+GET {{apiUrl}}/stripe/currency
+
+### 23. Get Current Subscription
+GET {{apiUrl}}/stripe/subscription
+
+### 24. Search anime
+GET {{apiUrl}}/anime/search?query=naruto%20shippuden&page=1
+
+### 24.1 Search anime - Filter by type
+GET {{apiUrl}}/anime/search?type=tv
+
+### 24.2 Search anime - Filter by status
+GET {{apiUrl}}/anime/search?status=upcoming
+
+### 24.3 Search anime - Filter by rating
+GET {{apiUrl}}/anime/search?rating=pg
+
+### 24.4 Search anime - Filter by rating
+GET {{apiUrl}}/anime/search?rating=pg
+
+### 24.5 Search anime - Filter by genres
+GET {{apiUrl}}/anime/search?genres=1,2,4,8
+
+### 24.6 Search anime - Filter by order
+GET {{apiUrl}}/anime/search?orderBy=title
+
+### 24.7 Search anime - Filter by sort
+GET {{apiUrl}}/anime/search?sort=desc
+
+### 24.8 Search anime - Filter by letter
+GET {{apiUrl}}/anime/search?letter=z
+
+### 24.9 Search anime - Filter by year
+GET {{apiUrl}}/anime/search?year=2000
+
+### 25. Anime filters
+GET {{apiUrl}}/anime/filter
+
+### 26. Top anime - By Popularity
+GET {{apiUrl}}/anime/top?filter=bypopularity
+
+### 26.1 Top anime - Airing TV
+GET {{apiUrl}}/anime/top?filter=airing&type=tv
+
+### 26.2 Top anime - Favorite PG13
+GET {{apiUrl}}/anime/top?filter=favorite&rating=pg13
+
+### 27. Anime Detail
+GET {{apiUrl}}/anime/detail/1735
+
+### 28. Anime Relation
+GET {{apiUrl}}/anime/detail/1735/relation
+
+### 29. Anime Episode
+GET {{apiUrl}}/anime/detail/1735/episode?page=3
+
+### 30. Create Anime Review
+POST {{apiUrl}}/anime/review
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 10,
+  "story": 10,
+  "characters": 10,
+  "animation": 10,
+  "sound": 10,
+  "enjoyment": 10,
+  "summary": "This anime is amazing! I can't stop watching it. The story is captivating and the characters are well-developed. The animation is top-notch and the sound design is fantastic. I highly recommend it to anyone who loves action and adventure.",
+  "pros": "- Great story\n- Amazing characters\n- Stunning animation\n- Fantastic sound design",
+  "cons": "- None, this anime is perfect!",
+  "notes": "I have watched this anime multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible and the creators clearly put a lot of love and care into making it. I can't wait for the next season!",
+  "recommended": true,
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+}
+
+### 31. Get Anime Review by Anime Id
+GET {{apiUrl}}/anime/review?animeId=019d402d-c955-7362-91ca-848d7497f245
+
+### 31.1 Get Anime Review by User Id
+GET {{apiUrl}}/anime/review?userId={{login.response.body.user.id}}
+
+### 31.2 Get Anime Review by User Id and Anime Id
+GET {{apiUrl}}/anime/review?userId={{login.response.body.user.id}}&animeId=019d402d-c955-7362-91ca-848d7497f245
+
+### 32. Get Anime Review
+GET {{apiUrl}}/anime/review/019d407c-0b51-76db-89a0-dec957a72d1c
+
+### 33. Update Anime Review
+PATCH {{apiUrl}}/anime/review/019d407c-0b51-76db-89a0-dec957a72d1c
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 10,
+  "story": 5,
+  "characters": 4,
+  "animation": 4,
+  "sound": 3,
+  "enjoyment": 2,
+  "summary": "This anime is amazing! I can't stop watching it. The story is captivating and the characters are well-developed. The animation is top-notch and the sound design is fantastic. I highly recommend it to anyone who loves action and adventure.",
+  "pros": "- Great story\n- Amazing characters\n- Stunning animation\n- Fantastic sound design",
+  "cons": "- None, this anime is perfect!",
+  "notes": "I have watched this anime multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible and the creators clearly put a lot of love and care into making it. I can't wait for the next season!",
+  "recommended": true,
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+}
+
+### 34. Delete Anime Review
+DELETE {{apiUrl}}/anime/review/019d4033-9165-716f-9fe9-1bba2ef6e596
+
+### 35. Create or Update Anime Progress
+POST {{apiUrl}}/anime/progress
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "status": "Completed",
+  "watchCount": 1,
+  "completedAt": "2026-03-30T00:00:00Z",
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+}
+
+### 36. Get Anime Progress by Anime Id
+GET {{apiUrl}}/anime/progress?animeId=019d402d-c955-7362-91ca-848d7497f245
+
+### 36.1 Get Anime Progress by User Id
+GET {{apiUrl}}/anime/progress?userId={{login.response.body.user.id}}
+
+### 36.2 Get Anime Progress by User Id and Anime Id
+GET {{apiUrl}}/anime/progress?userId={{login.response.body.user.id}}
+
+### 37. Delete Anime Progress
+DELETE {{apiUrl}}/anime/progress/019d4092-f67d-75a8-80be-ed795ca97517
+
+### 38. Create or Update Anime Episode Watch
+POST {{apiUrl}}/anime/episode/watch
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245",
+  "episodes": [
+    { "episode": 3, "status": "Dropped" },
+    { "episode": 15, "status": "Dropped" }
+  ]
+}
+
+### 39. Create or Update Anime Episode Watch - Watch All Episodes
+POST {{apiUrl}}/anime/episode/watch/all
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+}
+
+### 40. Get Anime Episode Watch by Anime Id
+GET {{apiUrl}}/anime/episode/watch?animeId=019d402d-c955-7362-91ca-848d7497f245
+
+### 41. Delete Anime Episode Watch
+DELETE {{apiUrl}}/anime/episode/watch
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245",
+  "episode": 3
+}
+
+### 42. Delete Anime Episode Watch - All
+DELETE {{apiUrl}}/anime/episode/watch/all
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+}
