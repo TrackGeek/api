@@ -81,6 +81,27 @@ export class FeedEventService {
       orderBy: { createdAt: "desc" },
       page: getFeedEventsDto.page,
       itemsPerPage: getFeedEventsDto.itemsPerPage,
+      include: {
+        _count: {
+          select: {
+            reactions: true,
+          },
+        },
+        reactions: {
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return pagination;
