@@ -224,7 +224,7 @@ export interface IGDBGameDetails {
 @Injectable()
 export class IGDBService {
   private readonly logger = new Logger(IGDBService.name);
-  
+
   private readonly IGDB_API_URL = "https://api.igdb.com/v4";
 
   constructor(
@@ -356,7 +356,7 @@ export class IGDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
-      
+
       this.logger.error(`Error searching games in IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);

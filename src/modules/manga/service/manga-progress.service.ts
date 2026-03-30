@@ -79,7 +79,7 @@ export class MangaProgressService {
         manga: {
           omit: {
             relations: true,
-          }
+          },
         },
         user: {
           select: {

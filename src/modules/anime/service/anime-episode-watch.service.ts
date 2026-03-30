@@ -133,7 +133,7 @@ export class AnimeEpisodeWatchService {
       },
       orderBy: {
         episode: "asc",
-      }
+      },
     });
 
     return animeEpisodeWatch;

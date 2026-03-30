@@ -31,7 +31,7 @@ export class UserController {
 
     return { users };
   }
-  
+
   @Post("/follow/:followId")
   @UseGuards(AuthGuard)
   async followUser(@Session() session: UserSession, @Param("followId", new ParseUUIDPipe()) followId: string) {

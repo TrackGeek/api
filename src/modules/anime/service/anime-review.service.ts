@@ -41,7 +41,7 @@ export class AnimeReviewService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {
@@ -76,7 +76,7 @@ export class AnimeReviewService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {
@@ -117,7 +117,7 @@ export class AnimeReviewService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {

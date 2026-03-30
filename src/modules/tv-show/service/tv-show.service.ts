@@ -100,7 +100,7 @@ export class TVShowService {
         data: tmdbTVShow as unknown as TvShowCreateInput,
       });
     }
-    
+
     const tgReviewScore = await this.databaseService.tvShowReview
       .aggregate({ where: { tvShow: { tmdbId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))

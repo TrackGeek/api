@@ -77,7 +77,7 @@ import { PaymentModule } from "./modules/payment/payment.module";
     },
     {
       provide: APP_INTERCEPTOR,
-      useClass: RequestLoggerInterceptor
+      useClass: RequestLoggerInterceptor,
     },
   ],
   controllers: [],

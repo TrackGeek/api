@@ -238,5 +238,5 @@ export const ERROR_CODES = {
   USER_CANNOT_UNFOLLOW_SELF: {
     code: "USER_CANNOT_UNFOLLOW_SELF",
     status: 400,
-  }
+  },
 } as const;

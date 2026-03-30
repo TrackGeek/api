@@ -45,7 +45,7 @@ export class AnimeController {
 
     return { anime };
   }
-  
+
   @Get("/detail/:malId/relation")
   async getAnimeRelationsByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
     const relations = await this.animeService.getAnimeRelationsByMalId(malId);

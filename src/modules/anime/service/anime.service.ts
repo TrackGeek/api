@@ -147,7 +147,7 @@ export class AnimeService {
 
     return animeWithScore;
   }
-  
+
   async getAnimeRelationsByMalId(malId: number) {
     const cachedRelationsKey = CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.prefix(malId);
     const cachedRelations = await this.cacheService.get(cachedRelationsKey);
@@ -155,7 +155,7 @@ export class AnimeService {
     if (cachedRelations) {
       return cachedRelations;
     }
-    
+
     const anime = await this.databaseService.anime.findUnique({
       where: { malId },
       select: { relations: true },
@@ -170,17 +170,17 @@ export class AnimeService {
 
       return anime.relations;
     }
-    
+
     const relations = await this.integrationsService.jikan.getAnimeRelationsById(malId);
-    
+
     await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.expiration);
-    
+
     await this.databaseService.anime.update({
       where: { malId },
       data: { relations },
     });
 
-    return relations
+    return relations;
   }
 
   async getAnimeEpisodesByMalId(getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto) {
@@ -251,7 +251,7 @@ export class AnimeService {
 
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
     const jikanRelations = await this.integrationsService.jikan.getAnimeRelationsById(refreshAnimeDto.malId);
-    
+
     await this.databaseService.anime.update({
       where: { malId: refreshAnimeDto.malId },
       data: { ...jikanAnime, relations: jikanRelations } as unknown as AnimeUpdateInput,

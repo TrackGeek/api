@@ -95,7 +95,7 @@ export class ListService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         manga: {
           select: {
@@ -103,7 +103,7 @@ export class ListService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         tvShow: {
           select: {
@@ -111,7 +111,7 @@ export class ListService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         book: {
           select: {
@@ -119,7 +119,7 @@ export class ListService {
             hardcoverId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         game: {
           select: {
@@ -127,7 +127,7 @@ export class ListService {
             igdbId: true,
             coverUrl: true,
             name: true,
-          }
+          },
         },
         movie: {
           select: {
@@ -135,7 +135,7 @@ export class ListService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         list: {
           select: {
@@ -242,7 +242,7 @@ export class ListService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         manga: {
           select: {
@@ -250,7 +250,7 @@ export class ListService {
             malId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         tvShow: {
           select: {
@@ -258,7 +258,7 @@ export class ListService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         book: {
           select: {
@@ -266,7 +266,7 @@ export class ListService {
             hardcoverId: true,
             imageUrl: true,
             title: true,
-          }
+          },
         },
         game: {
           select: {
@@ -274,7 +274,7 @@ export class ListService {
             igdbId: true,
             coverUrl: true,
             name: true,
-          }
+          },
         },
         movie: {
           select: {
@@ -282,7 +282,7 @@ export class ListService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         list: {
           select: {

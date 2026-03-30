@@ -25,7 +25,7 @@ export class TVShowEpisodeWatchService {
     if (!tvShow) {
       throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
     }
-    
+
     if (tvShow.numberOfEpisodes) {
       const invalidEpisode = episodes.find(({ episode }) => episode > tvShow.numberOfEpisodes!);
 
@@ -143,7 +143,7 @@ export class TVShowEpisodeWatchService {
       orderBy: {
         season: "asc",
         episode: "asc",
-      }
+      },
     });
 
     return tvShowEpisodeWatch;

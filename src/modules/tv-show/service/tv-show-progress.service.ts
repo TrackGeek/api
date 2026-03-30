@@ -5,14 +5,14 @@ import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { TVShowEpisodeWatchService } from './tv-show-episode-watch.service';
-import { ProgressStatus } from '@prisma/generated/enums';
+import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
+import { ProgressStatus } from "@prisma/generated/enums";
 
 @Injectable()
 export class TVShowProgressService {
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly tvShowEpisodeWatchService: TVShowEpisodeWatchService
+    private readonly tvShowEpisodeWatchService: TVShowEpisodeWatchService,
   ) {}
 
   async createOrUpdateTVShowProgress(createOrUpdateTVShowProgressDto: CreateOrUpdateTVShowProgressDto) {
@@ -40,7 +40,7 @@ export class TVShowProgressService {
         startedAt,
       },
     });
-    
+
     if (status === ProgressStatus.Completed) {
       await this.tvShowEpisodeWatchService.watchAllEpisodesOfTVShow({ tvShowId, userId });
     }

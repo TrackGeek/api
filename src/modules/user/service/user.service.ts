@@ -171,7 +171,7 @@ export class UserService {
     if (userId === targetUserId) {
       throw new AppException(ERROR_CODES.USER_CANNOT_UNFOLLOW_SELF);
     }
-    
+
     const existingFollow = await this.databaseService.following.findUnique({
       where: {
         followerId_followingId: {

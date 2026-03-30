@@ -8,7 +8,7 @@ import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
 import { Logger } from "@nestjs/common";
 import uuid from "uuid";
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from "bcrypt";
 
 interface AuthConfigParams {
   configService?: ConfigService;

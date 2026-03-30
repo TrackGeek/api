@@ -22,7 +22,7 @@ export class MovieService {
 
   async searchMovies(searchMovieDto: SearchMovieDto) {
     const tmdbPagination = await this.integrationsService.tmdb.searchMovies(searchMovieDto);
-    
+
     const items = await Promise.all(
       tmdbPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.movieReview
@@ -96,7 +96,7 @@ export class MovieService {
         data: tmdbMovie as unknown as MovieCreateInput,
       });
     }
-    
+
     const tgReviewScore = await this.databaseService.movieReview
       .aggregate({ where: { movie: { tmdbId: id } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
@@ -107,7 +107,11 @@ export class MovieService {
       tgReviewScore,
     };
 
-    await this.cacheService.set(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id), movieWithScore, CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration);
+    await this.cacheService.set(
+      CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id),
+      movieWithScore,
+      CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration,
+    );
 
     return movieWithScore;
   }

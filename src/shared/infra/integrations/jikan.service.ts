@@ -882,32 +882,34 @@ export class JikanService {
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getAnimeRelationsById(id: number) {
     try {
-      const relationsResponse = await firstValueFrom(this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/relations`));
+      const relationsResponse = await firstValueFrom(
+        this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/relations`),
+      );
 
       const relationsData = relationsResponse.data.data;
 
-      const allEntries = relationsData.flatMap(
-        (relation) => relation.entry,
-      );
+      const allEntries = relationsData.flatMap((relation) => relation.entry);
 
       const imageUrlMap = new Map<number, string | null>();
 
       if (allEntries.length > 0) {
-        const urls = allEntries.map((entry) => `${this.JIKAN_API_URL}/${entry.type === 'anime' ? 'anime' : 'manga'}/${entry.mal_id}`);
+        const urls = allEntries.map(
+          (entry) => `${this.JIKAN_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
+        );
 
         const responses = await manyRequestWithDelay({
           httpService: this.httpService,
           urls,
-          delayMs: 800
+          delayMs: 800,
         });
 
         for (let i = 0; i < allEntries.length; i++) {
           const entry = allEntries[i];
           const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
-          
+
           imageUrlMap.set(entry.mal_id, imageUrl);
         }
       }
@@ -1051,32 +1053,34 @@ export class JikanService {
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getMangaRelationsById(id: number) {
     try {
-      const relationsResponse = await firstValueFrom(this.httpService.get(`${this.JIKAN_API_URL}/manga/${id}/relations`));
+      const relationsResponse = await firstValueFrom(
+        this.httpService.get(`${this.JIKAN_API_URL}/manga/${id}/relations`),
+      );
 
       const relationsData = relationsResponse.data.data;
 
-      const allEntries = relationsData.flatMap(
-        (relation) => relation.entry,
-      );
+      const allEntries = relationsData.flatMap((relation) => relation.entry);
 
       const imageUrlMap = new Map<number, string | null>();
 
       if (allEntries.length > 0) {
-        const urls = allEntries.map((entry) => `${this.JIKAN_API_URL}/${entry.type === 'anime' ? 'anime' : 'manga'}/${entry.mal_id}`);
+        const urls = allEntries.map(
+          (entry) => `${this.JIKAN_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
+        );
 
         const responses = await manyRequestWithDelay({
           httpService: this.httpService,
           urls,
-          delayMs: 800
+          delayMs: 800,
         });
 
         for (let i = 0; i < allEntries.length; i++) {
           const entry = allEntries[i];
           const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
-          
+
           imageUrlMap.set(entry.mal_id, imageUrl);
         }
       }

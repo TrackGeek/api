@@ -245,7 +245,7 @@ export class TMDBService {
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
   ) {}
-  
+
   async getTVShowGenres() {
     try {
       const cachedGenresKey = CACHE_KEYS.TMDB_TV_SHOW_GENRES.prefix;
@@ -271,7 +271,11 @@ export class TMDBService {
         name: genre.name,
       }));
 
-      await this.cacheService.set<TMDBTVShowGenre[]>(cachedGenresKey, genres, CACHE_KEYS.TMDB_TV_SHOW_GENRES.expiration);
+      await this.cacheService.set<TMDBTVShowGenre[]>(
+        cachedGenresKey,
+        genres,
+        CACHE_KEYS.TMDB_TV_SHOW_GENRES.expiration,
+      );
 
       return genres;
     } catch (error) {
@@ -287,7 +291,7 @@ export class TMDBService {
   }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
     try {
       const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page });
-      
+
       const cachedMovies = await this.cacheService.get<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey);
 
       if (cachedMovies) {
@@ -319,10 +323,14 @@ export class TMDBService {
         inPage: page,
         itemsInPage: items.length,
         itemsPerPage: null,
-        items
+        items,
       };
 
-      await this.cacheService.set<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey, movies, CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration);
+      await this.cacheService.set<IGDBPagination<TMDBSearchMovieResult>>(
+        cachedMoviesKey,
+        movies,
+        CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration,
+      );
 
       return movies;
     } catch (error) {
@@ -336,7 +344,10 @@ export class TMDBService {
     }
   }
 
-  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions): Promise<IGDBPagination<TMDBTopMovieResult>> {
+  async topMovies({
+    page = DEFAULT_PAGINATION_PAGE,
+    filter,
+  }: TMDBTopMovieOptions): Promise<IGDBPagination<TMDBTopMovieResult>> {
     const TMDB_MOVIE_FILTER_PATH: Record<TMDBMovieFilter, string> = {
       [TMDBMovieFilter.Airing]: "movie/now_playing",
       [TMDBMovieFilter.Upcoming]: "discover/movie",
@@ -357,9 +368,9 @@ export class TMDBService {
       if (filter === TMDBMovieFilter.Upcoming) {
         const today = new Date();
         const futureDate = new Date();
-        
+
         futureDate.setMonth(today.getMonth() + 3);
-        
+
         const toISO = (d: Date) => d.toISOString().split("T")[0];
 
         params["primary_release_date.gte"] = toISO(today);
@@ -396,7 +407,7 @@ export class TMDBService {
         inPage: page,
         itemsInPage: items.length,
         itemsPerPage: null,
-        items
+        items,
       };
 
       await this.cacheService.set(topMoviesKey, topMovies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
@@ -430,7 +441,7 @@ export class TMDBService {
       );
 
       const tvShowsData = tvShowsResponse.data;
-      
+
       const items = tvShowsData.results.map((tvShow: any) => ({
         tmdbId: tvShow.id,
         name: tvShow.name,
@@ -446,7 +457,7 @@ export class TMDBService {
         inPage: page,
         itemsInPage: items.length,
         itemsPerPage: null,
-        items
+        items,
       };
 
       await this.cacheService.set(cachedTVShowsKey, tvShows, CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration);
@@ -463,7 +474,10 @@ export class TMDBService {
     }
   }
 
-  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions): Promise<IGDBPagination<TMDBTopTVShowResult>> {
+  async topTVShows({
+    page = DEFAULT_PAGINATION_PAGE,
+    filter,
+  }: TMDBTopTVShowsOptions): Promise<IGDBPagination<TMDBTopTVShowResult>> {
     const TMDB_TV_SHOWS_FILTER_PATH: Record<TMDBTVShowFilter, string> = {
       [TMDBTVShowFilter.Airing]: "tv/airing_today",
       [TMDBTVShowFilter.Upcoming]: "discover/tv",
@@ -476,7 +490,7 @@ export class TMDBService {
       const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({ ...topTVShowsOptions });
 
       const cachedTopTVShows = await this.cacheService.get<IGDBPagination<TMDBTopTVShowResult>>(topTVShowsKey);
-      
+
       if (cachedTopTVShows) {
         return cachedTopTVShows;
       }
@@ -524,10 +538,14 @@ export class TMDBService {
         inPage: page,
         itemsInPage: items.length,
         itemsPerPage: null,
-        items
+        items,
       };
 
-      await this.cacheService.set<IGDBPagination<TMDBTopTVShowResult>>(topTVShowsKey, topTVShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
+      await this.cacheService.set<IGDBPagination<TMDBTopTVShowResult>>(
+        topTVShowsKey,
+        topTVShows,
+        CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration,
+      );
 
       return topTVShows;
     } catch (error) {
@@ -643,17 +661,14 @@ export class TMDBService {
       }
 
       const tvShowResponse = await firstValueFrom(
-        this.httpService.get(
-          `${this.TMDB_API_URL}/tv/${tmdbId}`,
-          {
-            params: {
-              append_to_response: "credits,videos,external_ids,images",
-            },
-            headers: {
-              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-            },
+        this.httpService.get(`${this.TMDB_API_URL}/tv/${tmdbId}`, {
+          params: {
+            append_to_response: "credits,videos,external_ids,images",
           },
-        ),
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
       );
 
       const tvShowData = tvShowResponse.data;

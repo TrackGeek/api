@@ -139,7 +139,7 @@ export class MangaService {
 
     return mangaWithScore;
   }
-  
+
   async getMangaRelationsByMalId(malId: number) {
     const cachedRelationsKey = CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.prefix(malId);
     const cachedRelations = await this.cacheService.get(cachedRelationsKey);
@@ -147,7 +147,7 @@ export class MangaService {
     if (cachedRelations) {
       return cachedRelations;
     }
-    
+
     const manga = await this.databaseService.manga.findUnique({
       where: { malId },
       select: { relations: true },
@@ -162,17 +162,17 @@ export class MangaService {
 
       return manga.relations;
     }
-    
+
     const relations = await this.integrationsService.jikan.getMangaRelationsById(malId);
-    
+
     await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
-    
+
     await this.databaseService.manga.update({
       where: { malId },
       data: { relations },
     });
 
-    return relations
+    return relations;
   }
 
   async refreshManga(refreshMangaDto: RefreshMangaDto) {
@@ -199,7 +199,7 @@ export class MangaService {
 
     const jikanManga = await this.integrationsService.jikan.getMangaById(refreshMangaDto.malId);
     const jikanRelations = await this.integrationsService.jikan.getMangaRelationsById(refreshMangaDto.malId);
-    
+
     await this.databaseService.manga.update({
       where: { malId: refreshMangaDto.malId },
       data: { ...jikanManga, relations: jikanRelations } as unknown as MangaUpdateInput,

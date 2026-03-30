@@ -44,7 +44,7 @@ export class MangaController {
 
     return { manga };
   }
-  
+
   @Get("/detail/:malId/relation")
   async getMangaRelationsByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
     const relations = await this.mangaService.getMangaRelationsByMalId(malId);

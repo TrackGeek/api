@@ -37,7 +37,7 @@ export async function populateMedals(prisma: PrismaClient) {
 
 async function createFirstUser(prisma: PrismaClient) {
   const password = "$2a$12$VFoLlPVUMw.kcjR4L8Cdx.A4UrkBt4CWFZRLIrD1KOohG19Mc3XzC"; // "super-secure-password"
-  
+
   const users = [
     {
       id: uuid(),
@@ -50,16 +50,16 @@ async function createFirstUser(prisma: PrismaClient) {
       name: "Jane Doe",
       username: "janedoe",
       email: "janedoe@example.com",
-    }
-  ]
-  
+    },
+  ];
+
   let insertedCount = 0;
-  
+
   for (const userData of users) {
     const userExists = await prisma.user.findUnique({
       where: { email: userData.email },
     });
-    
+
     if (!userExists) {
       await prisma.user.create({
         data: {
@@ -72,7 +72,7 @@ async function createFirstUser(prisma: PrismaClient) {
           profile: {
             create: {
               id: uuid(),
-            }
+            },
           },
           accounts: {
             create: {
@@ -80,15 +80,15 @@ async function createFirstUser(prisma: PrismaClient) {
               accountId: userData.id,
               providerId: "credential",
               password,
-            }
-          }
+            },
+          },
         },
       });
-      
+
       insertedCount++;
     }
   }
-  
+
   console.log(`Inserted ${insertedCount} users.`);
 }
 

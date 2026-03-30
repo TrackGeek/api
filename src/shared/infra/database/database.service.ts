@@ -59,7 +59,8 @@ export class DatabaseService extends PrismaClient {
         where,
         orderBy,
         ...(Object.keys(include).length > 0 && Object.keys(include).length === 0 && { select }),
-        ...(Object.keys(select).length === 0 && (Object.keys(include).length > 0 || Object.keys(omit).length > 0) && { omit, include }),
+        ...(Object.keys(select).length === 0 &&
+          (Object.keys(include).length > 0 || Object.keys(omit).length > 0) && { omit, include }),
       }),
     ]);
 

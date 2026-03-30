@@ -35,7 +35,7 @@ export class MangaReviewService {
         manga: {
           omit: {
             relations: true,
-          }
+          },
         },
         user: {
           select: {
@@ -67,7 +67,7 @@ export class MangaReviewService {
         manga: {
           omit: {
             relations: true,
-          }
+          },
         },
         user: {
           select: {
@@ -105,7 +105,7 @@ export class MangaReviewService {
         manga: {
           omit: {
             relations: true,
-          }
+          },
         },
         user: {
           select: {
