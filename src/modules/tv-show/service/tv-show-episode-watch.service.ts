@@ -19,11 +19,19 @@ export class TVShowEpisodeWatchService {
 
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { id: tvShowId },
-      select: { id: true },
+      select: { id: true, numberOfEpisodes: true },
     });
 
     if (!tvShow) {
       throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+    }
+    
+    if (tvShow.numberOfEpisodes) {
+      const invalidEpisode = episodes.find(({ episode }) => episode > tvShow.numberOfEpisodes!);
+
+      if (invalidEpisode) {
+        throw new AppException(ERROR_CODES.EPISODE_NOT_FOUND);
+      }
     }
 
     const batchSize = 50;
@@ -132,6 +140,10 @@ export class TVShowEpisodeWatchService {
         userId: getTVShowEpisodeWatchDto.userId,
         tvShowId: getTVShowEpisodeWatchDto.tvShowId,
       },
+      orderBy: {
+        season: "asc",
+        episode: "asc",
+      }
     });
 
     return tvShowEpisodeWatch;

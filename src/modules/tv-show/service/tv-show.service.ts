@@ -22,11 +22,61 @@ export class TVShowService {
   ) {}
 
   async searchTVShows(searchTVShowDto: SearchTVShowDto) {
-    return this.integrationsService.tmdb.searchTVShows(searchTVShowDto);
+    const tmdbPagination = await this.integrationsService.tmdb.searchTVShows(searchTVShowDto);
+
+    const items = await Promise.all(
+      tmdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.tvShowReview
+          .aggregate({ where: { tvShow: { tmdbId: item.tmdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const tvShow = await this.databaseService.tvShow.findUnique({
+          where: { tmdbId: item.tmdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: tvShow?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...tmdbPagination,
+      items,
+    };
   }
 
   async topTVShows(topTvShowDto: TopTvShowDto) {
-    return this.integrationsService.tmdb.topTVShows(topTvShowDto);
+    const tmdbPagination = await this.integrationsService.tmdb.topTVShows(topTvShowDto);
+
+    const items = await Promise.all(
+      tmdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.tvShowReview
+          .aggregate({ where: { tvShow: { tmdbId: item.tmdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const tvShow = await this.databaseService.tvShow.findUnique({
+          where: { tmdbId: item.tmdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: tvShow?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...tmdbPagination,
+      items,
+    };
   }
 
   async getTVShowByTmdbId(tmdbId: number) {
@@ -50,14 +100,24 @@ export class TVShowService {
         data: tmdbTVShow as unknown as TvShowCreateInput,
       });
     }
+    
+    const tgReviewScore = await this.databaseService.tvShowReview
+      .aggregate({ where: { tvShow: { tmdbId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
+
+    const tvShowWithScore = {
+      ...tvShow,
+      tgReviewScore,
+    };
 
     await this.cacheService.set(
       CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId),
-      tvShow,
+      tvShowWithScore,
       CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration,
     );
 
-    return tvShow;
+    return tvShowWithScore;
   }
 
   async getTVShowSeasons(tmdbId: number) {
