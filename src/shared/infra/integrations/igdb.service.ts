@@ -1,5 +1,5 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -134,10 +134,7 @@ export interface IGDBGameDetails {
     name: string | null;
     slug: string | null;
   }[];
-  gameStatus: {
-    checksum: string | null;
-    status: string | null;
-  } | null;
+  gameStatus: string | null;
   gameType: {
     checksum: string | null;
     type: string | null;
@@ -226,6 +223,8 @@ export interface IGDBGameDetails {
 
 @Injectable()
 export class IGDBService {
+  private readonly logger = new Logger(IGDBService.name);
+  
   private readonly IGDB_API_URL = "https://api.igdb.com/v4";
 
   constructor(
@@ -293,6 +292,7 @@ export class IGDBService {
           cover.url,
           platforms.checksum,
           platforms.name,
+					game_status.status,
           involved_companies.checksum,
           involved_companies.company.name,
           involved_companies.developer,
@@ -318,6 +318,13 @@ export class IGDBService {
         igdbId: game.id,
         slug: game.slug,
         name: game.name,
+        gameStatus: game?.game_status?.status
+          ? game?.game_status?.status
+          : game.first_release_date
+            ? new Date(game.first_release_date * 1000) <= new Date()
+              ? "Released"
+              : "Not Released"
+            : "Not Released",
         involvedCompanies:
           game?.involved_companies?.map((company: any) => ({
             checksum: company?.checksum ?? null,
@@ -349,6 +356,8 @@ export class IGDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
+      
+      this.logger.error(`Error searching games in IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
@@ -475,7 +484,7 @@ export class IGDBService {
           })) ?? [],
         summary: game?.summary,
         coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
-        firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
+        firstReleaseDate: game.first_release_date ? new Date(game.first_release_date) : null,
       }));
 
       const hasNextPage = items.length === pageSize;
@@ -580,7 +589,6 @@ export class IGDBService {
 					game_modes.checksum,
 					game_modes.name,
 					game_modes.slug,
-					game_status.checksum,
 					game_status.status,
 					game_type.checksum,
 					game_type.type,
@@ -782,12 +790,13 @@ export class IGDBService {
             name: mode?.name ?? null,
             slug: mode?.slug ?? null,
           })) ?? [],
-        gameStatus: gameData?.game_status
-          ? {
-              checksum: gameData.game_status.checksum ?? null,
-              status: gameData.game_status.status ?? null,
-            }
-          : {},
+        gameStatus: gameData?.game_status?.status
+          ? gameData?.game_status?.status
+          : gameData.first_release_date
+            ? new Date(gameData.first_release_date * 1000) <= new Date()
+              ? "Released"
+              : "Not Released"
+            : "Not Released",
         gameType: gameData?.game_type
           ? {
               checksum: gameData.game_type.checksum ?? null,
