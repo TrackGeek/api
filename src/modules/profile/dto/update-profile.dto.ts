@@ -1,23 +1,22 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsString } from "class-validator";
 
 export class UpdateProfileDto {
-  @ApiProperty({ type: "string", format: "uuid" })
   readonly userId: string;
 
-  @IsNotEmpty()
+  @IsString()
   @ApiProperty({ type: "string" })
   readonly color: string;
 
-  @IsNotEmpty()
+  @IsString()
   @ApiProperty({ type: "string" })
   readonly language: string;
 
-  @IsOptional()
-  @ApiPropertyOptional({ type: "string" })
+  @IsString()
+  @ApiProperty({ type: "string" })
   readonly timezone: string;
 
-  @IsOptional()
-  @ApiPropertyOptional({ type: "string" })
+  @IsString()
+  @ApiProperty({ type: "string" })
   readonly about: string;
 }
