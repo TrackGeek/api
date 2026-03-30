@@ -9,9 +9,11 @@ import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.servic
 import { CacheService } from "../cache/cache.service";
 
 export interface IGDBPagination<I> {
-  nextCursor: number | null;
-  hasNextPage: boolean;
-  count: number;
+  total: number | null;
+  pages: number;
+  inPage: number;
+  itemsInPage: number;
+  itemsPerPage: number | null;
   items: I[];
 }
 
@@ -52,6 +54,8 @@ export interface TMDBTopTVShowsOptions {
 export interface TMDBSearchMovieResult {
   tmdbId: number;
   name: string;
+  backdropUrl: string | null;
+  overview: string | null;
   releaseDate: Date | null;
   posterUrl: string | null;
 }
@@ -82,6 +86,8 @@ export interface TMDBSearchTVShowResult {
 export interface TMDBMovieDetails {
   tmdbId: number;
   imdbId: string | null;
+  isAdult: boolean;
+  tmdbReviewScore: number;
   backdropUrl: string | null;
   belongsToCollection: {
     id: number;
@@ -218,6 +224,16 @@ export interface TMDBTVShowSeasonEpisode {
   stillUrl: string | null;
 }
 
+export interface TMDBTVShowGenre {
+  id: number;
+  name: string;
+}
+
+export interface TMDBMovieGenre {
+  id: number;
+  name: string;
+}
+
 @Injectable()
 export class TMDBService {
   private readonly logger = new Logger(TMDBService.name);
@@ -229,6 +245,41 @@ export class TMDBService {
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
   ) {}
+  
+  async getTVShowGenres() {
+    try {
+      const cachedGenresKey = CACHE_KEYS.TMDB_TV_SHOW_GENRES.prefix;
+
+      const cachedGenres = await this.cacheService.get<TMDBTVShowGenre[]>(cachedGenresKey);
+
+      if (cachedGenres) {
+        return cachedGenres;
+      }
+
+      const genresResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/genre/tv/list`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const genresData = genresResponse.data;
+
+      const genres: TMDBTVShowGenre[] = genresData.genres.map((genre: any) => ({
+        id: genre.id,
+        name: genre.name,
+      }));
+
+      await this.cacheService.set<TMDBTVShowGenre[]>(cachedGenresKey, genres, CACHE_KEYS.TMDB_TV_SHOW_GENRES.expiration);
+
+      return genres;
+    } catch (error) {
+      this.logger.error(`Failed to fetch TV show genres from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
 
   async searchMovies({
     query,
@@ -236,6 +287,7 @@ export class TMDBService {
   }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
     try {
       const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page });
+      
       const cachedMovies = await this.cacheService.get<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey);
 
       if (cachedMovies) {
@@ -253,23 +305,24 @@ export class TMDBService {
 
       const moviesData = movieResponse.data;
 
-      const items = moviesData.results.map((movie: any) => ({
+      const items: TMDBSearchMovieResult[] = moviesData.results.map((movie: any) => ({
         tmdbId: movie.id,
         name: movie.title,
+        tmdbReviewScore: movie.vote_average,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
 
-      const hasNextPage = moviesData.page < moviesData.total_pages;
-
-      const movies = {
-        hasNextPage,
-        nextCursor: hasNextPage ? page + 1 : null,
-        count: items.length,
-        items,
+      const movies: IGDBPagination<TMDBSearchMovieResult> = {
+        total: null,
+        pages: moviesData.total_pages,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
+        items
       };
 
-      await this.cacheService.set(cachedMoviesKey, movies, CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration);
+      await this.cacheService.set<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey, movies, CACHE_KEYS.TMDB_SEARCH_MOVIES.expiration);
 
       return movies;
     } catch (error) {
@@ -283,7 +336,7 @@ export class TMDBService {
     }
   }
 
-  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions) {
+  async topMovies({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopMovieOptions): Promise<IGDBPagination<TMDBTopMovieResult>> {
     const TMDB_MOVIE_FILTER_PATH: Record<TMDBMovieFilter, string> = {
       [TMDBMovieFilter.Airing]: "movie/now_playing",
       [TMDBMovieFilter.Upcoming]: "discover/movie",
@@ -295,7 +348,7 @@ export class TMDBService {
       const topMoviesOptions = { page, filter };
       const topMoviesKey = CACHE_KEYS.TMDB_TOP_MOVIES.prefix({ ...topMoviesOptions });
 
-      const cachedTopMovies = await this.cacheService.get(topMoviesKey);
+      const cachedTopMovies = await this.cacheService.get<IGDBPagination<TMDBTopMovieResult>>(topMoviesKey);
       if (cachedTopMovies) return cachedTopMovies;
 
       const path = TMDB_MOVIE_FILTER_PATH[filter];
@@ -304,7 +357,9 @@ export class TMDBService {
       if (filter === TMDBMovieFilter.Upcoming) {
         const today = new Date();
         const futureDate = new Date();
+        
         futureDate.setMonth(today.getMonth() + 3);
+        
         const toISO = (d: Date) => d.toISOString().split("T")[0];
 
         params["primary_release_date.gte"] = toISO(today);
@@ -322,17 +377,11 @@ export class TMDBService {
 
       const responseData = topMovieResponse.data;
 
-      const paginationData = {
-        has_next_page: responseData.page < responseData.total_pages,
-        items: {
-          total: responseData.total_results,
-          count: responseData.results.length,
-        },
-      };
-
-      const items = responseData.results.map((movie: any) => ({
+      const items: TMDBSearchMovieResult[] = responseData.results.map((movie: any) => ({
         tmdbId: movie.id,
         name: movie.title,
+        isAdult: movie.adult,
+        tmdbReviewScore: movie.vote_average,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
         backdropUrl: movie.backdrop_path
           ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${movie.backdrop_path}`
@@ -341,12 +390,13 @@ export class TMDBService {
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
 
-      const topMovies = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
-        total: paginationData.items.total,
-        count: paginationData.items.count,
-        items,
+      const topMovies: IGDBPagination<TMDBSearchMovieResult> = {
+        total: null,
+        pages: responseData.total_pages,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
+        items
       };
 
       await this.cacheService.set(topMoviesKey, topMovies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
@@ -380,21 +430,23 @@ export class TMDBService {
       );
 
       const tvShowsData = tvShowsResponse.data;
-
-      const items = tvShowsData.results.map((show: any) => ({
-        tmdbId: show.id,
-        name: show.name,
-        firstAirDate: show.first_air_date ? new Date(show.first_air_date) : null,
-        posterUrl: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
+      
+      const items = tvShowsData.results.map((tvShow: any) => ({
+        tmdbId: tvShow.id,
+        name: tvShow.name,
+        isAdult: tvShow.adult,
+        tmdbReviewScore: tvShow.vote_average,
+        firstAirDate: tvShow.first_air_date ? new Date(tvShow.first_air_date) : null,
+        posterUrl: tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : null,
       }));
 
-      const hasNextPage = tvShowsData.page < tvShowsData.total_pages;
-
-      const tvShows = {
-        hasNextPage,
-        nextCursor: hasNextPage ? page + 1 : null,
-        count: items.length,
-        items,
+      const tvShows: IGDBPagination<TMDBSearchTVShowResult> = {
+        total: null,
+        pages: tvShowsData.total_pages,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
+        items
       };
 
       await this.cacheService.set(cachedTVShowsKey, tvShows, CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration);
@@ -411,7 +463,7 @@ export class TMDBService {
     }
   }
 
-  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions) {
+  async topTVShows({ page = DEFAULT_PAGINATION_PAGE, filter }: TMDBTopTVShowsOptions): Promise<IGDBPagination<TMDBTopTVShowResult>> {
     const TMDB_TV_SHOWS_FILTER_PATH: Record<TMDBTVShowFilter, string> = {
       [TMDBTVShowFilter.Airing]: "tv/airing_today",
       [TMDBTVShowFilter.Upcoming]: "discover/tv",
@@ -423,8 +475,11 @@ export class TMDBService {
       const topTVShowsOptions = { page, filter };
       const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({ ...topTVShowsOptions });
 
-      const cachedTopTVShows = await this.cacheService.get(topTVShowsKey);
-      if (cachedTopTVShows) return cachedTopTVShows;
+      const cachedTopTVShows = await this.cacheService.get<IGDBPagination<TMDBTopTVShowResult>>(topTVShowsKey);
+      
+      if (cachedTopTVShows) {
+        return cachedTopTVShows;
+      }
 
       const path = TMDB_TV_SHOWS_FILTER_PATH[filter];
       const params: Record<string, any> = { page };
@@ -450,34 +505,29 @@ export class TMDBService {
 
       const tvShowsData = topTVShowsResponse.data;
 
-      const paginationData = {
-        has_next_page: tvShowsData.page < tvShowsData.total_pages,
-        items: {
-          total: tvShowsData.total_results,
-          count: tvShowsData.results.length,
-        },
-      };
-
-      const items = tvShowsData.results.map((show: any) => ({
-        tmdbId: show.id,
-        name: show.name,
-        firstAirDate: show.first_air_date ? new Date(show.first_air_date) : null,
-        posterUrl: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
-        backdropUrl: show.backdrop_path
-          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${show.backdrop_path}`
+      const items: TMDBTopTVShowResult[] = tvShowsData.results.map((tvShow: any) => ({
+        tmdbId: tvShow.id,
+        name: tvShow.name,
+        isAdult: tvShow.adult,
+        tmdbReviewScore: tvShow.vote_average,
+        firstAirDate: tvShow.first_air_date ? new Date(tvShow.first_air_date) : null,
+        posterUrl: tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : null,
+        backdropUrl: tvShow.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${tvShow.backdrop_path}`
           : null,
-        tagline: show.overview,
+        tagline: tvShow.overview,
       }));
 
-      const topTVShows = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
-        total: paginationData.items.total,
-        count: paginationData.items.count,
-        items,
+      const topTVShows: IGDBPagination<TMDBTopTVShowResult> = {
+        total: null,
+        pages: tvShowsData.total_pages,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
+        items
       };
 
-      await this.cacheService.set(topTVShowsKey, topTVShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
+      await this.cacheService.set<IGDBPagination<TMDBTopTVShowResult>>(topTVShowsKey, topTVShows, CACHE_KEYS.TMDB_TOP_TV_SHOWS.expiration);
 
       return topTVShows;
     } catch (error) {
@@ -511,7 +561,7 @@ export class TMDBService {
       const movieVideos = movieData.videos?.results ?? [];
       const movieBackdrops = movieData.images?.backdrops ?? [];
 
-      const movie = {
+      const movie: TMDBMovieDetails = {
         tmdbId: movieData.id,
         imdbId: movieData.imdb_id,
         backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/w500${movieData.backdrop_path}` : null,
@@ -522,6 +572,7 @@ export class TMDBService {
             }
           : null,
         budget: movieData.budget,
+        isAdult: movieData.adult,
         genres: movieData.genres.map((genre: any) => genre.name),
         homepage: movieData.homepage,
         originalLanguage: movieData.original_language,
@@ -562,7 +613,8 @@ export class TMDBService {
           (backdrop: any) => `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${backdrop.file_path}`,
         ),
         external: movieData.external_ids,
-      } as TMDBMovieDetails;
+        tmdbReviewScore: movieData.vote_average,
+      };
 
       await this.cacheService.set(
         CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(tmdbId),
@@ -592,8 +644,11 @@ export class TMDBService {
 
       const tvShowResponse = await firstValueFrom(
         this.httpService.get(
-          `${this.TMDB_API_URL}/tv/${tmdbId}?append_to_response=credits%2Cimages%2Cvideos%2Cexternal_ids`,
+          `${this.TMDB_API_URL}/tv/${tmdbId}`,
           {
+            params: {
+              append_to_response: "credits,videos,external_ids,images",
+            },
             headers: {
               Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
             },
@@ -606,8 +661,9 @@ export class TMDBService {
       const tvShowVideos = tvShowData.videos?.results ?? [];
       const tvShowBackdrops = tvShowData.images?.backdrops ?? [];
 
-      const tvShow = {
+      const tvShow: TMDBTVShowDetails = {
         tmdbId: tvShowData.id,
+        isAdult: tvShowData.adult,
         backdropUrl: tvShowData.backdrop_path ? `https://image.tmdb.org/t/p/w500${tvShowData.backdrop_path}` : null,
         createdBy: tvShowData.created_by.map((creator: any) => ({
           id: creator.id,
@@ -691,6 +747,7 @@ export class TMDBService {
         ),
         trailerId: tvShowVideos.find((video: any) => video.site === "YouTube" && video.type === "Trailer")?.key ?? null,
         external: tvShowData.external_ids,
+        tmdbReviewScore: tvShowData.vote_average,
       } as TMDBTVShowDetails;
 
       await this.cacheService.set(
