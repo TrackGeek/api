@@ -58,8 +58,8 @@ export class DatabaseService extends PrismaClient {
         skip: (page - 1) * itemsPerPage,
         where,
         orderBy,
-        ...(Object.keys(include).length === 0 && { select }),
-        ...(Object.keys(select).length === 0 && { include, omit }),
+        ...(Object.keys(include).length > 0 && Object.keys(include).length === 0 && { select }),
+        ...(Object.keys(select).length === 0 && (Object.keys(include).length > 0 || Object.keys(omit).length > 0) && { omit, include }),
       }),
     ]);
 
