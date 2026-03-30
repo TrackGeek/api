@@ -8,6 +8,7 @@ import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
 import { Logger } from "@nestjs/common";
 import uuid from "uuid";
+import * as bcrypt from 'bcrypt';
 
 interface AuthConfigParams {
   configService?: ConfigService;
@@ -102,6 +103,10 @@ export function getAuthConfig(params: AuthConfigParams) {
       enabled: true,
       minPasswordLength: 8,
       resetPasswordTokenExpiresIn: 60 * 60 * 3,
+      password: {
+        hash: (password) => bcrypt.hash(password, 12),
+        verify: ({ password, hash }) => bcrypt.compare(password, hash),
+      },
       sendResetPassword: async ({ user, url }) => {
         await queueService.toResetPasswordJob({
           name: user.name,
