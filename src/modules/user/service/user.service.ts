@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
+import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -8,6 +8,11 @@ import { extractNameFromEmail } from "@/shared/utils/email";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { SearchUserDto } from "../dto/search-user.dto";
+
+type ProgressGroup = {
+  status: ProgressStatus;
+  _count: { status: number }
+};
 
 @Injectable()
 export class UserService {
@@ -64,7 +69,7 @@ export class UserService {
   }
 
   async getUserByUsername(username: string) {
-    const user = this.databaseService.user.findUnique({
+    const user = await this.databaseService.user.findUnique({
       where: { username },
       include: {
         profile: true,
@@ -85,8 +90,86 @@ export class UserService {
     if (!user) {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
+    
+    const buildStats = (groups: ProgressGroup[], statuses: ProgressStatus[]) => {
+      const total = groups.reduce((sum, g) => sum + g._count.status, 0);
+      
+      const getStat = (status: ProgressStatus) => {
+        const count = groups.find((g) => g.status === status)?._count.status ?? 0;
+        
+        return { count, percentage: total > 0 ? parseFloat(((count / total) * 100).toFixed(1)) : 0 };
+      };
+      
+      return Object.fromEntries([["total", total], ...statuses.map((s) => [s.toLowerCase(), getStat(s)])]);
+    };
 
-    return user;
+    const watchingStatuses = [
+      ProgressStatus.Watching,
+      ProgressStatus.Completed,
+      ProgressStatus.Paused,
+      ProgressStatus.Dropped,
+      ProgressStatus.Planning,
+    ];
+
+    const readingStatuses = [
+      ProgressStatus.Reading,
+      ProgressStatus.Completed,
+      ProgressStatus.Paused,
+      ProgressStatus.Dropped,
+      ProgressStatus.Planning,
+    ];
+
+    const playingStatuses = [
+      ProgressStatus.Playing,
+      ProgressStatus.Completed,
+      ProgressStatus.Paused,
+      ProgressStatus.Dropped,
+      ProgressStatus.Planning,
+    ];
+
+    const [animeGroups, mangaGroups, tvShowGroups, movieGroups, gameGroups, bookGroups] = await Promise.all([
+      this.databaseService.animeProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.mangaProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.tvShowProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.movieProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.gameProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.bookProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+    ]);
+
+    const progressStats = {
+      anime: buildStats(animeGroups, watchingStatuses),
+      manga: buildStats(mangaGroups, readingStatuses),
+      tvShow: buildStats(tvShowGroups, watchingStatuses),
+      movie: buildStats(movieGroups, watchingStatuses),
+      game: buildStats(gameGroups, playingStatuses),
+      book: buildStats(bookGroups, readingStatuses),
+    };
+
+    return { ...user, progressStats };
   }
 
   getName(name: string | null | undefined, email: string) {
