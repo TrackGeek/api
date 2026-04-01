@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Book } from "@prisma/generated/client";
+import { Book, ProgressStatus } from "@prisma/generated/client";
 import { BookCreateInput, BookUpdateInput } from "@prisma/generated/models";
 import { TopBookDto } from "@/modules/book/dto/top-book.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -47,13 +47,47 @@ export class BookService {
       });
     }
 
+    const tgReviewScore = await this.databaseService.bookReview
+      .aggregate({ where: { book: { hardcoverId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
+
+    const progressGroups = await this.databaseService.bookProgress.groupBy({
+      by: ["status"],
+      where: { book: { hardcoverId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const bookWithStats = {
+      ...book,
+      tgReviewScore,
+      progressStats,
+    };
+
     await this.cacheService.set(
       CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(hardcoverId),
-      book,
+      bookWithStats,
       CACHE_KEYS.BOOK_BY_HARDCOVER_ID.expiration,
     );
 
-    return book;
+    return bookWithStats;
   }
 
   async refreshBook(refreshBookDto: RefreshBookDto) {
