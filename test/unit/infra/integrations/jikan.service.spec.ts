@@ -210,7 +210,14 @@ describe("JikanService", () => {
 
   describe("getAnimeEpisodesById", () => {
     it("should return cached episodes when cache hit", async () => {
-      const cached = [{ malId: 1, title: "Pilot", episodeNumber: 1, imageUrl: null }];
+      const cached = {
+        total: null,
+        pages: 1,
+        inPage: 1,
+        itemsInPage: 1,
+        itemsPerPage: null,
+        items: [{ malId: 1, title: "Pilot", episodeNumber: 1, imageUrl: null }],
+      };
       mockCacheService.get.mockResolvedValue(cached);
 
       const result = await service.getAnimeEpisodesById({ malId: 20 });

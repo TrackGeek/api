@@ -38,7 +38,7 @@ GET {{apiUrl}}/user/follower?userId={{login.response.body.user.id}}
 ### 9 Follow user
 POST {{apiUrl}}/user/follow/019d3fb8-dce9-715a-94a3-b093c0660f0e
 
-### 10. Get user following
+### 5. Get user following
 GET {{apiUrl}}/user/following?userId={{login.response.body.user.id}}
 
 ### 11. Unfollow user
@@ -175,12 +175,12 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 
 {
-  "overall": 10,
-  "story": 10,
-  "characters": 10,
-  "animation": 10,
-  "sound": 10,
-  "enjoyment": 10,
+  "overall": 5,
+  "story": 5,
+  "characters": 5,
+  "animation": 5,
+  "sound": 5,
+  "enjoyment": 5,
   "summary": "This anime is amazing! I can't stop watching it. The story is captivating and the characters are well-developed. The animation is top-notch and the sound design is fantastic. I highly recommend it to anyone who loves action and adventure.",
   "pros": "- Great story\n- Amazing characters\n- Stunning animation\n- Fantastic sound design",
   "cons": "- None, this anime is perfect!",
@@ -207,7 +207,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 
 {
-  "overall": 10,
+  "overall": 5,
   "story": 5,
   "characters": 4,
   "animation": 4,
@@ -291,3 +291,616 @@ Authorization: Bearer {{login.response.body.token}}
 {
   "animeId": "019d402d-c955-7362-91ca-848d7497f245"
 }
+
+### 43. Search manga
+GET {{apiUrl}}/manga/search?query=dragon%20ball
+
+### 44. Manga filters
+GET {{apiUrl}}/manga/filter
+
+### 45. Top manga - By Popularity
+GET {{apiUrl}}/manga/top?filter=bypopularity
+
+### 45.1 Top manga - Airing TV
+GET {{apiUrl}}/manga/top?filter=publishing&type=lightnovel
+
+### 45.2 Top manga - Favorite PG13
+GET {{apiUrl}}/manga/top?filter=favorite&rating=pg13
+
+### 46. Manga Detail
+GET {{apiUrl}}/manga/detail/42
+
+### 47. Manga Relation
+GET {{apiUrl}}/manga/detail/42/relation
+
+### 48. Create Manga Review
+POST {{apiUrl}}/manga/review
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 5,
+  "art": 5,
+  "worldbuilding": 5,
+  "summary": "This manga is amazing! I can't stop reading it. The story is captivating and the characters are well-developed. The artwork is top-notch and the storytelling is fantastic. I highly recommend it to anyone who loves action and adventure.",
+  "notes": "I have read this manga multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible and the creators clearly put a lot of love and care into making it. I can't wait for the next chapter!",
+  "story": "This manga has a captivating story that keeps you hooked from start to finish. The plot is well-paced and full of twists and turns that keep you on the edge of your seat. The world-building is also fantastic, with a rich and immersive setting that feels alive and vibrant.",
+  "characters": "The characters in this manga are incredibly well-developed and relatable. Each character has their own unique personality and backstory that adds depth and complexity to the story. The character development is also top-notch, with characters that grow and evolve over the course of the series.",
+  "recommended": true,
+  "mangaId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 49. Get Manga Review by Manga Id
+GET {{apiUrl}}/manga/review?mangaId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 49.1 Get Manga Review by User Id
+GET {{apiUrl}}/manga/review?userId={{login.response.body.user.id}}
+
+### 49.2 Get Manga Review by User Id and Manga Id
+GET {{apiUrl}}/manga/review?userId={{login.response.body.user.id}}&mangaId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 50. Update Manga Review
+PATCH {{apiUrl}}/manga/review/019d4453-18af-7321-8f4f-c1b19208414f
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 5.5,
+  "art": 5,
+  "worldbuilding": 5,
+  "summary": "This manga is amazing! I can't stop reading it. The story is captivating and the characters are well-developed. The artwork is top-notch and the storytelling is fantastic. I highly recommend it to anyone who loves action and adventure.",
+  "notes": "I have read this manga multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible and the creators clearly put a lot of love and care into making it. I can't wait for the next chapter!",
+  "story": "This manga has a captivating story that keeps you hooked from start to finish. The plot is well-paced and full of twists and turns that keep you on the edge of your seat. The world-building is also fantastic, with a rich and immersive setting that feels alive and vibrant.",
+  "characters": "The characters in this manga are incredibly well-developed and relatable. Each character has their own unique personality and backstory that adds depth and complexity to the story. The character development is also top-notch, with characters that grow and evolve over the course of the series.",
+  "recommended": true,
+  "mangaId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 51. Delete Manga Review
+DELETE {{apiUrl}}/manga/review/019d4453-18af-7321-8f4f-c1b19208414f
+
+### 52. Create or Update Manga Progress
+POST {{apiUrl}}/manga/progress
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "status": "Completed",
+  "watchCount": 1,
+  "completedAt": "2026-03-30T00:00:00Z",
+  "mangaId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 53. Get Manga Progress by Manga Id
+GET {{apiUrl}}/manga/progress?mangaId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 53.1 Get Manga Progress by User Id
+GET {{apiUrl}}/manga/progress?userId={{login.response.body.user.id}}
+
+### 53.2 Get Manga Progress by User Id and Manga Id
+GET {{apiUrl}}/manga/progress?userId={{login.response.body.user.id}}
+
+### 54. Delete Manga Progress
+DELETE {{apiUrl}}/manga/progress/019d4461-a9b5-701c-9d3e-1774560e770c
+
+### 55. Search TV Show
+GET {{apiUrl}}/tv/search?query=supernatural
+
+### 56. TV Show filters
+GET {{apiUrl}}/tv/filter
+
+### 57. Top TV Shows - By Popularity
+GET {{apiUrl}}/tv/top?filter=airing
+
+### 57.1 Top TV Shows - Upcoming
+GET {{apiUrl}}/tv/top?filter=upcoming
+
+### 57.2 Top TV Shows - Trending
+GET {{apiUrl}}/tv/top?filter=trending
+
+### 57.3 Top TV Shows - Popular
+GET {{apiUrl}}/tv/top?filter=popular
+
+### 58. TV Show Detail
+GET {{apiUrl}}/tv/detail/1622
+
+### 59. TV Show Season
+GET {{apiUrl}}/tv/detail/1622/season
+
+### 60. TV Show Season Episodes
+GET {{apiUrl}}/tv/detail/1622/season/13/episode
+
+### 61. Create TV Show Review
+POST {{apiUrl}}/tv/review
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 5,
+  "direction": 5,
+  "production": 5,
+  "acting": 5,
+  "summary": "This TV show is amazing! The story is captivating and the characters are well-developed. The production quality is top-notch and the acting is fantastic. I highly recommend it to anyone who loves drama and adventure.",
+  "notes": "I have watched this show multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible.",
+  "story": "This TV show has a captivating story that keeps you hooked from start to finish. The plot is well-paced and full of twists and turns that keep you on the edge of your seat.",
+  "recommended": true,
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 62. Get TV Show Review by TV Show Id
+GET {{apiUrl}}/tv/review?tvShowId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 62.1 Get TV Show Review by User Id
+GET {{apiUrl}}/tv/review?userId={{login.response.body.user.id}}
+
+### 62.2 Get TV Show Review by User Id and TV Show Id
+GET {{apiUrl}}/tv/review?userId={{login.response.body.user.id}}&tvShowId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 63. Get TV Show Review by Id
+GET {{apiUrl}}/tv/review/019d4453-18af-7321-8f4f-c1b19208414f
+
+### 64. Update TV Show Review
+PATCH {{apiUrl}}/tv/review/019d4453-18af-7321-8f4f-c1b19208414f
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 4,
+  "direction": 4,
+  "production": 5,
+  "acting": 3,
+  "summary": "This TV show is amazing! The story is captivating and the characters are well-developed. The production quality is top-notch and the acting is fantastic. I highly recommend it to anyone who loves drama and adventure.",
+  "notes": "I have watched this show multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible.",
+  "story": "This TV show has a captivating story that keeps you hooked from start to finish. The plot is well-paced and full of twists and turns that keep you on the edge of your seat.",
+  "recommended": true,
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 65. Delete TV Show Review
+DELETE {{apiUrl}}/tv/review/019d4453-18af-7321-8f4f-c1b19208414f
+Authorization: Bearer {{login.response.body.token}}
+
+### 66. Create or Update TV Show Progress
+POST {{apiUrl}}/tv/progress
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "status": "Completed",
+  "watchCount": 1,
+  "startedAt": "2026-01-01T00:00:00Z",
+  "completedAt": "2026-03-30T00:00:00Z",
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 67. Get TV Show Progress by TV Show Id
+GET {{apiUrl}}/tv/progress?tvShowId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 67.1 Get TV Show Progress by User Id
+GET {{apiUrl}}/tv/progress?userId={{login.response.body.user.id}}
+
+### 67.2 Get TV Show Progress by User Id and TV Show Id
+GET {{apiUrl}}/tv/progress?userId={{login.response.body.user.id}}&tvShowId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 68. Delete TV Show Progress
+DELETE {{apiUrl}}/tv/progress/019d4461-a9b5-701c-9d3e-1774560e770c
+Authorization: Bearer {{login.response.body.token}}
+
+### 69. Create or Update TV Show Episode Watch
+POST {{apiUrl}}/tv/episode/watch
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb",
+  "episodes": [
+    { "season": 1, "episode": 1, "status": "Watched" },
+    { "season": 1, "episode": 2, "status": "Watched" }
+  ]
+}
+
+### 70. Get TV Show Episode Watch by TV Show Id
+GET {{apiUrl}}/tv/episode/watch?tvShowId=019d4443-46e5-75aa-b589-bcf8562520cb
+
+### 71. Delete TV Show Episode Watch
+DELETE {{apiUrl}}/tv/episode/watch
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb",
+  "season": 1,
+  "episode": 1
+}
+
+### 72. Create or Update TV Show Episode Watch - Watch All Episodes
+POST {{apiUrl}}/tv/episode/watch/all
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 73. Delete TV Show Episode Watch - All
+DELETE {{apiUrl}}/tv/episode/watch/all
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb"
+}
+
+### 74. Search game
+GET {{apiUrl}}/game/search?query=grand%20theft%20auto&page=1
+
+### 75. Top games - Popular
+GET {{apiUrl}}/game/top?filter=popular
+
+### 75.1 Top games - Coming
+GET {{apiUrl}}/game/top?filter=coming
+
+### 75.2 Top games - Anticipated
+GET {{apiUrl}}/game/top?filter=antecipated
+
+### 75.3 Top games - Recently Released
+GET {{apiUrl}}/game/top?filter=recentlyReleased
+
+### 76. Refresh game
+POST {{apiUrl}}/game/refresh
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "igdbId": 115289
+}
+
+### 77. Game Detail
+GET {{apiUrl}}/game/detail/115289
+
+### 78. Create Game Review
+POST {{apiUrl}}/game/review
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 5,
+  "graphics": 5,
+  "sound": 5,
+  "story": 4,
+  "gameplay": 5,
+  "platform": "PC",
+  "summary": "This game is amazing! The gameplay is incredibly smooth and the story is captivating. The graphics are stunning and the sound design is fantastic. I highly recommend it to anyone who loves action games.",
+  "notes": "I have played this game multiple times and it never gets old. The attention to detail is incredible and the developers clearly put a lot of love into making it.",
+  "recommended": true,
+  "screenshots": [],
+  "gameId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 79. Get Game Review by Game Id
+GET {{apiUrl}}/game/review?gameId=019ce334-c8ac-7883-949d-948f53218272
+
+### 79.1 Get Game Review by User Id
+GET {{apiUrl}}/game/review?userId={{login.response.body.user.id}}
+
+### 79.2 Get Game Review by User Id and Game Id
+GET {{apiUrl}}/game/review?userId={{login.response.body.user.id}}&gameId=019ce334-c8ac-7883-949d-948f53218272
+
+### 80. Get Game Review by Id
+GET {{apiUrl}}/game/review/019ce334-c8ac-7883-949d-948f53218272
+
+### 81. Update Game Review
+PATCH {{apiUrl}}/game/review/019ce334-c8ac-7883-949d-948f53218272
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 4,
+  "graphics": 4,
+  "sound": 5,
+  "story": 3,
+  "gameplay": 4,
+  "platform": "PC",
+  "summary": "This game is amazing! The gameplay is incredibly smooth and the story is captivating. The graphics are stunning and the sound design is fantastic. I highly recommend it to anyone who loves action games.",
+  "notes": "I have played this game multiple times and it never gets old. The attention to detail is incredible and the developers clearly put a lot of love into making it.",
+  "recommended": true,
+  "gameId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 82. Delete Game Review
+DELETE {{apiUrl}}/game/review/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
+
+### 83. Get Game Review Screenshots
+GET {{apiUrl}}/game/review/screenshot?gameReviewId=019ce334-c8ac-7883-949d-948f53218272
+
+### 83.1 Get Game Review Screenshots by Game Id
+GET {{apiUrl}}/game/review/screenshot?gameId=019ce334-c8ac-7883-949d-948f53218272
+
+### 83.2 Get Game Review Screenshots by User Id
+GET {{apiUrl}}/game/review/screenshot?userId={{login.response.body.user.id}}
+
+### 84. Create Game Review Screenshot
+POST {{apiUrl}}/game/review/screenshot
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "url": "https://example.com/screenshot.png",
+  "description": "An epic moment during the final boss fight.",
+  "isSpoiler": false,
+  "gameReviewId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 85. Delete Game Review Screenshot
+DELETE {{apiUrl}}/game/review/screenshot/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
+
+### 86. Create or Update Game Progress
+POST {{apiUrl}}/game/progress
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "status": "Completed",
+  "playCount": 1,
+  "startedAt": "2026-01-01T00:00:00Z",
+  "completedAt": "2026-03-30T00:00:00Z",
+  "gameId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 87. Get Game Progress by Game Id
+GET {{apiUrl}}/game/progress?gameId=019ce334-c8ac-7883-949d-948f53218272
+
+### 87.1 Get Game Progress by User Id
+GET {{apiUrl}}/game/progress?userId={{login.response.body.user.id}}
+
+### 87.2 Get Game Progress by User Id and Game Id
+GET {{apiUrl}}/game/progress?userId={{login.response.body.user.id}}&gameId=019ce334-c8ac-7883-949d-948f53218272
+
+### 88. Delete Game Progress
+DELETE {{apiUrl}}/game/progress/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
+
+### 89. Search book
+GET {{apiUrl}}/book/search?query=the%20witcher&page=1
+
+### 90. Top books - Trending
+GET {{apiUrl}}/book/top?filter=trending
+
+### 90.1 Top books - Coming Soon
+GET {{apiUrl}}/book/top?filter=comingSoon
+
+### 91. Refresh book
+POST {{apiUrl}}/book/refresh
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "hardcoverId": 1974594
+}
+
+### 92. Book Detail
+GET {{apiUrl}}/book/detail/1974594
+
+### 93. Create Book Review
+POST {{apiUrl}}/book/review
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 5,
+  "characters": 5,
+  "language": 5,
+  "theme": 4,
+  "summary": "This book is amazing! The story is captivating and the characters are well-developed. The language is beautiful and the themes are thought-provoking. I highly recommend it to anyone who loves fantasy.",
+  "notes": "I have read this book multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible.",
+  "recommended": true,
+  "bookId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 94. Get Book Review by Book Id
+GET {{apiUrl}}/book/review?bookId=019ce334-c8ac-7883-949d-948f53218272
+
+### 94.1 Get Book Review by User Id
+GET {{apiUrl}}/book/review?userId={{login.response.body.user.id}}
+
+### 94.2 Get Book Review by User Id and Book Id
+GET {{apiUrl}}/book/review?userId={{login.response.body.user.id}}&bookId=019ce334-c8ac-7883-949d-948f53218272
+
+### 95. Get Book Review by Id
+GET {{apiUrl}}/book/review/019ce334-c8ac-7883-949d-948f53218272
+
+### 96. Update Book Review
+PATCH {{apiUrl}}/book/review/019ce334-c8ac-7883-949d-948f53218272
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "overall": 4,
+  "characters": 4,
+  "language": 5,
+  "theme": 3,
+  "summary": "This book is amazing! The story is captivating and the characters are well-developed. The language is beautiful and the themes are thought-provoking. I highly recommend it to anyone who loves fantasy.",
+  "notes": "I have read this book multiple times and it never gets old. I always find something new to appreciate about it. The attention to detail is incredible.",
+  "recommended": true,
+  "bookId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 97. Delete Book Review
+DELETE {{apiUrl}}/book/review/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
+
+### 98. Create or Update Book Progress
+POST {{apiUrl}}/book/progress
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "status": "Completed",
+  "chaptersRead": 40,
+  "readCount": 1,
+  "startedAt": "2026-01-01T00:00:00Z",
+  "completedAt": "2026-03-30T00:00:00Z",
+  "bookId": "019ce334-c8ac-7883-949d-948f53218272"
+}
+
+### 99. Get Book Progress by Book Id
+GET {{apiUrl}}/book/progress?bookId=019ce334-c8ac-7883-949d-948f53218272
+
+### 99.1 Get Book Progress by User Id
+GET {{apiUrl}}/book/progress?userId={{login.response.body.user.id}}
+
+### 99.2 Get Book Progress by User Id and Book Id
+GET {{apiUrl}}/book/progress?userId={{login.response.body.user.id}}&bookId=019ce334-c8ac-7883-949d-948f53218272
+
+### 100. Delete Book Progress
+DELETE {{apiUrl}}/book/progress/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
+
+### 101. Create List
+POST {{apiUrl}}/list
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "name": "My Favorite Anime",
+  "type": "Anime",
+  "description": "A curated list of my all-time favorite anime series."
+}
+
+### 102. Get Lists by User Id
+GET {{apiUrl}}/list/user/{{login.response.body.user.id}}
+
+### 103. Get List by Id
+GET {{apiUrl}}/list/019ce334-c8ac-7883-949d-948f53218272
+
+### 104. Get List Items
+GET {{apiUrl}}/list/019ce334-c8ac-7883-949d-948f53218272/item
+
+### 105. Add Item to List
+POST {{apiUrl}}/list/019ce334-c8ac-7883-949d-948f53218272/item
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Anime",
+  "position": 1,
+  "listId": "019ce334-c8ac-7883-949d-948f53218272",
+  "item": {
+    "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+  }
+}
+
+### 106. Remove Item from List
+DELETE {{apiUrl}}/list/019ce334-c8ac-7883-949d-948f53218272/item
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Anime",
+  "listId": "019ce334-c8ac-7883-949d-948f53218272",
+  "item": {
+    "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+  }
+}
+
+### 107. Add Favorite
+POST {{apiUrl}}/favorite
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Anime",
+  "position": 1,
+  "item": {
+    "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+  }
+}
+
+### 108. Remove Favorite
+DELETE {{apiUrl}}/favorite
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Anime",
+  "item": {
+    "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+  }
+}
+
+### 109. Get Favorites by User Id
+GET {{apiUrl}}/favorite/user/{{login.response.body.user.id}}
+
+### 110. Create Reaction (on FeedEvent)
+POST {{apiUrl}}/reaction
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "FeedEvent",
+  "emoji": "👍",
+  "item": {
+    "feedEventId": "019ce334-c8ac-7883-949d-948f53218272"
+  }
+}
+
+### 110.1 Create Reaction (on Comment)
+POST {{apiUrl}}/reaction
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Comment",
+  "emoji": "❤️",
+  "item": {
+    "commentId": "019ce334-c8ac-7883-949d-948f53218272"
+  }
+}
+
+### 111. Get Reactions (on FeedEvent)
+GET {{apiUrl}}/reaction?type=FeedEvent&item[feedEventId]=019ce334-c8ac-7883-949d-948f53218272
+
+### 111.1 Get Reactions (on Comment)
+GET {{apiUrl}}/reaction?type=Comment&item[commentId]=019ce334-c8ac-7883-949d-948f53218272
+
+### 112. Delete Reaction
+DELETE {{apiUrl}}/reaction/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
+
+### 113. Create Comment (on Anime)
+POST {{apiUrl}}/comment
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Anime",
+  "content": "This anime is absolutely incredible! The story and animation are top-tier.",
+  "item": {
+    "animeId": "019d402d-c955-7362-91ca-848d7497f245"
+  }
+}
+
+### 113.1 Create Comment (on Profile)
+POST {{apiUrl}}/comment
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Profile",
+  "content": "Great taste in anime!",
+  "item": {
+    "profileId": "019ce334-c8ac-7883-949d-948f53218272"
+  }
+}
+
+### 114. Get Comments (on Anime)
+GET {{apiUrl}}/comment?type=Anime&item[animeId]=019d402d-c955-7362-91ca-848d7497f245
+
+### 114.1 Get Comments (on Profile)
+GET {{apiUrl}}/comment?type=Profile&item[profileId]=019ce334-c8ac-7883-949d-948f53218272
+
+### 115. Delete Comment
+DELETE {{apiUrl}}/comment/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}
