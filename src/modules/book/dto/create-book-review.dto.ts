@@ -3,7 +3,7 @@ import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsUUID, Max, MaxLength, M
 
 export class CreateBookReviewDto {
   @IsDecimal()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiProperty({
     type: "number",
@@ -14,7 +14,7 @@ export class CreateBookReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
@@ -25,7 +25,7 @@ export class CreateBookReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
@@ -36,7 +36,7 @@ export class CreateBookReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
