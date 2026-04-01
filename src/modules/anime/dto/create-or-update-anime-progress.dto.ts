@@ -12,13 +12,14 @@ export class CreateOrUpdateAnimeProgressDto {
   @IsPositive()
   readonly watchCount?: number;
 
-  @IsOptional()
-  @IsDate()
-  readonly startedAt?: Date;
-
-  @IsOptional()
   @Type(() => Date)
   @IsDate()
+  @IsOptional()
+  readonly startedAt?: Date;
+
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
   readonly completedAt?: Date;
 
   @IsNotEmpty()

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Anime } from "@prisma/generated/client";
+import { Anime, ProgressStatus } from "@prisma/generated/client";
 import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -137,15 +137,39 @@ export class AnimeService {
       .aggregate({ where: { anime: { malId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
+      
+    const progressGroups = await this.databaseService.animeProgress.groupBy({
+      by: ["status"],
+      where: { anime: { malId } },
+      _count: { status: true },
+    });
 
-    const animeWithScore = {
-      ...anime,
-      tgReviewScore,
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
     };
 
-    await this.cacheService.set(animeDetailKey, animeWithScore, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
 
-    return animeWithScore;
+    const animeWithStats = {
+      ...anime,
+      tgReviewScore,
+      progressStats
+    };
+
+    await this.cacheService.set(animeDetailKey, animeWithStats, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
+
+    return animeWithStats;
   }
 
   async getAnimeRelationsByMalId(malId: number) {

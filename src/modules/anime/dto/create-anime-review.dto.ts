@@ -2,37 +2,37 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsUUID, Max, MaxLength, Mi
 
 export class CreateAnimeReviewDto {
   @IsNumber()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly overall: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly story?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly characters?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly animation?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly sound?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly enjoyment?: number;
 
