@@ -11,7 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import type { SearchMovieDto } from "../dto/search-movie.dto";
-import { TMDBMovieOrderBy, TMDBSort } from '@/shared/infra/integrations/tmdb.service';
+import { TMDBMovieOrderBy, TMDBSort } from "@/shared/infra/integrations/tmdb.service";
 
 @Injectable()
 export class MovieService {
@@ -78,7 +78,7 @@ export class MovieService {
       items,
     };
   }
-  
+
   async movieFilters() {
     const orderBy = Object.values(TMDBMovieOrderBy);
     const sort = Object.values(TMDBSort);
@@ -141,7 +141,7 @@ export class MovieService {
     const movieWithStats = {
       ...movie,
       tgReviewScore,
-      progressStats
+      progressStats,
     };
 
     await this.cacheService.set(

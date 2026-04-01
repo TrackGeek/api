@@ -129,7 +129,7 @@ export class MangaService {
       .aggregate({ where: { manga: { malId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
-      
+
     const progressGroups = await this.databaseService.mangaProgress.groupBy({
       by: ["status"],
       where: { manga: { malId } },
@@ -156,7 +156,7 @@ export class MangaService {
     const mangaWithStats = {
       ...manga,
       tgReviewScore,
-      progressStats
+      progressStats,
     };
 
     await this.cacheService.set(mangaDetailKey, mangaWithStats, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);

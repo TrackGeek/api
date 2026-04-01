@@ -137,7 +137,7 @@ export class AnimeService {
       .aggregate({ where: { anime: { malId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
-      
+
     const progressGroups = await this.databaseService.animeProgress.groupBy({
       by: ["status"],
       where: { anime: { malId } },
@@ -164,7 +164,7 @@ export class AnimeService {
     const animeWithStats = {
       ...anime,
       tgReviewScore,
-      progressStats
+      progressStats,
     };
 
     await this.cacheService.set(animeDetailKey, animeWithStats, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);

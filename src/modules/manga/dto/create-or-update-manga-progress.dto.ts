@@ -16,7 +16,7 @@ export class CreateOrUpdateMangaProgressDto {
   @IsInt()
   @IsPositive()
   readonly readCount?: number;
-  
+
   @Type(() => Date)
   @IsDate()
   @IsOptional()

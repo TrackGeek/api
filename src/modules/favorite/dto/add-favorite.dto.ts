@@ -1,10 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { FavoriteType } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsPositive, IsUUID, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
+import {
+  IsEnum,
+  IsOptional,
+  IsPositive,
+  IsUUID,
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
+} from "class-validator";
 
 export function FavoriteRequiredForType(favoriteType: FavoriteType, options?: ValidationOptions) {
-  return function (object: object, propertyName: string) {
+  return (object: object, propertyName: string) => {
     registerDecorator({
       name: "favoriteRequiredForType",
       target: object.constructor,

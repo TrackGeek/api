@@ -7,7 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
 import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
-import { QueueService } from '@/shared/infra/queue/queue.service';
+import { QueueService } from "@/shared/infra/queue/queue.service";
 
 @Injectable()
 export class TVShowProgressService {
@@ -48,7 +48,7 @@ export class TVShowProgressService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         user: {
           select: {
@@ -65,7 +65,7 @@ export class TVShowProgressService {
         },
       },
     });
-    
+
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId,
@@ -113,7 +113,7 @@ export class TVShowProgressService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         user: {
           select: {

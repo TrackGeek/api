@@ -5,8 +5,8 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 import { MangaProgressFindManyArgs } from "@prisma/generated/models";
-import { QueueService } from '@/shared/infra/queue/queue.service';
-import { FeedEventType } from '@prisma/generated/enums';
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { FeedEventType } from "@prisma/generated/enums";
 
 @Injectable()
 export class MangaProgressService {
@@ -77,7 +77,7 @@ export class MangaProgressService {
         },
       },
     });
-    
+
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewProgress,
       userId,

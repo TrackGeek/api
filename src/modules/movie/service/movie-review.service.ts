@@ -39,7 +39,7 @@ export class MovieReviewService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {
@@ -75,7 +75,7 @@ export class MovieReviewService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {
@@ -117,7 +117,7 @@ export class MovieReviewService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {

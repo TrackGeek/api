@@ -36,7 +36,7 @@ export class SearchMovieDto {
     default: TMDBSort.Desc,
   })
   readonly sort?: TMDBSort;
-  
+
   @Transform(({ value }) => (value as string).split(",").map(Number))
   @IsArray()
   @IsOptional()

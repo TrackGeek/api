@@ -1,22 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { CommentType } from "@prisma/generated/enums";
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  MaxLength,
-} from "class-validator";
-import {
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
-} from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, MaxLength } from "class-validator";
+import { registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
-export function CommentRequiredForType(
-  commentType: CommentType,
-  options?: ValidationOptions,
-) {
-  return function (object: object, propertyName: string) {
+export function CommentRequiredForType(commentType: CommentType, options?: ValidationOptions) {
+  return (object: object, propertyName: string) => {
     registerDecorator({
       name: "commentRequiredForType",
       target: object.constructor,

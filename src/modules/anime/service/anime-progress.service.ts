@@ -7,7 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
 import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
-import { QueueService } from '@/shared/infra/queue/queue.service';
+import { QueueService } from "@/shared/infra/queue/queue.service";
 
 @Injectable()
 export class AnimeProgressService {
@@ -65,7 +65,7 @@ export class AnimeProgressService {
         },
       },
     });
-    
+
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewProgress,
       userId,

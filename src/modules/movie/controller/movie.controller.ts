@@ -17,7 +17,7 @@ export class MovieController {
 
     return { movies };
   }
-  
+
   @Get("/filter")
   async movieFilters() {
     const filters = await this.movieService.movieFilters();

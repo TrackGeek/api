@@ -17,7 +17,7 @@ export class TVShowController {
 
     return { tvShows };
   }
-  
+
   @Get("/filter")
   async tvShowFilters() {
     const filters = await this.tvShowService.tvShowFilters();

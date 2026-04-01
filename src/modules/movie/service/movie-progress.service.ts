@@ -5,8 +5,8 @@ import { GetMovieProgressDto } from "../dto/get-movie-progress.dto";
 import { MovieProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { QueueService } from '@/shared/infra/queue/queue.service';
-import { FeedEventType } from '@prisma/generated/enums';
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { FeedEventType } from "@prisma/generated/enums";
 
 @Injectable()
 export class MovieProgressService {
@@ -41,7 +41,7 @@ export class MovieProgressService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {
@@ -58,7 +58,7 @@ export class MovieProgressService {
         },
       },
     });
-    
+
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewReview,
       userId,
@@ -98,7 +98,7 @@ export class MovieProgressService {
             tmdbId: true,
             backdropUrl: true,
             title: true,
-          }
+          },
         },
         user: {
           select: {

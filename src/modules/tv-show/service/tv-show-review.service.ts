@@ -38,7 +38,7 @@ export class TVShowReviewService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         user: {
           select: {
@@ -73,7 +73,7 @@ export class TVShowReviewService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         user: {
           select: {
@@ -114,7 +114,7 @@ export class TVShowReviewService {
             tmdbId: true,
             backdropUrl: true,
             name: true,
-          }
+          },
         },
         user: {
           select: {

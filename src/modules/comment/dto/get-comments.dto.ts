@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { CommentType } from "@prisma/generated/enums";
 import { IsEnum, IsOptional } from "class-validator";
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
-import { CommentRequiredForType } from './create-comment.dto';
+import { CommentRequiredForType } from "./create-comment.dto";
 
 export class GetCommentsDto extends OffsetPaginationParamsDto {
   @IsEnum(CommentType)

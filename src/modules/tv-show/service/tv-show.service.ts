@@ -9,7 +9,12 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import { TMDBSort, TMDBTVShowOrderBy, TMDBTVShowSeason, TMDBTVShowSeasonEpisode } from "@/shared/infra/integrations/tmdb.service";
+import {
+  TMDBSort,
+  TMDBTVShowOrderBy,
+  TMDBTVShowSeason,
+  TMDBTVShowSeasonEpisode,
+} from "@/shared/infra/integrations/tmdb.service";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
 
@@ -78,7 +83,7 @@ export class TVShowService {
       items,
     };
   }
-  
+
   async tvShowFilters() {
     const orderBy = Object.values(TMDBTVShowOrderBy);
     const sort = Object.values(TMDBSort);
@@ -144,7 +149,7 @@ export class TVShowService {
     const tvShowWithStats = {
       ...tvShow,
       tgReviewScore,
-      progressStats
+      progressStats,
     };
 
     await this.cacheService.set(

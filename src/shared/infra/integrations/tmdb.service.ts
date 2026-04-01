@@ -307,7 +307,7 @@ export class TMDBService {
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getMovieGenres() {
     try {
       const cachedGenresKey = CACHE_KEYS.TMDB_MOVIE_GENRES.prefix;
@@ -333,11 +333,7 @@ export class TMDBService {
         name: genre.name,
       }));
 
-      await this.cacheService.set<TMDBMovieGenre[]>(
-        cachedGenresKey,
-        genres,
-        CACHE_KEYS.TMDB_MOVIE_GENRES.expiration,
-      );
+      await this.cacheService.set<TMDBMovieGenre[]>(cachedGenresKey, genres, CACHE_KEYS.TMDB_MOVIE_GENRES.expiration);
 
       return genres;
     } catch (error) {
@@ -346,7 +342,7 @@ export class TMDBService {
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async searchTVShows({
     query,
     page = DEFAULT_PAGINATION_PAGE,
@@ -372,14 +368,16 @@ export class TMDBService {
       );
 
       const tvShowsData = tvShowsResponse.data;
-      
-      const tvShowGenres = await this.getTVShowGenres()
+
+      const tvShowGenres = await this.getTVShowGenres();
 
       let items = tvShowsData.results.map((tvShow: any) => ({
         tmdbId: tvShow.id,
         name: tvShow.name,
         isAdult: tvShow.adult,
-        genres: tvShow.genre_ids.map((genre: any) => tvShowGenres.find((g) => g.id === genre) ?? null).filter((g: any) => g) as string[],
+        genres: tvShow.genre_ids
+          .map((genre: any) => tvShowGenres.find((g) => g.id === genre) ?? null)
+          .filter((g: any) => g) as string[],
         tmdbReviewScore: tvShow.vote_average,
         firstAirDate: tvShow.first_air_date ? new Date(tvShow.first_air_date) : null,
         posterUrl: tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : null,
@@ -461,14 +459,16 @@ export class TMDBService {
       );
 
       const moviesData = movieResponse.data;
-      
-      const movieGenres = await this.getMovieGenres()
+
+      const movieGenres = await this.getMovieGenres();
 
       let items: TMDBSearchMovieResult[] = moviesData.results.map((movie: any) => ({
         tmdbId: movie.id,
         title: movie.title,
         isAdult: movie.adult,
-        genres: movie.genre_ids.map((genre: any) => movieGenres.find((g) => g.id === genre) ?? null).filter((g: any) => g) as string[],
+        genres: movie.genre_ids
+          .map((genre: any) => movieGenres.find((g) => g.id === genre) ?? null)
+          .filter((g: any) => g) as string[],
         tmdbReviewScore: movie.vote_average,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
