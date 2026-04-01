@@ -17,6 +17,13 @@ export class MovieController {
 
     return { movies };
   }
+  
+  @Get("/filter")
+  async movieFilters() {
+    const filters = await this.movieService.movieFilters();
+
+    return { filters };
+  }
 
   @Get("/top")
   async topMovies(@Query() query: TopMovieDto) {
@@ -33,7 +40,7 @@ export class MovieController {
 
   @Get("/detail/:movieId")
   async getMovieById(@Param("movieId", new ParseIntPipe()) movieId: number) {
-    const movie = await this.movieService.getMovieById(movieId);
+    const movie = await this.movieService.getMovieByTmdbId(movieId);
 
     return { movie };
   }

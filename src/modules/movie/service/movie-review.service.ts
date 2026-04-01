@@ -32,7 +32,15 @@ export class MovieReviewService {
         userId: createMovieReviewDto.userId,
       },
       include: {
-        movie: true,
+        movie: {
+          select: {
+            id: true,
+            imdbId: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -60,7 +68,15 @@ export class MovieReviewService {
     const movieReview = await this.databaseService.movieReview.findUnique({
       where: { id: movieReviewId },
       include: {
-        movie: true,
+        movie: {
+          select: {
+            id: true,
+            imdbId: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -94,7 +110,15 @@ export class MovieReviewService {
         ...(getMovieReviewsDto.movieId && { movieId: getMovieReviewsDto.movieId }),
       },
       include: {
-        movie: true,
+        movie: {
+          select: {
+            id: true,
+            imdbId: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          }
+        },
         user: {
           select: {
             id: true,

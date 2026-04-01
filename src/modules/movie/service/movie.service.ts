@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Movie } from "@prisma/generated/client";
+import { Movie, ProgressStatus } from "@prisma/generated/client";
 import { MovieCreateInput, MovieUpdateInput } from "@prisma/generated/models";
 import { TopMovieDto } from "@/modules/movie/dto/top-movie.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -11,6 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import type { SearchMovieDto } from "../dto/search-movie.dto";
+import { TMDBMovieOrderBy, TMDBSort } from '@/shared/infra/integrations/tmdb.service';
 
 @Injectable()
 export class MovieService {
@@ -77,20 +78,32 @@ export class MovieService {
       items,
     };
   }
+  
+  async movieFilters() {
+    const orderBy = Object.values(TMDBMovieOrderBy);
+    const sort = Object.values(TMDBSort);
+    const genres = await this.integrationsService.tmdb.getMovieGenres();
 
-  async getMovieById(id: number) {
-    const cachedMovie = await this.cacheService.get<Movie>(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id));
+    return {
+      genres,
+      orderBy,
+      sort,
+    };
+  }
+
+  async getMovieByTmdbId(tmdbId: number) {
+    const cachedMovie = await this.cacheService.get<Movie>(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(tmdbId));
 
     if (cachedMovie) {
       return cachedMovie;
     }
 
     let movie = await this.databaseService.movie.findUnique({
-      where: { tmdbId: id },
+      where: { tmdbId },
     });
 
     if (!movie) {
-      const tmdbMovie = await this.integrationsService.tmdb.getMovieById(id);
+      const tmdbMovie = await this.integrationsService.tmdb.getMovieById(tmdbId);
 
       movie = await this.databaseService.movie.create({
         data: tmdbMovie as unknown as MovieCreateInput,
@@ -98,22 +111,46 @@ export class MovieService {
     }
 
     const tgReviewScore = await this.databaseService.movieReview
-      .aggregate({ where: { movie: { tmdbId: id } }, _avg: { overall: true } })
+      .aggregate({ where: { movie: { tmdbId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
 
-    const movieWithScore = {
+    const progressGroups = await this.databaseService.movieProgress.groupBy({
+      by: ["status"],
+      where: { movie: { tmdbId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const movieWithStats = {
       ...movie,
       tgReviewScore,
+      progressStats
     };
 
     await this.cacheService.set(
-      CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(id),
-      movieWithScore,
+      CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(tmdbId),
+      movieWithStats,
       CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration,
     );
 
-    return movieWithScore;
+    return movieWithStats;
   }
 
   async refreshMovie(refreshMovieDto: RefreshMovieDto) {
