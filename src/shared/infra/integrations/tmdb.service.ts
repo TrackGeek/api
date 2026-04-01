@@ -31,14 +31,37 @@ export enum TMDBTVShowFilter {
   Popular = "popular",
 }
 
-export interface TMDBSearchMovieOptions {
-  query: string;
-  page?: number;
+export enum TMDBTVShowOrderBy {
+  Name = "name",
+  FirstAirDate = "first_air_date",
+  Score = "score",
+}
+
+export enum TMDBMovieOrderBy {
+  Title = "title",
+  ReleaseDate = "release_date",
+  Score = "score",
+}
+
+export enum TMDBSort {
+  Desc = "desc",
+  Asc = "asc",
 }
 
 export interface TMDBSearchTVShowOptions {
   query: string;
   page?: number;
+  orderBy?: TMDBTVShowOrderBy;
+  sort?: TMDBSort;
+  genres?: number[];
+}
+
+export interface TMDBSearchMovieOptions {
+  query: string;
+  page?: number;
+  orderBy?: TMDBMovieOrderBy;
+  sort?: TMDBSort;
+  genres?: number[];
 }
 
 export interface TMDBTopMovieOptions {
@@ -53,7 +76,7 @@ export interface TMDBTopTVShowsOptions {
 
 export interface TMDBSearchMovieResult {
   tmdbId: number;
-  name: string;
+  title: string;
   backdropUrl: string | null;
   overview: string | null;
   releaseDate: Date | null;
@@ -284,13 +307,143 @@ export class TMDBService {
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
+  
+  async getMovieGenres() {
+    try {
+      const cachedGenresKey = CACHE_KEYS.TMDB_MOVIE_GENRES.prefix;
+
+      const cachedGenres = await this.cacheService.get<TMDBMovieGenre[]>(cachedGenresKey);
+
+      if (cachedGenres) {
+        return cachedGenres;
+      }
+
+      const genresResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/genre/movie/list`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const genresData = genresResponse.data;
+
+      const genres: TMDBMovieGenre[] = genresData.genres.map((genre: any) => ({
+        id: genre.id,
+        name: genre.name,
+      }));
+
+      await this.cacheService.set<TMDBMovieGenre[]>(
+        cachedGenresKey,
+        genres,
+        CACHE_KEYS.TMDB_MOVIE_GENRES.expiration,
+      );
+
+      return genres;
+    } catch (error) {
+      this.logger.error(`Failed to fetch movie genres from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+  
+  async searchTVShows({
+    query,
+    page = DEFAULT_PAGINATION_PAGE,
+    orderBy,
+    sort = TMDBSort.Desc,
+    genres,
+  }: TMDBSearchTVShowOptions): Promise<IGDBPagination<TMDBSearchTVShowResult>> {
+    try {
+      const cachedTVShowsKey = CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix({ query, page, orderBy, sort, genres });
+      const cachedTVShows = await this.cacheService.get<IGDBPagination<TMDBSearchTVShowResult>>(cachedTVShowsKey);
+
+      if (cachedTVShows) {
+        return cachedTVShows;
+      }
+
+      const tvShowsResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/search/tv`, {
+          params: { query, page },
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const tvShowsData = tvShowsResponse.data;
+      
+      const tvShowGenres = await this.getTVShowGenres()
+
+      let items = tvShowsData.results.map((tvShow: any) => ({
+        tmdbId: tvShow.id,
+        name: tvShow.name,
+        isAdult: tvShow.adult,
+        genres: tvShow.genre_ids.map((genre: any) => tvShowGenres.find((g) => g.id === genre) ?? null).filter((g: any) => g) as string[],
+        tmdbReviewScore: tvShow.vote_average,
+        firstAirDate: tvShow.first_air_date ? new Date(tvShow.first_air_date) : null,
+        posterUrl: tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : null,
+      }));
+
+      const effectiveOrderBy = orderBy ?? TMDBTVShowOrderBy.Score;
+
+      if (genres?.length) {
+        items = items.filter((item: any) => genres.every((id) => item.genres.some((g: any) => g.id === id)));
+      }
+
+      items = items.sort((a: any, b: any) => {
+        let aVal: any;
+        let bVal: any;
+
+        if (effectiveOrderBy === TMDBTVShowOrderBy.Name) {
+          aVal = a.name.toLowerCase();
+          bVal = b.name.toLowerCase();
+        } else if (effectiveOrderBy === TMDBTVShowOrderBy.FirstAirDate) {
+          aVal = a.firstAirDate?.getTime() ?? 0;
+          bVal = b.firstAirDate?.getTime() ?? 0;
+        } else {
+          aVal = a.tmdbReviewScore ?? 0;
+          bVal = b.tmdbReviewScore ?? 0;
+        }
+
+        if (aVal < bVal) return sort === TMDBSort.Asc ? -1 : 1;
+        if (aVal > bVal) return sort === TMDBSort.Asc ? 1 : -1;
+
+        return 0;
+      });
+
+      const tvShows: IGDBPagination<TMDBSearchTVShowResult> = {
+        total: null,
+        pages: tvShowsData.total_pages,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
+        items,
+      };
+
+      await this.cacheService.set(cachedTVShowsKey, tvShows, CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration);
+
+      return tvShows;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to search TV shows from TMDB API for query "${query}": ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
 
   async searchMovies({
     query,
     page = DEFAULT_PAGINATION_PAGE,
+    orderBy,
+    sort = TMDBSort.Desc,
+    genres,
   }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
     try {
-      const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page });
+      const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page, orderBy, sort, genres });
 
       const cachedMovies = await this.cacheService.get<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey);
 
@@ -308,14 +461,44 @@ export class TMDBService {
       );
 
       const moviesData = movieResponse.data;
+      
+      const movieGenres = await this.getMovieGenres()
 
-      const items: TMDBSearchMovieResult[] = moviesData.results.map((movie: any) => ({
+      let items: TMDBSearchMovieResult[] = moviesData.results.map((movie: any) => ({
         tmdbId: movie.id,
-        name: movie.title,
+        title: movie.title,
+        isAdult: movie.adult,
+        genres: movie.genre_ids.map((genre: any) => movieGenres.find((g) => g.id === genre) ?? null).filter((g: any) => g) as string[],
         tmdbReviewScore: movie.vote_average,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
+
+      if (genres?.length) {
+        items = items.filter((item: any) => genres.every((id) => item.genres.some((g: any) => g.id === id)));
+      }
+
+      const effectiveOrderBy = orderBy ?? TMDBMovieOrderBy.Score;
+
+      items = items.sort((a, b) => {
+        let aVal: any;
+        let bVal: any;
+
+        if (effectiveOrderBy === TMDBMovieOrderBy.Title) {
+          aVal = a.title.toLowerCase();
+          bVal = b.title.toLowerCase();
+        } else if (effectiveOrderBy === TMDBMovieOrderBy.ReleaseDate) {
+          aVal = a.releaseDate?.getTime() ?? 0;
+          bVal = b.releaseDate?.getTime() ?? 0;
+        } else {
+          aVal = (a as any).tmdbReviewScore ?? 0;
+          bVal = (b as any).tmdbReviewScore ?? 0;
+        }
+
+        if (aVal < bVal) return sort === TMDBSort.Asc ? -1 : 1;
+        if (aVal > bVal) return sort === TMDBSort.Asc ? 1 : -1;
+        return 0;
+      });
 
       const movies: IGDBPagination<TMDBSearchMovieResult> = {
         total: null,
@@ -388,11 +571,9 @@ export class TMDBService {
 
       const responseData = topMovieResponse.data;
 
-      const items: TMDBSearchMovieResult[] = responseData.results.map((movie: any) => ({
+      const items: TMDBTopMovieResult[] = responseData.results.map((movie: any) => ({
         tmdbId: movie.id,
         name: movie.title,
-        isAdult: movie.adult,
-        tmdbReviewScore: movie.vote_average,
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
         backdropUrl: movie.backdrop_path
           ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${movie.backdrop_path}`
@@ -401,7 +582,7 @@ export class TMDBService {
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
 
-      const topMovies: IGDBPagination<TMDBSearchMovieResult> = {
+      const topMovies: IGDBPagination<TMDBTopMovieResult> = {
         total: null,
         pages: responseData.total_pages,
         inPage: page,
@@ -415,61 +596,6 @@ export class TMDBService {
       return topMovies;
     } catch (error) {
       this.logger.error("Failed to fetch top movies from TMDB API", error);
-      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
-    }
-  }
-
-  async searchTVShows({
-    query,
-    page = DEFAULT_PAGINATION_PAGE,
-  }: TMDBSearchTVShowOptions): Promise<IGDBPagination<TMDBSearchTVShowResult>> {
-    try {
-      const cachedTVShowsKey = CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix({ query, page });
-      const cachedTVShows = await this.cacheService.get<IGDBPagination<TMDBSearchTVShowResult>>(cachedTVShowsKey);
-
-      if (cachedTVShows) {
-        return cachedTVShows;
-      }
-
-      const tvShowsResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/search/tv`, {
-          params: { query, page },
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
-      );
-
-      const tvShowsData = tvShowsResponse.data;
-
-      const items = tvShowsData.results.map((tvShow: any) => ({
-        tmdbId: tvShow.id,
-        name: tvShow.name,
-        isAdult: tvShow.adult,
-        tmdbReviewScore: tvShow.vote_average,
-        firstAirDate: tvShow.first_air_date ? new Date(tvShow.first_air_date) : null,
-        posterUrl: tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : null,
-      }));
-
-      const tvShows: IGDBPagination<TMDBSearchTVShowResult> = {
-        total: null,
-        pages: tvShowsData.total_pages,
-        inPage: page,
-        itemsInPage: items.length,
-        itemsPerPage: null,
-        items,
-      };
-
-      await this.cacheService.set(cachedTVShowsKey, tvShows, CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration);
-
-      return tvShows;
-    } catch (error) {
-      if (error?.response?.status === 404) {
-        throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
-      }
-
-      this.logger.error(`Failed to search TV shows from TMDB API for query "${query}": ${error.message}`, error.stack);
-
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }

@@ -28,7 +28,6 @@ import { UploadModule } from "./shared/infra/upload/upload.module";
 import { HealthModule } from "./shared/infra/health/health.module";
 import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
 import { MetricsModule } from "./shared/infra/metrics/metrics.module";
-import { RequestLoggerInterceptor } from "./shared/interceptors/request-logger.interceptor";
 import { PaymentModule } from "./modules/payment/payment.module";
 
 @Module({
@@ -74,10 +73,6 @@ import { PaymentModule } from "./modules/payment/payment.module";
     {
       provide: APP_INTERCEPTOR,
       useClass: MetricsInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: RequestLoggerInterceptor,
     },
   ],
   controllers: [],

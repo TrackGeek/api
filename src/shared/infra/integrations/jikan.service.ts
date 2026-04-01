@@ -415,8 +415,8 @@ export class JikanService {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: searchAnimeOptions.page,
-        itemsPerPage: searchAnimeOptions.limit,
         itemsInPage: items.length,
+        itemsPerPage: searchAnimeOptions.limit,
         items,
       };
 
@@ -512,8 +512,8 @@ export class JikanService {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: searchMangaOptions.page,
-        itemsPerPage: searchMangaOptions.limit,
         itemsInPage: items.length,
+        itemsPerPage: searchMangaOptions.limit,
         items,
       };
 
@@ -645,8 +645,8 @@ export class JikanService {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: topAnimesOptions.page,
-        itemsPerPage: topAnimesOptions.limit,
         itemsInPage: items.length,
+        itemsPerPage: topAnimesOptions.limit,
         items,
       };
 
@@ -707,8 +707,8 @@ export class JikanService {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: topMangasOptions.page,
-        itemsPerPage: topMangasOptions.limit,
         itemsInPage: items.length,
+        itemsPerPage: topMangasOptions.limit,
         items,
       };
 
@@ -941,6 +941,13 @@ export class JikanService {
     page = DEFAULT_PAGINATION_PAGE,
   }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
     try {
+      const cacheKey = CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({ malId, page });
+      const cached = await this.cacheService.get<JikanPagination<JikanAnimeEpisode>>(cacheKey);
+
+      if (cached) {
+        return cached;
+      }
+
       const response = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/anime/${malId}/videos/episodes`, {
           params: { page },
@@ -956,7 +963,7 @@ export class JikanService {
         imageUrl: video.images?.jpg?.image_url ?? null,
       }));
 
-      return {
+      const result: JikanPagination<JikanAnimeEpisode> = {
         total: null,
         pages: paginationData.last_visible_page,
         inPage: page,
@@ -964,6 +971,10 @@ export class JikanService {
         itemsPerPage: null,
         items,
       };
+
+      await this.cacheService.set(cacheKey, result, CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration);
+
+      return result;
     } catch (error) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);

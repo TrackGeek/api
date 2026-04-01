@@ -141,6 +141,10 @@ export const CACHE_KEYS = {
     prefix: (tmdbId: number) => `tmdb:detail:movie:id:${tmdbId}`,
     expiration: 3600 * 24 * 7,
   },
+  TMDB_MOVIE_GENRES: {
+    prefix: "tmdb:genres:movie",
+    expiration: 3600 * 24 * 7,
+  },
   TMDB_TV_SHOW_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:detail:tvShow:id:${tmdbId}`,
     expiration: 3600 * 24 * 7,
