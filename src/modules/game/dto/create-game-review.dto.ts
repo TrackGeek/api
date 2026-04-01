@@ -13,7 +13,7 @@ import {
 
 export class CreateGameReviewDto {
   @IsDecimal()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiProperty({
     type: "number",
@@ -24,7 +24,7 @@ export class CreateGameReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
@@ -35,7 +35,7 @@ export class CreateGameReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
@@ -46,7 +46,7 @@ export class CreateGameReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
@@ -57,7 +57,7 @@ export class CreateGameReviewDto {
 
   @IsDecimal()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
