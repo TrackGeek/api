@@ -5,10 +5,15 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 import { MangaProgressFindManyArgs } from "@prisma/generated/models";
+import { QueueService } from '@/shared/infra/queue/queue.service';
+import { FeedEventType } from '@prisma/generated/enums';
 
 @Injectable()
 export class MangaProgressService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createOrUpdateMangaProgress(createOrUpdateMangaProgressDto: CreateOrUpdateMangaProgressDto) {
     const { mangaId, userId, status, chaptersRead, readCount, completedAt, startedAt } = createOrUpdateMangaProgressDto;
@@ -25,7 +30,7 @@ export class MangaProgressService {
       throw new AppException(ERROR_CODES.INVALID_CHAPTERS_READ);
     }
 
-    await this.databaseService.mangaProgress.upsert({
+    const mangaProgress = await this.databaseService.mangaProgress.upsert({
       where: {
         userId_mangaId: {
           userId,
@@ -48,6 +53,35 @@ export class MangaProgressService {
         completedAt,
         startedAt,
       },
+      include: {
+        manga: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    
+    await this.queueService.toFeedEventJob({
+      type: FeedEventType.NewProgress,
+      userId,
+      metadata: { ...mangaProgress },
     });
   }
 
@@ -77,8 +111,11 @@ export class MangaProgressService {
       },
       include: {
         manga: {
-          omit: {
-            relations: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {

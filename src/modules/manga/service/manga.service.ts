@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Manga } from "@prisma/generated/client";
+import { Manga, ProgressStatus } from "@prisma/generated/client";
 import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -129,15 +129,39 @@ export class MangaService {
       .aggregate({ where: { manga: { malId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
+      
+    const progressGroups = await this.databaseService.mangaProgress.groupBy({
+      by: ["status"],
+      where: { manga: { malId } },
+      _count: { status: true },
+    });
 
-    const mangaWithScore = {
-      ...manga,
-      tgReviewScore,
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
     };
 
-    await this.cacheService.set(mangaDetailKey, mangaWithScore, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
 
-    return mangaWithScore;
+    const mangaWithStats = {
+      ...manga,
+      tgReviewScore,
+      progressStats
+    };
+
+    await this.cacheService.set(mangaDetailKey, mangaWithStats, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+
+    return mangaWithStats;
   }
 
   async getMangaRelationsByMalId(malId: number) {

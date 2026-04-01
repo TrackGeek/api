@@ -33,8 +33,11 @@ export class MangaReviewService {
       },
       include: {
         manga: {
-          omit: {
-            relations: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {
@@ -65,8 +68,11 @@ export class MangaReviewService {
       where: { id: mangaReviewId },
       include: {
         manga: {
-          omit: {
-            relations: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {
@@ -103,8 +109,11 @@ export class MangaReviewService {
       },
       include: {
         manga: {
-          omit: {
-            relations: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {

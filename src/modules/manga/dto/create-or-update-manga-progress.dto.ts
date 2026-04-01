@@ -1,5 +1,5 @@
 import { ProgressStatus } from "@prisma/generated/enums";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
 
 export class CreateOrUpdateMangaProgressDto {
@@ -16,13 +16,15 @@ export class CreateOrUpdateMangaProgressDto {
   @IsInt()
   @IsPositive()
   readonly readCount?: number;
-
-  @IsOptional()
+  
+  @Type(() => Date)
   @IsDate()
+  @IsOptional()
   readonly startedAt?: Date;
 
-  @IsOptional()
+  @Type(() => Date)
   @IsDate()
+  @IsOptional()
   readonly completedAt?: Date;
 
   @IsNotEmpty()
