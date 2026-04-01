@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
+import { TMDBSort, TMDBTVShowOrderBy } from "@/shared/infra/integrations/tmdb.service";
 
 export class SearchTVShowDto {
   @IsNotEmpty()
@@ -21,4 +22,24 @@ export class SearchTVShowDto {
     default: 1,
   })
   readonly page?: number;
+
+  @IsEnum(TMDBTVShowOrderBy)
+  @IsOptional()
+  @ApiPropertyOptional({
+    enum: TMDBTVShowOrderBy,
+  })
+  readonly orderBy?: TMDBTVShowOrderBy;
+
+  @IsEnum(TMDBSort)
+  @IsOptional()
+  @ApiPropertyOptional({
+    enum: TMDBSort,
+    default: TMDBSort.Desc,
+  })
+  readonly sort?: TMDBSort;
+  
+  @Transform(({ value }) => (value as string).split(",").map(Number))
+  @IsArray()
+  @IsOptional()
+  readonly genres?: number[];
 }

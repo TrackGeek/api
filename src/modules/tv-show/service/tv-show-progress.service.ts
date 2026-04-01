@@ -6,19 +6,21 @@ import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
-import { ProgressStatus } from "@prisma/generated/enums";
+import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { QueueService } from '@/shared/infra/queue/queue.service';
 
 @Injectable()
 export class TVShowProgressService {
   constructor(
     private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
     private readonly tvShowEpisodeWatchService: TVShowEpisodeWatchService,
   ) {}
 
   async createOrUpdateTVShowProgress(createOrUpdateTVShowProgressDto: CreateOrUpdateTVShowProgressDto) {
     const { tvShowId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateTVShowProgressDto;
 
-    await this.databaseService.tvShowProgress.upsert({
+    const tvShowProgress = await this.databaseService.tvShowProgress.upsert({
       where: {
         userId_tvShowId: {
           userId,
@@ -39,6 +41,35 @@ export class TVShowProgressService {
         completedAt,
         startedAt,
       },
+      include: {
+        tvShow: {
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    
+    await this.queueService.toFeedEventJob({
+      type: FeedEventType.NewReview,
+      userId,
+      metadata: { ...tvShowProgress },
     });
 
     if (status === ProgressStatus.Completed) {
@@ -77,9 +108,12 @@ export class TVShowProgressService {
       },
       include: {
         tvShow: {
-          omit: {
-            seasons: true,
-          },
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
+          }
         },
         user: {
           select: {

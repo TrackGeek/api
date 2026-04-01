@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { TvShow } from "@prisma/generated/client";
+import { ProgressStatus, TvShow } from "@prisma/generated/client";
 import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
 import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -9,7 +9,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import { TMDBTVShowSeason, TMDBTVShowSeasonEpisode } from "@/shared/infra/integrations/tmdb.service";
+import { TMDBSort, TMDBTVShowOrderBy, TMDBTVShowSeason, TMDBTVShowSeasonEpisode } from "@/shared/infra/integrations/tmdb.service";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
 
@@ -78,6 +78,18 @@ export class TVShowService {
       items,
     };
   }
+  
+  async tvShowFilters() {
+    const orderBy = Object.values(TMDBTVShowOrderBy);
+    const sort = Object.values(TMDBSort);
+    const genres = await this.integrationsService.tmdb.getTVShowGenres();
+
+    return {
+      genres,
+      orderBy,
+      sort,
+    };
+  }
 
   async getTVShowByTmdbId(tmdbId: number) {
     const cachedTVShow = await this.cacheService.get<TvShow>(CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId));
@@ -106,18 +118,42 @@ export class TVShowService {
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
 
-    const tvShowWithScore = {
+    const progressGroups = await this.databaseService.tvShowProgress.groupBy({
+      by: ["status"],
+      where: { tvShow: { tmdbId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const tvShowWithStats = {
       ...tvShow,
       tgReviewScore,
+      progressStats
     };
 
     await this.cacheService.set(
       CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId),
-      tvShowWithScore,
+      tvShowWithStats,
       CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration,
     );
 
-    return tvShowWithScore;
+    return tvShowWithStats;
   }
 
   async getTVShowSeasons(tmdbId: number) {
