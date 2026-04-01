@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Game } from "@prisma/generated/client";
+import { Game, ProgressStatus } from "@prisma/generated/client";
 import { GameCreateInput, GameUpdateInput } from "@prisma/generated/models";
 import { TopGameDto } from "@/modules/game/dto/top-game.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -47,9 +47,47 @@ export class GameService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId), game, CACHE_KEYS.GAME_BY_IGDB_ID.expiration);
+    const tgReviewScore = await this.databaseService.gameReview
+      .aggregate({ where: { game: { igdbId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
 
-    return game;
+    const progressGroups = await this.databaseService.gameProgress.groupBy({
+      by: ["status"],
+      where: { game: { igdbId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const gameWithStats = {
+      ...game,
+      tgReviewScore,
+      progressStats,
+    };
+
+    await this.cacheService.set(
+      CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId),
+      gameWithStats,
+      CACHE_KEYS.GAME_BY_IGDB_ID.expiration,
+    );
+
+    return gameWithStats;
   }
 
   async refreshGame(refreshGameDto: RefreshGameDto) {
