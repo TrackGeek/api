@@ -60,10 +60,26 @@ export const CACHE_KEYS = {
     prefix: (hardcoverId: number) => `hardcover:detail:book:${hardcoverId}`,
     expiration: 3600 * 24 * 7,
   },
+   HARDCOVER_GAME_GENRES: {
+    prefix: "hardcover:genres:book",
+    expiration: 3600 * 24 * 7,
+  },
 
   IGDB_ACCESS_TOKEN: "igdb:token",
   IGDB_SEARCH_GAMES: {
     prefix: (filters: Record<string, any>) => `igdb:search:game:${filtersToString(filters)}`,
+    expiration: 3600 * 24 * 7,
+  },
+  IGDB_GAME_GENRES: {
+    prefix: "igdb:genres:game",
+    expiration: 3600 * 24 * 7,
+  },
+  IGDB_GAME_MODES: {
+    prefix: "igdb:modes:game",
+    expiration: 3600 * 24 * 7,
+  },
+  IGDB_GAME_PLATFORMS: {
+    prefix: "igdb:platforms:game",
     expiration: 3600 * 24 * 7,
   },
   IGDB_TOP_GAMES: {
