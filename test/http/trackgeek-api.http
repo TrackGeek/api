@@ -532,7 +532,10 @@ Authorization: Bearer {{login.response.body.token}}
 }
 
 ### 74. Search game
-GET {{apiUrl}}/game/search?query=grand%20theft%20auto&page=1
+GET {{apiUrl}}/game/search?query=a&page=1
+
+### 74.1 Search game - Filter by genres
+GET {{apiUrl}}/game/search?genres=point-and-click
 
 ### 75. Top games - Popular
 GET {{apiUrl}}/game/top?filter=popular
@@ -904,3 +907,6 @@ GET {{apiUrl}}/comment?type=Profile&item[profileId]=019ce334-c8ac-7883-949d-948f
 ### 115. Delete Comment
 DELETE {{apiUrl}}/comment/019ce334-c8ac-7883-949d-948f53218272
 Authorization: Bearer {{login.response.body.token}}
+
+### 116. Game Filters
+GET {{apiUrl}}/game/filter
