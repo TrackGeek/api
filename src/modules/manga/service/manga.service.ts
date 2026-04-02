@@ -27,11 +27,7 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    const jikanPagination = await this.integrationsService.jikan.searchMangas({
-      ...searchMangaDto,
-      startDate: searchMangaDto.year ? `${searchMangaDto.year}-01-01` : undefined,
-      endDate: searchMangaDto.year ? `${searchMangaDto.year}-12-31` : undefined,
-    });
+    const jikanPagination = await this.integrationsService.jikan.searchMangas(searchMangaDto);
 
     const items = await Promise.all(
       jikanPagination.items.map(async (item) => {
