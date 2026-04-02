@@ -107,8 +107,7 @@ export interface JikanSearchAnimeOptions {
   orderBy?: JikanAnimeOrderBy;
   sort?: JikanSort;
   letter?: string;
-  startDate?: string;
-  endDate?: string;
+  year?: string;
 }
 
 export interface JikanSearchAnime {
@@ -131,8 +130,7 @@ export interface JikanSearchMangaOptions {
   orderBy?: JikanMangaOrderBy;
   sort?: JikanSort;
   letter?: string;
-  startDate?: string;
-  endDate?: string;
+  year?: string;
 }
 
 export interface JikanSearchManga {
@@ -234,6 +232,7 @@ export interface JikanAnimeDetails {
   titles: JikanTitle[];
   type: string | null;
   source: string | null;
+  malReviewScore: number | null;
   numberOfEpisodes: number | null;
   status: string | null;
   aired: JikanDateProp;
@@ -347,8 +346,7 @@ export class JikanService {
     type,
     genres,
     letter,
-    startDate,
-    endDate,
+    year,
   }: JikanSearchAnimeOptions): Promise<JikanPagination<JikanSearchAnime>> {
     try {
       const searchAnimeOptions = {
@@ -362,8 +360,8 @@ export class JikanService {
         type,
         genres,
         letter,
-        startDate,
-        endDate,
+        startDate: year ? `${year}-01-01` : undefined,
+        endDate: year ? `${year}-12-31` : undefined,
       };
 
       const searchAnimeKey = CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix({ ...searchAnimeOptions });
@@ -447,8 +445,7 @@ export class JikanService {
     type,
     genres,
     letter,
-    startDate,
-    endDate,
+    year,
   }: JikanSearchMangaOptions): Promise<JikanPagination<JikanSearchManga>> {
     try {
       const searchMangaOptions = {
@@ -461,8 +458,8 @@ export class JikanService {
         type,
         genres,
         letter,
-        startDate,
-        endDate,
+        startDate: year ? `${year}-01-01` : undefined,
+        endDate: year ? `${year}-12-31` : undefined,
       };
 
       const searchMangaKey = CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix({ ...searchMangaOptions });
