@@ -5,15 +5,20 @@ import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 import { GameProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { QueueService } from '@/shared/infra/queue/queue.service';
+import { FeedEventType } from '@prisma/generated/enums';
 
 @Injectable()
 export class GameProgressService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
     const { gameId, userId, status, playCount, completedAt, startedAt } = createOrUpdateGameProgressDto;
 
-    await this.databaseService.gameProgress.upsert({
+    const gameProgress = await this.databaseService.gameProgress.upsert({
       where: {
         userId_gameId: {
           userId,
@@ -34,6 +39,35 @@ export class GameProgressService {
         completedAt,
         startedAt,
       },
+      include: {
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    
+    await this.queueService.toFeedEventJob({
+      type: FeedEventType.NewProgress,
+      userId,
+      metadata: { ...gameProgress },
     });
   }
 
@@ -62,7 +96,14 @@ export class GameProgressService {
         ...(getGameProgressDto.userId && { userId: getGameProgressDto.userId }),
       },
       include: {
-        game: true,
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,

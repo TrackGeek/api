@@ -33,7 +33,14 @@ export class GameReviewService {
         userId: createGameReviewDto.userId,
       },
       include: {
-        game: true,
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -61,7 +68,14 @@ export class GameReviewService {
     const gameReview = await this.databaseService.gameReview.findUnique({
       where: { id: gameReviewId },
       include: {
-        game: true,
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -95,7 +109,14 @@ export class GameReviewService {
         ...(getGameReviewsDto.userId && { userId: getGameReviewsDto.userId }),
       },
       include: {
-        game: true,
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,
