@@ -29,11 +29,7 @@ export class AnimeService {
   ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
-    const jikanPagination = await this.integrationsService.jikan.searchAnimes({
-      ...searchAnimeDto,
-      startDate: searchAnimeDto.year ? `${searchAnimeDto.year}-01-01` : undefined,
-      endDate: searchAnimeDto.year ? `${searchAnimeDto.year}-12-31` : undefined,
-    });
+    const jikanPagination = await this.integrationsService.jikan.searchAnimes(searchAnimeDto);
 
     const items = await Promise.all(
       jikanPagination.items.map(async (item) => {
