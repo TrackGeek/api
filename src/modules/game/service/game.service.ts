@@ -82,11 +82,13 @@ export class GameService {
   async gameFilters() {
     const orderBy = Object.values(IGDBGameOrderBy);
     const sort = Object.values(IGDBSort);
+    const status = await this.integrationsService.igdb.getGameStatus();
     const genres = await this.integrationsService.igdb.getGameGenres();
     const modes = await this.integrationsService.igdb.getGameModes();
     const platforms = await this.integrationsService.igdb.getGamePlatforms();
 
     return {
+      status,
       genres,
       platforms,
       modes,

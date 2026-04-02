@@ -537,6 +537,21 @@ GET {{apiUrl}}/game/search?query=a&page=1
 ### 74.1 Search game - Filter by genres
 GET {{apiUrl}}/game/search?genres=point-and-click
 
+### 74.2 Search game - Year
+GET {{apiUrl}}/game/search?year=2003
+
+### 74.3 Search game - Game Mode
+GET {{apiUrl}}/game/search?gameMode=single-player
+
+### 74.4 Search game - Order By
+GET {{apiUrl}}/game/search?orderBy=name
+
+### 74.5 Search game - Platform
+GET {{apiUrl}}/game/search?platform=win
+
+### 74.6 Search game - Status
+GET {{apiUrl}}/game/search?status=Released
+
 ### 75. Top games - Popular
 GET {{apiUrl}}/game/top?filter=popular
 

@@ -1,7 +1,7 @@
 import { IGDBGameOrderBy, IGDBSort } from '@/shared/infra/integrations/igdb.service';
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Matches } from "class-validator";
 
 export class SearchGameDto {
   @IsOptional()
@@ -60,4 +60,17 @@ export class SearchGameDto {
     type: "string",
   })
   readonly platform?: string;
+  
+  @IsOptional()
+  @Matches(/^\d{4}$/)
+  readonly year?: string;
+  
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    description: "Filter games by release status (e.g., Released, Beta, Not Released).",
+    example: "Released",
+    type: "string",
+  })
+  readonly status?: string;
 }

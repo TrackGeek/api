@@ -74,6 +74,10 @@ export const CACHE_KEYS = {
     prefix: "igdb:genres:game",
     expiration: 3600 * 24 * 7,
   },
+  IGDB_GAME_STATUS: {
+    prefix: "igdb:status:game",
+    expiration: 3600 * 24 * 7,
+  },
   IGDB_GAME_MODES: {
     prefix: "igdb:modes:game",
     expiration: 3600 * 24 * 7,
