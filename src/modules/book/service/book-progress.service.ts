@@ -5,15 +5,20 @@ import { GetBookProgressDto } from "../dto/get-book-progress.dto";
 import { BookProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { QueueService } from '@/shared/infra/queue/queue.service';
+import { FeedEventType } from '@prisma/generated/enums';
 
 @Injectable()
 export class BookProgressService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createOrUpdateBookProgress(createOrUpdateBookProgressDto: CreateOrUpdateBookProgressDto) {
     const { bookId, userId, status, readCount, chaptersRead, completedAt, startedAt } = createOrUpdateBookProgressDto;
 
-    await this.databaseService.bookProgress.upsert({
+    const bookProgress = await this.databaseService.bookProgress.upsert({
       where: {
         userId_bookId: {
           userId,
@@ -36,6 +41,35 @@ export class BookProgressService {
         completedAt,
         startedAt,
       },
+      include: {
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    
+    await this.queueService.toFeedEventJob({
+      type: FeedEventType.NewProgress,
+      userId,
+      metadata: { ...bookProgress },
     });
   }
 
@@ -64,7 +98,14 @@ export class BookProgressService {
         ...(getBookProgressDto.userId && { userId: getBookProgressDto.userId }),
       },
       include: {
-        book: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,
