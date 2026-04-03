@@ -103,7 +103,7 @@ export interface JikanSearchAnimeOptions {
   type?: JikanAnimeType;
   status?: JikanAnimeStatus;
   rating?: JikanAnimeRatings;
-  genres?: string;
+  genres?: string[];
   orderBy?: JikanAnimeOrderBy;
   sort?: JikanSort;
   letter?: string;
@@ -126,7 +126,7 @@ export interface JikanSearchMangaOptions {
   query?: string;
   type?: JikanMangaType;
   status?: JikanMangaStatus;
-  genres?: string;
+  genres?: string[];
   orderBy?: JikanMangaOrderBy;
   sort?: JikanSort;
   letter?: string;
@@ -358,7 +358,7 @@ export class JikanService {
         status,
         orderBy,
         type,
-        genres,
+        genres: genres ? genres.join(",") : undefined,
         letter,
         startDate: year ? `${year}-01-01` : undefined,
         endDate: year ? `${year}-12-31` : undefined,
@@ -456,7 +456,7 @@ export class JikanService {
         status,
         orderBy,
         type,
-        genres,
+        genres: genres ? genres.join(",") : undefined,
         letter,
         startDate: year ? `${year}-01-01` : undefined,
         endDate: year ? `${year}-12-31` : undefined,
