@@ -1,7 +1,7 @@
 import { IGDBGameOrderBy, IGDBSort } from '@/shared/infra/integrations/igdb.service';
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Matches } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches } from "class-validator";
 
 export class SearchGameDto {
   @IsOptional()
@@ -11,7 +11,7 @@ export class SearchGameDto {
     example: "Grand Theft Auto",
     type: "string",
   })
-  readonly query: string;
+  readonly query?: string;
 
   @Type(() => Number)
   @IsInt()

@@ -49,7 +49,7 @@ export enum TMDBSort {
 }
 
 export interface TMDBSearchTVShowOptions {
-  query: string;
+  query?: string;
   page?: number;
   orderBy?: TMDBTVShowOrderBy;
   sort?: TMDBSort;
@@ -57,7 +57,7 @@ export interface TMDBSearchTVShowOptions {
 }
 
 export interface TMDBSearchMovieOptions {
-  query: string;
+  query?: string;
   page?: number;
   orderBy?: TMDBMovieOrderBy;
   sort?: TMDBSort;
@@ -268,81 +268,7 @@ export class TMDBService {
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
   ) {}
-
-  async getTVShowGenres() {
-    try {
-      const cachedGenresKey = CACHE_KEYS.TMDB_TV_SHOW_GENRES.prefix;
-
-      const cachedGenres = await this.cacheService.get<TMDBTVShowGenre[]>(cachedGenresKey);
-
-      if (cachedGenres) {
-        return cachedGenres;
-      }
-
-      const genresResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/genre/tv/list`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
-      );
-
-      const genresData = genresResponse.data;
-
-      const genres: TMDBTVShowGenre[] = genresData.genres.map((genre: any) => ({
-        id: genre.id,
-        name: genre.name,
-      }));
-
-      await this.cacheService.set<TMDBTVShowGenre[]>(
-        cachedGenresKey,
-        genres,
-        CACHE_KEYS.TMDB_TV_SHOW_GENRES.expiration,
-      );
-
-      return genres;
-    } catch (error) {
-      this.logger.error(`Failed to fetch TV show genres from TMDB API: ${error.message}`, error.stack);
-
-      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
-    }
-  }
-
-  async getMovieGenres() {
-    try {
-      const cachedGenresKey = CACHE_KEYS.TMDB_MOVIE_GENRES.prefix;
-
-      const cachedGenres = await this.cacheService.get<TMDBMovieGenre[]>(cachedGenresKey);
-
-      if (cachedGenres) {
-        return cachedGenres;
-      }
-
-      const genresResponse = await firstValueFrom(
-        this.httpService.get(`${this.TMDB_API_URL}/genre/movie/list`, {
-          headers: {
-            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
-          },
-        }),
-      );
-
-      const genresData = genresResponse.data;
-
-      const genres: TMDBMovieGenre[] = genresData.genres.map((genre: any) => ({
-        id: genre.id,
-        name: genre.name,
-      }));
-
-      await this.cacheService.set<TMDBMovieGenre[]>(cachedGenresKey, genres, CACHE_KEYS.TMDB_MOVIE_GENRES.expiration);
-
-      return genres;
-    } catch (error) {
-      this.logger.error(`Failed to fetch movie genres from TMDB API: ${error.message}`, error.stack);
-
-      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
-    }
-  }
-
+  
   async searchTVShows({
     query,
     page = DEFAULT_PAGINATION_PAGE,
@@ -522,6 +448,80 @@ export class TMDBService {
       }
 
       this.logger.error(`Failed to search movies from TMDB API for query "${query}": ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+  
+   async getTVShowGenres() {
+    try {
+      const cachedGenresKey = CACHE_KEYS.TMDB_TV_SHOW_GENRES.prefix;
+
+      const cachedGenres = await this.cacheService.get<TMDBTVShowGenre[]>(cachedGenresKey);
+
+      if (cachedGenres) {
+        return cachedGenres;
+      }
+
+      const genresResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/genre/tv/list`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const genresData = genresResponse.data;
+
+      const genres: TMDBTVShowGenre[] = genresData.genres.map((genre: any) => ({
+        id: genre.id,
+        name: genre.name,
+      }));
+
+      await this.cacheService.set<TMDBTVShowGenre[]>(
+        cachedGenresKey,
+        genres,
+        CACHE_KEYS.TMDB_TV_SHOW_GENRES.expiration,
+      );
+
+      return genres;
+    } catch (error) {
+      this.logger.error(`Failed to fetch TV show genres from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getMovieGenres() {
+    try {
+      const cachedGenresKey = CACHE_KEYS.TMDB_MOVIE_GENRES.prefix;
+
+      const cachedGenres = await this.cacheService.get<TMDBMovieGenre[]>(cachedGenresKey);
+
+      if (cachedGenres) {
+        return cachedGenres;
+      }
+
+      const genresResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/genre/movie/list`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const genresData = genresResponse.data;
+
+      const genres: TMDBMovieGenre[] = genresData.genres.map((genre: any) => ({
+        id: genre.id,
+        name: genre.name,
+      }));
+
+      await this.cacheService.set<TMDBMovieGenre[]>(cachedGenresKey, genres, CACHE_KEYS.TMDB_MOVIE_GENRES.expiration);
+
+      return genres;
+    } catch (error) {
+      this.logger.error(`Failed to fetch movie genres from TMDB API: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
