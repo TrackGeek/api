@@ -252,6 +252,7 @@ export class AnimeService {
       where: { malId: refreshAnimeDto.malId },
       select: {
         lastRefreshedAt: true,
+        episodes: true,
       },
     });
 
@@ -268,15 +269,45 @@ export class AnimeService {
     if (await this.cacheService.exists(animeDetailKey)) {
       await this.cacheService.delete(animeDetailKey);
     }
-
+    
+    const existingEpisodes = anime.episodes ?? {};
+    const episodesPageKeys = Object.keys(existingEpisodes);
+    
+    const jikanEpisodes: Record<string, any> = {};
+    
+    for (const pageKey of episodesPageKeys) {
+      const getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto = {
+        malId: refreshAnimeDto.malId,
+        page: Number(pageKey),
+      };
+      
+      const cachedEpisodesKey = CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(getAnimeEpisodesByMalIdDto);
+      
+      if (await this.cacheService.exists(cachedEpisodesKey)) {
+        await this.cacheService.delete(cachedEpisodesKey);
+      }
+      
+      const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
+      
+      await this.cacheService.set(cachedEpisodesKey, episodes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
+      
+      jikanEpisodes[pageKey] = episodes;
+      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+    
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
     const jikanRelations = await this.integrationsService.jikan.getAnimeRelationsById(refreshAnimeDto.malId);
 
     await this.databaseService.anime.update({
       where: { malId: refreshAnimeDto.malId },
-      data: { ...jikanAnime, relations: jikanRelations } as unknown as AnimeUpdateInput,
+      data: {
+        ...jikanAnime,
+        relations: jikanRelations,
+        episodes: jikanEpisodes,
+      } as unknown as AnimeUpdateInput,
     });
 
-    await this.cacheService.set(animeDetailKey, anime, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
+    await this.getAnimeByMalId(refreshAnimeDto.malId);
   }
 }

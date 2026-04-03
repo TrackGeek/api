@@ -292,24 +292,32 @@ export class TVShowService {
       }
     }
 
-    const [tmdbTVShow, seasons] = await Promise.all([
+    const [tmdbTVShow, tmdbSeasons] = await Promise.all([
       this.integrationsService.tmdb.getTVShowById(refreshTVShowDto.tmdbId),
       this.integrationsService.tmdb.getTVShowSeasonsById(refreshTVShowDto.tmdbId),
     ]);
 
-    const episodes = (
-      await Promise.all(
-        seasons.map((season) =>
-          this.integrationsService.tmdb
-            .getTVShowSeasonEpisdoesById(refreshTVShowDto.tmdbId, season.seasonNumber)
-            .then((eps) => eps),
-        ),
-      )
-    ).flat();
+    const tmdbEpisodes: Awaited<ReturnType<typeof this.integrationsService.tmdb.getTVShowSeasonEpisdoesById>> = [];
+    
+    for (const season of tmdbSeasons) {
+      const episodes = await this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(refreshTVShowDto.tmdbId, season.seasonNumber);
+
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(refreshTVShowDto.tmdbId, season.seasonNumber),
+        episodes,
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.expiration,
+      );
+
+      tmdbEpisodes.push(...episodes);
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
 
     await this.databaseService.tvShow.update({
       where: { tmdbId: refreshTVShowDto.tmdbId },
-      data: { ...tmdbTVShow, seasons, episodes } as unknown as TvShowUpdateInput,
+      data: { ...tmdbTVShow, seasons: tmdbSeasons, episodes: tmdbEpisodes } as unknown as TvShowUpdateInput,
     });
+    
+    await this.getTVShowByTmdbId(refreshTVShowDto.tmdbId);
   }
 }

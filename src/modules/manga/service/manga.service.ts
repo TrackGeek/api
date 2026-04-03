@@ -225,6 +225,6 @@ export class MangaService {
       data: { ...jikanManga, relations: jikanRelations } as unknown as MangaUpdateInput,
     });
 
-    await this.cacheService.set(mangaDetailKey, manga, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+    await this.getMangaByMalId(refreshMangaDto.malId);
   }
 }

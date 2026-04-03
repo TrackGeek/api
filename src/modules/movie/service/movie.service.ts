@@ -177,10 +177,6 @@ export class MovieService {
       data: tmdbMovie as unknown as MovieUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(movie.tmdbId),
-      movie,
-      CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration,
-    );
+    await this.getMovieByTmdbId(refreshMovieDto.id);
   }
 }

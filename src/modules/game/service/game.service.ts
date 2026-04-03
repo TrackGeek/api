@@ -185,11 +185,7 @@ export class GameService {
       where: { igdbId: refreshGameDto.igdbId },
       data: igdbGame as unknown as GameUpdateInput,
     });
-
-    await this.cacheService.set(
-      CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId),
-      game,
-      CACHE_KEYS.GAME_BY_IGDB_ID.expiration,
-    );
+    
+    await this.getGameByIgdbId(refreshGameDto.igdbId);
   }
 }
