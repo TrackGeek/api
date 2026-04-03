@@ -31,7 +31,14 @@ export class BookReviewService {
         userId: createBookReviewDto.userId,
       },
       include: {
-        book: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -59,7 +66,14 @@ export class BookReviewService {
     const bookReview = await this.databaseService.bookReview.findUnique({
       where: { id: bookReviewId },
       include: {
-        book: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -93,7 +107,14 @@ export class BookReviewService {
         ...(getBookReviewsDto.userId && { userId: getBookReviewsDto.userId }),
       },
       include: {
-        book: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,
