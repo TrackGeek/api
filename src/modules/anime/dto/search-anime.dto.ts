@@ -5,8 +5,8 @@ import {
   JikanSort,
   JikanAnimeOrderBy,
 } from "@/shared/infra/integrations/jikan.service";
-import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 
 export class SearchAnimeDto {
   @IsOptional()
@@ -30,9 +30,10 @@ export class SearchAnimeDto {
   @IsOptional()
   readonly rating?: JikanAnimeRatings;
 
-  @Matches(/^\d+(?:,\d+)*$/)
+  @Transform(({ value }) => (value as string).split(","))
+  @IsArray()
   @IsOptional()
-  readonly genres?: string;
+  readonly genres?: string[];
 
   @IsEnum(JikanAnimeOrderBy)
   @IsOptional()
