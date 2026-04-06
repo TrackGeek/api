@@ -449,7 +449,7 @@ export class IGDBService {
       );
 
       return games;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
@@ -499,7 +499,7 @@ export class IGDBService {
       );
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error fetching game genres from IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
@@ -545,7 +545,7 @@ export class IGDBService {
       );
 
       return modes;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error fetching game modes from IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
@@ -594,7 +594,7 @@ export class IGDBService {
       );
 
       return platforms;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error fetching game platforms from IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
@@ -636,7 +636,7 @@ export class IGDBService {
       );
 
       return [...gameStatus, "Not Released"];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error fetching game statuses from IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
@@ -786,7 +786,7 @@ export class IGDBService {
       );
 
       return topGames;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
@@ -1228,7 +1228,7 @@ export class IGDBService {
       await this.cacheService.set(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id), game, CACHE_KEYS.IGDB_GAME_BY_ID.expiration);
 
       return game;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }

@@ -31,7 +31,7 @@ export class IMGBBService {
       );
 
       return response.data?.data?.image?.url as string;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to upload image to ImgBB", error);
 
       throw new AppException(ERROR_CODES.FAILED_TO_UPLOAD_IMAGE);

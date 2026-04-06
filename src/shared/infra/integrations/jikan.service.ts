@@ -425,7 +425,7 @@ export class JikanService {
       );
 
       return animes;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -521,7 +521,7 @@ export class JikanService {
       );
 
       return mangas;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
@@ -557,7 +557,7 @@ export class JikanService {
       );
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch anime genres from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
@@ -589,7 +589,7 @@ export class JikanService {
       );
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch manga genres from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
@@ -654,7 +654,7 @@ export class JikanService {
       );
 
       return topAnimes;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch top animes from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
@@ -716,7 +716,7 @@ export class JikanService {
       );
 
       return topMangas;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch top mangas from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
@@ -869,7 +869,7 @@ export class JikanService {
       );
 
       return anime;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -922,7 +922,7 @@ export class JikanService {
       }));
 
       return relations;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -972,7 +972,7 @@ export class JikanService {
       await this.cacheService.set(cacheKey, result, CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration);
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -1051,7 +1051,7 @@ export class JikanService {
       );
 
       return manga;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
@@ -1104,7 +1104,7 @@ export class JikanService {
       }));
 
       return relations;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }

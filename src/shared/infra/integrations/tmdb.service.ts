@@ -348,7 +348,7 @@ export class TMDBService {
       await this.cacheService.set(cachedTVShowsKey, tvShows, CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.expiration);
 
       return tvShows;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
@@ -442,7 +442,7 @@ export class TMDBService {
       );
 
       return movies;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
       }
@@ -485,7 +485,7 @@ export class TMDBService {
       );
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to fetch TV show genres from TMDB API: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
@@ -520,7 +520,7 @@ export class TMDBService {
       await this.cacheService.set<TMDBMovieGenre[]>(cachedGenresKey, genres, CACHE_KEYS.TMDB_MOVIE_GENRES.expiration);
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to fetch movie genres from TMDB API: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
@@ -594,7 +594,7 @@ export class TMDBService {
       await this.cacheService.set(topMoviesKey, topMovies, CACHE_KEYS.TMDB_TOP_MOVIES.expiration);
 
       return topMovies;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch top movies from TMDB API", error);
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
@@ -674,7 +674,7 @@ export class TMDBService {
       );
 
       return topTVShows;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch top TV shows from TMDB API", error);
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
@@ -767,7 +767,7 @@ export class TMDBService {
       );
 
       return movie;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MOVIE_NOT_FOUND);
       }
@@ -898,7 +898,7 @@ export class TMDBService {
       );
 
       return tvShow;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
@@ -948,7 +948,7 @@ export class TMDBService {
       );
 
       return seasons;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
@@ -995,7 +995,7 @@ export class TMDBService {
       );
 
       return episodes;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
       }
