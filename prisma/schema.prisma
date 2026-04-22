@@ -263,6 +263,7 @@ model FeedEvent {
 model Game {
   id                    String    @id @default(uuid(7))
   igdbId                Int       @unique
+  igdbReviewScore       Float?
   ageRatings            Json?
   aggregatedRating      Float?
   aggregatedRatingCount Int?
@@ -325,8 +326,9 @@ model Game {
 }
 
 model Book {
-  id                     String    @id @default(uuid(7))
-  hardcoverId            Int       @unique
+  id                     String         @id @default(uuid(7))
+  hardcoverId            Int            @unique
+  hardcoverReviewScore   Float?
   title                  String
   contributions          Json?
   alternativeTitles      Json?
@@ -334,6 +336,7 @@ model Book {
   taggings               Json?
   bookCategory           Json?
   bookStatus             Json?
+  bookSeries             Json?
   canonical              Json?
   compilation            Boolean?
   curationStatus         Int?
@@ -355,16 +358,14 @@ model Book {
   slug                   String
   state                  String?
   editions               Json?
-  series                 Json?
-  lastRefreshedAt        DateTime  @default(now())
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-
-  bookProgresses BookProgress[]
-  bookReviews    BookReview[]
-  favorites      Favorite[]
-  listItems      ListItem[]
-  comments       Comment[]
+  lastRefreshedAt        DateTime       @default(now())
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  bookProgresses         BookProgress[]
+  bookReviews            BookReview[]
+  favorites              Favorite[]
+  listItems              ListItem[]
+  comments               Comment[]
 }
 
 model Anime {
