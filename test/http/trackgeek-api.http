@@ -681,7 +681,16 @@ DELETE {{apiUrl}}/game/progress/019ce334-c8ac-7883-949d-948f53218272
 Authorization: Bearer {{login.response.body.token}}
 
 ### 89. Search book
-GET {{apiUrl}}/book/search?query=the%20witcher&page=1
+GET {{apiUrl}}/book/search?query=harry%20potter
+
+### 89.1 Search book - Filter by categories
+GET {{apiUrl}}/book/search?categories=Collection
+
+### 89.2 Search book - Filter by year
+GET {{apiUrl}}/book/search?year=1800
+
+### 89.3 Search book - Filter by categories and year
+GET {{apiUrl}}/book/search?categories=Web%20Novel&year=2025
 
 ### 90. Top books - Trending
 GET {{apiUrl}}/book/top?filter=trending
@@ -699,7 +708,7 @@ Authorization: Bearer {{login.response.body.token}}
 }
 
 ### 92. Book Detail
-GET {{apiUrl}}/book/detail/1974594
+GET {{apiUrl}}/book/detail/328491
 
 ### 93. Create Book Review
 POST {{apiUrl}}/book/review
@@ -878,10 +887,10 @@ Authorization: Bearer {{login.response.body.token}}
 }
 
 ### 111. Get Reactions (on FeedEvent)
-GET {{apiUrl}}/reaction?type=FeedEvent&item[feedEventId]=019ce334-c8ac-7883-949d-948f53218272
+GET {{apiUrl}}/reaction?type=FeedEvent&feedEventId=019ce334-c8ac-7883-949d-948f53218272
 
 ### 111.1 Get Reactions (on Comment)
-GET {{apiUrl}}/reaction?type=Comment&item[commentId]=019ce334-c8ac-7883-949d-948f53218272
+GET {{apiUrl}}/reaction?type=Comment&commentId=019ce334-c8ac-7883-949d-948f53218272
 
 ### 112. Delete Reaction
 DELETE {{apiUrl}}/reaction/019ce334-c8ac-7883-949d-948f53218272
@@ -914,10 +923,10 @@ Authorization: Bearer {{login.response.body.token}}
 }
 
 ### 114. Get Comments (on Anime)
-GET {{apiUrl}}/comment?type=Anime&item[animeId]=019d402d-c955-7362-91ca-848d7497f245
+GET {{apiUrl}}/comment?type=Anime&animeId=019d402d-c955-7362-91ca-848d7497f245
 
 ### 114.1 Get Comments (on Profile)
-GET {{apiUrl}}/comment?type=Profile&item[profileId]=019ce334-c8ac-7883-949d-948f53218272
+GET {{apiUrl}}/comment?type=Profile&profileId=019ce334-c8ac-7883-949d-948f53218272
 
 ### 115. Delete Comment
 DELETE {{apiUrl}}/comment/019ce334-c8ac-7883-949d-948f53218272
@@ -925,3 +934,6 @@ Authorization: Bearer {{login.response.body.token}}
 
 ### 116. Game Filters
 GET {{apiUrl}}/game/filter
+
+### 117. Book Filters
+GET {{apiUrl}}/book/filter
