@@ -17,6 +17,13 @@ export class BookController {
 
     return { books };
   }
+  
+  @Get("/filter")
+  async bookFilters() {
+    const filters = await this.bookService.bookFilters();
+
+    return { filters };
+  }
 
   @Get("/top")
   async topBooks(@Query() query: TopBookDto) {
