@@ -1,4 +1,12 @@
-import { filtersToString } from "../utils/filters";
+function filtersToString(filters: Record<string, any>) {
+  const filterStr = Object.entries(filters)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "" && !(Array.isArray(v) && v.length === 0))
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}:${v}`)
+    .join(":");
+
+  return filterStr ? `:${filterStr}` : "";
+}
 
 export const CACHE_KEYS = {
   ANIME_BY_MAL_ID: {
@@ -60,8 +68,12 @@ export const CACHE_KEYS = {
     prefix: (hardcoverId: number) => `hardcover:detail:book:${hardcoverId}`,
     expiration: 3600 * 24 * 7,
   },
-   HARDCOVER_GAME_GENRES: {
-    prefix: "hardcover:genres:book",
+  HARDCOVER_BOOK_CATEGORIES: {
+    prefix: "hardcover:categories:book",
+    expiration: 3600 * 24 * 7,
+  },
+  HARDCOVER_BOOK_STATUSES: {
+    prefix: "hardcover:statuses:book",
     expiration: 3600 * 24 * 7,
   },
 
