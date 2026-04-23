@@ -1,12 +1,12 @@
-import {HttpService} from "@nestjs/axios";
-import {Injectable, Logger} from "@nestjs/common";
-import {ConfigService} from "@nestjs/config";
-import {firstValueFrom} from "rxjs";
-import {CACHE_KEYS} from "@/shared/constants/cache";
-import {ERROR_CODES} from "@/shared/constants/error-codes";
-import {AppException} from "@/shared/exceptions/app.exceptions";
-import {DEFAULT_PAGINATION_PAGE} from "@/shared/infra/database/database.service";
-import {CacheService} from "../cache/cache.service";
+import { HttpService } from "@nestjs/axios";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { firstValueFrom } from "rxjs";
+import { CACHE_KEYS } from "@/shared/constants/cache";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
+import { CacheService } from "../cache/cache.service";
 
 export interface IGDBPagination<I> {
   total: number | null;
@@ -268,7 +268,7 @@ export class TMDBService {
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
   ) {}
-  
+
   async searchTVShows({
     query,
     page = DEFAULT_PAGINATION_PAGE,
@@ -286,7 +286,7 @@ export class TMDBService {
 
       const tvShowsResponse = await firstValueFrom(
         this.httpService.get(`${this.TMDB_API_URL}/search/tv`, {
-          params: {query, page},
+          params: { query, page },
           headers: {
             Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
           },
@@ -452,8 +452,8 @@ export class TMDBService {
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
   }
-  
-   async getTVShowGenres() {
+
+  async getTVShowGenres() {
     try {
       const cachedGenresKey = CACHE_KEYS.TMDB_TV_SHOW_GENRES.prefix;
 
@@ -612,8 +612,8 @@ export class TMDBService {
     };
 
     try {
-      const topTVShowsOptions = {page, filter};
-      const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({...topTVShowsOptions});
+      const topTVShowsOptions = { page, filter };
+      const topTVShowsKey = CACHE_KEYS.TMDB_TOP_TV_SHOWS.prefix({ ...topTVShowsOptions });
 
       const cachedTopTVShows = await this.cacheService.get<IGDBPagination<TMDBTopTVShowResult>>(topTVShowsKey);
 
@@ -622,7 +622,7 @@ export class TMDBService {
       }
 
       const path = TMDB_TV_SHOWS_FILTER_PATH[filter];
-      const params: Record<string, any> = {page};
+      const params: Record<string, any> = { page };
 
       if (filter === TMDBTVShowFilter.Upcoming) {
         const today = new Date();
@@ -701,7 +701,7 @@ export class TMDBService {
 
       const movieData = movieResponse.data;
 
-      const movieCredits = movieData.credits ?? {cast: [], crew: []};
+      const movieCredits = movieData.credits ?? { cast: [], crew: [] };
       const movieVideos = movieData.videos?.results ?? [];
       const movieBackdrops = movieData.images?.backdrops ?? [];
 
@@ -711,9 +711,9 @@ export class TMDBService {
         backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/w500${movieData.backdrop_path}` : null,
         belongsToCollection: movieData.belongs_to_collection
           ? {
-            id: movieData.belongs_to_collection.id,
-            name: movieData.belongs_to_collection.name,
-          }
+              id: movieData.belongs_to_collection.id,
+              name: movieData.belongs_to_collection.name,
+            }
           : null,
         budget: movieData.budget,
         isAdult: movieData.adult,
@@ -798,7 +798,7 @@ export class TMDBService {
       );
 
       const tvShowData = tvShowResponse.data;
-      const tvShowCredits = tvShowData.credits ?? {cast: [], crew: []};
+      const tvShowCredits = tvShowData.credits ?? { cast: [], crew: [] };
       const tvShowVideos = tvShowData.videos?.results ?? [];
       const tvShowBackdrops = tvShowData.images?.backdrops ?? [];
 
@@ -820,34 +820,34 @@ export class TMDBService {
         lastAirDate: tvShowData.last_air_date ? new Date(tvShowData.last_air_date) : null,
         lastEpisodeToAir: tvShowData.last_episode_to_air
           ? {
-            airDate: tvShowData.last_episode_to_air.air_date
-              ? new Date(tvShowData.last_episode_to_air.air_date)
-              : null,
-            episodeNumber: tvShowData.last_episode_to_air.episode_number,
-            id: tvShowData.last_episode_to_air.id,
-            name: tvShowData.last_episode_to_air.name,
-            overview: tvShowData.last_episode_to_air.overview,
-            seasonNumber: tvShowData.last_episode_to_air.season_number,
-            stillUrl: tvShowData.last_episode_to_air.still_path
-              ? `https://image.tmdb.org/t/p/w500${tvShowData.last_episode_to_air.still_path}`
-              : null,
-          }
+              airDate: tvShowData.last_episode_to_air.air_date
+                ? new Date(tvShowData.last_episode_to_air.air_date)
+                : null,
+              episodeNumber: tvShowData.last_episode_to_air.episode_number,
+              id: tvShowData.last_episode_to_air.id,
+              name: tvShowData.last_episode_to_air.name,
+              overview: tvShowData.last_episode_to_air.overview,
+              seasonNumber: tvShowData.last_episode_to_air.season_number,
+              stillUrl: tvShowData.last_episode_to_air.still_path
+                ? `https://image.tmdb.org/t/p/w500${tvShowData.last_episode_to_air.still_path}`
+                : null,
+            }
           : null,
         name: tvShowData.name,
         nextEpisodeToAir: tvShowData.next_episode_to_air
           ? {
-            airDate: tvShowData.next_episode_to_air.air_date
-              ? new Date(tvShowData.next_episode_to_air.air_date)
-              : null,
-            episodeNumber: tvShowData.next_episode_to_air.episode_number,
-            id: tvShowData.next_episode_to_air.id,
-            name: tvShowData.next_episode_to_air.name,
-            overview: tvShowData.next_episode_to_air.overview,
-            seasonNumber: tvShowData.next_episode_to_air.season_number,
-            stillUrl: tvShowData.next_episode_to_air.still_path
-              ? `https://image.tmdb.org/t/p/w500${tvShowData.next_episode_to_air.still_path}`
-              : null,
-          }
+              airDate: tvShowData.next_episode_to_air.air_date
+                ? new Date(tvShowData.next_episode_to_air.air_date)
+                : null,
+              episodeNumber: tvShowData.next_episode_to_air.episode_number,
+              id: tvShowData.next_episode_to_air.id,
+              name: tvShowData.next_episode_to_air.name,
+              overview: tvShowData.next_episode_to_air.overview,
+              seasonNumber: tvShowData.next_episode_to_air.season_number,
+              stillUrl: tvShowData.next_episode_to_air.still_path
+                ? `https://image.tmdb.org/t/p/w500${tvShowData.next_episode_to_air.still_path}`
+                : null,
+            }
           : null,
         networks: tvShowData.networks.map((network: any) => ({
           id: network.id,

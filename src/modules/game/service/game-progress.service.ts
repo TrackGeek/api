@@ -5,8 +5,8 @@ import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 import { GameProgressFindManyArgs } from "@prisma/generated/models";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { QueueService } from '@/shared/infra/queue/queue.service';
-import { FeedEventType } from '@prisma/generated/enums';
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { FeedEventType } from "@prisma/generated/enums";
 
 @Injectable()
 export class GameProgressService {
@@ -63,7 +63,7 @@ export class GameProgressService {
         },
       },
     });
-    
+
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewProgress,
       userId,

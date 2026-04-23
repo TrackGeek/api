@@ -1,4 +1,4 @@
-import { IGDBGameOrderBy, IGDBSort } from '@/shared/infra/integrations/igdb.service';
+import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches } from "class-validator";
@@ -22,7 +22,7 @@ export class SearchGameDto {
     default: 1,
   })
   readonly page?: number;
-  
+
   @IsEnum(IGDBGameOrderBy)
   @IsOptional()
   @ApiPropertyOptional({
@@ -37,12 +37,12 @@ export class SearchGameDto {
     default: IGDBSort.Desc,
   })
   readonly sort?: IGDBSort;
-  
+
   @Transform(({ value }) => (value as string).split(","))
   @IsArray()
   @IsOptional()
   readonly genres?: string[];
-  
+
   @IsOptional()
   @IsString()
   @ApiProperty({
@@ -51,7 +51,7 @@ export class SearchGameDto {
     type: "string",
   })
   readonly gameMode?: string;
-  
+
   @IsOptional()
   @IsString()
   @ApiProperty({
@@ -60,11 +60,11 @@ export class SearchGameDto {
     type: "string",
   })
   readonly platform?: string;
-  
+
   @IsOptional()
   @Matches(/^\d{4}$/)
   readonly year?: string;
-  
+
   @IsOptional()
   @IsString()
   @ApiProperty({

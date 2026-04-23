@@ -15,10 +15,10 @@ import {
   JikanAnimeType,
   JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
-import type {RefreshAnimeDto} from "../dto/refresh-anime.dto";
-import type {SearchAnimeDto} from "../dto/search-anime.dto";
-import {TopAnimeDto} from "../dto/top-anime.dto";
-import {GetAnimeEpisodesByMalIdDto} from "../dto/get-anime-episodes-by-mal-id.dto";
+import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
+import type { SearchAnimeDto } from "../dto/search-anime.dto";
+import { TopAnimeDto } from "../dto/top-anime.dto";
+import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 
 @Injectable()
 export class AnimeService {
@@ -26,8 +26,7 @@ export class AnimeService {
     private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
-  ) {
-  }
+  ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
     const jikanPagination = await this.integrationsService.jikan.searchAnimes(searchAnimeDto);
@@ -250,7 +249,7 @@ export class AnimeService {
 
   async refreshAnime(refreshAnimeDto: RefreshAnimeDto) {
     const anime = await this.databaseService.anime.findUnique({
-      where: {malId: refreshAnimeDto.malId},
+      where: { malId: refreshAnimeDto.malId },
       select: {
         lastRefreshedAt: true,
         episodes: true,
@@ -270,33 +269,33 @@ export class AnimeService {
     if (await this.cacheService.exists(animeDetailKey)) {
       await this.cacheService.delete(animeDetailKey);
     }
-    
+
     const existingEpisodes = anime.episodes ?? {};
     const episodesPageKeys = Object.keys(existingEpisodes);
-    
+
     const jikanEpisodes: Record<string, any> = {};
-    
+
     for (const pageKey of episodesPageKeys) {
       const getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto = {
         malId: refreshAnimeDto.malId,
         page: Number(pageKey),
       };
-      
+
       const cachedEpisodesKey = CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(getAnimeEpisodesByMalIdDto);
-      
+
       if (await this.cacheService.exists(cachedEpisodesKey)) {
         await this.cacheService.delete(cachedEpisodesKey);
       }
-      
+
       const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
-      
+
       await this.cacheService.set(cachedEpisodesKey, episodes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
-      
+
       jikanEpisodes[pageKey] = episodes;
-      
+
       await new Promise((resolve) => setTimeout(resolve, 800));
     }
-    
+
     const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
     const jikanRelations = await this.integrationsService.jikan.getAnimeRelationsById(refreshAnimeDto.malId);
 

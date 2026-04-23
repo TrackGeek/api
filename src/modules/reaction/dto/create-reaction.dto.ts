@@ -1,12 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { ReactionType } from "@prisma/generated/enums";
-import {
-  IsEnum,
-  IsOptional,
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
-} from "class-validator";
+import { IsEnum, IsOptional, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 import { IsEmoji } from "@/shared/validators/is-emoji.validator";
 
 export function ReactionRequiredForType(reactionType: ReactionType, options?: ValidationOptions) {

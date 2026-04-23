@@ -298,9 +298,12 @@ export class TVShowService {
     ]);
 
     const tmdbEpisodes: Awaited<ReturnType<typeof this.integrationsService.tmdb.getTVShowSeasonEpisdoesById>> = [];
-    
+
     for (const season of tmdbSeasons) {
-      const episodes = await this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(refreshTVShowDto.tmdbId, season.seasonNumber);
+      const episodes = await this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(
+        refreshTVShowDto.tmdbId,
+        season.seasonNumber,
+      );
 
       await this.cacheService.set(
         CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(refreshTVShowDto.tmdbId, season.seasonNumber),
@@ -317,7 +320,7 @@ export class TVShowService {
       where: { tmdbId: refreshTVShowDto.tmdbId },
       data: { ...tmdbTVShow, seasons: tmdbSeasons, episodes: tmdbEpisodes } as unknown as TvShowUpdateInput,
     });
-    
+
     await this.getTVShowByTmdbId(refreshTVShowDto.tmdbId);
   }
 }

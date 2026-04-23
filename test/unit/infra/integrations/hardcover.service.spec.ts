@@ -1,7 +1,7 @@
-import {describe, it, expect, vi, beforeEach} from "vitest";
-import {of, throwError} from "rxjs";
-import {HardcoverService} from "@/shared/infra/integrations/hardcover.service";
-import {AppException} from "@/shared/exceptions/app.exceptions";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { of, throwError } from "rxjs";
+import { HardcoverService } from "@/shared/infra/integrations/hardcover.service";
+import { AppException } from "@/shared/exceptions/app.exceptions";
 
 const mockHttpService = {
   post: vi.fn(),
@@ -26,10 +26,10 @@ describe("HardcoverService", () => {
 
   describe("searchBooks", () => {
     it("should return cached books when cache hit", async () => {
-      const cached = [{id: 1, title: "Dune", authors: ["Frank Herbert"]}];
+      const cached = [{ id: 1, title: "Dune", authors: ["Frank Herbert"] }];
       mockCacheService.get.mockResolvedValue(cached);
 
-      const result = await service.searchBooks({query: "Dune"});
+      const result = await service.searchBooks({ query: "Dune" });
 
       expect(result).toEqual(cached);
       expect(mockHttpService.post).not.toHaveBeenCalled();
@@ -51,7 +51,7 @@ describe("HardcoverService", () => {
                         title: "Dune",
                         alternative_titles: [],
                         author_names: ["Frank Herbert"],
-                        image: {url: "https://hardcover.app/dune.jpg"},
+                        image: { url: "https://hardcover.app/dune.jpg" },
                         genres: ["Science Fiction"],
                       },
                     },
@@ -63,7 +63,7 @@ describe("HardcoverService", () => {
         }),
       );
 
-      const result = (await service.searchBooks({query: "Dune"})) as any;
+      const result = (await service.searchBooks({ query: "Dune" })) as any;
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].id).toBe(12345);
@@ -77,19 +77,19 @@ describe("HardcoverService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockHttpService.post.mockReturnValue(throwError(() => new Error("Service down")));
 
-      await expect(service.searchBooks({query: "Dune"})).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchBooks({ query: "Dune" })).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.post.mockReturnValue(throwError(() => ({response: {status: 404}})));
+      mockHttpService.post.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
-      await expect(service.searchBooks({query: "unknown"})).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchBooks({ query: "unknown" })).rejects.toBeInstanceOf(AppException);
     });
   });
 
   describe("getBookById", () => {
-    const bookCategoriesData = [{id: 1, name: "Fiction"}];
+    const bookCategoriesData = [{ id: 1, name: "Fiction" }];
 
     const bookData = {
       id: 12345,
@@ -105,9 +105,9 @@ describe("HardcoverService", () => {
       default_audio_edition: null,
       default_cover_edition: {
         id: 100,
-        image: {url: "https://hardcover.app/dune-cover.jpg"},
+        image: { url: "https://hardcover.app/dune-cover.jpg" },
         title: "Dune",
-        language: {language: "English"},
+        language: { language: "English" },
       },
       default_ebook_edition: null,
       default_physical_edition: null,
@@ -116,7 +116,7 @@ describe("HardcoverService", () => {
       editions_count: 50,
       featured_book_series: null,
       headline: "The greatest sci-fi novel ever written.",
-      image: {url: "https://hardcover.app/dune.jpg"},
+      image: { url: "https://hardcover.app/dune.jpg" },
       links: {},
       literary_type_id: 1,
       pages: 412,
@@ -128,7 +128,7 @@ describe("HardcoverService", () => {
     };
 
     it("should return cached book when cache hit", async () => {
-      const cached = {hardcoverId: 12345, title: "Dune"};
+      const cached = { hardcoverId: 12345, title: "Dune" };
       mockCacheService.get.mockResolvedValue(cached);
 
       const result = await service.getBookByHardcoverId(12345);
@@ -141,8 +141,8 @@ describe("HardcoverService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post
-        .mockReturnValueOnce(of({data: {data: {book_categories: bookCategoriesData}}}))
-        .mockReturnValueOnce(of({data: {data: {books_by_pk: bookData}}}));
+        .mockReturnValueOnce(of({ data: { data: { book_categories: bookCategoriesData } } }))
+        .mockReturnValueOnce(of({ data: { data: { books_by_pk: bookData } } }));
 
       const result = await service.getBookByHardcoverId(12345);
 
@@ -163,7 +163,7 @@ describe("HardcoverService", () => {
 
     it("should throw AppException on 404 response", async () => {
       mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.post.mockReturnValue(throwError(() => ({response: {status: 404}})));
+      mockHttpService.post.mockReturnValue(throwError(() => ({ response: { status: 404 } })));
 
       await expect(service.getBookByHardcoverId(99999)).rejects.toBeInstanceOf(AppException);
     });

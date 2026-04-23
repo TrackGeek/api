@@ -17,7 +17,7 @@ export class GameController {
 
     return { games };
   }
-  
+
   @Get("/filter")
   async gameFilters() {
     const filters = await this.gameService.gameFilters();

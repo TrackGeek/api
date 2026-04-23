@@ -266,8 +266,7 @@ export class IGDBService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
-  ) {
-  }
+  ) {}
 
   private async getAccessToken(): Promise<string> {
     const cachedToken = await this.cacheService.get<string>(CACHE_KEYS.IGDB_ACCESS_TOKEN);
@@ -309,7 +308,7 @@ export class IGDBService {
     genres,
     platform,
     year,
-    status
+    status,
   }: IGDBSearchGameOptions): Promise<IGDBPagination<IGDBSearchGameResult>> {
     const accessToken = await this.getAccessToken();
 
@@ -323,7 +322,7 @@ export class IGDBService {
         platform,
         genres: genres ? genres.join(",") : undefined,
         year,
-        status
+        status,
       });
 
       const cachedGames = await this.cacheService.get<IGDBPagination<IGDBSearchGameResult>>(cachedGamesKey);
@@ -340,12 +339,14 @@ export class IGDBService {
         gameMode ? `game_modes.slug = "${gameMode}"` : null,
         genres ? `genres.slug = (${genres.map((genre) => `"${genre}"`).join(",")})` : null,
         platform ? `platforms.slug = "${platform}"` : null,
-        year ? `first_release_date >= ${new Date(Number(year), 0, 1).getTime() / 1000} & first_release_date < ${new Date(Number(year), 12, 31).getTime() / 1000}` : null,
-        status ? status === "Not Released" ? "game_status = null" : `game_status.status = "${status}"` : null,
+        year
+          ? `first_release_date >= ${new Date(Number(year), 0, 1).getTime() / 1000} & first_release_date < ${new Date(Number(year), 12, 31).getTime() / 1000}`
+          : null,
+        status ? (status === "Not Released" ? "game_status = null" : `game_status.status = "${status}"`) : null,
       ].filter(Boolean);
 
       const whereClause = whereConditions.length ? `where ${whereConditions.join(" & ")}` : "";
-      
+
       const igdbSearchQuery = `
         fields
           slug,
@@ -382,12 +383,8 @@ export class IGDBService {
       };
 
       const [gamesResponse, countResponse] = await Promise.all([
-        firstValueFrom(
-          this.httpService.post(`${this.IGDB_API_URL}/games`, igdbSearchQuery, { headers }),
-        ),
-        firstValueFrom(
-          this.httpService.post(`${this.IGDB_API_URL}/games/count`, igdbCountQuery, { headers }),
-        ),
+        firstValueFrom(this.httpService.post(`${this.IGDB_API_URL}/games`, igdbSearchQuery, { headers })),
+        firstValueFrom(this.httpService.post(`${this.IGDB_API_URL}/games/count`, igdbCountQuery, { headers })),
       ]);
 
       const gamesData = gamesResponse.data;
@@ -433,7 +430,6 @@ export class IGDBService {
         firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));
 
-
       const games: IGDBPagination<IGDBSearchGameResult> = {
         total,
         pages: Math.ceil(total / limit),
@@ -446,7 +442,7 @@ export class IGDBService {
       await this.cacheService.set<IGDBPagination<IGDBSearchGameResult>>(
         cachedGamesKey,
         games,
-        CACHE_KEYS.IGDB_SEARCH_GAMES.expiration
+        CACHE_KEYS.IGDB_SEARCH_GAMES.expiration,
       );
 
       return games;
@@ -460,10 +456,10 @@ export class IGDBService {
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getGameGenres(): Promise<IGDBGenre[]> {
     const accessToken = await this.getAccessToken();
-    
+
     try {
       const cachedGenres = await this.cacheService.get<IGDBGenre[]>(CACHE_KEYS.IGDB_GAME_GENRES.prefix);
 
@@ -496,7 +492,7 @@ export class IGDBService {
       await this.cacheService.set<IGDBGenre[]>(
         CACHE_KEYS.IGDB_GAME_GENRES.prefix,
         genres,
-        CACHE_KEYS.IGDB_GAME_GENRES.expiration
+        CACHE_KEYS.IGDB_GAME_GENRES.expiration,
       );
 
       return genres;
@@ -506,10 +502,10 @@ export class IGDBService {
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getGameModes(): Promise<IGDBGameMode[]> {
     const accessToken = await this.getAccessToken();
-    
+
     try {
       const cachedModes = await this.cacheService.get<IGDBGameMode[]>(CACHE_KEYS.IGDB_GAME_MODES.prefix);
 
@@ -542,7 +538,7 @@ export class IGDBService {
       await this.cacheService.set<IGDBGameMode[]>(
         CACHE_KEYS.IGDB_GAME_MODES.prefix,
         modes,
-        CACHE_KEYS.IGDB_GAME_MODES.expiration
+        CACHE_KEYS.IGDB_GAME_MODES.expiration,
       );
 
       return modes;
@@ -552,10 +548,10 @@ export class IGDBService {
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getGamePlatforms(): Promise<IGDBGamePlatform[]> {
     const accessToken = await this.getAccessToken();
-    
+
     try {
       const cachedPlatforms = await this.cacheService.get<IGDBGamePlatform[]>(CACHE_KEYS.IGDB_GAME_PLATFORMS.prefix);
 
@@ -591,7 +587,7 @@ export class IGDBService {
       await this.cacheService.set<IGDBGamePlatform[]>(
         CACHE_KEYS.IGDB_GAME_PLATFORMS.prefix,
         platforms,
-        CACHE_KEYS.IGDB_GAME_PLATFORMS.expiration
+        CACHE_KEYS.IGDB_GAME_PLATFORMS.expiration,
       );
 
       return platforms;
@@ -601,10 +597,10 @@ export class IGDBService {
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getGameStatus(): Promise<IGDBGameStatus[]> {
     const accessToken = await this.getAccessToken();
-    
+
     try {
       const cachedGameStatus = await this.cacheService.get<IGDBGameStatus[]>(CACHE_KEYS.IGDB_GAME_STATUS.prefix);
 
@@ -633,7 +629,7 @@ export class IGDBService {
       await this.cacheService.set<IGDBGameStatus[]>(
         CACHE_KEYS.IGDB_GAME_STATUS.prefix,
         gameStatus,
-        CACHE_KEYS.IGDB_GAME_STATUS.expiration
+        CACHE_KEYS.IGDB_GAME_STATUS.expiration,
       );
 
       return [...gameStatus, "Not Released"];
@@ -645,26 +641,26 @@ export class IGDBService {
   }
 
   async topGames({
-                   page = DEFAULT_PAGINATION_PAGE,
-                   filter = IGDBGameFilter.Popular,
-                 }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
+    page = DEFAULT_PAGINATION_PAGE,
+    filter = IGDBGameFilter.Popular,
+  }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const topGamesOptions = {page, filter};
+      const topGamesOptions = { page, filter };
       const cachedGames = await this.cacheService.get<IGDBPagination<IGDBTopGameResult>>(
-        CACHE_KEYS.IGDB_TOP_GAMES.prefix({...topGamesOptions}),
+        CACHE_KEYS.IGDB_TOP_GAMES.prefix({ ...topGamesOptions }),
       );
 
       if (cachedGames) {
         return cachedGames;
       }
-      
+
       const now = Math.floor(Date.now() / 1000);
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
       const ninetyDaysAhead = now + 90 * 24 * 60 * 60;
       const twoYearsAgo = now - 2 * 365 * 24 * 60 * 60;
-      
+
       const limit = DEFAULT_PAGINATION_ITEMS_PER_PAGE;
       const offset = (page - 1) * limit;
 
@@ -1051,10 +1047,10 @@ export class IGDBService {
           })) ?? [],
         franchise: gameData?.franchise
           ? {
-            checksum: gameData.franchise.checksum ?? null,
-            name: gameData.franchise.name ?? null,
-            slug: gameData.franchise.slug ?? null,
-          }
+              checksum: gameData.franchise.checksum ?? null,
+              name: gameData.franchise.name ?? null,
+              slug: gameData.franchise.slug ?? null,
+            }
           : {},
         franchises:
           gameData?.franchises?.map((franchise: any) => ({
@@ -1088,9 +1084,9 @@ export class IGDBService {
             : "Not Released",
         gameType: gameData?.game_type
           ? {
-            checksum: gameData.game_type.checksum ?? null,
-            type: gameData.game_type.type ?? null,
-          }
+              checksum: gameData.game_type.checksum ?? null,
+              type: gameData.game_type.type ?? null,
+            }
           : {},
         genres:
           gameData?.genres?.map((genre: any) => ({
@@ -1132,13 +1128,13 @@ export class IGDBService {
         name: gameData?.name ?? null,
         parentGame: gameData?.parent_game
           ? {
-            id: gameData.parent_game.id ?? null,
-            name: gameData.parent_game.name ?? null,
-            slug: gameData.parent_game.slug ?? null,
-            coverUrl: gameData.parent_game.cover?.url
-              ? `https:${gameData.parent_game.cover.url.replace("t_thumb", "t_cover_big")}`
-              : null,
-          }
+              id: gameData.parent_game.id ?? null,
+              name: gameData.parent_game.name ?? null,
+              slug: gameData.parent_game.slug ?? null,
+              coverUrl: gameData.parent_game.cover?.url
+                ? `https:${gameData.parent_game.cover.url.replace("t_thumb", "t_cover_big")}`
+                : null,
+            }
           : {},
         platforms:
           gameData?.platforms?.map((platform: any) => ({
@@ -1205,13 +1201,13 @@ export class IGDBService {
         themes: gameData?.themes?.map((t: any) => t.name),
         versionParent: gameData?.version_parent
           ? {
-            checksum: gameData.version_parent.checksum ?? null,
-            name: gameData.version_parent.name ?? null,
-            slug: gameData.version_parent.slug ?? null,
-            coverUrl: gameData.version_parent.cover?.url
-              ? `https:${gameData.version_parent.cover.url.replace("t_thumb", "t_cover_big")}`
-              : null,
-          }
+              checksum: gameData.version_parent.checksum ?? null,
+              name: gameData.version_parent.name ?? null,
+              slug: gameData.version_parent.slug ?? null,
+              coverUrl: gameData.version_parent.cover?.url
+                ? `https:${gameData.version_parent.cover.url.replace("t_thumb", "t_cover_big")}`
+                : null,
+            }
           : {},
         versionTitle: gameData?.version_title ?? null,
         videos:

@@ -99,7 +99,7 @@ export interface HardcoverBookSeries {
     isCompleted: boolean;
     description: string | null;
   };
-} 
+}
 
 export interface HardcoverBookCategory {
   id: number;
@@ -180,8 +180,7 @@ export class HardcoverService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
-  ) {
-  }
+  ) {}
 
   async searchBooks({
     query,
@@ -211,9 +210,9 @@ export class HardcoverService {
 
       const limit = DEFAULT_PAGINATION_ITEMS_PER_PAGE;
       const offset = (page - 1) * limit;
-      
+
       let searchData: any = null;
-      
+
       if (query) {
         const searchResponse = await firstValueFrom(
           this.httpService.post(
@@ -245,21 +244,28 @@ export class HardcoverService {
       }
 
       const bookCategories = await this.getBookCategories();
-      
+
       const hitIds: number[] = searchData?.hits?.map((hit: any) => Number(hit.document.id)) ?? [];
 
       const whereConditions = [
-        query ? `
+        query
+          ? `
           _or: [
             { id: { _in: [${hitIds.join(", ")}] } },
             { canonical_id: { _in: [${hitIds.join(", ")}] } }
           ]
-        ` : null,
+        `
+          : null,
         year ? `release_year: { _eq: ${year} }` : null,
         status ? `book_status: { name: { _eq: "${status}" } }` : null,
-        categories ? `book_category_id: { _in: [${bookCategories.filter((bc) => categories.includes(bc.name)).map((bc) => bc.id).join(", ")}] }` : null,
+        categories
+          ? `book_category_id: { _in: [${bookCategories
+              .filter((bc) => categories.includes(bc.name))
+              .map((bc) => bc.id)
+              .join(", ")}] }`
+          : null,
       ].filter(Boolean);
-      
+
       const whereClause = whereConditions.length ? `where: { ${whereConditions.join(" , ")} }` : "";
 
       const booksResponse = await firstValueFrom(
@@ -350,7 +356,9 @@ export class HardcoverService {
         contributions: book?.contributions?.map(({ author }: any) => author?.name) ?? [],
         hardcoverReviewScore: Math.round(book?.rating ?? 0),
         imageUrl: book.image?.url ?? null,
-        tags: [...new Map((book.taggings?.map(({ tag }: any) => tag) ?? []).map((tag: any) => [tag.tag, tag])).values()] as HardcoverBookTag[],
+        tags: [
+          ...new Map((book.taggings?.map(({ tag }: any) => tag) ?? []).map((tag: any) => [tag.tag, tag])).values(),
+        ] as HardcoverBookTag[],
         category: bookCategories.find((bc) => bc.id === book.book_category_id)?.name ?? null,
         releaseDate: book.release_date ? new Date(book.release_date) : null,
       }));
@@ -384,10 +392,12 @@ export class HardcoverService {
       throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getBookCategories(): Promise<HardcoverBookCategory[]> {
     try {
-      const cachedCategories = await this.cacheService.get<HardcoverBookCategory[]>(CACHE_KEYS.HARDCOVER_BOOK_CATEGORIES.prefix);
+      const cachedCategories = await this.cacheService.get<HardcoverBookCategory[]>(
+        CACHE_KEYS.HARDCOVER_BOOK_CATEGORIES.prefix,
+      );
 
       if (cachedCategories) {
         return cachedCategories;
@@ -414,7 +424,7 @@ export class HardcoverService {
           },
         ),
       );
-      
+
       const categoriesData = categoriesResponse?.data?.data?.book_categories;
 
       await this.cacheService.set(
@@ -430,10 +440,12 @@ export class HardcoverService {
       throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
     }
   }
-  
+
   async getBookStatuses(): Promise<HardcoverBookStatus[]> {
     try {
-      const cachedStatuses = await this.cacheService.get<HardcoverBookStatus[]>(CACHE_KEYS.HARDCOVER_BOOK_STATUSES.prefix);
+      const cachedStatuses = await this.cacheService.get<HardcoverBookStatus[]>(
+        CACHE_KEYS.HARDCOVER_BOOK_STATUSES.prefix,
+      );
 
       if (cachedStatuses) {
         return cachedStatuses;
@@ -460,7 +472,7 @@ export class HardcoverService {
           },
         ),
       );
-      
+
       const statusesData = statusesResponse?.data?.data?.book_statuses;
 
       await this.cacheService.set(
@@ -634,7 +646,7 @@ export class HardcoverService {
         this.httpService.post(
           this.HARDCOVER_API_URL,
           {
-            variables: {id: hardcoverId},
+            variables: { id: hardcoverId },
             query: `
 						query GetBookById($id: Int!) {
 							books_by_pk(id: $id) {
@@ -790,7 +802,7 @@ export class HardcoverService {
       );
 
       const bookData = bookResponse.data.data.books_by_pk;
-      
+
       const bookCategories = await this.getBookCategories();
 
       const book = {
@@ -802,67 +814,69 @@ export class HardcoverService {
         taggings: [...new Map((bookData.taggings?.map(({ tag }) => tag) ?? []).map((tag) => [tag.tag, tag])).values()],
         bookCategory: bookCategories.find((bc) => bc.id === bookData.book_category_id) ?? null,
         bookStatus: bookData.book_status ? { id: bookData.book_status.id, name: bookData.book_status.name } : null,
-        contributions: bookData.contributions ? bookData.contributions.map((contribution) => ({
-          contribution: contribution.contribution,
-          author: {
-            name: contribution.author.name,
-            id: contribution.author.id,
-            imageUrl: contribution.author.image?.url ?? null,
-          },
-        })) : [],
-        canonical: bookData.canonical ?
-          {
-            id: bookData.canonical.id,
-            imageUrl: bookData.canonical.image.url ?? null,
-            title: bookData.canonical.title,
-          }
+        contributions: bookData.contributions
+          ? bookData.contributions.map((contribution) => ({
+              contribution: contribution.contribution,
+              author: {
+                name: contribution.author.name,
+                id: contribution.author.id,
+                imageUrl: contribution.author.image?.url ?? null,
+              },
+            }))
+          : [],
+        canonical: bookData.canonical
+          ? {
+              id: bookData.canonical.id,
+              imageUrl: bookData.canonical.image.url ?? null,
+              title: bookData.canonical.title,
+            }
           : null,
         compilation: bookData.compilation,
         curationStatus: bookData.curation_status,
         defaultAudioEdition: bookData.default_audio_edition
           ? {
-            id: bookData.default_audio_edition.id,
-            imageUrl: bookData.default_audio_edition.image.url ?? null,
-            title: bookData.default_audio_edition.title,
-            language: bookData.default_audio_edition.language?.language ?? null,
-          }
+              id: bookData.default_audio_edition.id,
+              imageUrl: bookData.default_audio_edition.image.url ?? null,
+              title: bookData.default_audio_edition.title,
+              language: bookData.default_audio_edition.language?.language ?? null,
+            }
           : null,
         defaultCoverEdition: bookData.default_cover_edition
           ? {
-            id: bookData.default_cover_edition.id,
-            imageUrl: bookData.default_cover_edition.image.url ?? null,
-            title: bookData.default_cover_edition.title,
-            language: bookData.default_cover_edition.language?.language ?? null,
-          }
+              id: bookData.default_cover_edition.id,
+              imageUrl: bookData.default_cover_edition.image.url ?? null,
+              title: bookData.default_cover_edition.title,
+              language: bookData.default_cover_edition.language?.language ?? null,
+            }
           : null,
         defaultEbookEdition: bookData.default_ebook_edition
           ? {
-            id: bookData.default_ebook_edition.id,
-            imageUrl: bookData.default_ebook_edition.image.url ?? null,
-            title: bookData.default_ebook_edition.title,
-            language: bookData.default_ebook_edition.language?.language ?? null,
-          }
+              id: bookData.default_ebook_edition.id,
+              imageUrl: bookData.default_ebook_edition.image.url ?? null,
+              title: bookData.default_ebook_edition.title,
+              language: bookData.default_ebook_edition.language?.language ?? null,
+            }
           : null,
         defaultPhysicalEdition: bookData.default_physical_edition
           ? {
-            id: bookData.default_physical_edition.id,
-            imageUrl: bookData.default_physical_edition.image.url ?? null,
-            title: bookData.default_physical_edition.title,
-            alternativeTitles: bookData.default_physical_edition.alternative_titles,
-            language: bookData.default_physical_edition.language?.language ?? null,
-          }
+              id: bookData.default_physical_edition.id,
+              imageUrl: bookData.default_physical_edition.image.url ?? null,
+              title: bookData.default_physical_edition.title,
+              alternativeTitles: bookData.default_physical_edition.alternative_titles,
+              language: bookData.default_physical_edition.language?.language ?? null,
+            }
           : null,
         description: bookData.description,
         editionsCount: bookData.editions_count,
         featuredBookSeries: bookData.featured_book_series
           ? {
-            id: bookData.featured_book_series.id,
-            book: {
-              id: bookData.featured_book_series.book.id,
-              title: bookData.featured_book_series.book.title,
-              imageUrl: bookData.featured_book_series.book.image.url ?? null,
-            },
-          }
+              id: bookData.featured_book_series.id,
+              book: {
+                id: bookData.featured_book_series.book.id,
+                title: bookData.featured_book_series.book.title,
+                imageUrl: bookData.featured_book_series.book.image.url ?? null,
+              },
+            }
           : {},
         headline: bookData.headline,
         imageUrl: bookData.image.url ?? null,

@@ -11,7 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
-import { HardcoverBookOrderBy, HardcoverSort } from '@/shared/infra/integrations/hardcover.service';
+import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 
 @Injectable()
 export class BookService {
@@ -23,7 +23,7 @@ export class BookService {
 
   async searchBooks(searchBookDto: SearchBookDto) {
     const hardcoverPagination = await this.integrationsService.hardcover.searchBooks(searchBookDto);
-    
+
     const items = await Promise.all(
       hardcoverPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.bookReview
@@ -43,13 +43,13 @@ export class BookService {
         };
       }),
     );
-    
+
     return {
       ...hardcoverPagination,
       items,
-    }
+    };
   }
-  
+
   async bookFilters() {
     const orderBy = Object.values(HardcoverBookOrderBy);
     const sort = Object.values(HardcoverSort);
@@ -66,7 +66,7 @@ export class BookService {
 
   async topBooks(topBookDto: TopBookDto) {
     const hardcoverPagination = await this.integrationsService.hardcover.topBooks(topBookDto);
-    
+
     const items = await Promise.all(
       hardcoverPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.bookReview
@@ -86,11 +86,11 @@ export class BookService {
         };
       }),
     );
-    
+
     return {
       ...hardcoverPagination,
       items,
-    }
+    };
   }
 
   async getBookByHardcoverId(hardcoverId: number) {

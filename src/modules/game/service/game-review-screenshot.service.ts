@@ -39,7 +39,7 @@ export class GameReviewScreenshotService {
                 name: true,
               },
             },
-          }
+          },
         },
       },
     });

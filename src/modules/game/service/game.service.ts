@@ -11,7 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
-import { IGDBGameOrderBy, IGDBSort } from '@/shared/infra/integrations/igdb.service';
+import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 
 @Injectable()
 export class GameService {
@@ -23,35 +23,6 @@ export class GameService {
 
   async searchGames(searchGameDto: SearchGameDto) {
     const igdbPagination = await this.integrationsService.igdb.searchGames(searchGameDto);
-    
-    const items = await Promise.all(
-      igdbPagination.items.map(async (item) => {
-        const tgReviewScore = await this.databaseService.gameReview
-          .aggregate({ where: { game: { igdbId: item.igdbId } }, _avg: { overall: true } })
-          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
-          .catch(() => 0);
-
-        const game = await this.databaseService.game.findUnique({
-          where: { igdbId: item.igdbId },
-          select: { lastRefreshedAt: true },
-        });
-
-        return {
-          ...item,
-          tgReviewScore,
-          lastRefreshedAt: game?.lastRefreshedAt ?? null,
-        };
-      }),
-    );
-    
-    return {
-      ...igdbPagination,
-      items,
-    }
-  }
-
-  async topGames(topGameDto: TopGameDto) {
-     const igdbPagination = await this.integrationsService.igdb.topGames(topGameDto);
 
     const items = await Promise.all(
       igdbPagination.items.map(async (item) => {
@@ -78,7 +49,36 @@ export class GameService {
       items,
     };
   }
-  
+
+  async topGames(topGameDto: TopGameDto) {
+    const igdbPagination = await this.integrationsService.igdb.topGames(topGameDto);
+
+    const items = await Promise.all(
+      igdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.gameReview
+          .aggregate({ where: { game: { igdbId: item.igdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const game = await this.databaseService.game.findUnique({
+          where: { igdbId: item.igdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: game?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...igdbPagination,
+      items,
+    };
+  }
+
   async gameFilters() {
     const orderBy = Object.values(IGDBGameOrderBy);
     const sort = Object.values(IGDBSort);
@@ -185,7 +185,7 @@ export class GameService {
       where: { igdbId: refreshGameDto.igdbId },
       data: igdbGame as unknown as GameUpdateInput,
     });
-    
+
     await this.getGameByIgdbId(refreshGameDto.igdbId);
   }
 }

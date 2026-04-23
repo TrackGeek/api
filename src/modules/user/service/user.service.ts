@@ -11,7 +11,7 @@ import { SearchUserDto } from "../dto/search-user.dto";
 
 type ProgressGroup = {
   status: ProgressStatus;
-  _count: { status: number }
+  _count: { status: number };
 };
 
 @Injectable()
@@ -19,8 +19,7 @@ export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
-  ) {
-  }
+  ) {}
 
   async searchUser(searchUserDto: SearchUserDto) {
     const users = await this.databaseService.offsetPagination<UserFindManyArgs>({
@@ -29,8 +28,8 @@ export class UserService {
       page: searchUserDto.page,
       where: {
         OR: [
-          {name: {contains: searchUserDto.query, mode: "insensitive"}},
-          {username: {contains: searchUserDto.query, mode: "insensitive"}},
+          { name: { contains: searchUserDto.query, mode: "insensitive" } },
+          { username: { contains: searchUserDto.query, mode: "insensitive" } },
         ],
       },
       select: {
@@ -51,7 +50,7 @@ export class UserService {
 
   async getUserById(id: string) {
     const user = this.databaseService.user.findUnique({
-      where: {id},
+      where: { id },
       include: {
         profile: true,
       },
@@ -91,16 +90,16 @@ export class UserService {
     if (!user) {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
-    
+
     const buildStats = (groups: ProgressGroup[], statuses: ProgressStatus[]) => {
       const total = groups.reduce((sum, g) => sum + g._count.status, 0);
-      
+
       const getStat = (status: ProgressStatus) => {
         const count = groups.find((g) => g.status === status)?._count.status ?? 0;
-        
+
         return { count, percentage: total > 0 ? parseFloat(((count / total) * 100).toFixed(1)) : 0 };
       };
-      
+
       return Object.fromEntries([["total", total], ...statuses.map((s) => [s.toLowerCase(), getStat(s)])]);
     };
 
@@ -183,7 +182,7 @@ export class UserService {
     const baseUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     const usernameExists = await this.databaseService.user.findUnique({
-      where: {username: baseUsername},
+      where: { username: baseUsername },
     });
 
     const username = usernameExists ? `${baseUsername}${Math.floor(Math.random() * 10000)}` : baseUsername;
@@ -247,7 +246,7 @@ export class UserService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewFollower,
       userId,
-      metadata: {...following},
+      metadata: { ...following },
     });
   }
 
@@ -284,7 +283,7 @@ export class UserService {
       model: "following",
       itemsPerPage: getFollowersDto.itemsPerPage,
       page: getFollowersDto.page,
-      where: {followingId: getFollowersDto.userId},
+      where: { followingId: getFollowersDto.userId },
       include: {
         follower: {
           select: {
@@ -310,7 +309,7 @@ export class UserService {
       model: "following",
       itemsPerPage: getFollowingDto.itemsPerPage,
       page: getFollowingDto.page,
-      where: {followerId: getFollowingDto.userId},
+      where: { followerId: getFollowingDto.userId },
       include: {
         following: {
           select: {
