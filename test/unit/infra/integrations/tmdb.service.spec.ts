@@ -39,26 +39,38 @@ describe("TMDBService", () => {
     it("should fetch movies, map them and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get.mockReturnValue(
-        of({
-          data: {
-            results: [
-              {
-                id: 27205,
-                title: "Inception",
-                release_date: "2010-07-16",
-                poster_path: "/poster.jpg",
-              },
-            ],
-          },
-        }),
-      );
+      mockHttpService.get
+        .mockReturnValueOnce(
+          of({
+            data: {
+              results: [
+                {
+                  id: 27205,
+                  title: "Inception",
+                  adult: false,
+                  genre_ids: [28],
+                  vote_average: 8.3,
+                  release_date: "2010-07-16",
+                  poster_path: "/poster.jpg",
+                },
+              ],
+              total_pages: 1,
+            },
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            data: {
+              genres: [{ id: 28, name: "Action" }],
+            },
+          }),
+        );
 
       const result = (await service.searchMovies({ query: "Inception" })) as any;
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].tmdbId).toBe(27205);
-      expect(result.items[0].name).toBe("Inception");
+      expect(result.items[0].title).toBe("Inception");
       expect(result.items[0].posterUrl).toBe("https://image.tmdb.org/t/p/w500/poster.jpg");
       expect(result.items[0].releaseDate).toBeInstanceOf(Date);
       expect(mockCacheService.set).toHaveBeenCalled();
@@ -93,20 +105,32 @@ describe("TMDBService", () => {
     it("should fetch TV shows, map them and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get.mockReturnValue(
-        of({
-          data: {
-            results: [
-              {
-                id: 1396,
-                name: "Breaking Bad",
-                first_air_date: "2008-01-20",
-                poster_path: "/poster.jpg",
-              },
-            ],
-          },
-        }),
-      );
+      mockHttpService.get
+        .mockReturnValueOnce(
+          of({
+            data: {
+              results: [
+                {
+                  id: 1396,
+                  name: "Breaking Bad",
+                  adult: false,
+                  genre_ids: [18],
+                  vote_average: 9.5,
+                  first_air_date: "2008-01-20",
+                  poster_path: "/poster.jpg",
+                },
+              ],
+              total_pages: 1,
+            },
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            data: {
+              genres: [{ id: 18, name: "Drama" }],
+            },
+          }),
+        );
 
       const result = (await service.searchTVShows({ query: "Breaking Bad" })) as any;
 

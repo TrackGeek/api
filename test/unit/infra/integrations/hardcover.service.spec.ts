@@ -38,38 +38,61 @@ describe("HardcoverService", () => {
     it("should fetch books, map them and cache the result", async () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.post.mockReturnValue(
-        of({
-          data: {
+      mockHttpService.post
+        .mockReturnValueOnce(
+          of({
             data: {
-              search: {
-                results: {
-                  hits: [
-                    {
-                      document: {
-                        id: "12345",
-                        title: "Dune",
-                        alternative_titles: [],
-                        author_names: ["Frank Herbert"],
-                        image: { url: "https://hardcover.app/dune.jpg" },
-                        genres: ["Science Fiction"],
-                      },
-                    },
-                  ],
+              data: {
+                search: {
+                  results: {
+                    hits: [{ document: { id: "12345" } }],
+                  },
                 },
               },
             },
-          },
-        }),
-      );
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            data: {
+              data: {
+                book_categories: [{ id: 1, name: "Science Fiction" }],
+              },
+            },
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            data: {
+              data: {
+                books: [
+                  {
+                    id: 12345,
+                    canonical_id: null,
+                    title: "Dune",
+                    image: { url: "https://hardcover.app/dune.jpg" },
+                    rating: 5,
+                    contributions: [{ author: { id: 1, name: "Frank Herbert" } }],
+                    taggings: [],
+                    description: "A sci-fi novel.",
+                    release_date: "1965-08-01",
+                    book_category_id: 1,
+                    canonical: null,
+                  },
+                ],
+              },
+            },
+          }),
+        );
 
       const result = (await service.searchBooks({ query: "Dune" })) as any;
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0].id).toBe(12345);
+      expect(result.items[0].hardcoverId).toBe(12345);
       expect(result.items[0].title).toBe("Dune");
-      expect(result.items[0].authors).toEqual(["Frank Herbert"]);
+      expect(result.items[0].contributions).toEqual(["Frank Herbert"]);
       expect(result.items[0].imageUrl).toBe("https://hardcover.app/dune.jpg");
+      expect(result.items[0].category).toBe("Science Fiction");
       expect(mockCacheService.set).toHaveBeenCalled();
     });
 
@@ -141,8 +164,8 @@ describe("HardcoverService", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.set.mockResolvedValue(undefined);
       mockHttpService.post
-        .mockReturnValueOnce(of({ data: { data: { book_categories: bookCategoriesData } } }))
-        .mockReturnValueOnce(of({ data: { data: { books_by_pk: bookData } } }));
+        .mockReturnValueOnce(of({ data: { data: { books_by_pk: bookData } } }))
+        .mockReturnValueOnce(of({ data: { data: { book_categories: bookCategoriesData } } }));
 
       const result = await service.getBookByHardcoverId(12345);
 

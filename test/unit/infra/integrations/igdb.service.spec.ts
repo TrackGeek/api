@@ -48,21 +48,24 @@ describe("IGDBService", () => {
       mockCacheService.get.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
 
-      mockHttpService.post.mockReturnValueOnce(of(tokenResponse)).mockReturnValueOnce(
-        of({
-          data: [
-            {
-              id: 119171,
-              slug: "elden-ring",
-              name: "Elden Ring",
-              cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
-              involved_companies: [{ checksum: "abc", company: { name: "FromSoftware" }, developer: true }],
-              platforms: [{ checksum: "plat1", name: "PlayStation 5" }],
-              first_release_date: 1645747200,
-            },
-          ],
-        }),
-      );
+      mockHttpService.post
+        .mockReturnValueOnce(of(tokenResponse))
+        .mockReturnValueOnce(
+          of({
+            data: [
+              {
+                id: 119171,
+                slug: "elden-ring",
+                name: "Elden Ring",
+                cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
+                involved_companies: [{ checksum: "abc", company: { name: "FromSoftware" }, developer: true }],
+                platforms: [{ checksum: "plat1", name: "PlayStation 5" }],
+                first_release_date: 1645747200,
+              },
+            ],
+          }),
+        )
+        .mockReturnValueOnce(of({ data: { count: 1 } }));
 
       const result = await service.searchGames({ query: "Elden Ring" });
 
@@ -78,25 +81,32 @@ describe("IGDBService", () => {
     it("should use cached token when available", async () => {
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.post.mockReturnValue(
-        of({
-          data: [
-            {
-              id: 1,
-              slug: "game",
-              name: "Game",
-              cover: null,
-              involved_companies: null,
-              platforms: null,
-              first_release_date: null,
-            },
-          ],
-        }),
-      );
+      mockHttpService.post
+        .mockReturnValueOnce(
+          of({
+            data: [
+              {
+                id: 1,
+                slug: "game",
+                name: "Game",
+                cover: null,
+                involved_companies: null,
+                platforms: null,
+                first_release_date: null,
+              },
+            ],
+          }),
+        )
+        .mockReturnValueOnce(of({ data: { count: 1 } }));
 
       await service.searchGames({ query: "Game" });
 
-      expect(mockHttpService.post).toHaveBeenCalledTimes(1);
+      expect(mockHttpService.post).toHaveBeenCalledTimes(2);
+      expect(mockHttpService.post).not.toHaveBeenCalledWith(
+        "https://id.twitch.tv/oauth2/token",
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
     it("should throw AppException when token request fails", async () => {
