@@ -39,9 +39,9 @@ export class FeedEventService {
 
     const friendIds = following.map((item) => item.followingId);
 
-    const pagination = await this.databaseService.cursorPagination<FeedEventFindManyArgs>({
+    const pagination = await this.databaseService.offsetPagination<FeedEventFindManyArgs>({
       model: "feedEvent",
-      cursor: getFeedEventsByUserIdDto.cursor,
+      page: getFeedEventsByUserIdDto.page,
       itemsPerPage: getFeedEventsByUserIdDto.itemsPerPage,
       where: {
         userId: {
@@ -76,11 +76,32 @@ export class FeedEventService {
   }
 
   async getFeedEvents(getFeedEventsDto: GetFeedEventsDto) {
-    const pagination = await this.databaseService.cursorPagination({
+    const pagination = await this.databaseService.offsetPagination({
       model: "feedEvent",
       orderBy: { createdAt: "desc" },
-      cursor: getFeedEventsDto.cursor,
+      page: getFeedEventsDto.page,
       itemsPerPage: getFeedEventsDto.itemsPerPage,
+      include: {
+        _count: {
+          select: {
+            reactions: true,
+          },
+        },
+        reactions: {
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return pagination;

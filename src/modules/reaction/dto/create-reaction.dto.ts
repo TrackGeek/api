@@ -1,30 +1,33 @@
-import { ApiExtraModels, ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { ReactionType } from "@prisma/generated/enums";
-import { Type } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsUUID, ValidateNested } from "class-validator";
+import { IsEnum, IsOptional, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 import { IsEmoji } from "@/shared/validators/is-emoji.validator";
 
-export class CommentReactionItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Comment" })
-  @IsNotEmpty({ message: "commentId is required when type is Comment" })
-  @IsUUID("4", { message: "commentId must be a valid UUID" })
-  readonly commentId: string;
+export function ReactionRequiredForType(reactionType: ReactionType, options?: ValidationOptions) {
+  return (object: object, propertyName: string) => {
+    registerDecorator({
+      name: "reactionRequiredForType",
+      target: object.constructor,
+      propertyName,
+      constraints: [reactionType],
+      options,
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          const dto = args.object as CreateReactionDto;
+          if (dto.type === reactionType) {
+            return value !== undefined && value !== null && value !== "";
+          }
+          return true;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [type] = args.constraints as [ReactionType];
+          return `${args.property} is required when type is ${type}`;
+        },
+      },
+    });
+  };
 }
 
-export class FeedEventReactionItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is FeedEvent" })
-  @IsNotEmpty({ message: "feedEventId is required when type is FeedEvent" })
-  @IsUUID("4", { message: "feedEventId must be a valid UUID" })
-  readonly feedEventId: string;
-}
-
-export type ReactionItemDto = CommentReactionItemDto | FeedEventReactionItemDto;
-export const reactionItemTypeMap: Partial<Record<ReactionType, new () => ReactionItemDto>> = {
-  [ReactionType.Comment]: CommentReactionItemDto,
-  [ReactionType.FeedEvent]: FeedEventReactionItemDto,
-};
-
-@ApiExtraModels(CommentReactionItemDto, FeedEventReactionItemDto)
 export class CreateReactionDto {
   @IsEnum(ReactionType)
   @ApiProperty({ enum: ReactionType })
@@ -37,13 +40,23 @@ export class CreateReactionDto {
   @ApiProperty({ type: "string" })
   readonly emoji: string;
 
-  @ValidateNested()
-  @Type((options) => reactionItemTypeMap[(options?.object as CreateReactionDto).type] ?? Object)
+  @IsOptional()
+  @ReactionRequiredForType(ReactionType.Comment)
   @ApiProperty({
-    oneOf: [
-      { $ref: "#/components/schemas/CommentReactionItemDto" },
-      { $ref: "#/components/schemas/FeedEventReactionItemDto" },
-    ],
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Comment",
   })
-  readonly item: ReactionItemDto;
+  readonly commentId?: string;
+
+  @IsOptional()
+  @ReactionRequiredForType(ReactionType.FeedEvent)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is FeedEvent",
+  })
+  readonly feedEventId?: string;
 }

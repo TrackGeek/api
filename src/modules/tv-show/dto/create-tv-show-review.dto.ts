@@ -3,45 +3,45 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, Max, MaxLength, Min } from
 
 export class CreateTVShowReviewDto {
   @IsNumber()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiProperty({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly overall: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly direction?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly production?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly acting?: number;
 

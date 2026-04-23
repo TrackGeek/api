@@ -12,16 +12,14 @@ export class CommentService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createComment(createCommentDto: CreateCommentDto) {
-    const { type, content, userId, item } = createCommentDto;
-
-    const entityId = { ...item } as Record<string, any>;
+    const { type, content, userId, ...entityIds } = createCommentDto;
 
     await this.databaseService.comment.create({
       data: {
         type,
         content,
         userId,
-        ...entityId,
+        ...entityIds,
       },
     });
   }
@@ -40,15 +38,12 @@ export class CommentService {
     });
   }
 
-  async getComments(getCommentsDto: GetCommentsDto) {
-    const pagination = await this.databaseService.cursorPagination<CommentFindManyArgs>({
+  async getComments({ page, itemsPerPage, ...getCommentsDto }: GetCommentsDto) {
+    const pagination = await this.databaseService.offsetPagination<CommentFindManyArgs>({
       model: "comment",
-      where: {
-        type: getCommentsDto.type,
-        ...getCommentsDto.item,
-      },
-      cursor: getCommentsDto.cursor,
-      itemsPerPage: getCommentsDto.itemsPerPage,
+      where: { ...getCommentsDto },
+      page,
+      itemsPerPage,
       include: {
         user: {
           select: {

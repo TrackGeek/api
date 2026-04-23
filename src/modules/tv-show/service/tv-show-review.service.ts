@@ -33,8 +33,11 @@ export class TVShowReviewService {
       },
       include: {
         tvShow: {
-          omit: {
-            seasons: true,
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
           },
         },
         user: {
@@ -65,8 +68,11 @@ export class TVShowReviewService {
       where: { id: tvShowReviewId },
       include: {
         tvShow: {
-          omit: {
-            seasons: true,
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
           },
         },
         user: {
@@ -103,8 +109,11 @@ export class TVShowReviewService {
       },
       include: {
         tvShow: {
-          omit: {
-            seasons: true,
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
           },
         },
         user: {

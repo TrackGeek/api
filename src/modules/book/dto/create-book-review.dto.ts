@@ -3,45 +3,45 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsUUID, Max, MaxLength, Mi
 
 export class CreateBookReviewDto {
   @IsNumber()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiProperty({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly overall: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly characters?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly language?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly theme?: number;
 

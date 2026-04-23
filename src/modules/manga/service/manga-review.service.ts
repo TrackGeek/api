@@ -32,7 +32,14 @@ export class MangaReviewService {
         userId: createMangaReviewDto.userId,
       },
       include: {
-        manga: true,
+        manga: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -60,7 +67,14 @@ export class MangaReviewService {
     const mangaReview = await this.databaseService.mangaReview.findUnique({
       where: { id: mangaReviewId },
       include: {
-        manga: true,
+        manga: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -94,7 +108,14 @@ export class MangaReviewService {
         ...(getMangaReviewsDto.userId && { userId: getMangaReviewsDto.userId }),
       },
       include: {
-        manga: true,
+        manga: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         user: {
           select: {
             id: true,

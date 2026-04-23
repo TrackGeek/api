@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { AnimeProgressService } from "../service/anime-progress.service";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
@@ -18,6 +18,13 @@ export class AnimeProgressController {
       ...body,
       userId: session.user.id,
     });
+  }
+
+  @Delete("/:animeProgressId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAnimeProgress(@Session() session: UserSession, @Param("animeProgressId") animeProgressId: string) {
+    await this.animeProgressService.deleteAnimeProgress(animeProgressId, session.user.id);
   }
 
   @Get("/")

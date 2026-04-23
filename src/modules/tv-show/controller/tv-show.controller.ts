@@ -18,6 +18,13 @@ export class TVShowController {
     return { tvShows };
   }
 
+  @Get("/filter")
+  async tvShowFilters() {
+    const filters = await this.tvShowService.tvShowFilters();
+
+    return { filters };
+  }
+
   @Get("/top")
   async topTVShows(@Query() query: TopTvShowDto) {
     const topTVShows = await this.tvShowService.topTVShows(query);
@@ -40,8 +47,18 @@ export class TVShowController {
 
   @Get("/detail/:tmdbId/season")
   async getTVShowSeasonsByTmdbId(@Param("tmdbId", new ParseIntPipe()) tmdbId: number) {
-    const seasons = await this.tvShowService.getTVShowSeasonsByTmdbId(tmdbId);
+    const seasons = await this.tvShowService.getTVShowSeasons(tmdbId);
 
     return { seasons };
+  }
+
+  @Get("/detail/:tmdbId/season/:seasonNumber/episode")
+  async getTVShowSeasonEpisodes(
+    @Param("tmdbId", new ParseIntPipe()) tmdbId: number,
+    @Param("seasonNumber", new ParseIntPipe()) seasonNumber: number,
+  ) {
+    const episodes = await this.tvShowService.getTVShowSeasonEpisodes(tmdbId, seasonNumber);
+
+    return { episodes };
   }
 }

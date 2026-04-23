@@ -29,7 +29,18 @@ export class GameReviewScreenshotService {
         }),
       },
       include: {
-        gameReview: true,
+        gameReview: {
+          include: {
+            game: {
+              select: {
+                id: true,
+                igdbId: true,
+                coverUrl: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 

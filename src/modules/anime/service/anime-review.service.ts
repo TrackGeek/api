@@ -36,8 +36,11 @@ export class AnimeReviewService {
       },
       include: {
         anime: {
-          omit: {
-            episodes: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {
@@ -68,8 +71,11 @@ export class AnimeReviewService {
       where: { id: animeReviewId },
       include: {
         anime: {
-          omit: {
-            episodes: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {
@@ -106,8 +112,11 @@ export class AnimeReviewService {
       },
       include: {
         anime: {
-          omit: {
-            episodes: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {

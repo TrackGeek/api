@@ -1,75 +1,41 @@
-import { ApiExtraModels, ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { FavoriteType } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsUUID, ValidateNested } from "class-validator";
+import {
+  IsEnum,
+  IsOptional,
+  IsPositive,
+  IsUUID,
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
+} from "class-validator";
 
-export class AnimeFavoriteItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Anime" })
-  @IsNotEmpty({ message: "animeId is required when type is Anime" })
-  @IsUUID("4", { message: "animeId must be a valid UUID" })
-  readonly animeId: string;
+export function FavoriteRequiredForType(favoriteType: FavoriteType, options?: ValidationOptions) {
+  return (object: object, propertyName: string) => {
+    registerDecorator({
+      name: "favoriteRequiredForType",
+      target: object.constructor,
+      propertyName,
+      constraints: [favoriteType],
+      options,
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          const dto = args.object as AddFavoriteDto;
+          if (dto.type === favoriteType) {
+            return value !== undefined && value !== null && value !== "";
+          }
+          return true;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [type] = args.constraints as [FavoriteType];
+          return `${args.property} is required when type is ${type}`;
+        },
+      },
+    });
+  };
 }
 
-export class MangaFavoriteItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Manga" })
-  @IsNotEmpty({ message: "mangaId is required when type is Manga" })
-  @IsUUID("4", { message: "mangaId must be a valid UUID" })
-  readonly mangaId: string;
-}
-
-export class TVShowFavoriteItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is TVShow" })
-  @IsNotEmpty({ message: "tvShowId is required when type is TVShow" })
-  @IsUUID("4", { message: "tvShowId must be a valid UUID" })
-  readonly tvShowId: string;
-}
-
-export class MovieFavoriteItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Movie" })
-  @IsNotEmpty({ message: "movieId is required when type is Movie" })
-  @IsUUID("4", { message: "movieId must be a valid UUID" })
-  readonly movieId: string;
-}
-
-export class GameFavoriteItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Game" })
-  @IsNotEmpty({ message: "gameId is required when type is Game" })
-  @IsUUID("4", { message: "gameId must be a valid UUID" })
-  readonly gameId: string;
-}
-
-export class BookFavoriteItemDto {
-  @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Book" })
-  @IsNotEmpty({ message: "bookId is required when type is Book" })
-  @IsUUID("4", { message: "bookId must be a valid UUID" })
-  readonly bookId: string;
-}
-
-type FavoriteItemDto =
-  | AnimeFavoriteItemDto
-  | MangaFavoriteItemDto
-  | TVShowFavoriteItemDto
-  | MovieFavoriteItemDto
-  | GameFavoriteItemDto
-  | BookFavoriteItemDto;
-
-const favoriteItemTypeMap: Partial<Record<FavoriteType, new () => FavoriteItemDto>> = {
-  [FavoriteType.Anime]: AnimeFavoriteItemDto,
-  [FavoriteType.Manga]: MangaFavoriteItemDto,
-  [FavoriteType.TVShow]: TVShowFavoriteItemDto,
-  [FavoriteType.Movie]: MovieFavoriteItemDto,
-  [FavoriteType.Game]: GameFavoriteItemDto,
-  [FavoriteType.Book]: BookFavoriteItemDto,
-};
-
-@ApiExtraModels(
-  AnimeFavoriteItemDto,
-  MangaFavoriteItemDto,
-  TVShowFavoriteItemDto,
-  MovieFavoriteItemDto,
-  GameFavoriteItemDto,
-  BookFavoriteItemDto,
-)
 export class AddFavoriteDto {
   @IsEnum(FavoriteType)
   @ApiProperty({ enum: FavoriteType })
@@ -78,17 +44,45 @@ export class AddFavoriteDto {
   @ApiProperty({ type: "string", format: "uuid" })
   readonly userId: string;
 
-  @ValidateNested()
-  @Type((options) => favoriteItemTypeMap[(options?.object as AddFavoriteDto).type] ?? Object)
-  @ApiProperty({
-    oneOf: [
-      { $ref: "#/components/schemas/AnimeFavoriteItemDto" },
-      { $ref: "#/components/schemas/MangaFavoriteItemDto" },
-      { $ref: "#/components/schemas/TVShowFavoriteItemDto" },
-      { $ref: "#/components/schemas/MovieFavoriteItemDto" },
-      { $ref: "#/components/schemas/GameFavoriteItemDto" },
-      { $ref: "#/components/schemas/BookFavoriteItemDto" },
-    ],
-  })
-  readonly item: FavoriteItemDto;
+  @IsOptional()
+  @ApiPropertyOptional({ type: "integer" })
+  @Type(() => Number)
+  @IsPositive()
+  readonly position?: number;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.Anime)
+  @IsUUID("4")
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Anime" })
+  readonly animeId?: string;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.Manga)
+  @IsUUID("4")
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Manga" })
+  readonly mangaId?: string;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.TVShow)
+  @IsUUID("4")
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is TVShow" })
+  readonly tvShowId?: string;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.Movie)
+  @IsUUID("4")
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Movie" })
+  readonly movieId?: string;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.Game)
+  @IsUUID("4")
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Game" })
+  readonly gameId?: string;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.Book)
+  @IsUUID("4")
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Book" })
+  readonly bookId?: string;
 }

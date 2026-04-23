@@ -3,15 +3,24 @@ import { Injectable } from "@nestjs/common";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeProgressFindManyArgs } from "@prisma/generated/models";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
+import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 
 @Injectable()
 export class AnimeProgressService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+    private readonly animeEpisodeWatchService: AnimeEpisodeWatchService,
+  ) {}
 
   async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
     const { animeId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
 
-    await this.databaseService.animeProgress.upsert({
+    const animeProgress = await this.databaseService.animeProgress.upsert({
       where: {
         userId_animeId: {
           userId,
@@ -32,7 +41,60 @@ export class AnimeProgressService {
         completedAt,
         startedAt,
       },
+      include: {
+        anime: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profile: {
+              select: {
+                id: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    await this.queueService.toFeedEventJob({
+      type: FeedEventType.NewProgress,
+      userId,
+      metadata: { ...animeProgress },
+    });
+
+    if (status === ProgressStatus.Completed) {
+      await this.animeEpisodeWatchService.watchAllAnimeEpisodes({ animeId, userId });
+    }
+  }
+
+  async deleteAnimeProgress(animeProgressId: string, userId: string) {
+    const animeProgress = await this.databaseService.animeProgress.findUnique({
+      where: { id: animeProgressId },
+      select: { animeId: true, userId: true },
+    });
+
+    if (!animeProgress || animeProgress.userId !== userId) {
+      throw new AppException(ERROR_CODES.PROGRESS_NOT_FOUND);
+    }
+
+    await this.databaseService.$transaction([
+      this.databaseService.animeEpisodeWatch.deleteMany({
+        where: { animeId: animeProgress.animeId, userId },
+      }),
+      this.databaseService.animeProgress.delete({
+        where: { id: animeProgressId },
+      }),
+    ]);
   }
 
   async getAnimeProgress(getAnimeProgressDto: GetAnimeProgressDto) {
@@ -46,8 +108,11 @@ export class AnimeProgressService {
       },
       include: {
         anime: {
-          omit: {
-            episodes: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
         user: {

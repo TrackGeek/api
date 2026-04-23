@@ -1,4 +1,15 @@
-import {IsArray, IsBoolean, IsNotEmpty, IsNumber, IsPositive, ValidateIf} from "class-validator";
+import { WatchEpisodeStatus } from "@prisma/generated/enums";
+import { Type } from "class-transformer";
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsPositive, ValidateNested } from "class-validator";
+
+export class AnimeEpisodeWatchItemDto {
+  @IsNumber()
+  @IsPositive()
+  readonly episode: number;
+
+  @IsEnum(WatchEpisodeStatus)
+  readonly status: WatchEpisodeStatus;
+}
 
 export class CreateOrUpdateAnimeEpisodeWatchDto {
   @IsNotEmpty()
@@ -6,15 +17,8 @@ export class CreateOrUpdateAnimeEpisodeWatchDto {
 
   readonly userId: string;
 
-  @ValidateIf((o) => o.all !== true)
-  @IsNotEmpty()
   @IsArray()
-  @IsNumber({}, {each: true})
-  @IsPositive({each: true})
-  readonly episodes?: number[];
-
-  @ValidateIf((o) => !Array.isArray(o.episodes) || o.episodes.length === 0)
-  @IsNotEmpty()
-  @IsBoolean()
-  readonly all?: boolean;
+  @ValidateNested({ each: true })
+  @Type(() => AnimeEpisodeWatchItemDto)
+  readonly episodes: AnimeEpisodeWatchItemDto[];
 }

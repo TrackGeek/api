@@ -1,18 +1,19 @@
-import {HttpService} from "@nestjs/axios";
-import {Injectable, Logger} from "@nestjs/common";
-import {firstValueFrom} from "rxjs";
-import {CACHE_KEYS} from "@/shared/constants/cache";
-import {ERROR_CODES} from "@/shared/constants/error-codes";
-import {AppException} from "@/shared/exceptions/app.exceptions";
-import {manyRequestWithDelay} from "@/shared/utils/request";
-import {CacheService} from "../cache/cache.service";
-import {DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE} from "../database/database.service";
+import { HttpService } from "@nestjs/axios";
+import { Injectable, Logger } from "@nestjs/common";
+import { firstValueFrom } from "rxjs";
+import { CACHE_KEYS } from "@/shared/constants/cache";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { manyRequestWithDelay } from "@/shared/utils/request";
+import { CacheService } from "../cache/cache.service";
+import { DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE } from "../database/database.service";
 
 export interface JikanPagination<I> {
-  total?: number;
-  count?: number;
-  nextCursor: number | null;
-  hasNextPage: boolean;
+  total: number | null;
+  pages: number;
+  inPage: number;
+  itemsInPage: number;
+  itemsPerPage: number | null;
   items: I[];
 }
 
@@ -102,12 +103,11 @@ export interface JikanSearchAnimeOptions {
   type?: JikanAnimeType;
   status?: JikanAnimeStatus;
   rating?: JikanAnimeRatings;
-  genres?: string;
+  genres?: string[];
   orderBy?: JikanAnimeOrderBy;
   sort?: JikanSort;
   letter?: string;
-  startDate?: string;
-  endDate?: string;
+  year?: string;
 }
 
 export interface JikanSearchAnime {
@@ -116,6 +116,7 @@ export interface JikanSearchAnime {
   type: string;
   airedFrom: string | null;
   status: string | null;
+  malReviewScore: number | null;
   imageUrl: string | null;
   genres: string[];
   isAdult: boolean;
@@ -126,12 +127,11 @@ export interface JikanSearchMangaOptions {
   query?: string;
   type?: JikanMangaType;
   status?: JikanMangaStatus;
-  genres?: string;
+  genres?: string[];
   orderBy?: JikanMangaOrderBy;
   sort?: JikanSort;
   letter?: string;
-  startDate?: string;
-  endDate?: string;
+  year?: string;
 }
 
 export interface JikanSearchManga {
@@ -236,6 +236,7 @@ export interface JikanAnimeDetails {
   titles: JikanTitle[];
   type: string | null;
   source: string | null;
+  malReviewScore: number | null;
   numberOfEpisodes: number | null;
   status: string | null;
   aired: JikanDateProp;
@@ -290,7 +291,6 @@ export interface JikanAnimeDetails {
       video: JikanVideo;
     }[];
   };
-  relations: JikanRelation[];
 }
 
 export interface JikanAnimeEpisode {
@@ -327,7 +327,6 @@ export interface JikanMangaDetails {
     imageUrl: string | null;
     role: string;
   }[];
-  relations: JikanRelation[];
 }
 
 @Injectable()
@@ -339,25 +338,23 @@ export class JikanService {
   constructor(
     private readonly httpService: HttpService,
     private readonly cacheService: CacheService,
-  ) {
-  }
+  ) {}
 
   async searchAnimes({
-                       page = DEFAULT_PAGINATION_PAGE,
-                       query,
-                       rating,
-                       sort,
-                       orderBy,
-                       status,
-                       type,
-                       genres,
-                       letter,
-                       startDate,
-                       endDate,
-                     }: JikanSearchAnimeOptions): Promise<JikanPagination<JikanSearchAnime>> {
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    rating,
+    sort,
+    orderBy,
+    status,
+    type,
+    genres,
+    letter,
+    year,
+  }: JikanSearchAnimeOptions): Promise<JikanPagination<JikanSearchAnime>> {
     try {
       const searchAnimeOptions = {
-        q: query,
+        query,
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
         page,
         rating,
@@ -365,13 +362,13 @@ export class JikanService {
         status,
         orderBy,
         type,
-        genres,
+        genres: genres ? genres.join(",") : undefined,
         letter,
-        startDate,
-        endDate,
+        startDate: year ? `${year}-01-01` : undefined,
+        endDate: year ? `${year}-12-31` : undefined,
       };
 
-      const searchAnimeKey = CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix({...searchAnimeOptions});
+      const searchAnimeKey = CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix({ ...searchAnimeOptions });
 
       const cachedAnimes = await this.cacheService.get<JikanPagination<JikanSearchAnime>>(searchAnimeKey);
 
@@ -381,29 +378,47 @@ export class JikanService {
 
       const animesResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/anime`, {
-          params: {...searchAnimeOptions},
+          params: {
+            q: searchAnimeOptions.query,
+            page: searchAnimeOptions.page,
+            limit: searchAnimeOptions.limit,
+            rating: searchAnimeOptions.rating,
+            sort: searchAnimeOptions.sort,
+            order_by: searchAnimeOptions.orderBy,
+            status: searchAnimeOptions.status,
+            type: searchAnimeOptions.type,
+            genres: searchAnimeOptions.genres,
+            letter: searchAnimeOptions.letter,
+            start_date: searchAnimeOptions.startDate,
+            end_date: searchAnimeOptions.endDate,
+          },
         }),
       );
 
       const itemsData = animesResponse.data.data;
       const paginationData = animesResponse.data.pagination;
 
-      const items = itemsData.map((anime) => ({
+      const items: JikanSearchAnime[] = itemsData.map((anime: any) => ({
         malId: anime.mal_id,
         title: anime.title,
         type: anime.type,
+        rating: anime.rating,
         airedFrom: anime.aired.from,
         status: anime.status,
+        malReviewScore: anime?.score ?? 0,
+        synopsis: anime?.synopsis ?? null,
         imageUrl: anime.images?.jpg?.image_url ?? null,
+        trailerUrl: anime.trailer?.embed_url ?? null,
         genres: anime.genres ? anime.genres.map((genre) => genre.name) : [],
         isAdult: anime.genres ? anime.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
-      const animes = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
+      const animes: JikanPagination<JikanSearchAnime> = {
         total: paginationData.items.total,
-        count: paginationData.items.count,
+        pages: paginationData.last_visible_page,
+        inPage: searchAnimeOptions.page,
+        itemsInPage: items.length,
+        itemsPerPage: searchAnimeOptions.limit,
         items,
       };
 
@@ -414,7 +429,7 @@ export class JikanService {
       );
 
       return animes;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -426,33 +441,32 @@ export class JikanService {
   }
 
   async searchMangas({
-                       page = DEFAULT_PAGINATION_PAGE,
-                       query,
-                       sort,
-                       orderBy,
-                       status,
-                       type,
-                       genres,
-                       letter,
-                       startDate,
-                       endDate,
-                     }: JikanSearchMangaOptions): Promise<JikanPagination<JikanSearchManga>> {
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    sort,
+    orderBy,
+    status,
+    type,
+    genres,
+    letter,
+    year,
+  }: JikanSearchMangaOptions): Promise<JikanPagination<JikanSearchManga>> {
     try {
       const searchMangaOptions = {
-        q: query,
+        query: query,
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
         page,
         sort,
         status,
         orderBy,
         type,
-        genres,
+        genres: genres ? genres.join(",") : undefined,
         letter,
-        startDate,
-        endDate,
+        startDate: year ? `${year}-01-01` : undefined,
+        endDate: year ? `${year}-12-31` : undefined,
       };
 
-      const searchMangaKey = CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix({...searchMangaOptions});
+      const searchMangaKey = CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix({ ...searchMangaOptions });
 
       const cachedMangas = await this.cacheService.get<JikanPagination<JikanSearchManga>>(searchMangaKey);
 
@@ -462,7 +476,19 @@ export class JikanService {
 
       const mangasResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/manga`, {
-          params: {...searchMangaOptions},
+          params: {
+            q: searchMangaOptions.query,
+            limit: searchMangaOptions.limit,
+            page: searchMangaOptions.page,
+            sort: searchMangaOptions.sort,
+            status: searchMangaOptions.status,
+            order_by: searchMangaOptions.orderBy,
+            type: searchMangaOptions.type,
+            genres: searchMangaOptions.genres,
+            letter: searchMangaOptions.letter,
+            start_date: searchMangaOptions.startDate,
+            end_date: searchMangaOptions.endDate,
+          },
         }),
       );
 
@@ -473,18 +499,22 @@ export class JikanService {
         malId: manga.mal_id,
         title: manga.title,
         type: manga.type,
+        rating: manga.rating,
         publishedFrom: manga.published.from,
         status: manga.status,
+        malReviewScore: manga?.score ?? 0,
+        synopsis: manga?.synopsis ?? null,
         imageUrl: manga.images?.jpg?.image_url ?? null,
         genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
         isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
       const mangas = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
         total: paginationData.items.total,
-        count: paginationData.items.count,
+        pages: paginationData.last_visible_page,
+        inPage: searchMangaOptions.page,
+        itemsInPage: items.length,
+        itemsPerPage: searchMangaOptions.limit,
         items,
       };
 
@@ -495,7 +525,7 @@ export class JikanService {
       );
 
       return mangas;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
@@ -531,7 +561,7 @@ export class JikanService {
       );
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch anime genres from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
@@ -563,14 +593,14 @@ export class JikanService {
       );
 
       return genres;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch manga genres from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
 
-  async topAnimes({page = DEFAULT_PAGINATION_PAGE, filter, rating, type}: JikanTopAnimeOptions) {
+  async topAnimes({ page = DEFAULT_PAGINATION_PAGE, filter, rating, type }: JikanTopAnimeOptions) {
     try {
       const topAnimesOptions = {
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
@@ -580,7 +610,7 @@ export class JikanService {
         type,
       };
 
-      const topAnimesKey = CACHE_KEYS.JIKAN_TOP_ANIMES.prefix({...topAnimesOptions});
+      const topAnimesKey = CACHE_KEYS.JIKAN_TOP_ANIMES.prefix({ ...topAnimesOptions });
 
       const cachedTopAnimes = await this.cacheService.get<JikanPagination<JikanTopAnime>>(topAnimesKey);
 
@@ -590,7 +620,7 @@ export class JikanService {
 
       const topResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/top/anime`, {
-          params: {...topAnimesOptions},
+          params: { ...topAnimesOptions },
         }),
       );
 
@@ -601,20 +631,23 @@ export class JikanService {
         malId: anime.mal_id,
         title: anime.title,
         type: anime.type,
+        rating: anime.rating,
         airedFrom: anime.aired.from,
         status: anime.status,
+        malReviewScore: anime?.score ?? 0,
         imageUrl: anime.images?.jpg?.image_url ?? null,
         trailerUrl: anime.trailer?.embed_url ?? null,
-        synopsis: anime.synopsis ?? null,
+        synopsis: anime?.synopsis ?? null,
         genres: anime.genres ? anime.genres.map((genre) => genre.name) : [],
         isAdult: anime.genres ? anime.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
-      const topAnimes = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
+      const topAnimes: JikanPagination<JikanTopAnime> = {
         total: paginationData.items.total,
-        count: paginationData.items.count,
+        pages: paginationData.last_visible_page,
+        inPage: topAnimesOptions.page,
+        itemsInPage: items.length,
+        itemsPerPage: topAnimesOptions.limit,
         items,
       };
 
@@ -625,14 +658,14 @@ export class JikanService {
       );
 
       return topAnimes;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch top animes from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }
   }
 
-  async topMangas({page = DEFAULT_PAGINATION_PAGE, filter, type}: JikanTopMangaOptions) {
+  async topMangas({ page = DEFAULT_PAGINATION_PAGE, filter, type }: JikanTopMangaOptions) {
     try {
       const topMangasOptions = {
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
@@ -641,7 +674,7 @@ export class JikanService {
         type,
       };
 
-      const topMangasKey = CACHE_KEYS.JIKAN_TOP_MANGAS.prefix({...topMangasOptions});
+      const topMangasKey = CACHE_KEYS.JIKAN_TOP_MANGAS.prefix({ ...topMangasOptions });
 
       const cachedTopMangas = await this.cacheService.get<JikanPagination<JikanTopManga>>(topMangasKey);
 
@@ -651,7 +684,7 @@ export class JikanService {
 
       const topResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/top/manga`, {
-          params: {...topMangasOptions},
+          params: { ...topMangasOptions },
         }),
       );
 
@@ -662,19 +695,21 @@ export class JikanService {
         malId: manga.mal_id,
         title: manga.title,
         type: manga.type,
+        malReviewScore: manga?.score ?? 0,
         publishedFrom: manga.published.from,
         status: manga.status,
-        synopsis: manga.synopsis,
+        synopsis: manga?.synopsis ?? null,
         imageUrl: manga.images?.jpg?.image_url ?? null,
         genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
         isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
-      const topMangas = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? Number(page + 1) : null,
+      const topMangas: JikanPagination<JikanTopManga> = {
         total: paginationData.items.total,
-        count: paginationData.items.count,
+        pages: paginationData.last_visible_page,
+        inPage: topMangasOptions.page,
+        itemsInPage: items.length,
+        itemsPerPage: topMangasOptions.limit,
         items,
       };
 
@@ -685,7 +720,7 @@ export class JikanService {
       );
 
       return topMangas;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to fetch top mangas from Jikan API", error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
@@ -715,17 +750,6 @@ export class JikanService {
       const staffData = staffResponse.data.data;
       const charactersData = charactersResponse.data.data;
 
-      const relations = animeFullData.relations
-        ? animeFullData.relations.map((relation) => ({
-          relationType: relation.relation,
-          entry: relation.entry.map((entry) => ({
-            malId: entry.mal_id,
-            title: entry.title,
-            type: entry.type,
-          })),
-        }))
-        : [];
-
       const characters = charactersData.map((char) => ({
         malId: char.character.mal_id,
         name: char.character.name,
@@ -733,11 +757,11 @@ export class JikanService {
         role: char.role,
         voiceActors: char.voice_actors
           ? char.voice_actors.map((va) => ({
-            malId: va.person.mal_id,
-            name: va.person.name,
-            imageUrl: va.person.images?.jpg?.image_url ?? null,
-            language: va.language,
-          }))
+              malId: va.person.mal_id,
+              name: va.person.name,
+              imageUrl: va.person.images?.jpg?.image_url ?? null,
+              language: va.language,
+            }))
           : [],
       }));
 
@@ -751,24 +775,24 @@ export class JikanService {
       const videos = {
         promo: videosData.promo
           ? videosData.promo.map((promo) => ({
-            title: promo.title,
-            video: {
-              embedUrl: promo.trailer.embed_url ?? null,
-              youtubeId: promo.trailer.youtube_id ?? null,
-              url: promo.trailer.url ?? null,
-            },
-          }))
+              title: promo.title,
+              video: {
+                embedUrl: promo.trailer.embed_url ?? null,
+                youtubeId: promo.trailer.youtube_id ?? null,
+                url: promo.trailer.url ?? null,
+              },
+            }))
           : [],
         musicVideos: videosData.music_videos
           ? videosData.music_videos.map((musicVideo) => ({
-            title: musicVideo.meta.title,
-            author: musicVideo.meta.author,
-            video: {
-              embedUrl: musicVideo.video.embed_url ?? null,
-              youtubeId: musicVideo.video.youtube_id ?? null,
-              url: musicVideo.video.url ?? null,
-            },
-          }))
+              title: musicVideo.meta.title,
+              author: musicVideo.meta.author,
+              video: {
+                embedUrl: musicVideo.video.embed_url ?? null,
+                youtubeId: musicVideo.video.youtube_id ?? null,
+                url: musicVideo.video.url ?? null,
+              },
+            }))
           : [],
       };
 
@@ -777,7 +801,7 @@ export class JikanService {
       if (numberOfEpisodes === null) {
         const episodesResponse = await firstValueFrom(
           this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
-            params: {page: 1},
+            params: { page: 1 },
           }),
         );
 
@@ -803,6 +827,7 @@ export class JikanService {
         duration: animeFullData.duration,
         rating: animeFullData.rating,
         rank: animeFullData.rank,
+        isAdult: animeFullData.genres ? animeFullData.genres.some((genre) => genre.mal_id === 12) : false,
         popularity: animeFullData.popularity,
         synopsis: animeFullData.synopsis,
         background: animeFullData.background,
@@ -811,24 +836,24 @@ export class JikanService {
         broadcast: animeFullData.broadcast,
         producers: animeFullData.producers
           ? animeFullData.producers.map((producer) => ({
-            malId: producer.mal_id,
-            type: producer.type,
-            name: producer.name,
-          }))
+              malId: producer.mal_id,
+              type: producer.type,
+              name: producer.name,
+            }))
           : [],
         licensors: animeFullData.licensors
           ? animeFullData.licensors.map((licensor) => ({
-            malId: licensor.mal_id,
-            type: licensor.type,
-            name: licensor.name,
-          }))
+              malId: licensor.mal_id,
+              type: licensor.type,
+              name: licensor.name,
+            }))
           : [],
         studios: animeFullData.studios
           ? animeFullData.studios.map((studio) => ({
-            malId: studio.mal_id,
-            type: studio.type,
-            name: studio.name,
-          }))
+              malId: studio.mal_id,
+              type: studio.type,
+              name: studio.name,
+            }))
           : [],
         genres: animeFullData.genres ? animeFullData.genres.map((genre) => genre.name) : [],
         explicitGenres: animeFullData.explicit_genres ? animeFullData.explicit_genres.map((genre) => genre.name) : [],
@@ -838,7 +863,7 @@ export class JikanService {
         characters,
         cast,
         videos,
-        relations,
+        malReviewScore: animeFullData?.score ?? 0,
       } as JikanAnimeDetails;
 
       await this.cacheService.set(
@@ -848,7 +873,7 @@ export class JikanService {
       );
 
       return anime;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -859,12 +884,65 @@ export class JikanService {
     }
   }
 
-  async getAnimeEpisodesById({
-                               malId,
-                               page = DEFAULT_PAGINATION_PAGE,
-                             }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
+  async getAnimeRelationsById(id: number) {
     try {
-      const cacheKey = `${CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({malId, page})}`;
+      const relationsResponse = await firstValueFrom(
+        this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/relations`),
+      );
+
+      const relationsData = relationsResponse.data.data;
+
+      const allEntries = relationsData.flatMap((relation) => relation.entry);
+
+      const imageUrlMap = new Map<number, string | null>();
+
+      if (allEntries.length > 0) {
+        const urls = allEntries.map(
+          (entry) => `${this.JIKAN_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
+        );
+
+        const responses = await manyRequestWithDelay({
+          httpService: this.httpService,
+          urls,
+          delayMs: 800,
+        });
+
+        for (let i = 0; i < allEntries.length; i++) {
+          const entry = allEntries[i];
+          const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
+
+          imageUrlMap.set(entry.mal_id, imageUrl);
+        }
+      }
+
+      const relations = relationsData.map((relation) => ({
+        relationType: relation.relation,
+        entry: relation.entry.map((entry) => ({
+          malId: entry.mal_id,
+          title: entry.name,
+          type: entry.type,
+          imageUrl: imageUrlMap.get(entry.mal_id) ?? null,
+        })),
+      }));
+
+      return relations;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch anime relations for ID ${id} from Jikan API`, error);
+
+      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getAnimeEpisodesById({
+    malId,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
+    try {
+      const cacheKey = CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({ malId, page });
       const cached = await this.cacheService.get<JikanPagination<JikanAnimeEpisode>>(cacheKey);
 
       if (cached) {
@@ -873,7 +951,7 @@ export class JikanService {
 
       const response = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/anime/${malId}/videos/episodes`, {
-          params: {page},
+          params: { page },
         }),
       );
 
@@ -887,15 +965,18 @@ export class JikanService {
       }));
 
       const result: JikanPagination<JikanAnimeEpisode> = {
-        hasNextPage: paginationData.has_next_page,
-        nextCursor: paginationData.has_next_page ? page + 1 : null,
+        total: null,
+        pages: paginationData.last_visible_page,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
         items,
       };
 
       await this.cacheService.set(cacheKey, result, CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration);
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
@@ -929,17 +1010,6 @@ export class JikanService {
         role: char.role,
       }));
 
-      const relations = mangaFullData.relations
-        ? mangaFullData.relations.map((relation) => ({
-          relationType: relation.relation,
-          entry: relation.entry.map((entry) => ({
-            malId: entry.mal_id,
-            title: entry.name,
-            type: entry.type,
-          })),
-        }))
-        : [];
-
       const manga = {
         malId: mangaFullData.mal_id,
         url: mangaFullData.url,
@@ -954,19 +1024,20 @@ export class JikanService {
         rank: mangaFullData.rank,
         popularity: mangaFullData.popularity,
         synopsis: mangaFullData.synopsis,
+        isAdult: mangaFullData.genres ? mangaFullData.genres.some((genre) => genre.mal_id === 12) : false,
         authors: mangaFullData.authors
           ? mangaFullData.authors.map((author) => ({
-            malId: author.mal_id,
-            type: author.type,
-            name: author.name,
-          }))
+              malId: author.mal_id,
+              type: author.type,
+              name: author.name,
+            }))
           : [],
         serializations: mangaFullData.serializations
           ? mangaFullData.serializations.map((serialization) => ({
-            malId: serialization.mal_id,
-            type: serialization.type,
-            name: serialization.name,
-          }))
+              malId: serialization.mal_id,
+              type: serialization.type,
+              name: serialization.name,
+            }))
           : [],
         genres: mangaFullData.genres ? mangaFullData.genres.map((genre) => genre.name) : [],
         explicitGenres: mangaFullData.explicit_genres ? mangaFullData.explicit_genres.map((genre) => genre.name) : [],
@@ -974,7 +1045,7 @@ export class JikanService {
         demographics: mangaFullData.demographics ? mangaFullData.demographics.map((demo) => demo.name) : [],
         external: mangaFullData.external ? mangaFullData.external : [],
         characters,
-        relations,
+        malReviewScore: mangaFullData?.score ?? 0,
       } as JikanMangaDetails;
 
       await this.cacheService.set(
@@ -984,12 +1055,65 @@ export class JikanService {
       );
 
       return manga;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
 
       this.logger.error(`Failed to fetch manga details for ID ${id} from Jikan API`, error);
+
+      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getMangaRelationsById(id: number) {
+    try {
+      const relationsResponse = await firstValueFrom(
+        this.httpService.get(`${this.JIKAN_API_URL}/manga/${id}/relations`),
+      );
+
+      const relationsData = relationsResponse.data.data;
+
+      const allEntries = relationsData.flatMap((relation) => relation.entry);
+
+      const imageUrlMap = new Map<number, string | null>();
+
+      if (allEntries.length > 0) {
+        const urls = allEntries.map(
+          (entry) => `${this.JIKAN_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
+        );
+
+        const responses = await manyRequestWithDelay({
+          httpService: this.httpService,
+          urls,
+          delayMs: 800,
+        });
+
+        for (let i = 0; i < allEntries.length; i++) {
+          const entry = allEntries[i];
+          const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
+
+          imageUrlMap.set(entry.mal_id, imageUrl);
+        }
+      }
+
+      const relations = relationsData.map((relation) => ({
+        relationType: relation.relation,
+        entry: relation.entry.map((entry) => ({
+          malId: entry.mal_id,
+          title: entry.name,
+          type: entry.type,
+          imageUrl: imageUrlMap.get(entry.mal_id) ?? null,
+        })),
+      }));
+
+      return relations;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch anime relations for ID ${id} from Jikan API`, error);
 
       throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
     }

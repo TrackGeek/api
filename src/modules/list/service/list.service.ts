@@ -56,7 +56,7 @@ export class ListService {
   }
 
   async addItemToList(addItemToListDto: AddItemToListDto) {
-    const { listId, userId, item } = addItemToListDto;
+    const { listId, userId, item, position } = addItemToListDto;
 
     const listAlreadyExists = await this.databaseService.list.findFirst({
       where: {
@@ -85,23 +85,58 @@ export class ListService {
     const listItem = await this.databaseService.listItem.create({
       data: {
         listId,
+        position,
         ...entityId,
       },
       include: {
         anime: {
-          omit: {
-            episodes: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
-        manga: true,
+        manga: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         tvShow: {
-          omit: {
-            seasons: true,
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
           },
         },
-        book: true,
-        game: true,
-        movie: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
+        movie: {
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          },
+        },
         list: {
           select: {
             id: true,
@@ -202,19 +237,53 @@ export class ListService {
       where: { listId: getItemsByListIdDto.listId },
       include: {
         anime: {
-          omit: {
-            episodes: true,
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
           },
         },
-        manga: true,
+        manga: {
+          select: {
+            id: true,
+            malId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
         tvShow: {
-          omit: {
-            seasons: true,
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            name: true,
           },
         },
-        book: true,
-        game: true,
-        movie: true,
+        book: {
+          select: {
+            id: true,
+            hardcoverId: true,
+            imageUrl: true,
+            title: true,
+          },
+        },
+        game: {
+          select: {
+            id: true,
+            igdbId: true,
+            coverUrl: true,
+            name: true,
+          },
+        },
+        movie: {
+          select: {
+            id: true,
+            tmdbId: true,
+            backdropUrl: true,
+            title: true,
+          },
+        },
         list: {
           select: {
             id: true,

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Manga } from "@prisma/generated/client";
+import { Manga, ProgressStatus } from "@prisma/generated/client";
 import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -27,11 +27,61 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    return this.integrationsService.jikan.searchMangas(searchMangaDto);
+    const jikanPagination = await this.integrationsService.jikan.searchMangas(searchMangaDto);
+
+    const items = await Promise.all(
+      jikanPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.mangaReview
+          .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const manga = await this.databaseService.manga.findUnique({
+          where: { malId: item.malId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: manga?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...jikanPagination,
+      items,
+    };
   }
 
   async topMangas(topMangaDto: TopMangaDto) {
-    return this.integrationsService.jikan.topMangas(topMangaDto);
+    const jikanPagination = await this.integrationsService.jikan.topMangas(topMangaDto);
+
+    const items = await Promise.all(
+      jikanPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.mangaReview
+          .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const manga = await this.databaseService.manga.findUnique({
+          where: { malId: item.malId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: manga?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...jikanPagination,
+      items,
+    };
   }
 
   async mangaFilters() {
@@ -51,7 +101,9 @@ export class MangaService {
   }
 
   async getMangaByMalId(malId: number) {
-    const cachedManga = await this.cacheService.get<Manga>(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId));
+    const mangaDetailKey = CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId);
+
+    const cachedManga = await this.cacheService.get<Manga>(mangaDetailKey);
 
     if (cachedManga) {
       return cachedManga;
@@ -69,9 +121,78 @@ export class MangaService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId), manga, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+    const tgReviewScore = await this.databaseService.mangaReview
+      .aggregate({ where: { manga: { malId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
 
-    return manga;
+    const progressGroups = await this.databaseService.mangaProgress.groupBy({
+      by: ["status"],
+      where: { manga: { malId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const mangaWithStats = {
+      ...manga,
+      tgReviewScore,
+      progressStats,
+    };
+
+    await this.cacheService.set(mangaDetailKey, mangaWithStats, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
+
+    return mangaWithStats;
+  }
+
+  async getMangaRelationsByMalId(malId: number) {
+    const cachedRelationsKey = CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.prefix(malId);
+    const cachedRelations = await this.cacheService.get(cachedRelationsKey);
+
+    if (cachedRelations) {
+      return cachedRelations;
+    }
+
+    const manga = await this.databaseService.manga.findUnique({
+      where: { malId },
+      select: { relations: true },
+    });
+
+    if (!manga) {
+      throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
+    }
+
+    if (manga.relations) {
+      await this.cacheService.set(cachedRelationsKey, manga.relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
+
+      return manga.relations;
+    }
+
+    const relations = await this.integrationsService.jikan.getMangaRelationsById(malId);
+
+    await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
+
+    await this.databaseService.manga.update({
+      where: { malId },
+      data: { relations },
+    });
+
+    return relations;
   }
 
   async refreshManga(refreshMangaDto: RefreshMangaDto) {
@@ -90,21 +211,20 @@ export class MangaService {
       throw new AppException(ERROR_CODES.MANGA_ALREADY_REFRESHED);
     }
 
-    if (await this.cacheService.exists(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId))) {
-      await this.cacheService.delete(CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId));
+    const mangaDetailKey = CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId);
+
+    if (await this.cacheService.exists(mangaDetailKey)) {
+      await this.cacheService.delete(mangaDetailKey);
     }
 
     const jikanManga = await this.integrationsService.jikan.getMangaById(refreshMangaDto.malId);
+    const jikanRelations = await this.integrationsService.jikan.getMangaRelationsById(refreshMangaDto.malId);
 
     await this.databaseService.manga.update({
       where: { malId: refreshMangaDto.malId },
-      data: jikanManga as unknown as MangaUpdateInput,
+      data: { ...jikanManga, relations: jikanRelations } as unknown as MangaUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId),
-      manga,
-      CACHE_KEYS.MANGA_BY_MAL_ID.expiration,
-    );
+    await this.getMangaByMalId(refreshMangaDto.malId);
   }
 }

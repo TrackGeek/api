@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { TvShow } from "@prisma/generated/client";
+import { ProgressStatus, TvShow } from "@prisma/generated/client";
 import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
 import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -9,6 +9,12 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
+import {
+  TMDBSort,
+  TMDBTVShowOrderBy,
+  TMDBTVShowSeason,
+  TMDBTVShowSeasonEpisode,
+} from "@/shared/infra/integrations/tmdb.service";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
 
@@ -21,11 +27,73 @@ export class TVShowService {
   ) {}
 
   async searchTVShows(searchTVShowDto: SearchTVShowDto) {
-    return this.integrationsService.tmdb.searchTVShows(searchTVShowDto);
+    const tmdbPagination = await this.integrationsService.tmdb.searchTVShows(searchTVShowDto);
+
+    const items = await Promise.all(
+      tmdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.tvShowReview
+          .aggregate({ where: { tvShow: { tmdbId: item.tmdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const tvShow = await this.databaseService.tvShow.findUnique({
+          where: { tmdbId: item.tmdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: tvShow?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...tmdbPagination,
+      items,
+    };
   }
 
   async topTVShows(topTvShowDto: TopTvShowDto) {
-    return this.integrationsService.tmdb.topTVShows(topTvShowDto);
+    const tmdbPagination = await this.integrationsService.tmdb.topTVShows(topTvShowDto);
+
+    const items = await Promise.all(
+      tmdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.tvShowReview
+          .aggregate({ where: { tvShow: { tmdbId: item.tmdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const tvShow = await this.databaseService.tvShow.findUnique({
+          where: { tmdbId: item.tmdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: tvShow?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...tmdbPagination,
+      items,
+    };
+  }
+
+  async tvShowFilters() {
+    const orderBy = Object.values(TMDBTVShowOrderBy);
+    const sort = Object.values(TMDBSort);
+    const genres = await this.integrationsService.tmdb.getTVShowGenres();
+
+    return {
+      genres,
+      orderBy,
+      sort,
+    };
   }
 
   async getTVShowByTmdbId(tmdbId: number) {
@@ -37,6 +105,9 @@ export class TVShowService {
 
     let tvShow = await this.databaseService.tvShow.findUnique({
       where: { tmdbId },
+      omit: {
+        seasons: true,
+      },
     });
 
     if (!tvShow) {
@@ -47,16 +118,50 @@ export class TVShowService {
       });
     }
 
+    const tgReviewScore = await this.databaseService.tvShowReview
+      .aggregate({ where: { tvShow: { tmdbId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
+
+    const progressGroups = await this.databaseService.tvShowProgress.groupBy({
+      by: ["status"],
+      where: { tvShow: { tmdbId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const tvShowWithStats = {
+      ...tvShow,
+      tgReviewScore,
+      progressStats,
+    };
+
     await this.cacheService.set(
       CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(tmdbId),
-      tvShow,
+      tvShowWithStats,
       CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration,
     );
 
-    return tvShow;
+    return tvShowWithStats;
   }
 
-  async getTVShowSeasonsByTmdbId(tmdbId: number) {
+  async getTVShowSeasons(tmdbId: number) {
     const cachedSeasons = await this.cacheService.get(CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId));
 
     if (cachedSeasons) {
@@ -65,25 +170,31 @@ export class TVShowService {
 
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { tmdbId },
-      select: {
-        seasons: true,
-      },
+      select: { seasons: true },
     });
 
     if (!tvShow) {
       throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
     }
 
-    let seasons: any = tvShow.seasons;
+    const existingSeasons = (tvShow.seasons ?? []) as unknown as TMDBTVShowSeason[];
 
-    if (!seasons) {
-      seasons = await this.integrationsService.tmdb.getTVShowSeasonsById(tmdbId);
+    if (existingSeasons.length > 0) {
+      await this.cacheService.set(
+        CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId),
+        existingSeasons,
+        CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.expiration,
+      );
 
-      await this.databaseService.tvShow.update({
-        where: { tmdbId },
-        data: { seasons },
-      });
+      return existingSeasons;
     }
+
+    const seasons = await this.integrationsService.tmdb.getTVShowSeasonsById(tmdbId);
+
+    await this.databaseService.tvShow.update({
+      where: { tmdbId },
+      data: { seasons } as unknown as TvShowUpdateInput,
+    });
 
     await this.cacheService.set(
       CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(tmdbId),
@@ -94,11 +205,61 @@ export class TVShowService {
     return seasons;
   }
 
+  async getTVShowSeasonEpisodes(tmdbId: number, seasonNumber: number) {
+    const cachedEpisodes = await this.cacheService.get(
+      CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonNumber),
+    );
+
+    if (cachedEpisodes) {
+      return cachedEpisodes;
+    }
+
+    const tvShow = await this.databaseService.tvShow.findUnique({
+      where: { tmdbId },
+      select: { episodes: true },
+    });
+
+    if (!tvShow) {
+      throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+    }
+
+    const allEpisodes = (tvShow.episodes ?? []) as unknown as (TMDBTVShowSeasonEpisode & { seasonNumber: number })[];
+    const seasonEpisodes = allEpisodes.filter((ep) => ep.seasonNumber === seasonNumber);
+
+    if (seasonEpisodes.length > 0) {
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonNumber),
+        seasonEpisodes,
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.expiration,
+      );
+
+      return seasonEpisodes;
+    }
+
+    const episodes = await this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(tmdbId, seasonNumber);
+
+    await this.databaseService.tvShow.update({
+      where: { tmdbId },
+      data: {
+        episodes: [...allEpisodes, ...episodes.map((ep) => ({ ...ep, seasonNumber }))],
+      } as unknown as TvShowUpdateInput,
+    });
+
+    await this.cacheService.set(
+      CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonNumber),
+      episodes,
+      CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.expiration,
+    );
+
+    return episodes;
+  }
+
   async refreshTVShow(refreshTVShowDto: RefreshTVShowDto) {
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { tmdbId: refreshTVShowDto.tmdbId },
       select: {
         lastRefreshedAt: true,
+        seasons: true,
       },
     });
 
@@ -114,17 +275,52 @@ export class TVShowService {
       await this.cacheService.delete(CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(refreshTVShowDto.tmdbId));
     }
 
-    const tmdbTVShow = await this.integrationsService.tmdb.getTVShowById(refreshTVShowDto.tmdbId);
+    if (await this.cacheService.exists(CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(refreshTVShowDto.tmdbId))) {
+      await this.cacheService.delete(CACHE_KEYS.TV_SHOW_SEASONS_BY_TMDB_ID.prefix(refreshTVShowDto.tmdbId));
+    }
+
+    const existingSeasons = (tvShow.seasons ?? []) as unknown as TMDBTVShowSeason[];
+
+    for (const season of existingSeasons) {
+      const episodesCacheKey = CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(
+        refreshTVShowDto.tmdbId,
+        season.seasonNumber,
+      );
+
+      if (await this.cacheService.exists(episodesCacheKey)) {
+        await this.cacheService.delete(episodesCacheKey);
+      }
+    }
+
+    const [tmdbTVShow, tmdbSeasons] = await Promise.all([
+      this.integrationsService.tmdb.getTVShowById(refreshTVShowDto.tmdbId),
+      this.integrationsService.tmdb.getTVShowSeasonsById(refreshTVShowDto.tmdbId),
+    ]);
+
+    const tmdbEpisodes: Awaited<ReturnType<typeof this.integrationsService.tmdb.getTVShowSeasonEpisdoesById>> = [];
+
+    for (const season of tmdbSeasons) {
+      const episodes = await this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(
+        refreshTVShowDto.tmdbId,
+        season.seasonNumber,
+      );
+
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(refreshTVShowDto.tmdbId, season.seasonNumber),
+        episodes,
+        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.expiration,
+      );
+
+      tmdbEpisodes.push(...episodes);
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
 
     await this.databaseService.tvShow.update({
       where: { tmdbId: refreshTVShowDto.tmdbId },
-      data: tmdbTVShow as unknown as TvShowUpdateInput,
+      data: { ...tmdbTVShow, seasons: tmdbSeasons, episodes: tmdbEpisodes } as unknown as TvShowUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.TV_SHOW_BY_TMDB_ID.prefix(refreshTVShowDto.tmdbId),
-      tvShow,
-      CACHE_KEYS.TV_SHOW_BY_TMDB_ID.expiration,
-    );
+    await this.getTVShowByTmdbId(refreshTVShowDto.tmdbId);
   }
 }

@@ -3,44 +3,44 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsUUID, Max, MaxLength, Mi
 
 export class CreateAnimeReviewDto {
   @IsNumber()
-  @Max(10)
+  @Max(5)
   @Min(0)
-  @ApiProperty({ type: "number", minimum: 0, maximum: 10 })
+  @ApiProperty({ type: "number", minimum: 0, maximum: 5 })
   readonly overall: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
-  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
   readonly story?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
-  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
   readonly characters?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
-  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
   readonly animation?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
-  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
   readonly sound?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
-  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 10 })
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
   readonly enjoyment?: number;
 
   @IsOptional()

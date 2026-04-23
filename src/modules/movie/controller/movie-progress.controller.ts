@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { MovieProgressService } from "../service/movie-progress.service";
 import { CreateOrUpdateMovieProgressDto } from "../dto/create-or-update-movie-progress.dto";
@@ -18,6 +18,13 @@ export class MovieProgressController {
       ...body,
       userId: session.user.id,
     });
+  }
+
+  @Delete("/:movieProgressId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteMovieProgress(@Session() session: UserSession, @Param("movieProgressId") movieProgressId: string) {
+    await this.movieProgressService.deleteMovieProgress(movieProgressId, session.user.id);
   }
 
   @Get("/")

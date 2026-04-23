@@ -1,13 +1,13 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 import {
-  JikanAnimeOrderBy,
-  JikanAnimeRatings,
-  JikanAnimeStatus,
   JikanAnimeType,
+  JikanAnimeStatus,
+  JikanAnimeRatings,
   JikanSort,
+  JikanAnimeOrderBy,
 } from "@/shared/infra/integrations/jikan.service";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 
 export class SearchAnimeDto {
   @IsOptional()
@@ -38,10 +38,10 @@ export class SearchAnimeDto {
   @ApiPropertyOptional({ enum: JikanAnimeRatings })
   readonly rating?: JikanAnimeRatings;
 
-  @Matches(/^\w+(?:,\w+)*$/)
+  @Transform(({ value }) => (value as string).split(","))
+  @IsArray()
   @IsOptional()
-  @ApiPropertyOptional({ type: "string" })
-  readonly genres?: string;
+  readonly genres?: string[];
 
   @IsEnum(JikanAnimeOrderBy)
   @IsOptional()
@@ -59,6 +59,6 @@ export class SearchAnimeDto {
   readonly letter?: string;
 
   @IsOptional()
-  @ApiPropertyOptional({ type: "string" })
+  @Matches(/^\d{4}$/)
   readonly year?: string;
 }

@@ -1,28 +1,31 @@
-import { ApiExtraModels, ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { ReactionType } from "@prisma/generated/enums";
-import { Type } from "class-transformer";
-import { IsEnum, ValidateNested } from "class-validator";
-import { CursorPaginationParamsDto } from "@/shared/infra/database/dtos/cursor-pagination.dto";
-import {
-  CommentReactionItemDto,
-  FeedEventReactionItemDto,
-  type ReactionItemDto,
-  reactionItemTypeMap,
-} from "./create-reaction.dto";
+import { IsEnum, IsOptional } from "class-validator";
+import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
+import { ReactionRequiredForType } from "./create-reaction.dto";
 
-@ApiExtraModels(CommentReactionItemDto, FeedEventReactionItemDto)
-export class GetReactionsDto extends CursorPaginationParamsDto {
+export class GetReactionsDto extends OffsetPaginationParamsDto {
   @IsEnum(ReactionType)
   @ApiProperty({ enum: ReactionType })
   readonly type: ReactionType;
 
-  @ValidateNested()
-  @Type((options) => reactionItemTypeMap[(options?.object as GetReactionsDto).type] ?? Object)
+  @IsOptional()
+  @ReactionRequiredForType(ReactionType.Comment)
   @ApiProperty({
-    oneOf: [
-      { $ref: "#/components/schemas/CommentReactionItemDto" },
-      { $ref: "#/components/schemas/FeedEventReactionItemDto" },
-    ],
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Comment",
   })
-  readonly item: ReactionItemDto;
+  readonly commentId?: string;
+
+  @IsOptional()
+  @ReactionRequiredForType(ReactionType.FeedEvent)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is FeedEvent",
+  })
+  readonly feedEventId?: string;
 }

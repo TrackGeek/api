@@ -144,7 +144,7 @@ export class StripeService {
       );
 
       return currency;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error converting currency", error);
 
       return {

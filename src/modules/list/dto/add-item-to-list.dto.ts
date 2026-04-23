@@ -1,7 +1,7 @@
-import { ApiExtraModels, ApiProperty } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ListType } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsUUID, ValidateNested } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsPositive, IsUUID, ValidateNested } from "class-validator";
 
 export class AnimeItemDto {
   @ApiProperty({ type: "string", format: "uuid", description: "Required when type is Anime" })
@@ -61,6 +61,12 @@ export class AddItemToListDto {
   @IsEnum(ListType)
   @ApiProperty({ enum: ListType })
   readonly type: ListType;
+
+  @IsOptional()
+  @ApiPropertyOptional({ type: "integer" })
+  @Type(() => Number)
+  @IsPositive()
+  readonly position?: number;
 
   @IsUUID("7", { message: "listId must be a valid UUID" })
   @ApiProperty({ type: "string", format: "uuid" })

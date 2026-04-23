@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ProgressStatus } from "@prisma/generated/enums";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
 
 export class CreateOrUpdateAnimeProgressDto {
@@ -15,14 +15,14 @@ export class CreateOrUpdateAnimeProgressDto {
   @IsPositive()
   readonly watchCount?: number;
 
-  @ApiPropertyOptional({ type: Date })
-  @IsOptional()
+  @Type(() => Date)
   @IsDate()
+  @IsOptional()
   readonly startedAt?: Date;
 
-  @ApiPropertyOptional({ type: Date })
-  @IsOptional()
+  @Type(() => Date)
   @IsDate()
+  @IsOptional()
   readonly completedAt?: Date;
 
   @ApiProperty({ type: String })

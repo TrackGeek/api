@@ -50,7 +50,7 @@ export class QueueService {
       const job = await queues[queueName].add(jobName, data, options);
 
       this.logger.log(`Job added to queue [${queueName}] | job=${job.id} name=${jobName}`);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to add job to queue [${queueName}] | error=${error.message}`);
     }
   }

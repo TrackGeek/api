@@ -17,15 +17,14 @@ export class FavoriteService {
   ) {}
 
   async addFavorite(addFavoriteDto: AddFavoriteDto) {
-    const { type, userId, item } = addFavoriteDto;
-
-    const entityId = { ...item } as Record<string, any>;
+    const { type, userId, position, ...entityIds } = addFavoriteDto;
 
     const favorite = await this.databaseService.favorite.create({
       data: {
         type,
         userId,
-        ...entityId,
+        position,
+        ...entityIds,
       },
       include: {
         user: {
@@ -185,15 +184,13 @@ export class FavoriteService {
   }
 
   async removeFavorite(removeFavoriteDto: RemoveFavoriteDto) {
-    const { type, userId, item } = removeFavoriteDto;
-
-    const entityId = { ...item } as Record<string, any>;
+    const { type, userId, position: _position, ...entityIds } = removeFavoriteDto;
 
     const favorite = await this.databaseService.favorite.findFirst({
       where: {
         type,
         userId,
-        ...entityId,
+        ...entityIds,
       },
     });
 

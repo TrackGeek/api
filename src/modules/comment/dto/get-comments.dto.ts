@@ -1,46 +1,81 @@
-import { ApiExtraModels, ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { CommentType } from "@prisma/generated/enums";
-import { Type } from "class-transformer";
-import { IsEnum, ValidateNested } from "class-validator";
-import { CursorPaginationParamsDto } from "@/shared/infra/database/dtos/cursor-pagination.dto";
-import {
-  AnimeCommentItemDto,
-  BookCommentItemDto,
-  type CommentItemDto,
-  commentItemTypeMap,
-  GameCommentItemDto,
-  MangaCommentItemDto,
-  MovieCommentItemDto,
-  ProfileCommentItemDto,
-  TVShowCommentItemDto,
-} from "./create-comment.dto";
+import { IsEnum, IsOptional } from "class-validator";
+import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
+import { CommentRequiredForType } from "./create-comment.dto";
 
-@ApiExtraModels(
-  AnimeCommentItemDto,
-  MangaCommentItemDto,
-  TVShowCommentItemDto,
-  MovieCommentItemDto,
-  GameCommentItemDto,
-  BookCommentItemDto,
-  ProfileCommentItemDto,
-)
-export class GetCommentsDto extends CursorPaginationParamsDto {
+export class GetCommentsDto extends OffsetPaginationParamsDto {
   @IsEnum(CommentType)
   @ApiProperty({ enum: CommentType })
   readonly type: CommentType;
 
-  @ValidateNested()
-  @Type((options) => commentItemTypeMap[(options?.object as GetCommentsDto).type] ?? Object)
+  @IsOptional()
+  @CommentRequiredForType(CommentType.Anime)
   @ApiProperty({
-    oneOf: [
-      { $ref: "#/components/schemas/AnimeCommentItemDto" },
-      { $ref: "#/components/schemas/MangaCommentItemDto" },
-      { $ref: "#/components/schemas/TVShowCommentItemDto" },
-      { $ref: "#/components/schemas/MovieCommentItemDto" },
-      { $ref: "#/components/schemas/GameCommentItemDto" },
-      { $ref: "#/components/schemas/BookCommentItemDto" },
-      { $ref: "#/components/schemas/ProfileCommentItemDto" },
-    ],
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Anime",
   })
-  readonly item: CommentItemDto;
+  readonly animeId?: string;
+
+  @IsOptional()
+  @CommentRequiredForType(CommentType.Manga)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Manga",
+  })
+  readonly mangaId?: string;
+
+  @IsOptional()
+  @CommentRequiredForType(CommentType.TVShow)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is TVShow",
+  })
+  readonly tvShowId?: string;
+
+  @IsOptional()
+  @CommentRequiredForType(CommentType.Movie)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Movie",
+  })
+  readonly movieId?: string;
+
+  @IsOptional()
+  @CommentRequiredForType(CommentType.Game)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Game",
+  })
+  readonly gameId?: string;
+
+  @IsOptional()
+  @CommentRequiredForType(CommentType.Book)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Book",
+  })
+  readonly bookId?: string;
+
+  @IsOptional()
+  @CommentRequiredForType(CommentType.Profile)
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Required when type is Profile",
+  })
+  readonly profileId?: string;
 }

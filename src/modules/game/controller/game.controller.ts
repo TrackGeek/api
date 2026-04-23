@@ -18,6 +18,13 @@ export class GameController {
     return { games };
   }
 
+  @Get("/filter")
+  async gameFilters() {
+    const filters = await this.gameService.gameFilters();
+
+    return { filters };
+  }
+
   @Get("/top")
   async topGames(@Query() query: TopGameDto) {
     const topGames = await this.gameService.topGames(query);

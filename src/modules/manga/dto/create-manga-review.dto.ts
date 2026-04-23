@@ -2,19 +2,19 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, Max, MaxLength, Min } from
 
 export class CreateMangaReviewDto {
   @IsNumber()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly overall: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly art?: number;
 
   @IsNumber()
   @IsOptional()
-  @Max(10)
+  @Max(5)
   @Min(0)
   readonly worldbuilding?: number;
 

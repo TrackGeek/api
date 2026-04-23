@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Game } from "@prisma/generated/client";
+import { Game, ProgressStatus } from "@prisma/generated/client";
 import { GameCreateInput, GameUpdateInput } from "@prisma/generated/models";
 import { TopGameDto } from "@/modules/game/dto/top-game.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -11,6 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
+import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 
 @Injectable()
 export class GameService {
@@ -21,11 +22,79 @@ export class GameService {
   ) {}
 
   async searchGames(searchGameDto: SearchGameDto) {
-    return this.integrationsService.igdb.searchGames(searchGameDto);
+    const igdbPagination = await this.integrationsService.igdb.searchGames(searchGameDto);
+
+    const items = await Promise.all(
+      igdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.gameReview
+          .aggregate({ where: { game: { igdbId: item.igdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const game = await this.databaseService.game.findUnique({
+          where: { igdbId: item.igdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: game?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...igdbPagination,
+      items,
+    };
   }
 
   async topGames(topGameDto: TopGameDto) {
-    return this.integrationsService.igdb.topGames(topGameDto);
+    const igdbPagination = await this.integrationsService.igdb.topGames(topGameDto);
+
+    const items = await Promise.all(
+      igdbPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.gameReview
+          .aggregate({ where: { game: { igdbId: item.igdbId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const game = await this.databaseService.game.findUnique({
+          where: { igdbId: item.igdbId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: game?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...igdbPagination,
+      items,
+    };
+  }
+
+  async gameFilters() {
+    const orderBy = Object.values(IGDBGameOrderBy);
+    const sort = Object.values(IGDBSort);
+    const status = await this.integrationsService.igdb.getGameStatus();
+    const genres = await this.integrationsService.igdb.getGameGenres();
+    const modes = await this.integrationsService.igdb.getGameModes();
+    const platforms = await this.integrationsService.igdb.getGamePlatforms();
+
+    return {
+      status,
+      genres,
+      platforms,
+      modes,
+      orderBy,
+      sort,
+    };
   }
 
   async getGameByIgdbId(igdbId: number) {
@@ -47,9 +116,47 @@ export class GameService {
       });
     }
 
-    await this.cacheService.set(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId), game, CACHE_KEYS.GAME_BY_IGDB_ID.expiration);
+    const tgReviewScore = await this.databaseService.gameReview
+      .aggregate({ where: { game: { igdbId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
 
-    return game;
+    const progressGroups = await this.databaseService.gameProgress.groupBy({
+      by: ["status"],
+      where: { game: { igdbId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const gameWithStats = {
+      ...game,
+      tgReviewScore,
+      progressStats,
+    };
+
+    await this.cacheService.set(
+      CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId),
+      gameWithStats,
+      CACHE_KEYS.GAME_BY_IGDB_ID.expiration,
+    );
+
+    return gameWithStats;
   }
 
   async refreshGame(refreshGameDto: RefreshGameDto) {
@@ -79,10 +186,6 @@ export class GameService {
       data: igdbGame as unknown as GameUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId),
-      game,
-      CACHE_KEYS.GAME_BY_IGDB_ID.expiration,
-    );
+    await this.getGameByIgdbId(refreshGameDto.igdbId);
   }
 }

@@ -23,8 +23,6 @@ export class OffsetPaginationParamsDto<Args extends DatabaseArgs = any> extends 
 export class OffsetPaginationResultDto<T> {
   readonly total: number;
 
-  readonly count: number;
-
   readonly pages: number;
 
   readonly inPage: number;

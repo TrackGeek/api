@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Book } from "@prisma/generated/client";
+import { Book, ProgressStatus } from "@prisma/generated/client";
 import { BookCreateInput, BookUpdateInput } from "@prisma/generated/models";
 import { TopBookDto } from "@/modules/book/dto/top-book.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -11,6 +11,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
+import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 
 @Injectable()
 export class BookService {
@@ -21,11 +22,75 @@ export class BookService {
   ) {}
 
   async searchBooks(searchBookDto: SearchBookDto) {
-    return this.integrationsService.hardcover.searchBooks(searchBookDto);
+    const hardcoverPagination = await this.integrationsService.hardcover.searchBooks(searchBookDto);
+
+    const items = await Promise.all(
+      hardcoverPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.bookReview
+          .aggregate({ where: { book: { hardcoverId: item.hardcoverId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const book = await this.databaseService.book.findUnique({
+          where: { hardcoverId: item.hardcoverId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: book?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...hardcoverPagination,
+      items,
+    };
+  }
+
+  async bookFilters() {
+    const orderBy = Object.values(HardcoverBookOrderBy);
+    const sort = Object.values(HardcoverSort);
+    const statuses = await this.integrationsService.hardcover.getBookStatuses();
+    const categories = await this.integrationsService.hardcover.getBookCategories();
+
+    return {
+      orderBy,
+      sort,
+      statuses,
+      categories,
+    };
   }
 
   async topBooks(topBookDto: TopBookDto) {
-    return this.integrationsService.hardcover.topBooks(topBookDto);
+    const hardcoverPagination = await this.integrationsService.hardcover.topBooks(topBookDto);
+
+    const items = await Promise.all(
+      hardcoverPagination.items.map(async (item) => {
+        const tgReviewScore = await this.databaseService.bookReview
+          .aggregate({ where: { book: { hardcoverId: item.hardcoverId } }, _avg: { overall: true } })
+          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+          .catch(() => 0);
+
+        const book = await this.databaseService.book.findUnique({
+          where: { hardcoverId: item.hardcoverId },
+          select: { lastRefreshedAt: true },
+        });
+
+        return {
+          ...item,
+          tgReviewScore,
+          lastRefreshedAt: book?.lastRefreshedAt ?? null,
+        };
+      }),
+    );
+
+    return {
+      ...hardcoverPagination,
+      items,
+    };
   }
 
   async getBookByHardcoverId(hardcoverId: number) {
@@ -47,13 +112,47 @@ export class BookService {
       });
     }
 
+    const tgReviewScore = await this.databaseService.bookReview
+      .aggregate({ where: { book: { hardcoverId } }, _avg: { overall: true } })
+      .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
+      .catch(() => 0);
+
+    const progressGroups = await this.databaseService.bookProgress.groupBy({
+      by: ["status"],
+      where: { book: { hardcoverId } },
+      _count: { status: true },
+    });
+
+    const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
+
+    const getStats = (status: ProgressStatus) => {
+      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+      return {
+        count,
+        percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
+      };
+    };
+
+    const progressStats = {
+      watching: getStats(ProgressStatus.Watching),
+      completed: getStats(ProgressStatus.Completed),
+      planToWatch: getStats(ProgressStatus.Planning),
+      dropped: getStats(ProgressStatus.Dropped),
+    };
+
+    const bookWithStats = {
+      ...book,
+      tgReviewScore,
+      progressStats,
+    };
+
     await this.cacheService.set(
       CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(hardcoverId),
-      book,
+      bookWithStats,
       CACHE_KEYS.BOOK_BY_HARDCOVER_ID.expiration,
     );
 
-    return book;
+    return bookWithStats;
   }
 
   async refreshBook(refreshBookDto: RefreshBookDto) {
@@ -83,10 +182,6 @@ export class BookService {
       data: hardcoverBook as unknown as BookUpdateInput,
     });
 
-    await this.cacheService.set(
-      CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(refreshBookDto.hardcoverId),
-      book,
-      CACHE_KEYS.BOOK_BY_HARDCOVER_ID.expiration,
-    );
+    await this.getBookByHardcoverId(refreshBookDto.hardcoverId);
   }
 }

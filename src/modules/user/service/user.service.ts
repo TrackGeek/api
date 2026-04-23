@@ -1,21 +1,25 @@
-import {Injectable} from "@nestjs/common";
-import {FeedEventType} from "@prisma/generated/enums";
-import {ERROR_CODES} from "@/shared/constants/error-codes";
-import {AppException} from "@/shared/exceptions/app.exceptions";
-import {DatabaseService} from "@/shared/infra/database/database.service";
-import {QueueService} from "@/shared/infra/queue/queue.service";
-import {extractNameFromEmail} from "@/shared/utils/email";
-import {GetFollowersDto} from "../dto/get-followers.dto";
-import {FollowingFindManyArgs, UserFindManyArgs} from "@prisma/generated/models";
-import {SearchUserDto} from "../dto/search-user.dto";
+import { Injectable } from "@nestjs/common";
+import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { extractNameFromEmail } from "@/shared/utils/email";
+import { GetFollowersDto } from "../dto/get-followers.dto";
+import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
+import { SearchUserDto } from "../dto/search-user.dto";
+
+type ProgressGroup = {
+  status: ProgressStatus;
+  _count: { status: number };
+};
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
-  ) {
-  }
+  ) {}
 
   async searchUser(searchUserDto: SearchUserDto) {
     const users = await this.databaseService.offsetPagination<UserFindManyArgs>({
@@ -24,8 +28,8 @@ export class UserService {
       page: searchUserDto.page,
       where: {
         OR: [
-          {name: {contains: searchUserDto.query, mode: "insensitive"}},
-          {username: {contains: searchUserDto.query, mode: "insensitive"}},
+          { name: { contains: searchUserDto.query, mode: "insensitive" } },
+          { username: { contains: searchUserDto.query, mode: "insensitive" } },
         ],
       },
       select: {
@@ -46,7 +50,7 @@ export class UserService {
 
   async getUserById(id: string) {
     const user = this.databaseService.user.findUnique({
-      where: {id},
+      where: { id },
       include: {
         profile: true,
       },
@@ -65,8 +69,8 @@ export class UserService {
   }
 
   async getUserByUsername(username: string) {
-    const user = this.databaseService.user.findUnique({
-      where: {username},
+    const user = await this.databaseService.user.findUnique({
+      where: { username },
       include: {
         profile: true,
         _count: {
@@ -87,7 +91,85 @@ export class UserService {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
 
-    return user;
+    const buildStats = (groups: ProgressGroup[], statuses: ProgressStatus[]) => {
+      const total = groups.reduce((sum, g) => sum + g._count.status, 0);
+
+      const getStat = (status: ProgressStatus) => {
+        const count = groups.find((g) => g.status === status)?._count.status ?? 0;
+
+        return { count, percentage: total > 0 ? parseFloat(((count / total) * 100).toFixed(1)) : 0 };
+      };
+
+      return Object.fromEntries([["total", total], ...statuses.map((s) => [s.toLowerCase(), getStat(s)])]);
+    };
+
+    const watchingStatuses = [
+      ProgressStatus.Watching,
+      ProgressStatus.Completed,
+      ProgressStatus.Paused,
+      ProgressStatus.Dropped,
+      ProgressStatus.Planning,
+    ];
+
+    const readingStatuses = [
+      ProgressStatus.Reading,
+      ProgressStatus.Completed,
+      ProgressStatus.Paused,
+      ProgressStatus.Dropped,
+      ProgressStatus.Planning,
+    ];
+
+    const playingStatuses = [
+      ProgressStatus.Playing,
+      ProgressStatus.Completed,
+      ProgressStatus.Paused,
+      ProgressStatus.Dropped,
+      ProgressStatus.Planning,
+    ];
+
+    const [animeGroups, mangaGroups, tvShowGroups, movieGroups, gameGroups, bookGroups] = await Promise.all([
+      this.databaseService.animeProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.mangaProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.tvShowProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.movieProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.gameProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+      this.databaseService.bookProgress.groupBy({
+        by: ["status"],
+        where: { userId: user.id },
+        _count: { status: true },
+      }),
+    ]);
+
+    const progressStats = {
+      anime: buildStats(animeGroups, watchingStatuses),
+      manga: buildStats(mangaGroups, readingStatuses),
+      tvShow: buildStats(tvShowGroups, watchingStatuses),
+      movie: buildStats(movieGroups, watchingStatuses),
+      game: buildStats(gameGroups, playingStatuses),
+      book: buildStats(bookGroups, readingStatuses),
+    };
+
+    return { ...user, progressStats };
   }
 
   getName(name: string | null | undefined, email: string) {
@@ -100,7 +182,7 @@ export class UserService {
     const baseUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     const usernameExists = await this.databaseService.user.findUnique({
-      where: {username: baseUsername},
+      where: { username: baseUsername },
     });
 
     const username = usernameExists ? `${baseUsername}${Math.floor(Math.random() * 10000)}` : baseUsername;
@@ -164,11 +246,15 @@ export class UserService {
     await this.queueService.toFeedEventJob({
       type: FeedEventType.NewFollower,
       userId,
-      metadata: {...following},
+      metadata: { ...following },
     });
   }
 
   async unfollowUser(userId: string, targetUserId: string) {
+    if (userId === targetUserId) {
+      throw new AppException(ERROR_CODES.USER_CANNOT_UNFOLLOW_SELF);
+    }
+
     const existingFollow = await this.databaseService.following.findUnique({
       where: {
         followerId_followingId: {
@@ -192,12 +278,12 @@ export class UserService {
     });
   }
 
-  async getFollwoers(getFollowersDto: GetFollowersDto) {
+  async getFollowers(getFollowersDto: GetFollowersDto) {
     const followers = await this.databaseService.offsetPagination<FollowingFindManyArgs>({
       model: "following",
       itemsPerPage: getFollowersDto.itemsPerPage,
       page: getFollowersDto.page,
-      where: {followingId: getFollowersDto.userId},
+      where: { followingId: getFollowersDto.userId },
       include: {
         follower: {
           select: {
@@ -223,7 +309,7 @@ export class UserService {
       model: "following",
       itemsPerPage: getFollowingDto.itemsPerPage,
       page: getFollowingDto.page,
-      where: {followerId: getFollowingDto.userId},
+      where: { followerId: getFollowingDto.userId },
       include: {
         following: {
           select: {

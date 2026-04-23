@@ -1,3 +1,3 @@
-import { CursorPaginationParamsDto } from "@/shared/infra/database/dtos/cursor-pagination.dto";
+import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
-export class GetFeedEventsDto extends CursorPaginationParamsDto {}
+export class GetFeedEventsDto extends OffsetPaginationParamsDto {}

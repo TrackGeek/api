@@ -12,16 +12,14 @@ export class ReactionService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createReaction(createReactionDto: CreateReactionDto) {
-    const { emoji, userId, item, type } = createReactionDto;
-
-    const entityId = { ...item } as Record<string, any>;
+    const { emoji, userId, type, ...entityIds } = createReactionDto;
 
     await this.databaseService.reaction.create({
       data: {
         type,
         emoji,
         userId,
-        ...entityId,
+        ...entityIds,
       },
     });
   }
@@ -41,13 +39,14 @@ export class ReactionService {
   }
 
   async getReactions(getReactionsDto: GetReactionsDto) {
-    const pagination = await this.databaseService.cursorPagination<ReactionFindManyArgs>({
+    const pagination = await this.databaseService.offsetPagination<ReactionFindManyArgs>({
       model: "reaction",
       where: {
         type: getReactionsDto.type,
-        ...getReactionsDto.item,
+        commentId: getReactionsDto.commentId,
+        feedEventId: getReactionsDto.feedEventId,
       },
-      cursor: getReactionsDto.cursor,
+      page: getReactionsDto.page,
       itemsPerPage: getReactionsDto.itemsPerPage,
       include: {
         comment: true,

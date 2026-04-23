@@ -4,8 +4,8 @@ import {
   JikanSort,
   JikanMangaOrderBy,
 } from "@/shared/infra/integrations/jikan.service";
-import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 
 export class SearchMangaDto {
   @IsOptional()
@@ -25,9 +25,10 @@ export class SearchMangaDto {
   @IsOptional()
   readonly status?: JikanMangaStatus;
 
-  @Matches(/^\w+(?:,\w+)*$/)
+  @Transform(({ value }) => (value as string).split(","))
+  @IsArray()
   @IsOptional()
-  readonly genres?: string;
+  readonly genres?: string[];
 
   @IsEnum(JikanMangaOrderBy)
   @IsOptional()
@@ -40,4 +41,8 @@ export class SearchMangaDto {
   @Matches(/^[a-zA-Z]$/)
   @IsOptional()
   readonly letter?: string;
+
+  @IsOptional()
+  @Matches(/^\d{4}$/)
+  readonly year?: string;
 }

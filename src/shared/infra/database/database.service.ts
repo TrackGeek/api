@@ -51,8 +51,7 @@ export class DatabaseService extends PrismaClient {
 
     const modelInstance = this[model as DatabaseModel] as any;
 
-    const [total, count, items] = await Promise.all([
-      modelInstance.count(),
+    const [total, items] = await Promise.all([
       modelInstance.count({ where }),
       modelInstance.findMany({
         take: itemsPerPage,
@@ -64,11 +63,10 @@ export class DatabaseService extends PrismaClient {
       }),
     ]);
 
-    const pages = Math.ceil(count / itemsPerPage);
+    const pages = Math.ceil(total / itemsPerPage);
 
     return {
       total,
-      count,
       pages,
       inPage: page,
       itemsInPage: items.length,
