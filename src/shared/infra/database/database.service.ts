@@ -52,15 +52,14 @@ export class DatabaseService extends PrismaClient {
     const modelInstance = this[model as DatabaseModel] as any;
 
     const [total, items] = await Promise.all([
-      modelInstance.count(),
+      modelInstance.count({ where }),
       modelInstance.findMany({
         take: itemsPerPage,
         skip: (page - 1) * itemsPerPage,
         where,
         orderBy,
-        ...(Object.keys(include).length > 0 && Object.keys(include).length === 0 && { select }),
-        ...(Object.keys(select).length === 0 &&
-          (Object.keys(include).length > 0 || Object.keys(omit).length > 0) && { omit, include }),
+        ...(Object.keys(include).length === 0 && { select }),
+        ...(Object.keys(select).length === 0 && { include, omit }),
       }),
     ]);
 

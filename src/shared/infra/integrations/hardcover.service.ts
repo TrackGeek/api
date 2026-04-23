@@ -224,7 +224,7 @@ export class HardcoverService {
                   query: "${query ? query : ""}",
                   query_type: "book",
                   per_page: ${limit},
-                  page: ${offset},
+                  page: ${page},
                 ) {
                   results
                 }

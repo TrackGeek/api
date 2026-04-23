@@ -340,7 +340,7 @@ export class IGDBService {
         genres ? `genres.slug = (${genres.map((genre) => `"${genre}"`).join(",")})` : null,
         platform ? `platforms.slug = "${platform}"` : null,
         year
-          ? `first_release_date >= ${new Date(Number(year), 0, 1).getTime() / 1000} & first_release_date < ${new Date(Number(year), 12, 31).getTime() / 1000}`
+          ? `first_release_date >= ${Math.floor(new Date(Number(year), 0, 1).getTime() / 1000)} & first_release_date < ${Math.floor(new Date(Number(year) + 1, 0, 1).getTime() / 1000)}`
           : null,
         status ? (status === "Not Released" ? "game_status = null" : `game_status.status = "${status}"`) : null,
       ].filter(Boolean);
@@ -764,7 +764,7 @@ export class IGDBService {
           })) ?? [],
         summary: game?.summary,
         coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
-        firstReleaseDate: game.first_release_date ? new Date(game.first_release_date) : null,
+        firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
       }));
 
       const topGames: IGDBPagination<IGDBTopGameResult> = {

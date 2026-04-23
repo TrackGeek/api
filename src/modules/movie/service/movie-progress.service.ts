@@ -60,7 +60,7 @@ export class MovieProgressService {
     });
 
     await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewReview,
+      type: FeedEventType.NewProgress,
       userId,
       metadata: { ...movieProgress },
     });
