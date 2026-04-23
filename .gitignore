@@ -61,6 +61,7 @@ prisma/generated
 
 package-lock.json
 pnpm-lock.yaml
+yarn.lock
 
 # Playwright
 node_modules/
