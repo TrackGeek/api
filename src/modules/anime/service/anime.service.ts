@@ -15,10 +15,10 @@ import {
   JikanAnimeType,
   JikanSort,
 } from "@/shared/infra/integrations/jikan.service";
-import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
-import type { SearchAnimeDto } from "../dto/search-anime.dto";
-import { TopAnimeDto } from "../dto/top-anime.dto";
-import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
+import type {RefreshAnimeDto} from "../dto/refresh-anime.dto";
+import type {SearchAnimeDto} from "../dto/search-anime.dto";
+import {TopAnimeDto} from "../dto/top-anime.dto";
+import {GetAnimeEpisodesByMalIdDto} from "../dto/get-anime-episodes-by-mal-id.dto";
 
 @Injectable()
 export class AnimeService {
@@ -26,7 +26,8 @@ export class AnimeService {
     private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
-  ) {}
+  ) {
+  }
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
     const jikanPagination = await this.integrationsService.jikan.searchAnimes(searchAnimeDto);
@@ -249,7 +250,7 @@ export class AnimeService {
 
   async refreshAnime(refreshAnimeDto: RefreshAnimeDto) {
     const anime = await this.databaseService.anime.findUnique({
-      where: { malId: refreshAnimeDto.malId },
+      where: {malId: refreshAnimeDto.malId},
       select: {
         lastRefreshedAt: true,
         episodes: true,

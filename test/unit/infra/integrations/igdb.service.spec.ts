@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { of, throwError } from "rxjs";
-import { IGDBService } from "@/shared/infra/integrations/igdb.service";
-import { AppException } from "@/shared/exceptions/app.exceptions";
+import {describe, it, expect, vi, beforeEach} from "vitest";
+import {of, throwError} from "rxjs";
+import {IGDBService} from "@/shared/infra/integrations/igdb.service";
+import {AppException} from "@/shared/exceptions/app.exceptions";
 
 const mockHttpService = {
   get: vi.fn(),
@@ -32,13 +32,13 @@ describe("IGDBService", () => {
   });
 
   describe("searchGames", () => {
-    const tokenResponse = { data: { access_token: "fake-token", expires_in: 5000000 } };
+    const tokenResponse = {data: {access_token: "fake-token", expires_in: 5000000}};
 
     it("should return cached games when cache hit", async () => {
-      const cached = [{ igdbId: 1, name: "Elden Ring" }];
+      const cached = [{igdbId: 1, name: "Elden Ring"}];
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(cached);
 
-      const result = await service.searchGames({ query: "Elden Ring" });
+      const result = await service.searchGames({query: "Elden Ring"});
 
       expect(result).toEqual(cached);
       expect(mockHttpService.post).not.toHaveBeenCalled();
@@ -55,16 +55,16 @@ describe("IGDBService", () => {
               id: 119171,
               slug: "elden-ring",
               name: "Elden Ring",
-              cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
-              involved_companies: [{ checksum: "abc", company: { name: "FromSoftware" }, developer: true }],
-              platforms: [{ checksum: "plat1", name: "PlayStation 5" }],
+              cover: {url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg"},
+              involved_companies: [{checksum: "abc", company: {name: "FromSoftware"}, developer: true}],
+              platforms: [{checksum: "plat1", name: "PlayStation 5"}],
               first_release_date: 1645747200,
             },
           ],
         }),
       );
 
-      const result = await service.searchGames({ query: "Elden Ring" });
+      const result = await service.searchGames({query: "Elden Ring"});
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].igdbId).toBe(119171);
@@ -94,7 +94,7 @@ describe("IGDBService", () => {
         }),
       );
 
-      await service.searchGames({ query: "Game" });
+      await service.searchGames({query: "Game"});
 
       expect(mockHttpService.post).toHaveBeenCalledTimes(1);
     });
@@ -103,7 +103,7 @@ describe("IGDBService", () => {
       mockCacheService.get.mockResolvedValueOnce(null);
       mockHttpService.post.mockReturnValue(throwError(() => new Error("Auth failed")));
 
-      await expect(service.searchGames({ query: "Elden Ring" })).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchGames({query: "Elden Ring"})).rejects.toBeInstanceOf(AppException);
     });
 
     it("should throw AppException when games request fails", async () => {
@@ -112,22 +112,22 @@ describe("IGDBService", () => {
         .mockReturnValueOnce(of(tokenResponse))
         .mockReturnValueOnce(throwError(() => new Error("Service down")));
 
-      await expect(service.searchGames({ query: "Elden Ring" })).rejects.toBeInstanceOf(AppException);
+      await expect(service.searchGames({query: "Elden Ring"})).rejects.toBeInstanceOf(AppException);
     });
   });
 
   describe("getGameById", () => {
-    const tokenResponse = { data: { access_token: "fake-token", expires_in: 5000000 } };
+    const tokenResponse = {data: {access_token: "fake-token", expires_in: 5000000}};
 
     const gameData = {
       id: 119171,
       slug: "elden-ring",
       name: "Elden Ring",
-      cover: { url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg" },
+      cover: {url: "//images.igdb.com/igdb/image/upload/t_thumb/co4jni.jpg"},
       first_release_date: 1645747200,
       summary: "An epic RPG.",
-      genres: [{ checksum: "g1", name: "RPG", slug: "rpg" }],
-      platforms: [{ checksum: "p1", name: "PlayStation 5" }],
+      genres: [{checksum: "g1", name: "RPG", slug: "rpg"}],
+      platforms: [{checksum: "p1", name: "PlayStation 5"}],
       involved_companies: [],
       age_ratings: [],
       alternative_names: [],
@@ -164,7 +164,7 @@ describe("IGDBService", () => {
     };
 
     it("should return cached game when cache hit", async () => {
-      const cached = { igdbId: 119171, name: "Elden Ring" };
+      const cached = {igdbId: 119171, name: "Elden Ring"};
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(cached);
 
       const result = await service.getGameById(119171);
@@ -176,7 +176,7 @@ describe("IGDBService", () => {
     it("should fetch game details and cache the result", async () => {
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
       mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.post.mockReturnValue(of({ data: [gameData] }));
+      mockHttpService.post.mockReturnValue(of({data: [gameData]}));
 
       const result = await service.getGameById(119171);
 
@@ -188,7 +188,7 @@ describe("IGDBService", () => {
 
     it("should throw AppException when game is not found in response", async () => {
       mockCacheService.get.mockResolvedValueOnce("cached-access-token").mockResolvedValueOnce(null);
-      mockHttpService.post.mockReturnValue(of({ data: [] }));
+      mockHttpService.post.mockReturnValue(of({data: []}));
 
       await expect(service.getGameById(99999)).rejects.toBeInstanceOf(AppException);
     });

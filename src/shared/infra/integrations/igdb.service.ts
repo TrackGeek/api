@@ -266,7 +266,8 @@ export class IGDBService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
-  ) {}
+  ) {
+  }
 
   private async getAccessToken(): Promise<string> {
     const cachedToken = await this.cacheService.get<string>(CACHE_KEYS.IGDB_ACCESS_TOKEN);
@@ -644,15 +645,15 @@ export class IGDBService {
   }
 
   async topGames({
-    page = DEFAULT_PAGINATION_PAGE,
-    filter = IGDBGameFilter.Popular,
-  }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
+                   page = DEFAULT_PAGINATION_PAGE,
+                   filter = IGDBGameFilter.Popular,
+                 }: IGDBTopGameOptions): Promise<IGDBPagination<IGDBTopGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const topGamesOptions = { page, filter };
+      const topGamesOptions = {page, filter};
       const cachedGames = await this.cacheService.get<IGDBPagination<IGDBTopGameResult>>(
-        CACHE_KEYS.IGDB_TOP_GAMES.prefix({ ...topGamesOptions }),
+        CACHE_KEYS.IGDB_TOP_GAMES.prefix({...topGamesOptions}),
       );
 
       if (cachedGames) {
@@ -1050,10 +1051,10 @@ export class IGDBService {
           })) ?? [],
         franchise: gameData?.franchise
           ? {
-              checksum: gameData.franchise.checksum ?? null,
-              name: gameData.franchise.name ?? null,
-              slug: gameData.franchise.slug ?? null,
-            }
+            checksum: gameData.franchise.checksum ?? null,
+            name: gameData.franchise.name ?? null,
+            slug: gameData.franchise.slug ?? null,
+          }
           : {},
         franchises:
           gameData?.franchises?.map((franchise: any) => ({
@@ -1087,9 +1088,9 @@ export class IGDBService {
             : "Not Released",
         gameType: gameData?.game_type
           ? {
-              checksum: gameData.game_type.checksum ?? null,
-              type: gameData.game_type.type ?? null,
-            }
+            checksum: gameData.game_type.checksum ?? null,
+            type: gameData.game_type.type ?? null,
+          }
           : {},
         genres:
           gameData?.genres?.map((genre: any) => ({
@@ -1131,13 +1132,13 @@ export class IGDBService {
         name: gameData?.name ?? null,
         parentGame: gameData?.parent_game
           ? {
-              id: gameData.parent_game.id ?? null,
-              name: gameData.parent_game.name ?? null,
-              slug: gameData.parent_game.slug ?? null,
-              coverUrl: gameData.parent_game.cover?.url
-                ? `https:${gameData.parent_game.cover.url.replace("t_thumb", "t_cover_big")}`
-                : null,
-            }
+            id: gameData.parent_game.id ?? null,
+            name: gameData.parent_game.name ?? null,
+            slug: gameData.parent_game.slug ?? null,
+            coverUrl: gameData.parent_game.cover?.url
+              ? `https:${gameData.parent_game.cover.url.replace("t_thumb", "t_cover_big")}`
+              : null,
+          }
           : {},
         platforms:
           gameData?.platforms?.map((platform: any) => ({
@@ -1204,13 +1205,13 @@ export class IGDBService {
         themes: gameData?.themes?.map((t: any) => t.name),
         versionParent: gameData?.version_parent
           ? {
-              checksum: gameData.version_parent.checksum ?? null,
-              name: gameData.version_parent.name ?? null,
-              slug: gameData.version_parent.slug ?? null,
-              coverUrl: gameData.version_parent.cover?.url
-                ? `https:${gameData.version_parent.cover.url.replace("t_thumb", "t_cover_big")}`
-                : null,
-            }
+            checksum: gameData.version_parent.checksum ?? null,
+            name: gameData.version_parent.name ?? null,
+            slug: gameData.version_parent.slug ?? null,
+            coverUrl: gameData.version_parent.cover?.url
+              ? `https:${gameData.version_parent.cover.url.replace("t_thumb", "t_cover_big")}`
+              : null,
+          }
           : {},
         versionTitle: gameData?.version_title ?? null,
         videos:

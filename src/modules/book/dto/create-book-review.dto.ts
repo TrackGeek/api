@@ -1,47 +1,47 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsUUID, Max, MaxLength, Min } from "class-validator";
 
 export class CreateBookReviewDto {
-  @IsDecimal()
+  @IsNumber()
   @Max(5)
   @Min(0)
   @ApiProperty({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly overall: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly characters?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly language?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly theme?: number;
 

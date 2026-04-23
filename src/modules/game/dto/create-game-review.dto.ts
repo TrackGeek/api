@@ -3,8 +3,8 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
-  IsDecimal,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   Max,
   MaxLength,
@@ -12,57 +12,57 @@ import {
 } from "class-validator";
 
 export class CreateGameReviewDto {
-  @IsDecimal()
+  @IsNumber()
   @Max(5)
   @Min(0)
   @ApiProperty({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly overall: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly graphics?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly sound?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly story?: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   @Max(5)
   @Min(0)
   @ApiPropertyOptional({
     type: "number",
     minimum: 0,
-    maximum: 10,
+    maximum: 5,
   })
   readonly gameplay?: number;
 

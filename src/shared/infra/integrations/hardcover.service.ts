@@ -180,7 +180,8 @@ export class HardcoverService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
-  ) {}
+  ) {
+  }
 
   async searchBooks({
     query,
@@ -202,11 +203,11 @@ export class HardcoverService {
         status,
       });
 
-      // const cachedBooks = await this.cacheService.get<HardcoverPagination<HardcoverSearchBookResult>>(cachedBooksKey);
+      const cachedBooks = await this.cacheService.get<HardcoverPagination<HardcoverSearchBookResult>>(cachedBooksKey);
 
-      // if (cachedBooks) {
-      //   return cachedBooks;
-      // }
+      if (cachedBooks) {
+        return cachedBooks;
+      }
 
       const limit = DEFAULT_PAGINATION_ITEMS_PER_PAGE;
       const offset = (page - 1) * limit;
@@ -633,7 +634,7 @@ export class HardcoverService {
         this.httpService.post(
           this.HARDCOVER_API_URL,
           {
-            variables: { id: hardcoverId },
+            variables: {id: hardcoverId},
             query: `
 						query GetBookById($id: Int!) {
 							books_by_pk(id: $id) {
@@ -820,48 +821,48 @@ export class HardcoverService {
         curationStatus: bookData.curation_status,
         defaultAudioEdition: bookData.default_audio_edition
           ? {
-              id: bookData.default_audio_edition.id,
-              imageUrl: bookData.default_audio_edition.image.url ?? null,
-              title: bookData.default_audio_edition.title,
-              language: bookData.default_audio_edition.language?.language ?? null,
-            }
+            id: bookData.default_audio_edition.id,
+            imageUrl: bookData.default_audio_edition.image.url ?? null,
+            title: bookData.default_audio_edition.title,
+            language: bookData.default_audio_edition.language?.language ?? null,
+          }
           : null,
         defaultCoverEdition: bookData.default_cover_edition
           ? {
-              id: bookData.default_cover_edition.id,
-              imageUrl: bookData.default_cover_edition.image.url ?? null,
-              title: bookData.default_cover_edition.title,
-              language: bookData.default_cover_edition.language?.language ?? null,
-            }
+            id: bookData.default_cover_edition.id,
+            imageUrl: bookData.default_cover_edition.image.url ?? null,
+            title: bookData.default_cover_edition.title,
+            language: bookData.default_cover_edition.language?.language ?? null,
+          }
           : null,
         defaultEbookEdition: bookData.default_ebook_edition
           ? {
-              id: bookData.default_ebook_edition.id,
-              imageUrl: bookData.default_ebook_edition.image.url ?? null,
-              title: bookData.default_ebook_edition.title,
-              language: bookData.default_ebook_edition.language?.language ?? null,
-            }
+            id: bookData.default_ebook_edition.id,
+            imageUrl: bookData.default_ebook_edition.image.url ?? null,
+            title: bookData.default_ebook_edition.title,
+            language: bookData.default_ebook_edition.language?.language ?? null,
+          }
           : null,
         defaultPhysicalEdition: bookData.default_physical_edition
           ? {
-              id: bookData.default_physical_edition.id,
-              imageUrl: bookData.default_physical_edition.image.url ?? null,
-              title: bookData.default_physical_edition.title,
-              alternativeTitles: bookData.default_physical_edition.alternative_titles,
-              language: bookData.default_physical_edition.language?.language ?? null,
-            }
+            id: bookData.default_physical_edition.id,
+            imageUrl: bookData.default_physical_edition.image.url ?? null,
+            title: bookData.default_physical_edition.title,
+            alternativeTitles: bookData.default_physical_edition.alternative_titles,
+            language: bookData.default_physical_edition.language?.language ?? null,
+          }
           : null,
         description: bookData.description,
         editionsCount: bookData.editions_count,
         featuredBookSeries: bookData.featured_book_series
           ? {
-              id: bookData.featured_book_series.id,
-              book: {
-                id: bookData.featured_book_series.book.id,
-                title: bookData.featured_book_series.book.title,
-                imageUrl: bookData.featured_book_series.book.image.url ?? null,
-              },
-            }
+            id: bookData.featured_book_series.id,
+            book: {
+              id: bookData.featured_book_series.book.id,
+              title: bookData.featured_book_series.book.title,
+              imageUrl: bookData.featured_book_series.book.image.url ?? null,
+            },
+          }
           : {},
         headline: bookData.headline,
         imageUrl: bookData.image.url ?? null,

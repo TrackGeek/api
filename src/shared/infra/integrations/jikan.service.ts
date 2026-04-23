@@ -1,12 +1,12 @@
-import { HttpService } from "@nestjs/axios";
-import { Injectable, Logger } from "@nestjs/common";
-import { firstValueFrom } from "rxjs";
-import { CACHE_KEYS } from "@/shared/constants/cache";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { manyRequestWithDelay } from "@/shared/utils/request";
-import { CacheService } from "../cache/cache.service";
-import { DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE } from "../database/database.service";
+import {HttpService} from "@nestjs/axios";
+import {Injectable, Logger} from "@nestjs/common";
+import {firstValueFrom} from "rxjs";
+import {CACHE_KEYS} from "@/shared/constants/cache";
+import {ERROR_CODES} from "@/shared/constants/error-codes";
+import {AppException} from "@/shared/exceptions/app.exceptions";
+import {manyRequestWithDelay} from "@/shared/utils/request";
+import {CacheService} from "../cache/cache.service";
+import {DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE} from "../database/database.service";
 
 export interface JikanPagination<I> {
   total: number | null;
@@ -119,6 +119,7 @@ export interface JikanSearchAnime {
   malReviewScore: number | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanSearchMangaOptions {
@@ -141,6 +142,7 @@ export interface JikanSearchManga {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanAnimeEpisodeOptions {
@@ -163,6 +165,7 @@ export interface JikanTopAnime {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanTopMangaOptions {
@@ -179,6 +182,7 @@ export interface JikanTopManga {
   status: string | null;
   imageUrl: string | null;
   genres: string[];
+  isAdult: boolean;
 }
 
 export interface JikanGenre {
@@ -334,7 +338,8 @@ export class JikanService {
   constructor(
     private readonly httpService: HttpService,
     private readonly cacheService: CacheService,
-  ) {}
+  ) {
+  }
 
   async searchAnimes({
     page = DEFAULT_PAGINATION_PAGE,
@@ -364,7 +369,7 @@ export class JikanService {
         endDate: year ? `${year}-12-31` : undefined,
       };
 
-      const searchAnimeKey = CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix({ ...searchAnimeOptions });
+      const searchAnimeKey = CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix({...searchAnimeOptions});
 
       const cachedAnimes = await this.cacheService.get<JikanPagination<JikanSearchAnime>>(searchAnimeKey);
 
@@ -462,7 +467,7 @@ export class JikanService {
         endDate: year ? `${year}-12-31` : undefined,
       };
 
-      const searchMangaKey = CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix({ ...searchMangaOptions });
+      const searchMangaKey = CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix({...searchMangaOptions});
 
       const cachedMangas = await this.cacheService.get<JikanPagination<JikanSearchManga>>(searchMangaKey);
 
@@ -596,7 +601,7 @@ export class JikanService {
     }
   }
 
-  async topAnimes({ page = DEFAULT_PAGINATION_PAGE, filter, rating, type }: JikanTopAnimeOptions) {
+  async topAnimes({page = DEFAULT_PAGINATION_PAGE, filter, rating, type}: JikanTopAnimeOptions) {
     try {
       const topAnimesOptions = {
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
@@ -606,7 +611,7 @@ export class JikanService {
         type,
       };
 
-      const topAnimesKey = CACHE_KEYS.JIKAN_TOP_ANIMES.prefix({ ...topAnimesOptions });
+      const topAnimesKey = CACHE_KEYS.JIKAN_TOP_ANIMES.prefix({...topAnimesOptions});
 
       const cachedTopAnimes = await this.cacheService.get<JikanPagination<JikanTopAnime>>(topAnimesKey);
 
@@ -616,7 +621,7 @@ export class JikanService {
 
       const topResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/top/anime`, {
-          params: { ...topAnimesOptions },
+          params: {...topAnimesOptions},
         }),
       );
 
@@ -661,7 +666,7 @@ export class JikanService {
     }
   }
 
-  async topMangas({ page = DEFAULT_PAGINATION_PAGE, filter, type }: JikanTopMangaOptions) {
+  async topMangas({page = DEFAULT_PAGINATION_PAGE, filter, type}: JikanTopMangaOptions) {
     try {
       const topMangasOptions = {
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
@@ -670,7 +675,7 @@ export class JikanService {
         type,
       };
 
-      const topMangasKey = CACHE_KEYS.JIKAN_TOP_MANGAS.prefix({ ...topMangasOptions });
+      const topMangasKey = CACHE_KEYS.JIKAN_TOP_MANGAS.prefix({...topMangasOptions});
 
       const cachedTopMangas = await this.cacheService.get<JikanPagination<JikanTopManga>>(topMangasKey);
 
@@ -680,7 +685,7 @@ export class JikanService {
 
       const topResponse = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/top/manga`, {
-          params: { ...topMangasOptions },
+          params: {...topMangasOptions},
         }),
       );
 
@@ -753,11 +758,11 @@ export class JikanService {
         role: char.role,
         voiceActors: char.voice_actors
           ? char.voice_actors.map((va) => ({
-              malId: va.person.mal_id,
-              name: va.person.name,
-              imageUrl: va.person.images?.jpg?.image_url ?? null,
-              language: va.language,
-            }))
+            malId: va.person.mal_id,
+            name: va.person.name,
+            imageUrl: va.person.images?.jpg?.image_url ?? null,
+            language: va.language,
+          }))
           : [],
       }));
 
@@ -771,24 +776,24 @@ export class JikanService {
       const videos = {
         promo: videosData.promo
           ? videosData.promo.map((promo) => ({
-              title: promo.title,
-              video: {
-                embedUrl: promo.trailer.embed_url ?? null,
-                youtubeId: promo.trailer.youtube_id ?? null,
-                url: promo.trailer.url ?? null,
-              },
-            }))
+            title: promo.title,
+            video: {
+              embedUrl: promo.trailer.embed_url ?? null,
+              youtubeId: promo.trailer.youtube_id ?? null,
+              url: promo.trailer.url ?? null,
+            },
+          }))
           : [],
         musicVideos: videosData.music_videos
           ? videosData.music_videos.map((musicVideo) => ({
-              title: musicVideo.meta.title,
-              author: musicVideo.meta.author,
-              video: {
-                embedUrl: musicVideo.video.embed_url ?? null,
-                youtubeId: musicVideo.video.youtube_id ?? null,
-                url: musicVideo.video.url ?? null,
-              },
-            }))
+            title: musicVideo.meta.title,
+            author: musicVideo.meta.author,
+            video: {
+              embedUrl: musicVideo.video.embed_url ?? null,
+              youtubeId: musicVideo.video.youtube_id ?? null,
+              url: musicVideo.video.url ?? null,
+            },
+          }))
           : [],
       };
 
@@ -797,7 +802,7 @@ export class JikanService {
       if (numberOfEpisodes === null) {
         const episodesResponse = await firstValueFrom(
           this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
-            params: { page: 1 },
+            params: {page: 1},
           }),
         );
 
@@ -832,24 +837,24 @@ export class JikanService {
         broadcast: animeFullData.broadcast,
         producers: animeFullData.producers
           ? animeFullData.producers.map((producer) => ({
-              malId: producer.mal_id,
-              type: producer.type,
-              name: producer.name,
-            }))
+            malId: producer.mal_id,
+            type: producer.type,
+            name: producer.name,
+          }))
           : [],
         licensors: animeFullData.licensors
           ? animeFullData.licensors.map((licensor) => ({
-              malId: licensor.mal_id,
-              type: licensor.type,
-              name: licensor.name,
-            }))
+            malId: licensor.mal_id,
+            type: licensor.type,
+            name: licensor.name,
+          }))
           : [],
         studios: animeFullData.studios
           ? animeFullData.studios.map((studio) => ({
-              malId: studio.mal_id,
-              type: studio.type,
-              name: studio.name,
-            }))
+            malId: studio.mal_id,
+            type: studio.type,
+            name: studio.name,
+          }))
           : [],
         genres: animeFullData.genres ? animeFullData.genres.map((genre) => genre.name) : [],
         explicitGenres: animeFullData.explicit_genres ? animeFullData.explicit_genres.map((genre) => genre.name) : [],
@@ -934,9 +939,9 @@ export class JikanService {
   }
 
   async getAnimeEpisodesById({
-    malId,
-    page = DEFAULT_PAGINATION_PAGE,
-  }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
+                               malId,
+                               page = DEFAULT_PAGINATION_PAGE,
+                             }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
     try {
       const cacheKey = CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({ malId, page });
       const cached = await this.cacheService.get<JikanPagination<JikanAnimeEpisode>>(cacheKey);
@@ -947,7 +952,7 @@ export class JikanService {
 
       const response = await firstValueFrom(
         this.httpService.get(`${this.JIKAN_API_URL}/anime/${malId}/videos/episodes`, {
-          params: { page },
+          params: {page},
         }),
       );
 
@@ -1023,17 +1028,17 @@ export class JikanService {
         isAdult: mangaFullData.genres ? mangaFullData.genres.some((genre) => genre.mal_id === 12) : false,
         authors: mangaFullData.authors
           ? mangaFullData.authors.map((author) => ({
-              malId: author.mal_id,
-              type: author.type,
-              name: author.name,
-            }))
+            malId: author.mal_id,
+            type: author.type,
+            name: author.name,
+          }))
           : [],
         serializations: mangaFullData.serializations
           ? mangaFullData.serializations.map((serialization) => ({
-              malId: serialization.mal_id,
-              type: serialization.type,
-              name: serialization.name,
-            }))
+            malId: serialization.mal_id,
+            type: serialization.type,
+            name: serialization.name,
+          }))
           : [],
         genres: mangaFullData.genres ? mangaFullData.genres.map((genre) => genre.name) : [],
         explicitGenres: mangaFullData.explicit_genres ? mangaFullData.explicit_genres.map((genre) => genre.name) : [],
