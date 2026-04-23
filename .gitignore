@@ -59,8 +59,9 @@ prisma/generated
 
 # Lock files
 
-bun.lock
+package-lock.json
 pnpm-lock.yaml
+yarn.lock
 
 # Playwright
 node_modules/

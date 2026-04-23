@@ -80,21 +80,21 @@ The API integrates with external media databases (Jikan, TMDB, IGDB, Hardcover) 
 
 <samp>
 
-| Category | Technology |
-|---|---|
-| Framework | NestJS 11 |
-| Language | TypeScript 5.7 |
-| ORM | Prisma 7 |
-| Database | PostgreSQL 18 |
-| Cache / Queue | Redis 6, BullMQ |
-| Authentication | Better Auth (OAuth2, Magic Link, Credentials) |
-| Payments | Stripe |
-| Email | Resend + Handlebars templates |
-| Monitoring | Prometheus + prom-client |
-| API Docs | Swagger/OpenAPI + Scalar |
-| Linting | Biome |
-| Testing | Vitest (unit), Playwright (e2e), k6 (load) |
-| Containerization | Docker Compose |
+| Category         | Technology                                    |
+|------------------|-----------------------------------------------|
+| Framework        | NestJS 11                                     |
+| Language         | TypeScript 5.7                                |
+| ORM              | Prisma 7                                      |
+| Database         | PostgreSQL 18                                 |
+| Cache / Queue    | Redis 6, BullMQ                               |
+| Authentication   | Better Auth (OAuth2, Magic Link, Credentials) |
+| Payments         | Stripe                                        |
+| Email            | Resend + Handlebars templates                 |
+| Monitoring       | Prometheus + prom-client                      |
+| API Docs         | Swagger/OpenAPI + Scalar                      |
+| Linting          | Biome                                         |
+| Testing          | Vitest (unit), Playwright (e2e), k6 (load)    |
+| Containerization | Docker Compose                                |
 
 </samp>
 
@@ -102,15 +102,15 @@ The API integrates with external media databases (Jikan, TMDB, IGDB, Hardcover) 
 
 <samp>
 
-| Service | Purpose |
-|---|---|
-| [Jikan](https://jikan.moe) | Anime and Manga metadata (MyAnimeList) |
-| [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata |
-| [IGDB](https://www.igdb.com) | Video Games metadata |
-| [Hardcover](https://hardcover.app) | Books metadata |
-| [ImgBB](https://imgbb.com) | Image hosting for uploads |
-| [Stripe](https://stripe.com) | Payment processing |
-| [Resend](https://resend.com) | Transactional email delivery |
+| Service                            | Purpose                                |
+|------------------------------------|----------------------------------------|
+| [Jikan](https://jikan.moe)         | Anime and Manga metadata (MyAnimeList) |
+| [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata           |
+| [IGDB](https://www.igdb.com)       | Video Games metadata                   |
+| [Hardcover](https://hardcover.app) | Books metadata                         |
+| [ImgBB](https://imgbb.com)         | Image hosting for uploads              |
+| [Stripe](https://stripe.com)       | Payment processing                     |
+| [Resend](https://resend.com)       | Transactional email delivery           |
 
 </samp>
 
@@ -191,7 +191,7 @@ cp .env.example .env
 Install dependencies
 
 ```bash
-npm install
+bun install
 ```
 
 Start PostgreSQL and Redis containers
@@ -203,13 +203,13 @@ docker compose up -d
 Run database migrations, generate Prisma client, and seed data
 
 ```bash
-npm run db:run
+bun db:run
 ```
 
 Start the development server
 
 ```bash
-npm run dev
+bun dev
 ```
 
 The API will be available at `http://localhost:40287` with documentation at `http://localhost:40287/docs`.
@@ -220,24 +220,24 @@ The API will be available at `http://localhost:40287` with documentation at `htt
 
 <samp>
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build for production |
-| `npm start` | Start production server |
-| `npm run db:run` | Run migrations, generate client, and seed |
-| `npm run prisma:migrate` | Run database migrations |
-| `npm run prisma:generate` | Generate Prisma client |
-| `npm run prisma:seed` | Seed the database |
-| `npm run test:unit` | Run unit tests (Vitest) |
-| `npm run test:unit:watch` | Run unit tests in watch mode |
-| `npm run test:unit:cov` | Run unit tests with coverage |
-| `npm run test:e2e` | Run end-to-end tests (Playwright) |
-| `npm run test:load` | Run load tests (k6) |
-| `npm run lint` | Run Biome linter |
-| `npm run check` | Run Biome checks |
-| `npm run format:fix` | Format code with Biome |
-| `npm run types` | Type check with TypeScript |
+| Script                | Description                               |
+|-----------------------|-------------------------------------------|
+| `bun dev`             | Start development server with hot reload  |
+| `bun run build`       | Build for production                      |
+| `bun start`           | Start production server                   |
+| `bun db:run`          | Run migrations, generate client, and seed |
+| `bun prisma:migrate`  | Run database migrations                   |
+| `bun prisma:generate` | Generate Prisma client                    |
+| `bun prisma:seed`     | Seed the database                         |
+| `bun test:unit`       | Run unit tests (Vitest)                   |
+| `bun test:unit:watch` | Run unit tests in watch mode              |
+| `bun test:unit:cov`   | Run unit tests with coverage              |
+| `bun test:e2e`        | Run end-to-end tests (Playwright)         |
+| `bun test:load`       | Run load tests (k6)                       |
+| `bun lint`            | Run Biome linter                          |
+| `bun check`           | Run Biome checks                          |
+| `bun format:fix`      | Format code with Biome                    |
+| `bun types`           | Type check with TypeScript                |
 
 </samp>
 
@@ -245,30 +245,30 @@ The API will be available at `http://localhost:40287` with documentation at `htt
 
 <samp>
 
-| Variable | Description |
-|---|---|
-| `PORT` | Server port (default: `40287`) |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_URL` | Redis connection string |
-| `BETTER_AUTH_URL` | Auth base URL |
-| `BETTER_AUTH_SECRET` | Auth secret key |
-| `WEB_URL` | Frontend URL for CORS |
-| `GOOGLE_CLIENT_ID/SECRET` | Google OAuth credentials |
-| `DISCORD_CLIENT_ID/SECRET` | Discord OAuth credentials |
-| `GITHUB_CLIENT_ID/SECRET` | GitHub OAuth credentials |
-| `TWITCH_CLIENT_ID/SECRET` | Twitch OAuth credentials |
-| `KICK_CLIENT_ID/SECRET` | Kick OAuth credentials |
-| `TWITTER_CLIENT_ID/SECRET` | Twitter OAuth credentials |
-| `SLACK_CLIENT_ID/SECRET` | Slack OAuth credentials |
-| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth credentials |
-| `NOTION_CLIENT_ID/SECRET` | Notion OAuth credentials |
-| `SPOTIFY_CLIENT_ID/SECRET` | Spotify OAuth credentials |
-| `RESEND_API_KEY` | Resend API key for emails |
-| `RESEND_FROM` | Sender email address |
-| `IMGBB_API_KEY` | ImgBB API key for image uploads |
-| `HARDCOVER_API_KEY` | Hardcover API key for books |
-| `TMDB_API_KEY` | TMDB API key for movies/TV shows |
-| `IGDB_CLIENT_ID/SECRET` | IGDB credentials for games |
+| Variable                     | Description                      |
+|------------------------------|----------------------------------|
+| `PORT`                       | Server port (default: `40287`)   |
+| `DATABASE_URL`               | PostgreSQL connection string     |
+| `REDIS_URL`                  | Redis connection string          |
+| `BETTER_AUTH_URL`            | Auth base URL                    |
+| `BETTER_AUTH_SECRET`         | Auth secret key                  |
+| `WEB_URL`                    | Frontend URL for CORS            |
+| `GOOGLE_CLIENT_ID/SECRET`    | Google OAuth credentials         |
+| `DISCORD_CLIENT_ID/SECRET`   | Discord OAuth credentials        |
+| `GITHUB_CLIENT_ID/SECRET`    | GitHub OAuth credentials         |
+| `TWITCH_CLIENT_ID/SECRET`    | Twitch OAuth credentials         |
+| `KICK_CLIENT_ID/SECRET`      | Kick OAuth credentials           |
+| `TWITTER_CLIENT_ID/SECRET`   | Twitter OAuth credentials        |
+| `SLACK_CLIENT_ID/SECRET`     | Slack OAuth credentials          |
+| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth credentials      |
+| `NOTION_CLIENT_ID/SECRET`    | Notion OAuth credentials         |
+| `SPOTIFY_CLIENT_ID/SECRET`   | Spotify OAuth credentials        |
+| `RESEND_API_KEY`             | Resend API key for emails        |
+| `RESEND_FROM`                | Sender email address             |
+| `IMGBB_API_KEY`              | ImgBB API key for image uploads  |
+| `HARDCOVER_API_KEY`          | Hardcover API key for books      |
+| `TMDB_API_KEY`               | TMDB API key for movies/TV shows |
+| `IGDB_CLIENT_ID/SECRET`      | IGDB credentials for games       |
 
 </samp>
 
