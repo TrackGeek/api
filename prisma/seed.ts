@@ -6,6 +6,12 @@ import { v7 as uuid } from "uuid";
 
 import { PrismaClient, UserRole } from "./generated/client";
 
+const nodeEnv = process.env.NODE_ENV;
+
+if (!nodeEnv || (nodeEnv !== "development" && nodeEnv !== "production")) {
+  throw new Error("NODE_ENV is not defined. Please set it to 'development' or 'production'.");
+}
+
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
 
@@ -14,7 +20,10 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await populateMedals(prisma);
-  await createFirstUser(prisma);
+  
+  if (nodeEnv === "development") {
+    await createFirstUser(prisma);
+  }
 }
 
 export async function populateMedals(prisma: PrismaClient) {
