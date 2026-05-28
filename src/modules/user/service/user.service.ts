@@ -99,6 +99,11 @@ export class UserService {
             following: true,
           },
         },
+        userMedals: {
+          select: {
+            medal: true
+          }
+        }
       },
       omit: {
         stripeCustomerId: true,
@@ -296,6 +301,41 @@ export class UserService {
         },
       },
     });
+  }
+
+  async getFollowStatus(currentUserId: string, username: string) {
+    const targetUser = await this.databaseService.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    if (!targetUser) {
+      throw new AppException(ERROR_CODES.USER_NOT_FOUND);
+    }
+
+    const [isFollowing, followsYou] = await Promise.all([
+      this.databaseService.following.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: currentUserId,
+            followingId: targetUser.id,
+          },
+        },
+      }),
+      this.databaseService.following.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: targetUser.id,
+            followingId: currentUserId,
+          },
+        },
+      }),
+    ]);
+
+    return {
+      isFollowing: Boolean(isFollowing),
+      followsYou: Boolean(followsYou),
+    };
   }
 
   async getFollowers(getFollowersDto: GetFollowersDto) {

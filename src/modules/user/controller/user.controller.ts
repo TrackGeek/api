@@ -54,6 +54,14 @@ export class UserController {
     await this.userService.unfollowUser(session.user.id, unfollowId);
   }
 
+  @Get("/follow-status/:username")
+  @UseGuards(AuthGuard)
+  async getFollowStatus(@Session() session: UserSession, @Param("username") username: string) {
+    const followStatus = await this.userService.getFollowStatus(session.user.id, username);
+
+    return { followStatus };
+  }
+
   @Get("/follower")
   async getFollowers(@Query() getFollowersDto: GetFollowersDto) {
     const followers = await this.userService.getFollowers(getFollowersDto);
