@@ -8,7 +8,7 @@ import { extractNameFromEmail } from "@/shared/utils/email";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { SearchUserDto } from "../dto/search-user.dto";
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { UpdateUserDto } from "../dto/update-user.dto";
 
 type ProgressGroup = {
   status: ProgressStatus;
@@ -21,7 +21,7 @@ export class UserService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
   ) {}
-  
+
   async updateUser(updateUserDto: UpdateUserDto) {
     const existingUserWithUsername = await this.databaseService.user.findUnique({
       where: { username: updateUserDto.username },
@@ -30,7 +30,7 @@ export class UserService {
     if (existingUserWithUsername && existingUserWithUsername.id !== updateUserDto.userId) {
       throw new AppException(ERROR_CODES.USER_USERNAME_ALREADY_EXISTS);
     }
-    
+
     await this.databaseService.user.update({
       where: { id: updateUserDto.userId },
       data: {

@@ -7,7 +7,7 @@ export function formatValue(value: number, currency: string) {
 }
 
 export async function getUserCurrency(clientIp?: ClientIpType) {
-  if (!clientIp || !clientIp?.isLocal) return DEFAULT_CURRENCY;
+  if (!clientIp?.isLocal) return DEFAULT_CURRENCY;
 
   return axios
     .get(`https://ipapi.co/${clientIp.address}/json/`)

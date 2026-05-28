@@ -5,13 +5,13 @@ import { ApiTags } from "@nestjs/swagger";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { GetFollowingDto } from "../dto/get-following.dto";
 import { SearchUserDto } from "../dto/search-user.dto";
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { UpdateUserDto } from "../dto/update-user.dto";
 
 @ApiTags("User")
 @Controller("/user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  
+
   @Patch("/")
   @UseGuards(AuthGuard)
   async updateUser(@Session() session: UserSession, @Body() body: UpdateUserDto) {
