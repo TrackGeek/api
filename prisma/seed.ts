@@ -20,7 +20,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await populateMedals(prisma);
-  
+
   if (nodeEnv === "development") {
     await createFirstUser(prisma);
   }
