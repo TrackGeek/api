@@ -239,4 +239,8 @@ export const ERROR_CODES = {
     code: "USER_CANNOT_UNFOLLOW_SELF",
     status: 400,
   },
+  USER_USERNAME_ALREADY_EXISTS: {
+    code: "USER_USERNAME_ALREADY_EXISTS",
+    status: 409,
+  },
 } as const;

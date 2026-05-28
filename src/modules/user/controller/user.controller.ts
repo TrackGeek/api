@@ -1,15 +1,25 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { UserService } from "../service/user.service";
 import { ApiTags } from "@nestjs/swagger";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { GetFollowingDto } from "../dto/get-following.dto";
 import { SearchUserDto } from "../dto/search-user.dto";
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @ApiTags("User")
 @Controller("/user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
+  
+  @Patch("/")
+  @UseGuards(AuthGuard)
+  async updateUser(@Session() session: UserSession, @Body() body: UpdateUserDto) {
+    await this.userService.updateUser({
+      ...body,
+      userId: session.user.id,
+    });
+  }
 
   @Get("/username/:username")
   async getUserByUsername(@Param("username") username: string) {
