@@ -41,8 +41,8 @@ model User {
   accounts              Account[]
   comments              Comment[]
   reactions             Reaction[]
-  followers             Following[]          @relation("UserFollowers")
-  following             Following[]          @relation("UserFollowing")
+  followers             Following[]          @relation("UserFollowing")
+  following             Following[]          @relation("UserFollowers")
   feedEvents            FeedEvent[]
   animeEpisodesWatches  AnimeEpisodeWatch[]
   lists                 List[]
