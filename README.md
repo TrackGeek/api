@@ -168,7 +168,7 @@ src/
 
 <samp>
 
-**Prerequisites:** Node.js, Docker, and Docker Compose.
+**Prerequisites:** Bun, Docker, and Docker Compose.
 
 Clone the project
 
@@ -216,28 +216,52 @@ The API will be available at `http://localhost:40287` with documentation at `htt
 
 </samp>
 
+## <samp>Testing Stripe Webhooks</samp>
+
+<samp>
+
+To test Stripe locally you need the [Stripe CLI](https://docs.stripe.com/stripe-cli) installed.
+
+With the development server running, use the `listen` command to forward Stripe events to the local webhook endpoint:
+
+```bash
+stripe listen --forward-to localhost:40287/stripe/webhook
+```
+
+The CLI prints a webhook signing secret (`whsec_...`) — set it as `STRIPE_WEBHOOK_SECRET` in your `.env`.
+
+This is only for local development. In production, configure the webhook endpoint through the [Stripe Dashboard](https://dashboard.stripe.com/webhooks).
+
+</samp>
+
 ## <samp>Scripts</samp>
 
 <samp>
 
-| Script                | Description                               |
-|-----------------------|-------------------------------------------|
-| `bun dev`             | Start development server with hot reload  |
-| `bun run build`       | Build for production                      |
-| `bun start`           | Start production server                   |
-| `bun db:run`          | Run migrations, generate client, and seed |
-| `bun prisma:migrate`  | Run database migrations                   |
-| `bun prisma:generate` | Generate Prisma client                    |
-| `bun prisma:seed`     | Seed the database                         |
-| `bun test:unit`       | Run unit tests (Vitest)                   |
-| `bun test:unit:watch` | Run unit tests in watch mode              |
-| `bun test:unit:cov`   | Run unit tests with coverage              |
-| `bun test:e2e`        | Run end-to-end tests (Playwright)         |
-| `bun test:load`       | Run load tests (k6)                       |
-| `bun lint`            | Run Biome linter                          |
-| `bun check`           | Run Biome checks                          |
-| `bun format:fix`      | Format code with Biome                    |
-| `bun types`           | Type check with TypeScript                |
+| Script                 | Description                                  |
+|------------------------|----------------------------------------------|
+| `bun dev`              | Start development server with hot reload     |
+| `bun run build`        | Build for production                         |
+| `bun start`            | Start production server                      |
+| `bun db:run`           | Run migrations, generate client, and seed    |
+| `bun prisma:migrate`   | Run database migrations                      |
+| `bun prisma:generate`  | Generate Prisma client                       |
+| `bun prisma:seed`      | Seed the database                            |
+| `bun test:unit`        | Run unit tests (Vitest)                      |
+| `bun test:unit:watch`  | Run unit tests in watch mode                 |
+| `bun test:unit:ui`     | Run unit tests with the Vitest UI            |
+| `bun test:unit:cov`    | Run unit tests with coverage                 |
+| `bun test:e2e`         | Run end-to-end tests (Playwright)            |
+| `bun test:e2e:ui`      | Run end-to-end tests with the Playwright UI  |
+| `bun test:e2e:debug`   | Run end-to-end tests in debug mode           |
+| `bun test:load`        | Run load tests (k6)                          |
+| `bun lint`             | Run Biome linter                             |
+| `bun lint:fix`         | Run Biome linter and apply fixes             |
+| `bun check`            | Run Biome checks                             |
+| `bun check:fix`        | Run Biome checks and apply fixes             |
+| `bun format`           | Check formatting with Biome                  |
+| `bun format:fix`       | Format code with Biome                       |
+| `bun types`            | Type check with TypeScript                   |
 
 </samp>
 
@@ -245,14 +269,16 @@ The API will be available at `http://localhost:40287` with documentation at `htt
 
 <samp>
 
-| Variable                     | Description                      |
-|------------------------------|----------------------------------|
-| `PORT`                       | Server port (default: `40287`)   |
-| `DATABASE_URL`               | PostgreSQL connection string     |
-| `REDIS_URL`                  | Redis connection string          |
-| `BETTER_AUTH_URL`            | Auth base URL                    |
-| `BETTER_AUTH_SECRET`         | Auth secret key                  |
-| `WEB_URL`                    | Frontend URL for CORS            |
+| Variable                     | Description                                     |
+|------------------------------|-------------------------------------------------|
+| `PORT`                       | Server port (default: `40287`)                  |
+| `NODE_ENV`                   | Runtime environment (`development`/`production`)|
+| `DATABASE_URL`               | PostgreSQL connection string                    |
+| `REDIS_URL`                  | Redis connection string                         |
+| `BETTER_AUTH_URL`            | Auth base URL                                   |
+| `BETTER_AUTH_SECRET`         | Auth secret key                                 |
+| `BETTER_AUTH_LOG_LEVEL`      | Auth log level (default: `info`)                |
+| `WEB_URL`                    | Frontend URL for CORS                           |
 | `GOOGLE_CLIENT_ID/SECRET`    | Google OAuth credentials         |
 | `DISCORD_CLIENT_ID/SECRET`   | Discord OAuth credentials        |
 | `GITHUB_CLIENT_ID/SECRET`    | GitHub OAuth credentials         |
@@ -265,6 +291,8 @@ The API will be available at `http://localhost:40287` with documentation at `htt
 | `SPOTIFY_CLIENT_ID/SECRET`   | Spotify OAuth credentials        |
 | `RESEND_API_KEY`             | Resend API key for emails        |
 | `RESEND_FROM`                | Sender email address             |
+| `STRIPE_SECRET_KEY`          | Stripe secret key for payments   |
+| `STRIPE_WEBHOOK_SECRET`      | Stripe webhook signing secret    |
 | `IMGBB_API_KEY`              | ImgBB API key for image uploads  |
 | `HARDCOVER_API_KEY`          | Hardcover API key for books      |
 | `TMDB_API_KEY`               | TMDB API key for movies/TV shows |
