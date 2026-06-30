@@ -35,8 +35,8 @@ import { PaymentModule } from "./modules/payment/payment.module";
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot({
       throttlers: [
-        { name: "read", ttl: 60_000, limit: 60, blockDuration: 300_000 },
-        { name: "write", ttl: 60_000, limit: 30, blockDuration: 300_000 },
+        { name: "read", ttl: 60_000, limit: 200, blockDuration: 300_000 },
+        { name: "write", ttl: 60_000, limit: 100, blockDuration: 300_000 },
       ],
     }),
     MetricsModule,
