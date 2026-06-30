@@ -270,7 +270,7 @@ export class TMDBService {
   ) {}
 
   async searchTVShows({
-    query,
+    query = "A",
     page = DEFAULT_PAGINATION_PAGE,
     orderBy,
     sort = TMDBSort.Desc,
@@ -360,7 +360,7 @@ export class TMDBService {
   }
 
   async searchMovies({
-    query,
+    query = "A",
     page = DEFAULT_PAGINATION_PAGE,
     orderBy,
     sort = TMDBSort.Desc,
