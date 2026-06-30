@@ -8,8 +8,12 @@ import { PrismaClient, UserRole } from "./generated/client";
 
 const nodeEnv = process.env.NODE_ENV;
 
-if (!nodeEnv || (nodeEnv !== "development" && nodeEnv !== "production")) {
-  throw new Error("NODE_ENV is not defined. Please set it to 'development' or 'production'.");
+const isDev = nodeEnv === "development";
+
+if (!nodeEnv || ["development", "production"].indexOf(nodeEnv) === -1) {
+  console.log("NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run prisma:seed");
+  
+  process.exit(1);
 }
 
 const connectionString = `${process.env.DATABASE_URL}`;
@@ -21,7 +25,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   await populateMedals(prisma);
 
-  if (nodeEnv === "development") {
+  if (isDev) {
     await createFirstUser(prisma);
   }
 }
