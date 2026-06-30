@@ -140,10 +140,7 @@ export class TVShowEpisodeWatchService {
         userId: getTVShowEpisodeWatchDto.userId,
         tvShowId: getTVShowEpisodeWatchDto.tvShowId,
       },
-      orderBy: {
-        season: "asc",
-        episode: "asc",
-      },
+      orderBy: [{ season: "asc" }, { episode: "asc" }],
     });
 
     return tvShowEpisodeWatch;

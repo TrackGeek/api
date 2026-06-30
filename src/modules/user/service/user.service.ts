@@ -101,9 +101,9 @@ export class UserService {
         },
         userMedals: {
           select: {
-            medal: true
-          }
-        }
+            medal: true,
+          },
+        },
       },
       omit: {
         stripeCustomerId: true,

@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { Movie, ProgressStatus } from "@prisma/generated/client";
+import { ProgressStatus } from "@prisma/generated/client";
 import { MovieCreateInput, MovieUpdateInput } from "@prisma/generated/models";
 import { TopMovieDto } from "@/modules/movie/dto/top-movie.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -92,12 +91,6 @@ export class MovieService {
   }
 
   async getMovieByTmdbId(tmdbId: number) {
-    const cachedMovie = await this.cacheService.get<Movie>(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(tmdbId));
-
-    if (cachedMovie) {
-      return cachedMovie;
-    }
-
     let movie = await this.databaseService.movie.findUnique({
       where: { tmdbId },
     });
@@ -144,12 +137,6 @@ export class MovieService {
       progressStats,
     };
 
-    await this.cacheService.set(
-      CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(tmdbId),
-      movieWithStats,
-      CACHE_KEYS.MOVIE_BY_IMDB_ID.expiration,
-    );
-
     return movieWithStats;
   }
 
@@ -164,10 +151,6 @@ export class MovieService {
 
     if (Date.now() - movie.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
       throw new AppException(ERROR_CODES.MOVIE_ALREADY_REFRESHED);
-    }
-
-    if (await this.cacheService.exists(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(movie.tmdbId))) {
-      await this.cacheService.delete(CACHE_KEYS.MOVIE_BY_IMDB_ID.prefix(movie.tmdbId));
     }
 
     const tmdbMovie = await this.integrationsService.tmdb.getMovieById(movie.tmdbId);

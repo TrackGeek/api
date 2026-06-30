@@ -140,6 +140,11 @@ export class TVShowReviewService {
       where: {
         id: updateTVShowReviewDto.tvShowReviewId,
       },
+      include: {
+        tvShow: {
+          select: { tmdbId: true },
+        },
+      },
     });
 
     if (!tvShowReview || tvShowReview.userId !== updateTVShowReviewDto.userId) {
@@ -165,6 +170,11 @@ export class TVShowReviewService {
     const tvShowReview = await this.databaseService.tvShowReview.findUnique({
       where: {
         id: deleteTVShowReviewDto.tvShowReviewId,
+      },
+      include: {
+        tvShow: {
+          select: { tmdbId: true },
+        },
       },
     });
 

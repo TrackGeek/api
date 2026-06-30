@@ -1,6 +1,19 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { SearchTVShowDto } from "../dto/search-tv-show.dto";
@@ -60,5 +73,15 @@ export class TVShowController {
     const episodes = await this.tvShowService.getTVShowSeasonEpisodes(tmdbId, seasonNumber);
 
     return { episodes };
+  }
+
+  @Delete("/tracking/:tvShowId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard)
+  async resetTVShowTracking(
+    @Param("tvShowId", new ParseUUIDPipe()) tvShowId: string,
+    @Session() session: UserSession,
+  ) {
+    await this.tvShowService.resetTVShowTracking({ tvShowId, userId: session.user.id });
   }
 }

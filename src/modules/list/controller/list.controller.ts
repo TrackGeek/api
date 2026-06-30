@@ -11,14 +11,16 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { AddItemToListDto } from "../dto/add-item-to-list.dto";
 import { CreateListDto } from "../dto/create-list.dto";
 import { GetItemsByListIdDto } from "../dto/get-items-by-list-id.dto";
+import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto";
+import { GetListStatusDto } from "../dto/get-list-status.dto";
 import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
 import { ListService } from "../service/list.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("List")
 @Controller("/list")
@@ -41,6 +43,24 @@ export class ListController {
       ...query,
       userId,
     });
+
+    return { lists };
+  }
+
+  @Get("/status")
+  @UseGuards(AuthGuard)
+  async getListStatus(@Session() session: UserSession, @Query() query: GetListStatusDto) {
+    const listIds = await this.listService.getListStatus({
+      ...query,
+      userId: session.user.id,
+    });
+
+    return { listIds };
+  }
+
+  @Get("/containing")
+  async getListsContainingItem(@Query() query: GetListsContainingItemDto) {
+    const lists = await this.listService.getListsContainingItem(query);
 
     return { lists };
   }

@@ -1,11 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { Anime, ProgressStatus } from "@prisma/generated/client";
+import { ProgressStatus } from "@prisma/generated/client";
 import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService, DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
@@ -23,7 +21,6 @@ import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.
 @Injectable()
 export class AnimeService {
   constructor(
-    private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
   ) {}
@@ -105,14 +102,6 @@ export class AnimeService {
   }
 
   async getAnimeByMalId(malId: number) {
-    const animeDetailKey = CACHE_KEYS.ANIME_BY_MAL_ID.prefix(malId);
-
-    const cachedAnime = await this.cacheService.get<Anime>(animeDetailKey);
-
-    if (cachedAnime) {
-      return cachedAnime;
-    }
-
     let anime = await this.databaseService.anime.findUnique({
       where: { malId },
       omit: {
@@ -163,19 +152,10 @@ export class AnimeService {
       progressStats,
     };
 
-    await this.cacheService.set(animeDetailKey, animeWithStats, CACHE_KEYS.ANIME_BY_MAL_ID.expiration);
-
     return animeWithStats;
   }
 
   async getAnimeRelationsByMalId(malId: number) {
-    const cachedRelationsKey = CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.prefix(malId);
-    const cachedRelations = await this.cacheService.get(cachedRelationsKey);
-
-    if (cachedRelations) {
-      return cachedRelations;
-    }
-
     const anime = await this.databaseService.anime.findUnique({
       where: { malId },
       select: { relations: true },
@@ -186,14 +166,10 @@ export class AnimeService {
     }
 
     if (anime.relations) {
-      await this.cacheService.set(cachedRelationsKey, anime.relations, CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.expiration);
-
       return anime.relations;
     }
 
     const relations = await this.integrationsService.jikan.getAnimeRelationsById(malId);
-
-    await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.ANIME_RELATIONS_BY_MAL_ID.expiration);
 
     await this.databaseService.anime.update({
       where: { malId },
@@ -207,13 +183,6 @@ export class AnimeService {
     const { malId, page = DEFAULT_PAGINATION_PAGE } = getAnimeEpisodesByMalIdDto;
     const pageKey = String(page);
 
-    const cachedEpisodesKey = CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(getAnimeEpisodesByMalIdDto);
-    const cachedEpisodes = await this.cacheService.get(cachedEpisodesKey);
-
-    if (cachedEpisodes) {
-      return cachedEpisodes;
-    }
-
     const anime = await this.databaseService.anime.findUnique({
       where: { malId },
       select: { episodes: true },
@@ -226,12 +195,6 @@ export class AnimeService {
     const storedEpisodes = (anime.episodes ?? {}) as Record<string, unknown>;
 
     if (storedEpisodes[pageKey]) {
-      await this.cacheService.set(
-        cachedEpisodesKey,
-        storedEpisodes[pageKey],
-        CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration,
-      );
-
       return storedEpisodes[pageKey];
     }
 
@@ -241,8 +204,6 @@ export class AnimeService {
       where: { malId },
       data: { episodes: { ...storedEpisodes, [pageKey]: episodes } as any },
     });
-
-    await this.cacheService.set(cachedEpisodesKey, episodes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
 
     return episodes;
   }
@@ -264,12 +225,6 @@ export class AnimeService {
       throw new AppException(ERROR_CODES.ANIME_ALREADY_REFRESHED);
     }
 
-    const animeDetailKey = CACHE_KEYS.ANIME_BY_MAL_ID.prefix(refreshAnimeDto.malId);
-
-    if (await this.cacheService.exists(animeDetailKey)) {
-      await this.cacheService.delete(animeDetailKey);
-    }
-
     const existingEpisodes = anime.episodes ?? {};
     const episodesPageKeys = Object.keys(existingEpisodes);
 
@@ -281,15 +236,7 @@ export class AnimeService {
         page: Number(pageKey),
       };
 
-      const cachedEpisodesKey = CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.prefix(getAnimeEpisodesByMalIdDto);
-
-      if (await this.cacheService.exists(cachedEpisodesKey)) {
-        await this.cacheService.delete(cachedEpisodesKey);
-      }
-
       const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
-
-      await this.cacheService.set(cachedEpisodesKey, episodes, CACHE_KEYS.ANIME_EPISODES_BY_MAL_ID.expiration);
 
       jikanEpisodes[pageKey] = episodes;
 

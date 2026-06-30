@@ -1,54 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { FavoriteType } from "@prisma/generated/enums";
-import { Type } from "class-transformer";
-import {
-  IsEnum,
-  IsOptional,
-  IsPositive,
-  IsUUID,
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
-} from "class-validator";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
+import { FavoriteRequiredForType } from './add-favorite.dto';
 
-export function FavoriteRequiredForType(favoriteType: FavoriteType, options?: ValidationOptions) {
-  return (object: object, propertyName: string) => {
-    registerDecorator({
-      name: "favoriteRequiredForType",
-      target: object.constructor,
-      propertyName,
-      constraints: [favoriteType],
-      options,
-      validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const dto = args.object as AddFavoriteDto;
-          if (dto.type === favoriteType) {
-            return value !== undefined && value !== null && value !== "";
-          }
-          return true;
-        },
-        defaultMessage(args: ValidationArguments) {
-          const [type] = args.constraints as [FavoriteType];
-          return `${args.property} is required when type is ${type}`;
-        },
-      },
-    });
-  };
-}
-
-export class AddFavoriteDto {
+export class GetFavoriteStatusDto {
   @IsEnum(FavoriteType)
   @ApiProperty({ enum: FavoriteType })
   readonly type: FavoriteType;
 
   @ApiProperty({ type: "string", format: "uuid" })
   readonly userId: string;
-
-  @IsOptional()
-  @ApiPropertyOptional({ type: "integer" })
-  @Type(() => Number)
-  @IsPositive()
-  readonly position?: number;
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.Anime)

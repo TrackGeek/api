@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { Manga, ProgressStatus } from "@prisma/generated/client";
+import { ProgressStatus } from "@prisma/generated/client";
 import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -101,14 +100,6 @@ export class MangaService {
   }
 
   async getMangaByMalId(malId: number) {
-    const mangaDetailKey = CACHE_KEYS.MANGA_BY_MAL_ID.prefix(malId);
-
-    const cachedManga = await this.cacheService.get<Manga>(mangaDetailKey);
-
-    if (cachedManga) {
-      return cachedManga;
-    }
-
     let manga = await this.databaseService.manga.findUnique({
       where: { malId },
     });
@@ -155,19 +146,10 @@ export class MangaService {
       progressStats,
     };
 
-    await this.cacheService.set(mangaDetailKey, mangaWithStats, CACHE_KEYS.MANGA_BY_MAL_ID.expiration);
-
     return mangaWithStats;
   }
 
   async getMangaRelationsByMalId(malId: number) {
-    const cachedRelationsKey = CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.prefix(malId);
-    const cachedRelations = await this.cacheService.get(cachedRelationsKey);
-
-    if (cachedRelations) {
-      return cachedRelations;
-    }
-
     const manga = await this.databaseService.manga.findUnique({
       where: { malId },
       select: { relations: true },
@@ -178,14 +160,10 @@ export class MangaService {
     }
 
     if (manga.relations) {
-      await this.cacheService.set(cachedRelationsKey, manga.relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
-
       return manga.relations;
     }
 
     const relations = await this.integrationsService.jikan.getMangaRelationsById(malId);
-
-    await this.cacheService.set(cachedRelationsKey, relations, CACHE_KEYS.MANGA_RELATIONS_BY_MAL_ID.expiration);
 
     await this.databaseService.manga.update({
       where: { malId },
@@ -209,12 +187,6 @@ export class MangaService {
 
     if (Date.now() - manga.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
       throw new AppException(ERROR_CODES.MANGA_ALREADY_REFRESHED);
-    }
-
-    const mangaDetailKey = CACHE_KEYS.MANGA_BY_MAL_ID.prefix(refreshMangaDto.malId);
-
-    if (await this.cacheService.exists(mangaDetailKey)) {
-      await this.cacheService.delete(mangaDetailKey);
     }
 
     const jikanManga = await this.integrationsService.jikan.getMangaById(refreshMangaDto.malId);

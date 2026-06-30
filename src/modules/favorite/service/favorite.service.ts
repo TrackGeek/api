@@ -6,6 +6,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { AddFavoriteDto } from "../dto/add-favorite.dto";
+import { GetFavoriteStatusDto } from "../dto/get-favorite-status.dto";
 import { GetFavoritesByUserIdDto } from "../dto/get-favorites-by-user-id.dto";
 import { RemoveFavoriteDto } from "../dto/remove-favorite.dto";
 
@@ -18,6 +19,18 @@ export class FavoriteService {
 
   async addFavorite(addFavoriteDto: AddFavoriteDto) {
     const { type, userId, position, ...entityIds } = addFavoriteDto;
+
+    const favoriteAlreadyExists = await this.databaseService.favorite.findFirst({
+      where: {
+        type,
+        userId,
+        ...entityIds,
+      },
+    });
+
+    if (favoriteAlreadyExists) {
+      throw new AppException(ERROR_CODES.FAVORITE_ALREADY_EXISTS);
+    }
 
     const favorite = await this.databaseService.favorite.create({
       data: {
@@ -181,6 +194,21 @@ export class FavoriteService {
     });
 
     return favorites;
+  }
+
+  async getFavoriteStatus(getFavoriteStatusDto: GetFavoriteStatusDto & { userId: string }) {
+    const { type, userId, ...entityIds } = getFavoriteStatusDto;
+
+    const favorite = await this.databaseService.favorite.findFirst({
+      where: {
+        type,
+        userId,
+        ...entityIds,
+      },
+      select: { id: true },
+    });
+
+    return !!favorite;
   }
 
   async removeFavorite(removeFavoriteDto: RemoveFavoriteDto) {
