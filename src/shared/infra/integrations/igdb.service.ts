@@ -345,8 +345,8 @@ export class IGDBService {
         status ? (status === "Not Released" ? "game_status = null" : `game_status.status = "${status}"`) : null,
       ].filter(Boolean);
 
-      const whereClause = whereConditions.length ? `where ${whereConditions.join(" & ")}` : "";
-
+      const whereClause = whereConditions.length ? `where ${whereConditions.join(" & ")};` : "";
+      
       const igdbSearchQuery = `
         fields
           slug,
@@ -367,7 +367,7 @@ export class IGDBService {
 					game_modes.slug,
           total_rating,
           first_release_date;
-        ${whereClause};
+        ${whereClause}
         sort ${orderBy} ${sort};
         limit ${limit};
         offset ${offset};
@@ -666,7 +666,7 @@ export class IGDBService {
 
       const queries: Record<IGDBGameFilter, string> = {
         popular: `
-          fields 
+          fields
             slug, name, cover.url,
 		        artworks.checksum, artworks.artwork_type.name, artworks.url,
             platforms.checksum, platforms.name, platforms.slug,
@@ -683,7 +683,7 @@ export class IGDBService {
           offset ${offset};
         `,
         coming: `
-          fields 
+          fields
             slug, name, cover.url,
 		        artworks.checksum, artworks.artwork_type.name, artworks.url,
             platforms.checksum, platforms.name, platforms.slug,
@@ -698,7 +698,7 @@ export class IGDBService {
           offset ${offset};
         `,
         antecipated: `
-          fields 
+          fields
             slug, name, cover.url,
 			      artworks.checksum, artworks.artwork_type.name, artworks.url,
             platforms.checksum, platforms.name, platforms.slug,
@@ -713,7 +713,7 @@ export class IGDBService {
           offset ${offset};
         `,
         recentlyReleased: `
-          fields 
+          fields
             slug, name, cover.url,
 			      artworks.checksum, artworks.artwork_type.name, artworks.url,
             platforms.checksum, platforms.name, platforms.slug,
@@ -803,7 +803,7 @@ export class IGDBService {
       }
 
       const igdbQuery = `
-				fields 
+				fields
 					age_ratings.checksum,
 					age_ratings.rating_category.rating,
 					age_ratings.rating_cover_url,
