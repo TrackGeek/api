@@ -204,13 +204,13 @@ model Comment {
   profile   Profile?   @relation(fields: [profileId], references: [id], onDelete: Cascade)
   reactions Reaction[]
 
-  @@unique([userId, animeId])
-  @@unique([userId, mangaId])
-  @@unique([userId, tvShowId])
-  @@unique([userId, movieId])
-  @@unique([userId, gameId])
-  @@unique([userId, bookId])
-  @@unique([userId, profileId])
+  @@index([animeId])
+  @@index([mangaId])
+  @@index([tvShowId])
+  @@index([movieId])
+  @@index([gameId])
+  @@index([bookId])
+  @@index([profileId])
 }
 
 enum ReactionType {
@@ -644,6 +644,7 @@ model TvShowProgress {
   id          String         @id @default(uuid(7))
   status      ProgressStatus
   watchCount  Int?
+  notes       String?
   startedAt   DateTime?
   completedAt DateTime?
   userId      String
