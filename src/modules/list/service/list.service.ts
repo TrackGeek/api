@@ -13,6 +13,7 @@ import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto"
 import { GetListStatusDto } from "../dto/get-list-status.dto";
 import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
+import { UpdateListDto } from "../dto/update-list.dto";
 
 @Injectable()
 export class ListService {
@@ -211,6 +212,62 @@ export class ListService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: { listItems: true },
+        },
+        listItems: {
+          take: 4,
+          include: {
+            anime: {
+              select: {
+                id: true,
+                malId: true,
+                imageUrl: true,
+                title: true,
+              },
+            },
+            manga: {
+              select: {
+                id: true,
+                malId: true,
+                imageUrl: true,
+                title: true,
+              },
+            },
+            tvShow: {
+              select: {
+                id: true,
+                tmdbId: true,
+                backdropUrl: true,
+                name: true,
+              },
+            },
+            book: {
+              select: {
+                id: true,
+                hardcoverId: true,
+                imageUrl: true,
+                title: true,
+              },
+            },
+            game: {
+              select: {
+                id: true,
+                igdbId: true,
+                coverUrl: true,
+                name: true,
+              },
+            },
+            movie: {
+              select: {
+                id: true,
+                tmdbId: true,
+                backdropUrl: true,
+                title: true,
               },
             },
           },
@@ -459,6 +516,31 @@ export class ListService {
     await this.databaseService.list.delete({
       where: {
         id: listId,
+      },
+    });
+  }
+
+  async updateList(updateListDto: UpdateListDto) {
+    const { listId, userId, name, description } = updateListDto;
+
+    const list = await this.databaseService.list.findFirst({
+      where: {
+        id: listId,
+        userId,
+      },
+    });
+
+    if (!list) {
+      throw new AppException(ERROR_CODES.LIST_NOT_FOUND);
+    }
+
+    await this.databaseService.list.update({
+      where: {
+        id: listId,
+      },
+      data: {
+        name,
+        description,
       },
     });
   }

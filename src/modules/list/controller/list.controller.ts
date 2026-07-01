@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -20,6 +21,7 @@ import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto"
 import { GetListStatusDto } from "../dto/get-list-status.dto";
 import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
+import { UpdateListDto } from "../dto/update-list.dto";
 import { ListService } from "../service/list.service";
 
 @ApiTags("List")
@@ -108,6 +110,30 @@ export class ListController {
       ...body,
       userId: session.user.id,
       listId,
+    });
+  }
+
+  @Patch("/:listId")
+  @UseGuards(AuthGuard)
+  async updateList(
+    @Param("listId", new ParseUUIDPipe()) listId: string,
+    @Session() session: UserSession,
+    @Body() body: UpdateListDto,
+  ) {
+    await this.listService.updateList({
+      ...body,
+      userId: session.user.id,
+      listId,
+    });
+  }
+
+  @Delete("/:listId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteList(@Param("listId", new ParseUUIDPipe()) listId: string, @Session() session: UserSession) {
+    await this.listService.deleteList({
+      listId,
+      userId: session.user.id,
     });
   }
 }
