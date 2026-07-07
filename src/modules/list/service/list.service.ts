@@ -201,7 +201,29 @@ export class ListService {
       model: "list",
       itemsPerPage: getListsByUserIdDto.itemsPerPage,
       page: getListsByUserIdDto.page,
-      where: { userId: getListsByUserIdDto.userId, type: getListsByUserIdDto.type },
+      where: {
+        userId: getListsByUserIdDto.userId,
+        type: getListsByUserIdDto.type,
+        ...(getListsByUserIdDto.query && {
+          OR: [
+            { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } },
+            {
+              listItems: {
+                some: {
+                  OR: [
+                    { anime: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                    { manga: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                    { tvShow: { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                    { movie: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                    { game: { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                    { book: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                  ],
+                },
+              },
+            },
+          ],
+        }),
+      },
       include: {
         user: {
           select: {
