@@ -97,6 +97,14 @@ export class UserService {
           select: {
             followers: true,
             following: true,
+            lists: true,
+            favorites: true,
+            animeReviews: true,
+            mangaReviews: true,
+            tvshowReviews: true,
+            movieReviews: true,
+            gameReviews: true,
+            bookReviews: true,
           },
         },
         userMedals: {
@@ -194,7 +202,50 @@ export class UserService {
       book: buildStats(bookGroups, readingStatuses),
     };
 
-    return { ...user, progressStats };
+    const counts = {
+      lists: user._count.lists,
+      favorites: user._count.favorites,
+      reviews:
+        user._count.animeReviews +
+        user._count.mangaReviews +
+        user._count.tvshowReviews +
+        user._count.movieReviews +
+        user._count.gameReviews +
+        user._count.bookReviews,
+    };
+
+    const reviewModels = [
+      { type: "movie", model: this.databaseService.movieReview },
+      { type: "tv", model: this.databaseService.tvShowReview },
+      { type: "anime", model: this.databaseService.animeReview },
+      { type: "game", model: this.databaseService.gameReview },
+      { type: "book", model: this.databaseService.bookReview },
+      { type: "manga", model: this.databaseService.mangaReview },
+    ] as const;
+
+    const latestReviews = await Promise.all(
+      reviewModels.map(({ model }) =>
+        (model as { findFirst: (args: unknown) => Promise<{ createdAt: Date } | null> }).findFirst({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        }),
+      ),
+    );
+
+    let latestReviewType: string | null = null;
+    let latestReviewDate = 0;
+
+    reviewModels.forEach(({ type }, index) => {
+      const createdAt = latestReviews[index]?.createdAt;
+
+      if (createdAt && createdAt.getTime() > latestReviewDate) {
+        latestReviewDate = createdAt.getTime();
+        latestReviewType = type;
+      }
+    });
+
+    return { ...user, progressStats, counts, latestReviewType };
   }
 
   getName(name: string | null | undefined, email: string) {
