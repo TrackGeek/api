@@ -124,7 +124,19 @@ export class FavoriteService {
       model: "favorite",
       itemsPerPage: getFavoritesByUserIdDto.itemsPerPage,
       page: getFavoritesByUserIdDto.page,
-      where: { userId: getFavoritesByUserIdDto.userId },
+      where: {
+        userId: getFavoritesByUserIdDto.userId,
+        ...(getFavoritesByUserIdDto.query && {
+          OR: [
+            { anime: { title: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+            { manga: { title: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+            { tvShow: { name: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+            { movie: { title: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+            { game: { name: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+            { book: { title: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+          ],
+        }),
+      },
       select: {
         id: true,
         type: true,
