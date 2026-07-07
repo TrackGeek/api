@@ -106,7 +106,11 @@ export class MangaReviewService {
       where: {
         ...(getMangaReviewsDto.mangaId && { mangaId: getMangaReviewsDto.mangaId }),
         ...(getMangaReviewsDto.userId && { userId: getMangaReviewsDto.userId }),
+        ...(getMangaReviewsDto.query && {
+          manga: { title: { contains: getMangaReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         manga: {
           select: {
@@ -125,6 +129,19 @@ export class MangaReviewService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
               },
             },
           },

@@ -106,7 +106,11 @@ export class TVShowReviewService {
       where: {
         ...(getTVShowReviewsDto.userId && { userId: getTVShowReviewsDto.userId }),
         ...(getTVShowReviewsDto.tvShowId && { tvShowId: getTVShowReviewsDto.tvShowId }),
+        ...(getTVShowReviewsDto.query && {
+          tvShow: { name: { contains: getTVShowReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         tvShow: {
           select: {
@@ -125,6 +129,19 @@ export class TVShowReviewService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
               },
             },
           },

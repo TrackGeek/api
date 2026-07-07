@@ -105,7 +105,11 @@ export class BookReviewService {
       where: {
         ...(getBookReviewsDto.bookId && { bookId: getBookReviewsDto.bookId }),
         ...(getBookReviewsDto.userId && { userId: getBookReviewsDto.userId }),
+        ...(getBookReviewsDto.query && {
+          book: { title: { contains: getBookReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         book: {
           select: {
@@ -124,6 +128,19 @@ export class BookReviewService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
               },
             },
           },
