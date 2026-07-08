@@ -200,10 +200,12 @@ Start PostgreSQL and Redis containers
 docker compose up -d
 ```
 
-Run database migrations, generate Prisma client, and seed data
+Run database migrations, generate the Prisma client, and seed data
 
 ```bash
-bun db:run
+bun prisma:migrate
+bun prisma:generate
+bun prisma:seed
 ```
 
 Start the development server
@@ -225,7 +227,8 @@ To test Stripe locally you need the [Stripe CLI](https://docs.stripe.com/stripe-
 With the development server running, use the `listen` command to forward Stripe events to the local webhook endpoint:
 
 ```bash
-stripe listen --forward-to localhost:40287/stripe/webhook
+bun stripe:webhook
+# equivalent to: stripe listen --forward-to localhost:40287/stripe/webhook
 ```
 
 The CLI prints a webhook signing secret (`whsec_...`) — set it as `STRIPE_WEBHOOK_SECRET` in your `.env`.
@@ -243,10 +246,10 @@ This is only for local development. In production, configure the webhook endpoin
 | `bun dev`              | Start development server with hot reload     |
 | `bun run build`        | Build for production                         |
 | `bun start`            | Start production server                      |
-| `bun db:run`           | Run migrations, generate client, and seed    |
 | `bun prisma:migrate`   | Run database migrations                      |
 | `bun prisma:generate`  | Generate Prisma client                       |
 | `bun prisma:seed`      | Seed the database                            |
+| `bun stripe:webhook`   | Forward Stripe events to the local webhook   |
 | `bun test:unit`        | Run unit tests (Vitest)                      |
 | `bun test:unit:watch`  | Run unit tests in watch mode                 |
 | `bun test:unit:ui`     | Run unit tests with the Vitest UI            |
