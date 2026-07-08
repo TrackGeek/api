@@ -24,6 +24,7 @@ export class HealthService {
     const apiLatencyMs = Math.round(performance.now() - apiStart);
 
     return {
+      versionCode: 1,
       status: dbStatus === "ok" ? "ok" : "degraded",
       api: {
         status: "ok",
