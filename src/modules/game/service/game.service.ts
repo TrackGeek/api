@@ -6,10 +6,10 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
-import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 
 @Injectable()
 export class GameService {

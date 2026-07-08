@@ -1,4 +1,4 @@
-import { test as base, request as pwRequest, type APIRequestContext } from "@playwright/test";
+import { type APIRequestContext, test as base, request as pwRequest } from "@playwright/test";
 
 export const test = base.extend<any, { api: APIRequestContext }>({
   api: [

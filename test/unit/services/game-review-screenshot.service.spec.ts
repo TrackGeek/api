@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameReviewScreenshotService } from "@/modules/game/service/game-review-screenshot.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 

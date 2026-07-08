@@ -1,7 +1,7 @@
-import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches } from "class-validator";
+import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 
 export class SearchGameDto {
   @IsOptional()

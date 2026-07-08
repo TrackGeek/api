@@ -9,9 +9,9 @@ import { AddItemToListDto } from "../dto/add-item-to-list.dto";
 import { CreateListDto } from "../dto/create-list.dto";
 import { DeleteListDto } from "../dto/delete-list.dto";
 import { GetItemsByListIdDto } from "../dto/get-items-by-list-id.dto";
-import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto";
 import { GetListStatusDto } from "../dto/get-list-status.dto";
 import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
+import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
 import { UpdateListDto } from "../dto/update-list.dto";
 

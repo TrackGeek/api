@@ -346,7 +346,7 @@ export class IGDBService {
       ].filter(Boolean);
 
       const whereClause = whereConditions.length ? `where ${whereConditions.join(" & ")};` : "";
-      
+
       const igdbSearchQuery = `
         fields
           slug,

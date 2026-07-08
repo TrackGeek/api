@@ -1,11 +1,11 @@
-import {
-  JikanMangaType,
-  JikanMangaStatus,
-  JikanSort,
-  JikanMangaOrderBy,
-} from "@/shared/infra/integrations/jikan.service";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
+import {
+  JikanMangaOrderBy,
+  JikanMangaStatus,
+  JikanMangaType,
+  JikanSort,
+} from "@/shared/infra/integrations/jikan.service";
 
 export class SearchMangaDto {
   @IsOptional()

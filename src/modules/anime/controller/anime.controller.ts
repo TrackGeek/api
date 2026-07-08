@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 import { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
 import { AnimeService } from "../service/anime.service";
-import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 
 @ApiTags("Anime")
 @Controller("/anime")

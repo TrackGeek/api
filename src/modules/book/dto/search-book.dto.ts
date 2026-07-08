@@ -1,7 +1,7 @@
-import { HardcoverBookOrderBy } from "@/shared/infra/integrations/hardcover.service";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches } from "class-validator";
+import { HardcoverBookOrderBy } from "@/shared/infra/integrations/hardcover.service";
 
 export class SearchBookDto {
   @IsOptional()

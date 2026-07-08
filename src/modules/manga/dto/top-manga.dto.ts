@@ -1,6 +1,6 @@
-import { JikanMangaType, JikanMangaFilter } from "@/shared/infra/integrations/jikan.service";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsPositive } from "class-validator";
+import { JikanMangaFilter, JikanMangaType } from "@/shared/infra/integrations/jikan.service";
 
 export class TopMangaDto {
   @Type(() => Number)

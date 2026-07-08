@@ -1,14 +1,14 @@
 import type { BetterAuthOptions } from "@better-auth/core";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import * as bcrypt from "bcrypt";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer, customSession, lastLoginMethod, magicLink, openAPI, username } from "better-auth/plugins";
+import uuid from "uuid";
 import type { ProfileService } from "@/modules/profile/service/profile.service";
 import type { UserService } from "@/modules/user/service/user.service";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
-import { Logger } from "@nestjs/common";
-import uuid from "uuid";
-import * as bcrypt from "bcrypt";
 
 interface AuthConfigParams {
   configService?: ConfigService;

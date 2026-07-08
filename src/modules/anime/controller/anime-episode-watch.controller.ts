@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreateOrUpdateAnimeEpisodeWatchDto } from "../dto/create-or-update-anime-episode-watch.dto";
-import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
 import { DeleteAllAnimeEpisodeWatchDto } from "../dto/delete-all-anime-episode-watch.dto";
+import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
+import { GetAnimeEpisodeWatchDto } from "../dto/get-anime-episode-watch.dto";
 import { WatchAllAnimeEpisodesDto } from "../dto/watch-all-anime-episodes.dto";
 import { AnimeEpisodeWatchService } from "../service/anime-episode-watch.service";
-import { GetAnimeEpisodeWatchDto } from "../dto/get-anime-episode-watch.dto";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Anime")
 @Controller("/anime/episode/watch")

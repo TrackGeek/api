@@ -1,11 +1,10 @@
 import { Module } from "@nestjs/common";
-
-import { MangaProgressController } from "./controller/manga-progress.controller";
-import { MangaProgressService } from "./service/manga-progress.service";
-import { MangaReviewController } from "./controller/manga-review.controller";
-import { MangaReviewService } from "./service/manga-review.service";
 import { MangaController } from "./controller/manga.controller";
+import { MangaProgressController } from "./controller/manga-progress.controller";
+import { MangaReviewController } from "./controller/manga-review.controller";
 import { MangaService } from "./service/manga.service";
+import { MangaProgressService } from "./service/manga-progress.service";
+import { MangaReviewService } from "./service/manga-review.service";
 
 @Module({
   imports: [],

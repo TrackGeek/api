@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { TVShowProgressService } from "../service/tv-show-progress.service";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { TVShowProgressService } from "../service/tv-show-progress.service";
 
 @ApiTags("TV Show")
 @Controller("/tv/progress")

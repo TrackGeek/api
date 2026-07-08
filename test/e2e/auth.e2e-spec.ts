@@ -29,7 +29,7 @@ test.describe("Auth", () => {
     expect(response.status()).toBe(200);
     expect(body).toHaveProperty("token");
   });
- 
+
   test("GET /auth/get-session - should return the current session", async ({ api }) => {
     const response = await api.get("/auth/get-session", {
       headers: {

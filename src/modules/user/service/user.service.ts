@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
 import { GetFollowersDto } from "../dto/get-followers.dto";
-import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { SearchUserDto } from "../dto/search-user.dto";
 import { UpdateUserDto } from "../dto/update-user.dto";
 

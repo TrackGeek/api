@@ -5,10 +5,10 @@ import { ConfigService } from "@nestjs/config";
 import handlebars from "handlebars";
 import { ResendService } from "nestjs-resend";
 import { MagicLinkEmailDto } from "./dto/magic-link-email.dto";
-import { ResetPasswordEmailDto } from "./dto/reset-password-email.dto";
-import { PaymentSuccessEmailDto } from "./dto/payment-success-email.dto";
-import { SubscriptionCancelledEmailDto } from "./dto/subscription-cancelled-email.dto";
 import { PaymentFailedEmailDto } from "./dto/payment-failed-email.dto";
+import { PaymentSuccessEmailDto } from "./dto/payment-success-email.dto";
+import { ResetPasswordEmailDto } from "./dto/reset-password-email.dto";
+import { SubscriptionCancelledEmailDto } from "./dto/subscription-cancelled-email.dto";
 
 @Injectable()
 export class EmailService {

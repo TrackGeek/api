@@ -11,11 +11,11 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { CommentService } from "../service/comment.service";
 import { CreateCommentDto } from "../dto/create-comment.dto";
 import { GetCommentsDto } from "../dto/get-comments.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { CommentService } from "../service/comment.service";
 
 @ApiTags("Comment")
 @Controller("/comment")

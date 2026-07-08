@@ -2,11 +2,11 @@ import { BullModule } from "@nestjs/bullmq";
 import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FeedEventModule } from "@/modules/feed-event/feed-event.module";
+import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 import { EmailModule } from "../email/email.module";
 import { EmailProcessor } from "./processors/email.processor";
 import { FeedEventProcessor } from "./processors/feed-event.processor";
 import { QueueService } from "./queue.service";
-import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 
 @Global()
 @Module({

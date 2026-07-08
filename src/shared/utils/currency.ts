@@ -1,6 +1,6 @@
 import axios from "axios";
-import type { ClientIpType } from "../decorators/client-ip.decorator";
 import { DEFAULT_CURRENCY } from "../constants/payment";
+import type { ClientIpType } from "../decorators/client-ip.decorator";
 
 export function formatValue(value: number, currency: string) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);

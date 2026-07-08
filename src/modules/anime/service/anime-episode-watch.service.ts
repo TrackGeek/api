@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { CreateOrUpdateAnimeEpisodeWatchDto } from "../dto/create-or-update-anime-episode-watch.dto";
-import { DatabaseService } from "@/shared/infra/database/database.service";
-import { GetAnimeEpisodeWatchDto } from "../dto/get-anime-episode-watch.dto";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
-import { DeleteAllAnimeEpisodeWatchDto } from "../dto/delete-all-anime-episode-watch.dto";
-import { WatchAllAnimeEpisodesDto } from "../dto/watch-all-anime-episodes.dto";
 import { WatchEpisodeStatus } from "@prisma/generated/enums";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { CreateOrUpdateAnimeEpisodeWatchDto } from "../dto/create-or-update-anime-episode-watch.dto";
+import { DeleteAllAnimeEpisodeWatchDto } from "../dto/delete-all-anime-episode-watch.dto";
+import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
+import { GetAnimeEpisodeWatchDto } from "../dto/get-anime-episode-watch.dto";
+import { WatchAllAnimeEpisodesDto } from "../dto/watch-all-anime-episodes.dto";
 
 @Injectable()
 export class AnimeEpisodeWatchService {

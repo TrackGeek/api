@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameReviewScreenshotController } from "@/modules/game/controller/game-review-screenshot.controller";
 
 const mockGetGameReviewScreenshots = vi.fn();

@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Patch, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { imageConfig } from "@/shared/infra/upload/upload.config";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { ProfileService } from "../service/profile.service";
-import { imageConfig } from "@/shared/infra/upload/upload.config";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Profile")
 @Controller("/profile")

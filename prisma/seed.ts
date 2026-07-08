@@ -1,7 +1,7 @@
 import "dotenv/config";
 
-import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import { v7 as uuid } from "uuid";
 
 import { PrismaClient, UserRole } from "./generated/client";
@@ -11,8 +11,10 @@ const nodeEnv = process.env.NODE_ENV;
 const isDev = nodeEnv === "development";
 
 if (!nodeEnv || ["development", "production"].indexOf(nodeEnv) === -1) {
-  console.log("NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run prisma:seed");
-  
+  console.log(
+    "NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run prisma:seed",
+  );
+
   process.exit(1);
 }
 

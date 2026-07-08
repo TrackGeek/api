@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-show-episode-watch.dto";
+import { WatchEpisodeStatus } from "@prisma/generated/enums";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
+import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-show-episode-watch.dto";
+import { DeleteAllTVShowEpisodeWatchDto } from "../dto/delete-all-tv-show-episode-watch.dto";
+import { DeleteTVShowEpisodeWatchDto } from "../dto/delete-tv-show-episode-watch.dto";
 import { GetTVShowEpisodeWatchDto } from "../dto/get-tv-show-episode-watch.dto";
 import { WatchAllEpisodesOfTVShowDto } from "../dto/watch-all-episodes-of-tv-show.dto";
-import { DeleteTVShowEpisodeWatchDto } from "../dto/delete-tv-show-episode-watch.dto";
-import { DeleteAllTVShowEpisodeWatchDto } from "../dto/delete-all-tv-show-episode-watch.dto";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { WatchEpisodeStatus } from "@prisma/generated/enums";
-import { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
 
 @Injectable()
 export class TVShowEpisodeWatchService {

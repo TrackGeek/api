@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { FavoriteType } from "@prisma/generated/enums";
 import { IsEnum, IsOptional, IsUUID } from "class-validator";
-import { FavoriteRequiredForType } from './add-favorite.dto';
+import { FavoriteRequiredForType } from "./add-favorite.dto";
 
 export class GetFavoriteStatusDto {
   @IsEnum(FavoriteType)

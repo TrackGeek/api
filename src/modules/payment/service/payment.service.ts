@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
-import { StripeService } from "./stripe.service";
 import { ConfigService } from "@nestjs/config";
-import { DatabaseService } from "@/shared/infra/database/database.service";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { PaymentFrequency, PaymentStatus } from "@prisma/generated/enums";
-import { GetPaymentsDto } from "../dto/get-payments.dto";
 import { PaymentFindManyArgs } from "@prisma/generated/models";
-import { CreatePaymentDto } from "../dto/create-payment.dto";
-import { getUserCurrency } from "@/shared/utils/currency";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { getUserCurrency } from "@/shared/utils/currency";
+import { CreatePaymentDto } from "../dto/create-payment.dto";
+import { GetPaymentsDto } from "../dto/get-payments.dto";
+import { StripeService } from "./stripe.service";
 
 @Injectable()
 export class PaymentService {

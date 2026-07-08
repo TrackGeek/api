@@ -1,13 +1,13 @@
-import {
-  JikanAnimeType,
-  JikanAnimeStatus,
-  JikanAnimeRatings,
-  JikanSort,
-  JikanAnimeOrderBy,
-} from "@/shared/infra/integrations/jikan.service";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
+import {
+  JikanAnimeOrderBy,
+  JikanAnimeRatings,
+  JikanAnimeStatus,
+  JikanAnimeType,
+  JikanSort,
+} from "@/shared/infra/integrations/jikan.service";
 
 export class SearchAnimeDto {
   @IsOptional()

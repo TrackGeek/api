@@ -1,7 +1,7 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { PerkService } from "../service/perk.service";
 import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { PerkService } from "../service/perk.service";
 
 @ApiTags("Payment")
 @Controller("/perk")

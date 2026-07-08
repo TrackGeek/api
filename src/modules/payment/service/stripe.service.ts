@@ -1,19 +1,19 @@
-import { DatabaseService } from "@/shared/infra/database/database.service";
-import { formatValue, getUserCurrency } from "@/shared/utils/currency";
+import { HttpService } from "@nestjs/axios";
 import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentStatus } from "@prisma/generated/enums";
-import Stripe from "stripe";
-import { QueueService } from "@/shared/infra/queue/queue.service";
-import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
-import { PerkService } from "./perk.service";
-import { HttpService } from "@nestjs/axios";
-import { CacheService } from "@/shared/infra/cache/cache.service";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { firstValueFrom } from "rxjs";
+import Stripe from "stripe";
+import { CACHE_KEYS } from "@/shared/constants/cache";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
+import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { CacheService } from "@/shared/infra/cache/cache.service";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { formatValue, getUserCurrency } from "@/shared/utils/currency";
+import { PerkService } from "./perk.service";
 
 export interface PriceValue {
   raw: number;

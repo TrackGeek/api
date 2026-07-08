@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
 import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";

@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { GameProgressService } from "../service/game-progress.service";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { GameProgressService } from "../service/game-progress.service";
 
 @ApiTags("Game")
 @Controller("/game/progress")

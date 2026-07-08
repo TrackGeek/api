@@ -1,7 +1,7 @@
-import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
 import { PaymentFrequency } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, Max, Min } from "class-validator";
+import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
 
 export class CreatePaymentDto {
   @IsEnum(PaymentFrequency)

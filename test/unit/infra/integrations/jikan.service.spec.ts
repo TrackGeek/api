@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { of, throwError } from "rxjs";
-import { JikanService } from "@/shared/infra/integrations/jikan.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { JikanService } from "@/shared/infra/integrations/jikan.service";
 
 vi.mock("@/shared/utils/request", () => ({
   manyRequestWithDelay: vi.fn(),

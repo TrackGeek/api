@@ -5,17 +5,15 @@ import { TopBookDto } from "@/modules/book/dto/top-book.dto";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
-import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 
 @Injectable()
 export class BookService {
   constructor(
-    private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
   ) {}

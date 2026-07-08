@@ -78,10 +78,7 @@ export class TVShowController {
   @Delete("/tracking/:tvShowId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async resetTVShowTracking(
-    @Param("tvShowId", new ParseUUIDPipe()) tvShowId: string,
-    @Session() session: UserSession,
-  ) {
+  async resetTVShowTracking(@Param("tvShowId", new ParseUUIDPipe()) tvShowId: string, @Session() session: UserSession) {
     await this.tvShowService.resetTVShowTracking({ tvShowId, userId: session.user.id });
   }
 }

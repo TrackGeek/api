@@ -1,8 +1,8 @@
 import { Controller, Post, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthGuard } from "@thallesp/nestjs-better-auth";
-import { UploadService } from "./upload.service";
 import { imageConfig } from "./upload.config";
+import { UploadService } from "./upload.service";
 
 @Controller("/upload")
 @UseGuards(AuthGuard)

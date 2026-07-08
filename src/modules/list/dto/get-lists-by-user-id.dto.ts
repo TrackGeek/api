@@ -1,7 +1,7 @@
-import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { ListType } from "@prisma/generated/enums";
 import { IsEnum, IsOptional, IsString } from "class-validator";
+import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
 export class GetListsByUserIdDto extends OffsetPaginationParamsDto {
   @IsOptional()

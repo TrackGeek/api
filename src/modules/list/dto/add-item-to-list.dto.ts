@@ -1,4 +1,4 @@
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ListType } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
 import {

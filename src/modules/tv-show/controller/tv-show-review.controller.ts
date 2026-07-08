@@ -12,12 +12,12 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreateTVShowReviewDto } from "../dto/create-tv-show-review.dto";
 import { GetTVShowReviewsDto } from "../dto/get-tv-show-reviews.dto";
 import { UpdateTVShowReviewDto } from "../dto/update-tv-show-review.dto";
 import { TVShowReviewService } from "../service/tv-show-review.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("TV Show")
 @Controller("/tv/review")

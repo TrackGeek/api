@@ -1,12 +1,12 @@
-import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
+import { FeedEventType } from "@prisma/generated/enums";
+import { BookProgressFindManyArgs } from "@prisma/generated/models";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
-import { BookProgressFindManyArgs } from "@prisma/generated/models";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { QueueService } from "@/shared/infra/queue/queue.service";
-import { FeedEventType } from "@prisma/generated/enums";
 
 @Injectable()
 export class BookProgressService {

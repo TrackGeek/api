@@ -12,12 +12,12 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreateMangaReviewDto } from "../dto/create-manga-review.dto";
 import { GetMangaReviewsDto } from "../dto/get-manga-reviews.dto";
 import { UpdateMangaReviewDto } from "../dto/update-manga-review.dto";
 import { MangaReviewService } from "../service/manga-review.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Manga")
 @Controller("/manga/review")
