@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { MangaProgressService } from "../service/manga-progress.service";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
 import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
-import { ApiTags } from "@nestjs/swagger";
+import { MangaProgressService } from "../service/manga-progress.service";
 
 @ApiTags("Manga")
 @Controller("/manga/progress")

@@ -52,37 +52,37 @@ export class AddFavoriteDto {
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.Anime)
-  @IsUUID("4")
+  @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Anime" })
   readonly animeId?: string;
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.Manga)
-  @IsUUID("4")
+  @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Manga" })
   readonly mangaId?: string;
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.TVShow)
-  @IsUUID("4")
+  @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is TVShow" })
   readonly tvShowId?: string;
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.Movie)
-  @IsUUID("4")
+  @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Movie" })
   readonly movieId?: string;
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.Game)
-  @IsUUID("4")
+  @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Game" })
   readonly gameId?: string;
 
   @IsOptional()
   @FavoriteRequiredForType(FavoriteType.Book)
-  @IsUUID("4")
+  @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Book" })
   readonly bookId?: string;
 }

@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsUUID } from "class-validator";
+import { IsOptional, IsString, IsUUID } from "class-validator";
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
 export class GetGameReviewsDto extends OffsetPaginationParamsDto {
@@ -20,4 +20,13 @@ export class GetGameReviewsDto extends OffsetPaginationParamsDto {
     type: "string",
   })
   readonly userId?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Search query to filter reviews by media title",
+    example: "zelda",
+    type: "string",
+  })
+  readonly query?: string;
 }

@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { extractNameFromEmail } from "@/shared/utils/email";
 import { GetFollowersDto } from "../dto/get-followers.dto";
-import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { SearchUserDto } from "../dto/search-user.dto";
 import { UpdateUserDto } from "../dto/update-user.dto";
 
@@ -97,6 +97,19 @@ export class UserService {
           select: {
             followers: true,
             following: true,
+            lists: true,
+            favorites: true,
+            animeReviews: true,
+            mangaReviews: true,
+            tvshowReviews: true,
+            movieReviews: true,
+            gameReviews: true,
+            bookReviews: true,
+          },
+        },
+        userMedals: {
+          select: {
+            medal: true,
           },
         },
       },
@@ -189,7 +202,50 @@ export class UserService {
       book: buildStats(bookGroups, readingStatuses),
     };
 
-    return { ...user, progressStats };
+    const counts = {
+      lists: user._count.lists,
+      favorites: user._count.favorites,
+      reviews:
+        user._count.animeReviews +
+        user._count.mangaReviews +
+        user._count.tvshowReviews +
+        user._count.movieReviews +
+        user._count.gameReviews +
+        user._count.bookReviews,
+    };
+
+    const reviewModels = [
+      { type: "movie", model: this.databaseService.movieReview },
+      { type: "tv", model: this.databaseService.tvShowReview },
+      { type: "anime", model: this.databaseService.animeReview },
+      { type: "game", model: this.databaseService.gameReview },
+      { type: "book", model: this.databaseService.bookReview },
+      { type: "manga", model: this.databaseService.mangaReview },
+    ] as const;
+
+    const latestReviews = await Promise.all(
+      reviewModels.map(({ model }) =>
+        (model as { findFirst: (args: unknown) => Promise<{ createdAt: Date } | null> }).findFirst({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        }),
+      ),
+    );
+
+    let latestReviewType: string | null = null;
+    let latestReviewDate = 0;
+
+    reviewModels.forEach(({ type }, index) => {
+      const createdAt = latestReviews[index]?.createdAt;
+
+      if (createdAt && createdAt.getTime() > latestReviewDate) {
+        latestReviewDate = createdAt.getTime();
+        latestReviewType = type;
+      }
+    });
+
+    return { ...user, progressStats, counts, latestReviewType };
   }
 
   getName(name: string | null | undefined, email: string) {
@@ -296,6 +352,41 @@ export class UserService {
         },
       },
     });
+  }
+
+  async getFollowStatus(currentUserId: string, username: string) {
+    const targetUser = await this.databaseService.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    if (!targetUser) {
+      throw new AppException(ERROR_CODES.USER_NOT_FOUND);
+    }
+
+    const [isFollowing, followsYou] = await Promise.all([
+      this.databaseService.following.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: currentUserId,
+            followingId: targetUser.id,
+          },
+        },
+      }),
+      this.databaseService.following.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: targetUser.id,
+            followingId: currentUserId,
+          },
+        },
+      }),
+    ]);
+
+    return {
+      isFollowing: Boolean(isFollowing),
+      followsYou: Boolean(followsYou),
+    };
   }
 
   async getFollowers(getFollowersDto: GetFollowersDto) {

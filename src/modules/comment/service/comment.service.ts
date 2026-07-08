@@ -27,10 +27,18 @@ export class CommentService {
   async deleteComment(deleteCommentDto: DeleteCommentDto) {
     const comment = await this.databaseService.comment.findUnique({
       where: { id: deleteCommentDto.commentId },
+      include: { profile: { select: { userId: true } } },
     });
 
-    if (!comment || comment.userId !== deleteCommentDto.userId) {
+    if (!comment) {
       throw new AppException(ERROR_CODES.COMMENT_NOT_FOUND);
+    }
+
+    const isAuthor = comment.userId === deleteCommentDto.userId;
+    const isProfileOwner = comment.profile?.userId === deleteCommentDto.userId;
+
+    if (!isAuthor && !isProfileOwner) {
+      throw new AppException(ERROR_CODES.UNAUTHORIZED);
     }
 
     await this.databaseService.comment.delete({
@@ -44,6 +52,7 @@ export class CommentService {
       where: { ...getCommentsDto },
       page,
       itemsPerPage,
+      orderBy: { createdAt: "desc" },
       include: {
         user: {
           select: {

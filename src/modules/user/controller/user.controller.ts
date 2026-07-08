@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { UserService } from "../service/user.service";
 import { ApiTags } from "@nestjs/swagger";
+import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { GetFollowersDto } from "../dto/get-followers.dto";
 import { GetFollowingDto } from "../dto/get-following.dto";
 import { SearchUserDto } from "../dto/search-user.dto";
 import { UpdateUserDto } from "../dto/update-user.dto";
+import { UserService } from "../service/user.service";
 
 @ApiTags("User")
 @Controller("/user")
@@ -52,6 +52,14 @@ export class UserController {
   @UseGuards(AuthGuard)
   async unfollowUser(@Session() session: UserSession, @Param("unfollowId", new ParseUUIDPipe()) unfollowId: string) {
     await this.userService.unfollowUser(session.user.id, unfollowId);
+  }
+
+  @Get("/follow-status/:username")
+  @UseGuards(AuthGuard)
+  async getFollowStatus(@Session() session: UserSession, @Param("username") username: string) {
+    const followStatus = await this.userService.getFollowStatus(session.user.id, username);
+
+    return { followStatus };
   }
 
   @Get("/follower")

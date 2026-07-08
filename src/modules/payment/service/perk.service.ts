@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { StripeService } from "./stripe.service";
 import { UserTier } from "@prisma/generated/enums";
 import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { StripeService } from "./stripe.service";
 
 @Injectable()
 export class PerkService {

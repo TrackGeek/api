@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { of, throwError } from "rxjs";
-import { TMDBService } from "@/shared/infra/integrations/tmdb.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { TMDBService } from "@/shared/infra/integrations/tmdb.service";
 
 const mockHttpService = {
   get: vi.fn(),

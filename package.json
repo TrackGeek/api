@@ -11,7 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "db:run": "npm run prisma:migrate && npm run prisma:generate && npm run prisma:seed",
+    "stripe:webhook": "stripe listen --forward-to localhost:40287/stripe/webhook",
     "test:unit": "vitest run --printConsoleTrace=true --silent=false",
     "test:unit:watch": "vitest",
     "test:unit:ui": "vitest --ui",

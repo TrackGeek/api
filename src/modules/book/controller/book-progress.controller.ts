@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import { BookProgressService } from "../service/book-progress.service";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { BookProgressService } from "../service/book-progress.service";
 
 @ApiTags("Book")
 @Controller("/book/progress")

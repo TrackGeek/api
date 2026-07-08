@@ -405,10 +405,10 @@ GET {{apiUrl}}/tv/top?filter=popular
 GET {{apiUrl}}/tv/detail/1622
 
 ### 59. TV Show Season
-GET {{apiUrl}}/tv/detail/1622/season
+GET {{apiUrl}}/tv/detail/79744/season
 
 ### 60. TV Show Season Episodes
-GET {{apiUrl}}/tv/detail/1622/season/13/episode
+GET {{apiUrl}}/tv/detail/79744/season/9/episode
 
 ### 61. Create TV Show Review
 POST {{apiUrl}}/tv/review
@@ -801,6 +801,9 @@ GET {{apiUrl}}/list/user/{{login.response.body.user.id}}
 
 ### 103. Get List by Id
 GET {{apiUrl}}/list/019ce334-c8ac-7883-949d-948f53218272
+
+### 103.1 Get Lists Containing Item
+GET {{apiUrl}}/list/containing?type=TVShow&tvShowId=019ce334-c8ac-7883-949d-948f53218272
 
 ### 104. Get List Items
 GET {{apiUrl}}/list/019ce334-c8ac-7883-949d-948f53218272/item

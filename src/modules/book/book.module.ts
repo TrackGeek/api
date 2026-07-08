@@ -1,11 +1,10 @@
 import { Module } from "@nestjs/common";
-
-import { BookProgressController } from "./controller/book-progress.controller";
-import { BookProgressService } from "./service/book-progress.service";
-import { BookReviewController } from "./controller/book-review.controller";
-import { BookReviewService } from "./service/book-review.service";
 import { BookController } from "./controller/book.controller";
+import { BookProgressController } from "./controller/book-progress.controller";
+import { BookReviewController } from "./controller/book-review.controller";
 import { BookService } from "./service/book.service";
+import { BookProgressService } from "./service/book-progress.service";
+import { BookReviewService } from "./service/book-review.service";
 
 @Module({
   imports: [],

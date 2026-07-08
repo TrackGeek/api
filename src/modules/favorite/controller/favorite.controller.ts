@@ -11,12 +11,13 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { AddFavoriteDto } from "../dto/add-favorite.dto";
+import { GetFavoriteStatusDto } from "../dto/get-favorite-status.dto";
 import { GetFavoritesByUserIdDto } from "../dto/get-favorites-by-user-id.dto";
 import { RemoveFavoriteDto } from "../dto/remove-favorite.dto";
 import { FavoriteService } from "../service/favorite.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Favorite")
 @Controller("/favorite")
@@ -40,6 +41,17 @@ export class FavoriteController {
       ...body,
       userId: session.user.id,
     });
+  }
+
+  @Get("/status")
+  @UseGuards(AuthGuard)
+  async getFavoriteStatus(@Session() session: UserSession, @Query() query: GetFavoriteStatusDto) {
+    const favorited = await this.favoriteService.getFavoriteStatus({
+      ...query,
+      userId: session.user.id,
+    });
+
+    return { favorited };
   }
 
   @Get("/user/:userId")

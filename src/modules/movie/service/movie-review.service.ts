@@ -108,7 +108,11 @@ export class MovieReviewService {
       where: {
         ...(getMovieReviewsDto.userId && { userId: getMovieReviewsDto.userId }),
         ...(getMovieReviewsDto.movieId && { movieId: getMovieReviewsDto.movieId }),
+        ...(getMovieReviewsDto.query && {
+          movie: { title: { contains: getMovieReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         movie: {
           select: {
@@ -128,6 +132,19 @@ export class MovieReviewService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
               },
             },
           },

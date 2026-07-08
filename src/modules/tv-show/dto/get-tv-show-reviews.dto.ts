@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
 export class GetTVShowReviewsDto extends OffsetPaginationParamsDto {
@@ -18,4 +18,13 @@ export class GetTVShowReviewsDto extends OffsetPaginationParamsDto {
     type: "string",
   })
   readonly userId?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Search query to filter reviews by media title",
+    example: "breaking bad",
+    type: "string",
+  })
+  readonly query?: string;
 }

@@ -106,7 +106,11 @@ export class TVShowReviewService {
       where: {
         ...(getTVShowReviewsDto.userId && { userId: getTVShowReviewsDto.userId }),
         ...(getTVShowReviewsDto.tvShowId && { tvShowId: getTVShowReviewsDto.tvShowId }),
+        ...(getTVShowReviewsDto.query && {
+          tvShow: { name: { contains: getTVShowReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         tvShow: {
           select: {
@@ -129,6 +133,19 @@ export class TVShowReviewService {
             },
           },
         },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -139,6 +156,11 @@ export class TVShowReviewService {
     const tvShowReview = await this.databaseService.tvShowReview.findUnique({
       where: {
         id: updateTVShowReviewDto.tvShowReviewId,
+      },
+      include: {
+        tvShow: {
+          select: { tmdbId: true },
+        },
       },
     });
 
@@ -165,6 +187,11 @@ export class TVShowReviewService {
     const tvShowReview = await this.databaseService.tvShowReview.findUnique({
       where: {
         id: deleteTVShowReviewDto.tvShowReviewId,
+      },
+      include: {
+        tvShow: {
+          select: { tmdbId: true },
+        },
       },
     });
 

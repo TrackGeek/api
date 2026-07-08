@@ -1,13 +1,13 @@
-import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
+import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
-import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
-import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
-import { QueueService } from "@/shared/infra/queue/queue.service";
 
 @Injectable()
 export class TVShowProgressService {
@@ -18,7 +18,7 @@ export class TVShowProgressService {
   ) {}
 
   async createOrUpdateTVShowProgress(createOrUpdateTVShowProgressDto: CreateOrUpdateTVShowProgressDto) {
-    const { tvShowId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateTVShowProgressDto;
+    const { tvShowId, userId, status, watchCount, notes, completedAt, startedAt } = createOrUpdateTVShowProgressDto;
 
     const tvShowProgress = await this.databaseService.tvShowProgress.upsert({
       where: {
@@ -30,6 +30,7 @@ export class TVShowProgressService {
       update: {
         status,
         watchCount,
+        notes,
         completedAt,
         startedAt,
       },
@@ -38,6 +39,7 @@ export class TVShowProgressService {
         userId,
         status,
         watchCount,
+        notes,
         completedAt,
         startedAt,
       },
@@ -80,7 +82,7 @@ export class TVShowProgressService {
   async deleteTVShowProgress(tvShowProgressId: string, userId: string) {
     const tvShowProgress = await this.databaseService.tvShowProgress.findUnique({
       where: { id: tvShowProgressId },
-      select: { tvShowId: true, userId: true },
+      select: { tvShowId: true, userId: true, tvShow: { select: { tmdbId: true } } },
     });
 
     if (!tvShowProgress || tvShowProgress.userId !== userId) {

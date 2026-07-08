@@ -1,13 +1,12 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
-
-import { FeedEventService } from "@/modules/feed-event/service/feed-event.service";
-import { FEED_EVENT_QUEUE } from "@/shared/constants/queue";
-import { FEED_EVENT_FLUSH_AGGREGATION_JOB, FEED_EVENT_JOB } from "@/shared/constants/job";
 import { FeedEventDto, FeedEventMetadata } from "@/modules/feed-event/dto/feed-event.dto";
-import { QueueService } from "../queue.service";
+import { FeedEventService } from "@/modules/feed-event/service/feed-event.service";
+import { FEED_EVENT_FLUSH_AGGREGATION_JOB, FEED_EVENT_JOB } from "@/shared/constants/job";
+import { FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 import { CacheService } from "../../cache/cache.service";
+import { QueueService } from "../queue.service";
 
 export type FeedEventJobData = FeedEventDto;
 

@@ -1,22 +1,19 @@
 import { Injectable } from "@nestjs/common";
-import { Game, ProgressStatus } from "@prisma/generated/client";
+import { ProgressStatus } from "@prisma/generated/client";
 import { GameCreateInput, GameUpdateInput } from "@prisma/generated/models";
 import { TopGameDto } from "@/modules/game/dto/top-game.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
-import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 
 @Injectable()
 export class GameService {
   constructor(
-    private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
   ) {}
@@ -98,12 +95,6 @@ export class GameService {
   }
 
   async getGameByIgdbId(igdbId: number) {
-    const cachedGame = await this.cacheService.get<Game>(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId));
-
-    if (cachedGame) {
-      return cachedGame;
-    }
-
     let game = await this.databaseService.game.findUnique({
       where: { igdbId },
     });
@@ -150,12 +141,6 @@ export class GameService {
       progressStats,
     };
 
-    await this.cacheService.set(
-      CACHE_KEYS.GAME_BY_IGDB_ID.prefix(igdbId),
-      gameWithStats,
-      CACHE_KEYS.GAME_BY_IGDB_ID.expiration,
-    );
-
     return gameWithStats;
   }
 
@@ -173,10 +158,6 @@ export class GameService {
 
     if (Date.now() - game.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
       throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
-    }
-
-    if (await this.cacheService.exists(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId))) {
-      await this.cacheService.delete(CACHE_KEYS.GAME_BY_IGDB_ID.prefix(refreshGameDto.igdbId));
     }
 
     const igdbGame = await this.integrationsService.igdb.getGameById(refreshGameDto.igdbId);

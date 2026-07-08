@@ -41,8 +41,8 @@ model User {
   accounts              Account[]
   comments              Comment[]
   reactions             Reaction[]
-  followers             Following[]          @relation("UserFollowers")
-  following             Following[]          @relation("UserFollowing")
+  followers             Following[]          @relation("UserFollowing")
+  following             Following[]          @relation("UserFollowers")
   feedEvents            FeedEvent[]
   animeEpisodesWatches  AnimeEpisodeWatch[]
   lists                 List[]
@@ -204,35 +204,59 @@ model Comment {
   profile   Profile?   @relation(fields: [profileId], references: [id], onDelete: Cascade)
   reactions Reaction[]
 
-  @@unique([userId, animeId])
-  @@unique([userId, mangaId])
-  @@unique([userId, tvShowId])
-  @@unique([userId, movieId])
-  @@unique([userId, gameId])
-  @@unique([userId, bookId])
-  @@unique([userId, profileId])
+  @@index([animeId])
+  @@index([mangaId])
+  @@index([tvShowId])
+  @@index([movieId])
+  @@index([gameId])
+  @@index([bookId])
+  @@index([profileId])
 }
 
 enum ReactionType {
   Comment
   FeedEvent
+  GameReview
+  AnimeReview
+  MangaReview
+  TvShowReview
+  MovieReview
+  BookReview
 }
 
 model Reaction {
-  id          String       @id @default(uuid(7))
-  emoji       String
-  type        ReactionType
-  userId      String
-  commentId   String?
-  feedEventId String?
-  createdAt   DateTime     @default(now())
+  id             String       @id @default(uuid(7))
+  emoji          String
+  type           ReactionType
+  userId         String
+  commentId      String?
+  feedEventId    String?
+  gameReviewId   String?
+  animeReviewId  String?
+  mangaReviewId  String?
+  tvShowReviewId String?
+  movieReviewId  String?
+  bookReviewId   String?
+  createdAt      DateTime     @default(now())
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment   Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  feedEvent FeedEvent? @relation(fields: [feedEventId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment      Comment?      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  feedEvent    FeedEvent?    @relation(fields: [feedEventId], references: [id], onDelete: Cascade)
+  gameReview   GameReview?   @relation(fields: [gameReviewId], references: [id], onDelete: Cascade)
+  animeReview  AnimeReview?  @relation(fields: [animeReviewId], references: [id], onDelete: Cascade)
+  mangaReview  MangaReview?  @relation(fields: [mangaReviewId], references: [id], onDelete: Cascade)
+  tvShowReview TvShowReview? @relation(fields: [tvShowReviewId], references: [id], onDelete: Cascade)
+  movieReview  MovieReview?  @relation(fields: [movieReviewId], references: [id], onDelete: Cascade)
+  bookReview   BookReview?   @relation(fields: [bookReviewId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
   @@unique([userId, feedEventId])
+  @@unique([userId, gameReviewId])
+  @@unique([userId, animeReviewId])
+  @@unique([userId, mangaReviewId])
+  @@unique([userId, tvShowReviewId])
+  @@unique([userId, movieReviewId])
+  @@unique([userId, bookReviewId])
 }
 
 enum FeedEventType {
@@ -644,6 +668,7 @@ model TvShowProgress {
   id          String         @id @default(uuid(7))
   status      ProgressStatus
   watchCount  Int?
+  notes       String?
   startedAt   DateTime?
   completedAt DateTime?
   userId      String
@@ -728,8 +753,9 @@ model AnimeReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime     Anime      @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@unique([userId, animeId])
 }
@@ -749,8 +775,9 @@ model MangaReview {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga     Manga      @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@unique([userId, mangaId])
 }
@@ -770,8 +797,9 @@ model TvShowReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow    TvShow     @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@unique([userId, tvShowId])
   @@map("TVShowReview")
@@ -792,8 +820,9 @@ model MovieReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@unique([userId, movieId])
 }
@@ -817,6 +846,7 @@ model GameReview {
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   game                  Game                   @relation(fields: [gameId], references: [id], onDelete: Cascade)
   gameReviewScreenshots GameReviewScreenshot[]
+  reactions             Reaction[]
 
   @@unique([userId, gameId])
 }
@@ -849,8 +879,9 @@ model BookReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
 
   @@unique([userId, bookId])
 }

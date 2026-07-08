@@ -1,22 +1,19 @@
 import { Injectable } from "@nestjs/common";
-import { Book, ProgressStatus } from "@prisma/generated/client";
+import { ProgressStatus } from "@prisma/generated/client";
 import { BookCreateInput, BookUpdateInput } from "@prisma/generated/models";
 import { TopBookDto } from "@/modules/book/dto/top-book.dto";
-import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
-import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 
 @Injectable()
 export class BookService {
   constructor(
-    private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
   ) {}
@@ -94,12 +91,6 @@ export class BookService {
   }
 
   async getBookByHardcoverId(hardcoverId: number) {
-    const cachedBook = await this.cacheService.get<Book>(CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(hardcoverId));
-
-    if (cachedBook) {
-      return cachedBook;
-    }
-
     let book = await this.databaseService.book.findUnique({
       where: { hardcoverId },
     });
@@ -146,12 +137,6 @@ export class BookService {
       progressStats,
     };
 
-    await this.cacheService.set(
-      CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(hardcoverId),
-      bookWithStats,
-      CACHE_KEYS.BOOK_BY_HARDCOVER_ID.expiration,
-    );
-
     return bookWithStats;
   }
 
@@ -169,10 +154,6 @@ export class BookService {
 
     if (Date.now() - book.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
       throw new AppException(ERROR_CODES.BOOK_ALREADY_REFRESHED);
-    }
-
-    if (await this.cacheService.exists(CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(refreshBookDto.hardcoverId))) {
-      await this.cacheService.delete(CACHE_KEYS.BOOK_BY_HARDCOVER_ID.prefix(refreshBookDto.hardcoverId));
     }
 
     const hardcoverBook = await this.integrationsService.hardcover.getBookByHardcoverId(refreshBookDto.hardcoverId);

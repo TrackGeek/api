@@ -5,20 +5,20 @@ import {
   Headers,
   Logger,
   Post,
+  type RawBodyRequest,
   Req,
   Session,
   UseGuards,
-  type RawBodyRequest,
 } from "@nestjs/common";
-import { StripeService } from "../service/stripe.service";
-import { ApiTags } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
-import Stripe from "stripe";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, type UserSession } from "@thallesp/nestjs-better-auth";
+import Stripe from "stripe";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { AppException } from "@/shared/exceptions/app.exceptions";
 import { getUserCurrency } from "@/shared/utils/currency";
+import { StripeService } from "../service/stripe.service";
 
 @ApiTags("Payment")
 @Controller("/stripe")

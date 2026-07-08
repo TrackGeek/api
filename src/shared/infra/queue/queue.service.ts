@@ -2,20 +2,20 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { JobsOptions, Queue } from "bullmq";
 import { FeedEventDto } from "@/modules/feed-event/dto/feed-event.dto";
-import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
-import { ResetPasswordEmailDto } from "../email/dto/reset-password-email.dto";
-import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
 import {
+  FEED_EVENT_FLUSH_AGGREGATION_JOB,
   FEED_EVENT_JOB,
   MAGIC_LINK_JOB,
-  RESET_PASSWORD_JOB,
-  FEED_EVENT_FLUSH_AGGREGATION_JOB,
-  PAYMENT_SUCCESS_JOB,
   PAYMENT_FAILED_JOB,
+  PAYMENT_SUCCESS_JOB,
+  RESET_PASSWORD_JOB,
   SUBSCRIPTION_CANCELLED_JOB,
 } from "@/shared/constants/job";
-import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
+import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
+import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
 import { PaymentFailedEmailDto } from "../email/dto/payment-failed-email.dto";
+import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
+import { ResetPasswordEmailDto } from "../email/dto/reset-password-email.dto";
 import { SubscriptionCancelledEmailDto } from "../email/dto/subscription-cancelled-email.dto";
 
 type QueueName = typeof EMAIL_QUEUE | typeof FEED_EVENT_QUEUE;

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { of, throwError } from "rxjs";
-import { IMGBBService } from "@/shared/infra/integrations/imgbb.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { IMGBBService } from "@/shared/infra/integrations/imgbb.service";
 
 const mockHttpService = {
   post: vi.fn(),

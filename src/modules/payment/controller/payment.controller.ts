@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
-import { PaymentService } from "../service/payment.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
 import { CreatePaymentDto } from "../dto/create-payment.dto";
 import { GetPaymentsDto } from "../dto/get-payments.dto";
-import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
+import { PaymentService } from "../service/payment.service";
 
 @ApiTags("Payment")
 @Controller("/payment")

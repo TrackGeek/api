@@ -109,7 +109,11 @@ export class AnimeReviewService {
       where: {
         ...(getAnimeReviewsDto.animeId && { animeId: getAnimeReviewsDto.animeId }),
         ...(getAnimeReviewsDto.userId && { userId: getAnimeReviewsDto.userId }),
+        ...(getAnimeReviewsDto.query && {
+          anime: { title: { contains: getAnimeReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         anime: {
           select: {
@@ -128,6 +132,19 @@ export class AnimeReviewService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
               },
             },
           },

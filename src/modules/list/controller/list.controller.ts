@@ -7,18 +7,22 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { AddItemToListDto } from "../dto/add-item-to-list.dto";
 import { CreateListDto } from "../dto/create-list.dto";
 import { GetItemsByListIdDto } from "../dto/get-items-by-list-id.dto";
+import { GetListStatusDto } from "../dto/get-list-status.dto";
 import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
+import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
+import { UpdateListDto } from "../dto/update-list.dto";
 import { ListService } from "../service/list.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("List")
 @Controller("/list")
@@ -41,6 +45,24 @@ export class ListController {
       ...query,
       userId,
     });
+
+    return { lists };
+  }
+
+  @Get("/status")
+  @UseGuards(AuthGuard)
+  async getListStatus(@Session() session: UserSession, @Query() query: GetListStatusDto) {
+    const listIds = await this.listService.getListStatus({
+      ...query,
+      userId: session.user.id,
+    });
+
+    return { listIds };
+  }
+
+  @Get("/containing")
+  async getListsContainingItem(@Query() query: GetListsContainingItemDto) {
+    const lists = await this.listService.getListsContainingItem(query);
 
     return { lists };
   }
@@ -88,6 +110,30 @@ export class ListController {
       ...body,
       userId: session.user.id,
       listId,
+    });
+  }
+
+  @Patch("/:listId")
+  @UseGuards(AuthGuard)
+  async updateList(
+    @Param("listId", new ParseUUIDPipe()) listId: string,
+    @Session() session: UserSession,
+    @Body() body: UpdateListDto,
+  ) {
+    await this.listService.updateList({
+      ...body,
+      userId: session.user.id,
+      listId,
+    });
+  }
+
+  @Delete("/:listId")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteList(@Param("listId", new ParseUUIDPipe()) listId: string, @Session() session: UserSession) {
+    await this.listService.deleteList({
+      listId,
+      userId: session.user.id,
     });
   }
 }

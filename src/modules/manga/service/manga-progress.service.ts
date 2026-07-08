@@ -1,12 +1,12 @@
-import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
-import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
-import { MangaProgressFindManyArgs } from "@prisma/generated/models";
-import { QueueService } from "@/shared/infra/queue/queue.service";
 import { FeedEventType } from "@prisma/generated/enums";
+import { MangaProgressFindManyArgs } from "@prisma/generated/models";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
+import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
+import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 
 @Injectable()
 export class MangaProgressService {

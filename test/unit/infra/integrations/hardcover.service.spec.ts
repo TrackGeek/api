@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { of, throwError } from "rxjs";
-import { HardcoverService } from "@/shared/infra/integrations/hardcover.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppException } from "@/shared/exceptions/app.exceptions";
+import { HardcoverService } from "@/shared/infra/integrations/hardcover.service";
 
 const mockHttpService = {
   post: vi.fn(),

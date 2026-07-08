@@ -11,8 +11,8 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { ApiTags } from "@nestjs/swagger";
+import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreateGameReviewScreenshotDto } from "../dto/create-game-review-screenshot.dto";
 import { GetGameReviewScreenshotsDto } from "../dto/get-game-review-screenshots.dto";
 import { GameReviewScreenshotService } from "../service/game-review-screenshot.service";

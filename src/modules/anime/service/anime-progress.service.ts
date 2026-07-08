@@ -1,13 +1,13 @@
-import { DatabaseService } from "@/shared/infra/database/database.service";
 import { Injectable } from "@nestjs/common";
+import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { AnimeProgressFindManyArgs } from "@prisma/generated/models";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { AppException } from "@/shared/exceptions/app.exceptions";
+import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
-import { AnimeProgressFindManyArgs } from "@prisma/generated/models";
-import { AppException } from "@/shared/exceptions/app.exceptions";
-import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
-import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
-import { QueueService } from "@/shared/infra/queue/queue.service";
 
 @Injectable()
 export class AnimeProgressService {

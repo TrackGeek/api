@@ -1,9 +1,6 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
-
-import { EmailService } from "@/shared/infra/email/email.service";
-import { EMAIL_QUEUE } from "@/shared/constants/queue";
 import {
   MAGIC_LINK_JOB,
   PAYMENT_FAILED_JOB,
@@ -11,6 +8,8 @@ import {
   RESET_PASSWORD_JOB,
   SUBSCRIPTION_CANCELLED_JOB,
 } from "@/shared/constants/job";
+import { EMAIL_QUEUE } from "@/shared/constants/queue";
+import { EmailService } from "@/shared/infra/email/email.service";
 
 @Processor(EMAIL_QUEUE, { concurrency: 10 })
 export class EmailProcessor extends WorkerHost {

@@ -11,11 +11,11 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { CreateReactionDto } from "../dto/create-reaction.dto";
 import { GetReactionsDto } from "../dto/get-reactions.dto";
 import { ReactionService } from "../service/reaction.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Reaction")
 @Controller("/reaction")

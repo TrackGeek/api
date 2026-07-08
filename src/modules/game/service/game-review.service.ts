@@ -107,7 +107,11 @@ export class GameReviewService {
       where: {
         ...(getGameReviewsDto.gameId && { gameId: getGameReviewsDto.gameId }),
         ...(getGameReviewsDto.userId && { userId: getGameReviewsDto.userId }),
+        ...(getGameReviewsDto.query && {
+          game: { name: { contains: getGameReviewsDto.query, mode: "insensitive" } },
+        }),
       },
+      orderBy: { createdAt: "desc" },
       include: {
         game: {
           select: {
@@ -126,6 +130,19 @@ export class GameReviewService {
               select: {
                 id: true,
                 avatarUrl: true,
+              },
+            },
+          },
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
               },
             },
           },
