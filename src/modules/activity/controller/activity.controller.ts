@@ -3,8 +3,8 @@ import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { GetActivitiesDto } from "../dto/get-activities.dto";
 import { GetActivitiesByUserDto } from "../dto/get-activities-by-user.dto";
+import { GetActivitiesByUserFollowingDto } from "../dto/get-activities-by-user-following.dto";
 import { ActivityService } from "../service/activity.service";
-import { GetActivitiesByUserFollowingDto } from '../dto/get-activities-by-user-following.dto';
 
 @ApiTags("Activity")
 @Controller("/activities")
@@ -27,14 +27,14 @@ export class ActivityController {
 
     return { activities };
   }
-  
+
   @Get("/user/:userId/calendar")
   async getUserActivityCalendarById(@Param("userId") userId: string) {
     const activityCalendar = await this.activityService.getUserActivityCalendarById(userId);
 
     return { activityCalendar };
   }
-  
+
   @Get("/following")
   @UseGuards(AuthGuard)
   async getActivitiesByUserFollowing(@Session() session: UserSession, @Query() query: GetActivitiesByUserFollowingDto) {

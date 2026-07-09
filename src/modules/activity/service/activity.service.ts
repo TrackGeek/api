@@ -6,7 +6,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { CreateActivityDto } from "../dto/activity.dto";
 import { GetActivitiesDto } from "../dto/get-activities.dto";
 import { GetActivitiesByUserDto } from "../dto/get-activities-by-user.dto";
-import { GetActivitiesByUserFollowingDto } from '../dto/get-activities-by-user-following.dto';
+import { GetActivitiesByUserFollowingDto } from "../dto/get-activities-by-user-following.dto";
 
 const SOURCE_FIELDS = [
   "listId",
@@ -232,7 +232,7 @@ export class ActivityService {
 
     return { ...pagination, items: this.groupActivities(pagination.items) };
   }
-  
+
   async getActivitiesByUserFollowing(getActivitiesByUserIdDto: GetActivitiesByUserFollowingDto) {
     const following = await this.databaseService.following.findMany({
       where: { followerId: getActivitiesByUserIdDto.userId },
@@ -241,7 +241,10 @@ export class ActivityService {
 
     const friendIds = following.map((item) => item.followingId);
 
-    return this.getActivitiesByUserId({ ...getActivitiesByUserIdDto, userId: getActivitiesByUserIdDto.userId }, friendIds);
+    return this.getActivitiesByUserId(
+      { ...getActivitiesByUserIdDto, userId: getActivitiesByUserIdDto.userId },
+      friendIds,
+    );
   }
 
   async getActivities(getActivitiesDto: GetActivitiesDto) {
@@ -286,7 +289,7 @@ export class ActivityService {
 
     return groups;
   }
-  
+
   async getUserActivityCalendarById(userId: string) {
     const userExists = await this.databaseService.user.findUnique({
       where: { id: userId },
