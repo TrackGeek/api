@@ -1,7 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaymentStatus } from "@prisma/generated/enums";
+import { ActivityType, PaymentStatus } from "@prisma/generated/enums";
 import { firstValueFrom } from "rxjs";
 import Stripe from "stripe";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -391,11 +391,18 @@ export class StripeService {
       });
 
       if (!alreadyHasMedal) {
-        await this.databaseService.userMedal.create({
+        const userMedal = await this.databaseService.userMedal.create({
           data: {
             userId: payment.userId,
             medalId: contributorMedal.id,
           },
+        });
+
+        await this.queueService.toActivityJob({
+          type: ActivityType.MedalEarned,
+          userId: payment.userId,
+          userMedalId: userMedal.id,
+          metadata: { id: userMedal.id, medal: { ...contributorMedal } },
         });
       }
     }

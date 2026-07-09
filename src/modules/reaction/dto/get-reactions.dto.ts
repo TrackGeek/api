@@ -20,14 +20,14 @@ export class GetReactionsDto extends OffsetPaginationParamsDto {
   readonly commentId?: string;
 
   @IsOptional()
-  @ReactionRequiredForType(ReactionType.FeedEvent)
+  @ReactionRequiredForType(ReactionType.Activity)
   @ApiProperty({
     type: "string",
     format: "uuid",
     required: false,
-    description: "Required when type is FeedEvent",
+    description: "Required when type is Activity",
   })
-  readonly feedEventId?: string;
+  readonly activityId?: string;
 
   @IsOptional()
   @ReactionRequiredForType(ReactionType.GameReview)

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
+import { ActivityType } from "@prisma/generated/enums";
 import { ListFindManyArgs, ListItemFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -51,9 +51,10 @@ export class ListService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewList,
+    await this.queueService.toActivityJob({
+      type: ActivityType.ListCreated,
       userId,
+      listId: list.id,
       metadata: { ...list },
     });
   }
@@ -160,9 +161,10 @@ export class ListService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewListItem,
+    await this.queueService.toActivityJob({
+      type: ActivityType.ListItemAdded,
       userId,
+      listItemId: listItem.id,
       metadata: { ...listItem },
     });
   }

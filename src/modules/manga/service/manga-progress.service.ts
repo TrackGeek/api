@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
 import { MangaProgressFindManyArgs } from "@prisma/generated/models";
+import { activityTypeFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -78,11 +78,16 @@ export class MangaProgressService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewProgress,
-      userId,
-      metadata: { ...mangaProgress },
-    });
+    const activityType = activityTypeFromProgressStatus(status);
+
+    if (activityType) {
+      await this.queueService.toActivityJob({
+        type: activityType,
+        userId,
+        mangaProgressId: mangaProgress.id,
+        metadata: { ...mangaProgress },
+      });
+    }
   }
 
   async deleteMangaProgress(mangaProgressId: string, userId: string) {

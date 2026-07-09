@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
 import { GameProgressFindManyArgs } from "@prisma/generated/models";
+import { activityTypeFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -64,11 +64,16 @@ export class GameProgressService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewProgress,
-      userId,
-      metadata: { ...gameProgress },
-    });
+    const activityType = activityTypeFromProgressStatus(status);
+
+    if (activityType) {
+      await this.queueService.toActivityJob({
+        type: activityType,
+        userId,
+        gameProgressId: gameProgress.id,
+        metadata: { ...gameProgress },
+      });
+    }
   }
 
   async deleteGameProgress(gameProgressId: string, userId: string) {

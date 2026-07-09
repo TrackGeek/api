@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
+import { ActivityType } from "@prisma/generated/enums";
 import { GameReviewFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -57,9 +57,10 @@ export class GameReviewService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewReview,
+    await this.queueService.toActivityJob({
+      type: ActivityType.ReviewAdded,
       userId: createGameReviewDto.userId,
+      gameReviewId: gameReview.id,
       metadata: { ...gameReview },
     });
   }

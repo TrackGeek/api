@@ -44,7 +44,7 @@ export class CreateAnimeReviewDto {
   readonly enjoyment?: number;
 
   @IsOptional()
-  @MaxLength(250)
+  @MaxLength(500)
   @ApiPropertyOptional({ type: "string", maxLength: 250 })
   readonly summary?: string;
 

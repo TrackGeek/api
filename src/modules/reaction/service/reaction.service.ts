@@ -3,18 +3,22 @@ import { ReactionFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateReactionDto } from "../dto/create-reaction.dto";
 import { DeleteReactionDto } from "../dto/delete-reaction.dto";
 import { GetReactionsDto } from "../dto/get-reactions.dto";
 
 @Injectable()
 export class ReactionService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createReaction(createReactionDto: CreateReactionDto) {
     const { emoji, userId, type, ...entityIds } = createReactionDto;
 
-    await this.databaseService.reaction.create({
+    const reaction = await this.databaseService.reaction.create({
       data: {
         type,
         emoji,
@@ -22,6 +26,8 @@ export class ReactionService {
         ...entityIds,
       },
     });
+
+    await this.queueService.toReactionNotificationJob({ reactionId: reaction.id });
   }
 
   async deleteReaction(deleteReactionDto: DeleteReactionDto) {
@@ -44,7 +50,7 @@ export class ReactionService {
       where: {
         type: getReactionsDto.type,
         commentId: getReactionsDto.commentId,
-        feedEventId: getReactionsDto.feedEventId,
+        activityId: getReactionsDto.activityId,
         gameReviewId: getReactionsDto.gameReviewId,
         animeReviewId: getReactionsDto.animeReviewId,
         mangaReviewId: getReactionsDto.mangaReviewId,
@@ -56,7 +62,7 @@ export class ReactionService {
       itemsPerPage: getReactionsDto.itemsPerPage,
       include: {
         comment: true,
-        feedEvent: true,
+        activity: true,
         user: {
           select: {
             id: true,

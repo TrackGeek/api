@@ -1,17 +1,37 @@
 import { Injectable } from "@nestjs/common";
-import { WatchEpisodeStatus } from "@prisma/generated/enums";
+import { AnimeEpisodeWatch } from "@prisma/generated/client";
+import { ActivityType, WatchEpisodeStatus } from "@prisma/generated/enums";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateOrUpdateAnimeEpisodeWatchDto } from "../dto/create-or-update-anime-episode-watch.dto";
 import { DeleteAllAnimeEpisodeWatchDto } from "../dto/delete-all-anime-episode-watch.dto";
 import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
 import { GetAnimeEpisodeWatchDto } from "../dto/get-anime-episode-watch.dto";
 import { WatchAllAnimeEpisodesDto } from "../dto/watch-all-anime-episodes.dto";
 
+const WATCHED_STATUSES: WatchEpisodeStatus[] = [WatchEpisodeStatus.Watching, WatchEpisodeStatus.Completed];
+
 @Injectable()
 export class AnimeEpisodeWatchService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
+
+  private async emitWatchedActivities(userId: string, watches: AnimeEpisodeWatch[]) {
+    for (const watch of watches) {
+      if (!WATCHED_STATUSES.includes(watch.status)) continue;
+
+      await this.queueService.toActivityJob({
+        type: ActivityType.Watched,
+        userId,
+        animeEpisodeWatchId: watch.id,
+        metadata: { ...watch },
+      });
+    }
+  }
 
   async createOrUpdateAnimeEpisodeWatch(createOrUpdateAnimeEpisodeWatchDto: CreateOrUpdateAnimeEpisodeWatchDto) {
     const { animeId, userId, episodes } = createOrUpdateAnimeEpisodeWatchDto;
@@ -35,10 +55,12 @@ export class AnimeEpisodeWatchService {
 
     const batchSize = 50;
 
+    const watches: AnimeEpisodeWatch[] = [];
+
     for (let i = 0; i < episodes.length; i += batchSize) {
       const batch = episodes.slice(i, i + batchSize);
 
-      await Promise.all(
+      const results = await Promise.all(
         batch.map(({ episode, status }) =>
           this.databaseService.animeEpisodeWatch.upsert({
             where: {
@@ -58,7 +80,11 @@ export class AnimeEpisodeWatchService {
           }),
         ),
       );
+
+      watches.push(...results);
     }
+
+    await this.emitWatchedActivities(userId, watches);
   }
 
   async watchAllAnimeEpisodes({ animeId, userId }: WatchAllAnimeEpisodesDto) {
@@ -78,10 +104,12 @@ export class AnimeEpisodeWatchService {
     const episodeNumbers = Array.from({ length: anime.numberOfEpisodes }, (_, i) => i + 1);
     const batchSize = 50;
 
+    const watches: AnimeEpisodeWatch[] = [];
+
     for (let i = 0; i < episodeNumbers.length; i += batchSize) {
       const batch = episodeNumbers.slice(i, i + batchSize);
 
-      await Promise.all(
+      const results = await Promise.all(
         batch.map((episode) =>
           this.databaseService.animeEpisodeWatch.upsert({
             where: {
@@ -101,7 +129,11 @@ export class AnimeEpisodeWatchService {
           }),
         ),
       );
+
+      watches.push(...results);
     }
+
+    await this.emitWatchedActivities(userId, watches);
   }
 
   async deleteAnimeEpisodeWatch({ userId, animeId, episode }: DeleteAnimeEpisodeWatchDto) {
