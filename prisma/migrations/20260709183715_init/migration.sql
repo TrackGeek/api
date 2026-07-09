@@ -8,10 +8,13 @@ CREATE TYPE "UserTier" AS ENUM ('Tracker', 'Archivist', 'ArchiveMaster');
 CREATE TYPE "CommentType" AS ENUM ('Anime', 'Manga', 'TVShow', 'Movie', 'Game', 'Book', 'Profile');
 
 -- CreateEnum
-CREATE TYPE "ReactionType" AS ENUM ('Comment', 'FeedEvent', 'GameReview', 'AnimeReview', 'MangaReview', 'TvShowReview', 'MovieReview', 'BookReview');
+CREATE TYPE "ReactionType" AS ENUM ('Comment', 'Activity', 'GameReview', 'AnimeReview', 'MangaReview', 'TvShowReview', 'MovieReview', 'BookReview');
 
 -- CreateEnum
-CREATE TYPE "FeedEventType" AS ENUM ('NewFollower', 'NewFavorite', 'NewList', 'NewListItem', 'NewReview', 'NewWatch', 'NewProgress');
+CREATE TYPE "NotificationType" AS ENUM ('System', 'CommentOnProfile', 'ReactionOnComment', 'ReactionOnActivity', 'ReactionOnAnimeReview', 'ReactionOnMangaReview', 'ReactionOnTvShowReview', 'ReactionOnMovieReview', 'ReactionOnGameReview', 'ReactionOnBookReview');
+
+-- CreateEnum
+CREATE TYPE "ActivityType" AS ENUM ('AccountCreated', 'ListCreated', 'ListItemAdded', 'FavoriteAdded', 'ReviewAdded', 'ProgressStarted', 'ProgressCompleted', 'Watched', 'Followed', 'MedalEarned');
 
 -- CreateEnum
 CREATE TYPE "WatchEpisodeStatus" AS ENUM ('NotWatched', 'Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
@@ -171,7 +174,7 @@ CREATE TABLE "Reaction" (
     "type" "ReactionType" NOT NULL,
     "userId" TEXT NOT NULL,
     "commentId" TEXT,
-    "feedEventId" TEXT,
+    "activityId" TEXT,
     "gameReviewId" TEXT,
     "animeReviewId" TEXT,
     "mangaReviewId" TEXT,
@@ -184,16 +187,56 @@ CREATE TABLE "Reaction" (
 );
 
 -- CreateTable
-CREATE TABLE "FeedEvent" (
+CREATE TABLE "Notification" (
     "id" TEXT NOT NULL,
-    "type" "FeedEventType" NOT NULL,
+    "type" "NotificationType" NOT NULL,
+    "recipientId" TEXT NOT NULL,
+    "actorId" TEXT,
+    "metadata" JSONB,
+    "readAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "profileId" TEXT,
+    "commentId" TEXT,
+    "reactionId" TEXT,
+    "activityId" TEXT,
+    "animeReviewId" TEXT,
+    "mangaReviewId" TEXT,
+    "tvShowReviewId" TEXT,
+    "movieReviewId" TEXT,
+    "gameReviewId" TEXT,
+    "bookReviewId" TEXT,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Activity" (
+    "id" TEXT NOT NULL,
+    "type" "ActivityType" NOT NULL,
     "userId" TEXT NOT NULL,
     "metadata" JSONB,
-    "entityIds" TEXT[],
-    "count" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "listId" TEXT,
+    "listItemId" TEXT,
+    "favoriteId" TEXT,
+    "animeReviewId" TEXT,
+    "mangaReviewId" TEXT,
+    "tvShowReviewId" TEXT,
+    "movieReviewId" TEXT,
+    "gameReviewId" TEXT,
+    "bookReviewId" TEXT,
+    "animeProgressId" TEXT,
+    "mangaProgressId" TEXT,
+    "tvShowProgressId" TEXT,
+    "movieProgressId" TEXT,
+    "gameProgressId" TEXT,
+    "bookProgressId" TEXT,
+    "animeEpisodeWatchId" TEXT,
+    "tvShowEpisodeWatchId" TEXT,
+    "followingId" TEXT,
+    "userMedalId" TEXT,
 
-    CONSTRAINT "FeedEvent_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Activity_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -842,7 +885,7 @@ CREATE INDEX "Comment_profileId_idx" ON "Comment"("profileId");
 CREATE UNIQUE INDEX "Reaction_userId_commentId_key" ON "Reaction"("userId", "commentId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Reaction_userId_feedEventId_key" ON "Reaction"("userId", "feedEventId");
+CREATE UNIQUE INDEX "Reaction_userId_activityId_key" ON "Reaction"("userId", "activityId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Reaction_userId_gameReviewId_key" ON "Reaction"("userId", "gameReviewId");
@@ -863,7 +906,16 @@ CREATE UNIQUE INDEX "Reaction_userId_movieReviewId_key" ON "Reaction"("userId", 
 CREATE UNIQUE INDEX "Reaction_userId_bookReviewId_key" ON "Reaction"("userId", "bookReviewId");
 
 -- CreateIndex
-CREATE INDEX "FeedEvent_userId_idx" ON "FeedEvent"("userId");
+CREATE INDEX "Notification_recipientId_readAt_idx" ON "Notification"("recipientId", "readAt");
+
+-- CreateIndex
+CREATE INDEX "Notification_recipientId_createdAt_idx" ON "Notification"("recipientId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Activity_userId_idx" ON "Activity"("userId");
+
+-- CreateIndex
+CREATE INDEX "Activity_type_idx" ON "Activity"("type");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Game_igdbId_key" ON "Game"("igdbId");
@@ -1037,7 +1089,7 @@ ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_userId_fkey" FOREIGN KEY ("userI
 ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_feedEventId_fkey" FOREIGN KEY ("feedEventId") REFERENCES "FeedEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_gameReviewId_fkey" FOREIGN KEY ("gameReviewId") REFERENCES "GameReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1058,7 +1110,100 @@ ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_movieReviewId_fkey" FOREIGN KEY 
 ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_bookReviewId_fkey" FOREIGN KEY ("bookReviewId") REFERENCES "BookReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FeedEvent" ADD CONSTRAINT "FeedEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_reactionId_fkey" FOREIGN KEY ("reactionId") REFERENCES "Reaction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_animeReviewId_fkey" FOREIGN KEY ("animeReviewId") REFERENCES "AnimeReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_mangaReviewId_fkey" FOREIGN KEY ("mangaReviewId") REFERENCES "MangaReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_tvShowReviewId_fkey" FOREIGN KEY ("tvShowReviewId") REFERENCES "TVShowReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_movieReviewId_fkey" FOREIGN KEY ("movieReviewId") REFERENCES "MovieReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_gameReviewId_fkey" FOREIGN KEY ("gameReviewId") REFERENCES "GameReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_bookReviewId_fkey" FOREIGN KEY ("bookReviewId") REFERENCES "BookReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_listId_fkey" FOREIGN KEY ("listId") REFERENCES "List"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_listItemId_fkey" FOREIGN KEY ("listItemId") REFERENCES "ListItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_favoriteId_fkey" FOREIGN KEY ("favoriteId") REFERENCES "Favorite"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_animeReviewId_fkey" FOREIGN KEY ("animeReviewId") REFERENCES "AnimeReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_mangaReviewId_fkey" FOREIGN KEY ("mangaReviewId") REFERENCES "MangaReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_tvShowReviewId_fkey" FOREIGN KEY ("tvShowReviewId") REFERENCES "TVShowReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_movieReviewId_fkey" FOREIGN KEY ("movieReviewId") REFERENCES "MovieReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_gameReviewId_fkey" FOREIGN KEY ("gameReviewId") REFERENCES "GameReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_bookReviewId_fkey" FOREIGN KEY ("bookReviewId") REFERENCES "BookReview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_animeProgressId_fkey" FOREIGN KEY ("animeProgressId") REFERENCES "AnimeProgress"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_mangaProgressId_fkey" FOREIGN KEY ("mangaProgressId") REFERENCES "MangaProgress"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_tvShowProgressId_fkey" FOREIGN KEY ("tvShowProgressId") REFERENCES "TVShowProgress"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_movieProgressId_fkey" FOREIGN KEY ("movieProgressId") REFERENCES "MovieProgress"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_gameProgressId_fkey" FOREIGN KEY ("gameProgressId") REFERENCES "GameProgress"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_bookProgressId_fkey" FOREIGN KEY ("bookProgressId") REFERENCES "BookProgress"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_animeEpisodeWatchId_fkey" FOREIGN KEY ("animeEpisodeWatchId") REFERENCES "AnimeEpisodeWatch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_tvShowEpisodeWatchId_fkey" FOREIGN KEY ("tvShowEpisodeWatchId") REFERENCES "TVShowEpisodeWatch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "Following"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_userMedalId_fkey" FOREIGN KEY ("userMedalId") REFERENCES "UserMedal"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnimeEpisodeWatch" ADD CONSTRAINT "AnimeEpisodeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

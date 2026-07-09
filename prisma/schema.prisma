@@ -43,7 +43,7 @@ model User {
   reactions             Reaction[]
   followers             Following[]          @relation("UserFollowing")
   following             Following[]          @relation("UserFollowers")
-  feedEvents            FeedEvent[]
+  activities            Activity[]
   animeEpisodesWatches  AnimeEpisodeWatch[]
   lists                 List[]
   tvshowEpisodesWatches TvShowEpisodeWatch[]
@@ -62,6 +62,8 @@ model User {
   favorites             Favorite[]
   userMedals            UserMedal[]
   payments              Payment[]
+  notificationsReceived Notification[]       @relation("NotificationRecipient")
+  notificationsSent     Notification[]       @relation("NotificationActor")
 
   @@unique([email])
   @@unique([username])
@@ -126,8 +128,9 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments Comment[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments      Comment[]
+  notifications Notification[]
 }
 
 model Medal {
@@ -149,8 +152,9 @@ model UserMedal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  medal Medal @relation(fields: [medalId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medal      Medal      @relation(fields: [medalId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, medalId])
 }
@@ -162,8 +166,9 @@ model Following {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  follower   User       @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following  User       @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([followerId, followingId])
   @@index([followingId])
@@ -204,6 +209,8 @@ model Comment {
   profile   Profile?   @relation(fields: [profileId], references: [id], onDelete: Cascade)
   reactions Reaction[]
 
+  notifications Notification[]
+
   @@index([animeId])
   @@index([mangaId])
   @@index([tvShowId])
@@ -215,7 +222,7 @@ model Comment {
 
 enum ReactionType {
   Comment
-  FeedEvent
+  Activity
   GameReview
   AnimeReview
   MangaReview
@@ -230,7 +237,7 @@ model Reaction {
   type           ReactionType
   userId         String
   commentId      String?
-  feedEventId    String?
+  activityId     String?
   gameReviewId   String?
   animeReviewId  String?
   mangaReviewId  String?
@@ -241,7 +248,7 @@ model Reaction {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   comment      Comment?      @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  feedEvent    FeedEvent?    @relation(fields: [feedEventId], references: [id], onDelete: Cascade)
+  activity     Activity?     @relation(fields: [activityId], references: [id], onDelete: Cascade)
   gameReview   GameReview?   @relation(fields: [gameReviewId], references: [id], onDelete: Cascade)
   animeReview  AnimeReview?  @relation(fields: [animeReviewId], references: [id], onDelete: Cascade)
   mangaReview  MangaReview?  @relation(fields: [mangaReviewId], references: [id], onDelete: Cascade)
@@ -249,8 +256,10 @@ model Reaction {
   movieReview  MovieReview?  @relation(fields: [movieReviewId], references: [id], onDelete: Cascade)
   bookReview   BookReview?   @relation(fields: [bookReviewId], references: [id], onDelete: Cascade)
 
+  notifications Notification[]
+
   @@unique([userId, commentId])
-  @@unique([userId, feedEventId])
+  @@unique([userId, activityId])
   @@unique([userId, gameReviewId])
   @@unique([userId, animeReviewId])
   @@unique([userId, mangaReviewId])
@@ -259,29 +268,123 @@ model Reaction {
   @@unique([userId, bookReviewId])
 }
 
-enum FeedEventType {
-  NewFollower
-  NewFavorite
-  NewList
-  NewListItem
-  NewReview
-  NewWatch
-  NewProgress
+enum NotificationType {
+  System
+  CommentOnProfile
+  ReactionOnComment
+  ReactionOnActivity
+  ReactionOnAnimeReview
+  ReactionOnMangaReview
+  ReactionOnTvShowReview
+  ReactionOnMovieReview
+  ReactionOnGameReview
+  ReactionOnBookReview
 }
 
-model FeedEvent {
-  id        String        @id @default(uuid(7))
-  type      FeedEventType
+model Notification {
+  id             String           @id @default(uuid(7))
+  type           NotificationType
+  recipientId    String
+  // Null for System notifications: nobody triggered them.
+  actorId        String?
+  // Free-form payload for System notifications (title, description, url).
+  metadata       Json?
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+  profileId      String?
+  commentId      String?
+  reactionId     String?
+  activityId     String?
+  animeReviewId  String?
+  mangaReviewId  String?
+  tvShowReviewId String?
+  movieReviewId  String?
+  gameReviewId   String?
+  bookReviewId   String?
+
+  recipient    User          @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor        User?         @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  profile      Profile?      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  comment      Comment?      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reaction     Reaction?     @relation(fields: [reactionId], references: [id], onDelete: Cascade)
+  activity     Activity?     @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  animeReview  AnimeReview?  @relation(fields: [animeReviewId], references: [id], onDelete: Cascade)
+  mangaReview  MangaReview?  @relation(fields: [mangaReviewId], references: [id], onDelete: Cascade)
+  tvShowReview TvShowReview? @relation(fields: [tvShowReviewId], references: [id], onDelete: Cascade)
+  movieReview  MovieReview?  @relation(fields: [movieReviewId], references: [id], onDelete: Cascade)
+  gameReview   GameReview?   @relation(fields: [gameReviewId], references: [id], onDelete: Cascade)
+  bookReview   BookReview?   @relation(fields: [bookReviewId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt])
+  @@index([recipientId, createdAt])
+}
+
+enum ActivityType {
+  AccountCreated
+  ListCreated
+  ListItemAdded
+  FavoriteAdded
+  ReviewAdded
+  ProgressStarted
+  ProgressCompleted
+  Watched
+  Followed
+  MedalEarned
+}
+
+model Activity {
+  id        String       @id @default(uuid(7))
+  type      ActivityType
   userId    String
   metadata  Json?
-  entityIds String[]
-  count     Int           @default(1)
-  createdAt DateTime      @default(now())
+  createdAt DateTime     @default(now())
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reactions Reaction[]
+  listId               String?
+  listItemId           String?
+  favoriteId           String?
+  animeReviewId        String?
+  mangaReviewId        String?
+  tvShowReviewId       String?
+  movieReviewId        String?
+  gameReviewId         String?
+  bookReviewId         String?
+  animeProgressId      String?
+  mangaProgressId      String?
+  tvShowProgressId     String?
+  movieProgressId      String?
+  gameProgressId       String?
+  bookProgressId       String?
+  animeEpisodeWatchId  String?
+  tvShowEpisodeWatchId String?
+  followingId          String?
+  userMedalId          String?
+
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions         Reaction[]
+  list              List?               @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listItem          ListItem?           @relation(fields: [listItemId], references: [id], onDelete: Cascade)
+  favorite          Favorite?           @relation(fields: [favoriteId], references: [id], onDelete: Cascade)
+  animeReview       AnimeReview?        @relation(fields: [animeReviewId], references: [id], onDelete: Cascade)
+  mangaReview       MangaReview?        @relation(fields: [mangaReviewId], references: [id], onDelete: Cascade)
+  tvShowReview      TvShowReview?       @relation(fields: [tvShowReviewId], references: [id], onDelete: Cascade)
+  movieReview       MovieReview?        @relation(fields: [movieReviewId], references: [id], onDelete: Cascade)
+  gameReview        GameReview?         @relation(fields: [gameReviewId], references: [id], onDelete: Cascade)
+  bookReview        BookReview?         @relation(fields: [bookReviewId], references: [id], onDelete: Cascade)
+  animeProgress     AnimeProgress?      @relation(fields: [animeProgressId], references: [id], onDelete: Cascade)
+  mangaProgress     MangaProgress?      @relation(fields: [mangaProgressId], references: [id], onDelete: Cascade)
+  tvShowProgress    TvShowProgress?     @relation(fields: [tvShowProgressId], references: [id], onDelete: Cascade)
+  movieProgress     MovieProgress?      @relation(fields: [movieProgressId], references: [id], onDelete: Cascade)
+  gameProgress      GameProgress?       @relation(fields: [gameProgressId], references: [id], onDelete: Cascade)
+  bookProgress      BookProgress?       @relation(fields: [bookProgressId], references: [id], onDelete: Cascade)
+  animeEpisodeWatch AnimeEpisodeWatch?  @relation(fields: [animeEpisodeWatchId], references: [id], onDelete: Cascade)
+  tvShowEpisodeWatch TvShowEpisodeWatch? @relation(fields: [tvShowEpisodeWatchId], references: [id], onDelete: Cascade)
+  following         Following?          @relation(fields: [followingId], references: [id], onDelete: Cascade)
+  userMedal         UserMedal?          @relation(fields: [userMedalId], references: [id], onDelete: Cascade)
+
+  notifications Notification[]
 
   @@index([userId])
+  @@index([type])
 }
 
 model Game {
@@ -591,8 +694,9 @@ model AnimeEpisodeWatch {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime      Anime      @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, animeId, episode])
   @@index([userId, status])
@@ -608,8 +712,9 @@ model TvShowEpisodeWatch {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow     TvShow     @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, tvShowId, season, episode])
   @@index([userId, status])
@@ -640,8 +745,9 @@ model AnimeProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime      Anime      @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, animeId])
 }
@@ -658,8 +764,9 @@ model MangaProgress {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga      Manga      @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, mangaId])
 }
@@ -676,8 +783,9 @@ model TvShowProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow     TvShow     @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, tvShowId])
   @@map("TVShowProgress")
@@ -694,8 +802,9 @@ model MovieProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie      Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, movieId])
 }
@@ -711,8 +820,9 @@ model GameProgress {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game       Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, gameId])
 }
@@ -729,8 +839,9 @@ model BookProgress {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book       Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, bookId])
 }
@@ -753,9 +864,11 @@ model AnimeReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  anime     Anime      @relation(fields: [animeId], references: [id], onDelete: Cascade)
-  reactions Reaction[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime         Anime          @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  reactions     Reaction[]
+  activities    Activity[]
+  notifications Notification[]
 
   @@unique([userId, animeId])
 }
@@ -775,9 +888,11 @@ model MangaReview {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  manga     Manga      @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  reactions Reaction[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga         Manga          @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  reactions     Reaction[]
+  activities    Activity[]
+  notifications Notification[]
 
   @@unique([userId, mangaId])
 }
@@ -797,9 +912,11 @@ model TvShowReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tvShow    TvShow     @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
-  reactions Reaction[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tvShow        TvShow         @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  reactions     Reaction[]
+  activities    Activity[]
+  notifications Notification[]
 
   @@unique([userId, tvShowId])
   @@map("TVShowReview")
@@ -820,9 +937,11 @@ model MovieReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie     Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  reactions Reaction[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie         Movie          @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  reactions     Reaction[]
+  activities    Activity[]
+  notifications Notification[]
 
   @@unique([userId, movieId])
 }
@@ -847,6 +966,8 @@ model GameReview {
   game                  Game                   @relation(fields: [gameId], references: [id], onDelete: Cascade)
   gameReviewScreenshots GameReviewScreenshot[]
   reactions             Reaction[]
+  activities            Activity[]
+  notifications         Notification[]
 
   @@unique([userId, gameId])
 }
@@ -879,9 +1000,11 @@ model BookReview {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  book      Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  reactions Reaction[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book          Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  reactions     Reaction[]
+  activities    Activity[]
+  notifications Notification[]
 
   @@unique([userId, bookId])
 }
@@ -904,8 +1027,9 @@ model List {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listItems ListItem[]
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listItems  ListItem[]
+  activities Activity[]
 
   @@unique([userId, name])
 }
@@ -926,8 +1050,9 @@ model ListItem {
   manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  game       Game?      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book       Book?      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([listId, animeId])
   @@unique([listId, mangaId])
@@ -965,8 +1090,9 @@ model Favorite {
   manga  Manga?  @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
   movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  game   Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  book   Book?   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  game       Game?      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book       Book?      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@unique([userId, animeId])
   @@unique([userId, mangaId])

@@ -46,8 +46,10 @@ export async function populateMedals(prisma: PrismaClient) {
     ],
     skipDuplicates: true,
   });
-
-  console.log(`Inserted ${medals.count} medals.`);
+  
+  if (medals.count > 0) {
+    console.log(`Inserted ${medals.count} medals.`);
+  }
 }
 
 async function createFirstUser(prisma: PrismaClient) {
@@ -76,7 +78,7 @@ async function createFirstUser(prisma: PrismaClient) {
     });
 
     if (!userExists) {
-      await prisma.user.create({
+      const createdUser = await prisma.user.create({
         data: {
           id: userData.id,
           email: userData.email,
@@ -103,8 +105,10 @@ async function createFirstUser(prisma: PrismaClient) {
       insertedCount++;
     }
   }
-
-  console.log(`Inserted ${insertedCount} users.`);
+  
+  if (insertedCount > 0) {
+    console.log(`Inserted ${insertedCount} users.`);
+  }
 }
 
 main()
