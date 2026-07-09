@@ -1,30 +1,39 @@
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { JobsOptions, Queue } from "bullmq";
-import { FeedEventDto } from "@/modules/feed-event/dto/feed-event.dto";
+import { CreateActivityDto } from "@/modules/activity/dto/activity.dto";
 import {
-  FEED_EVENT_FLUSH_AGGREGATION_JOB,
-  FEED_EVENT_JOB,
+  CreateCommentNotificationDto,
+  CreateReactionNotificationDto,
+  CreateSystemNotificationDto,
+} from "@/modules/notification/dto/notification.dto";
+import {
+  ACTIVITY_JOB,
   MAGIC_LINK_JOB,
+  NOTIFICATION_COMMENT_JOB,
+  NOTIFICATION_REACTION_JOB,
+  NOTIFICATION_SYSTEM_JOB,
   PAYMENT_FAILED_JOB,
   PAYMENT_SUCCESS_JOB,
   RESET_PASSWORD_JOB,
   SUBSCRIPTION_CANCELLED_JOB,
 } from "@/shared/constants/job";
-import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
+import { ACTIVITY_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
 import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
 import { PaymentFailedEmailDto } from "../email/dto/payment-failed-email.dto";
 import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
 import { ResetPasswordEmailDto } from "../email/dto/reset-password-email.dto";
 import { SubscriptionCancelledEmailDto } from "../email/dto/subscription-cancelled-email.dto";
 
-type QueueName = typeof EMAIL_QUEUE | typeof FEED_EVENT_QUEUE;
+type QueueName = typeof EMAIL_QUEUE | typeof ACTIVITY_QUEUE | typeof NOTIFICATION_QUEUE;
 
 type JobName =
-  | typeof FEED_EVENT_JOB
+  | typeof ACTIVITY_JOB
+  | typeof NOTIFICATION_SYSTEM_JOB
+  | typeof NOTIFICATION_COMMENT_JOB
+  | typeof NOTIFICATION_REACTION_JOB
   | typeof MAGIC_LINK_JOB
   | typeof RESET_PASSWORD_JOB
-  | typeof FEED_EVENT_FLUSH_AGGREGATION_JOB
   | typeof PAYMENT_SUCCESS_JOB
   | typeof PAYMENT_FAILED_JOB
   | typeof SUBSCRIPTION_CANCELLED_JOB;
@@ -36,15 +45,18 @@ export class QueueService {
   constructor(
     @InjectQueue(EMAIL_QUEUE)
     private readonly emailQueue: Queue,
-    @InjectQueue(FEED_EVENT_QUEUE)
-    private readonly feedEventQueue: Queue,
+    @InjectQueue(ACTIVITY_QUEUE)
+    private readonly activityQueue: Queue,
+    @InjectQueue(NOTIFICATION_QUEUE)
+    private readonly notificationQueue: Queue,
   ) {}
 
   private async addJob(queueName: QueueName, jobName: JobName, data: unknown, options?: JobsOptions) {
     try {
       const queues = {
         [EMAIL_QUEUE]: this.emailQueue,
-        [FEED_EVENT_QUEUE]: this.feedEventQueue,
+        [ACTIVITY_QUEUE]: this.activityQueue,
+        [NOTIFICATION_QUEUE]: this.notificationQueue,
       } as const;
 
       const job = await queues[queueName].add(jobName, data, options);
@@ -55,14 +67,20 @@ export class QueueService {
     }
   }
 
-  async toFeedEventJob(feedEventDto: FeedEventDto) {
-    await this.addJob(FEED_EVENT_QUEUE, FEED_EVENT_JOB, feedEventDto);
+  async toActivityJob(createActivityDto: CreateActivityDto) {
+    await this.addJob(ACTIVITY_QUEUE, ACTIVITY_JOB, createActivityDto);
   }
 
-  async toFeedEventFlushAggregationJob(feedEventFlushAggregationDto: { aggKey: string; windowsMs: number }) {
-    await this.addJob(FEED_EVENT_QUEUE, FEED_EVENT_FLUSH_AGGREGATION_JOB, feedEventFlushAggregationDto, {
-      delay: feedEventFlushAggregationDto.windowsMs,
-    });
+  async toSystemNotificationJob(createSystemNotificationDto: CreateSystemNotificationDto) {
+    await this.addJob(NOTIFICATION_QUEUE, NOTIFICATION_SYSTEM_JOB, createSystemNotificationDto);
+  }
+
+  async toCommentNotificationJob(createCommentNotificationDto: CreateCommentNotificationDto) {
+    await this.addJob(NOTIFICATION_QUEUE, NOTIFICATION_COMMENT_JOB, createCommentNotificationDto);
+  }
+
+  async toReactionNotificationJob(createReactionNotificationDto: CreateReactionNotificationDto) {
+    await this.addJob(NOTIFICATION_QUEUE, NOTIFICATION_REACTION_JOB, createReactionNotificationDto);
   }
 
   async toMagicLinkJob(magicLinkEmailDto: MagicLinkEmailDto) {

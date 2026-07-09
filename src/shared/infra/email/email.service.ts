@@ -66,7 +66,7 @@ export class EmailService {
     await this.resendService.send({
       from: this.configService.get<string>("RESEND_FROM")!,
       to: paymentFailedEmailDto.userEmail,
-      subject: "Payment failed – we'll retry automatically",
+      subject: "Payment failed - we'll retry automatically",
       html: this.getHtmlTemplate("payment-failed-email", paymentFailedEmailDto),
     });
   }

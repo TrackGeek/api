@@ -1,18 +1,21 @@
 import { BullModule } from "@nestjs/bullmq";
 import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FeedEventModule } from "@/modules/feed-event/feed-event.module";
-import { EMAIL_QUEUE, FEED_EVENT_QUEUE } from "@/shared/constants/queue";
+import { ActivityModule } from "@/modules/activity/activity.module";
+import { NotificationModule } from "@/modules/notification/notification.module";
+import { ACTIVITY_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
 import { EmailModule } from "../email/email.module";
+import { ActivityProcessor } from "./processors/activity.processor";
 import { EmailProcessor } from "./processors/email.processor";
-import { FeedEventProcessor } from "./processors/feed-event.processor";
+import { NotificationProcessor } from "./processors/notification.processor";
 import { QueueService } from "./queue.service";
 
 @Global()
 @Module({
   imports: [
     EmailModule,
-    FeedEventModule,
+    ActivityModule,
+    NotificationModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
@@ -30,11 +33,12 @@ import { QueueService } from "./queue.service";
         },
       }),
     }),
-    BullModule.registerQueue({ name: FEED_EVENT_QUEUE }),
+    BullModule.registerQueue({ name: ACTIVITY_QUEUE }),
+    BullModule.registerQueue({ name: NOTIFICATION_QUEUE }),
     BullModule.registerQueue({ name: EMAIL_QUEUE }),
   ],
   controllers: [],
-  providers: [QueueService, FeedEventProcessor, EmailProcessor],
+  providers: [QueueService, ActivityProcessor, NotificationProcessor, EmailProcessor],
   exports: [QueueService],
 })
 export class QueueModule {}

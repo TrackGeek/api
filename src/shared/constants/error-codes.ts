@@ -75,6 +75,10 @@ export const ERROR_CODES = {
     code: "REACTION_NOT_FOUND",
     status: 404,
   },
+  NOTIFICATION_NOT_FOUND: {
+    code: "NOTIFICATION_NOT_FOUND",
+    status: 404,
+  },
   TMDB_SERVICE_UNAVAILABLE: {
     code: "TMDB_SERVICE_UNAVAILABLE",
     status: 503,
