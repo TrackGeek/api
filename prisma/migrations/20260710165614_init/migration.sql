@@ -14,7 +14,7 @@ CREATE TYPE "ReactionType" AS ENUM ('Comment', 'Activity', 'GameReview', 'AnimeR
 CREATE TYPE "NotificationType" AS ENUM ('System', 'CommentOnProfile', 'ReactionOnComment', 'ReactionOnActivity', 'ReactionOnAnimeReview', 'ReactionOnMangaReview', 'ReactionOnTvShowReview', 'ReactionOnMovieReview', 'ReactionOnGameReview', 'ReactionOnBookReview');
 
 -- CreateEnum
-CREATE TYPE "ActivityType" AS ENUM ('AccountCreated', 'ListCreated', 'ListItemAdded', 'FavoriteAdded', 'ReviewAdded', 'ProgressStarted', 'ProgressCompleted', 'Watched', 'Followed', 'MedalEarned');
+CREATE TYPE "ActivityType" AS ENUM ('AccountCreated', 'ListCreated', 'ListItemAdded', 'FavoriteAdded', 'ReviewAdded', 'ProgressStarted', 'ProgressCompleted', 'ProgressPaused', 'ProgressDropped', 'Watched', 'Followed', 'MedalEarned');
 
 -- CreateEnum
 CREATE TYPE "WatchEpisodeStatus" AS ENUM ('NotWatched', 'Watching', 'Completed', 'Paused', 'Dropped', 'Planning');
@@ -235,6 +235,8 @@ CREATE TABLE "Activity" (
     "tvShowEpisodeWatchId" TEXT,
     "followingId" TEXT,
     "userMedalId" TEXT,
+    "animeId" TEXT,
+    "tvShowId" TEXT,
 
     CONSTRAINT "Activity_pkey" PRIMARY KEY ("id")
 );
@@ -918,6 +920,12 @@ CREATE INDEX "Activity_userId_idx" ON "Activity"("userId");
 CREATE INDEX "Activity_type_idx" ON "Activity"("type");
 
 -- CreateIndex
+CREATE INDEX "Activity_userId_type_animeId_idx" ON "Activity"("userId", "type", "animeId");
+
+-- CreateIndex
+CREATE INDEX "Activity_userId_type_tvShowId_idx" ON "Activity"("userId", "type", "tvShowId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Game_igdbId_key" ON "Game"("igdbId");
 
 -- CreateIndex
@@ -1204,6 +1212,12 @@ ALTER TABLE "Activity" ADD CONSTRAINT "Activity_followingId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Activity" ADD CONSTRAINT "Activity_userMedalId_fkey" FOREIGN KEY ("userMedalId") REFERENCES "UserMedal"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_animeId_fkey" FOREIGN KEY ("animeId") REFERENCES "Anime"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_tvShowId_fkey" FOREIGN KEY ("tvShowId") REFERENCES "TVShow"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnimeEpisodeWatch" ADD CONSTRAINT "AnimeEpisodeWatch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

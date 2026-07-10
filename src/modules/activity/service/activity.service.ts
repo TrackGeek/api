@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ActivityType } from "@prisma/generated/enums";
 import { ActivityFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -7,6 +8,7 @@ import { CreateActivityDto } from "../dto/activity.dto";
 import { GetActivitiesDto } from "../dto/get-activities.dto";
 import { GetActivitiesByUserDto } from "../dto/get-activities-by-user.dto";
 import { GetActivitiesByUserFollowingDto } from "../dto/get-activities-by-user-following.dto";
+import { SyncWatchedActivityDto } from "../dto/sync-watched-activity.dto";
 
 const SOURCE_FIELDS = [
   "listId",
@@ -161,11 +163,10 @@ const INCLUDE = {
   movieProgress: { select: { id: true, status: true, movie: MOVIE_SELECT } },
   gameProgress: { select: { id: true, status: true, game: GAME_SELECT } },
   bookProgress: { select: { id: true, status: true, book: BOOK_SELECT } },
-  // Episode watches.
-  animeEpisodeWatch: { select: { id: true, status: true, episode: true, anime: ANIME_SELECT } },
-  tvShowEpisodeWatch: {
-    select: { id: true, status: true, season: true, episode: true, tvShow: TVSHOW_SELECT },
-  },
+  // Watched episodes are now a single per-series activity holding a range in
+  // metadata; the media is referenced directly by the anime/tvShow relation.
+  anime: ANIME_SELECT,
+  tvShow: TVSHOW_SELECT,
   // Lists / favorites (polymorphic media).
   list: { select: { id: true, name: true } },
   listItem: { select: { id: true, ...POLY_MEDIA } },
@@ -204,6 +205,52 @@ export class ActivityService {
         userId,
         ...source,
         ...(metadata && { metadata: { ...metadata } }),
+      },
+    });
+  }
+
+  // One Watched activity per (user, series) per 1h window, carrying an episode
+  // range in metadata. Watching more episodes of the same series within the
+  // window extends the existing activity in place (keeps its id/reactions);
+  // after the window closes, the next episode starts a fresh activity.
+  async syncWatchedActivity(syncWatchedActivityDto: SyncWatchedActivityDto) {
+    const WINDOW_MS = 60 * 60 * 1000;
+    const { userId, animeId, tvShowId, episodes } = syncWatchedActivityDto;
+
+    if (episodes.length === 0) return;
+
+    const min = Math.min(...episodes);
+    const max = Math.max(...episodes);
+    const seriesWhere = animeId ? { animeId } : { tvShowId };
+
+    const recent = await this.databaseService.activity.findFirst({
+      where: { userId, type: ActivityType.Watched, ...seriesWhere },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (recent && Date.now() - recent.createdAt.getTime() <= WINDOW_MS) {
+      const meta = (recent.metadata ?? {}) as { from?: number; to?: number; count?: number };
+
+      await this.databaseService.activity.update({
+        where: { id: recent.id },
+        data: {
+          metadata: {
+            from: Math.min(meta.from ?? min, min),
+            to: Math.max(meta.to ?? max, max),
+            count: (meta.count ?? 0) + episodes.length,
+          },
+        },
+      });
+
+      return;
+    }
+
+    await this.databaseService.activity.create({
+      data: {
+        type: ActivityType.Watched,
+        userId,
+        ...seriesWhere,
+        metadata: { from: min, to: max, count: episodes.length },
       },
     });
   }
@@ -261,6 +308,8 @@ export class ActivityService {
 
   // Collapse consecutive activities of the same (userId, type) inside a 1h window
   // into a single group with a count, so the feed can render "favorited 3 animes".
+  // Watched is never merged here — it's already a single per-series activity
+  // (see syncWatchedActivity), so each one stands as its own group.
   private groupActivities(items: any[]) {
     const WINDOW_MS = 60 * 60 * 1000;
     const groups: any[] = [];
@@ -269,6 +318,7 @@ export class ActivityService {
       const last = groups[groups.length - 1];
       const sameGroup =
         last &&
+        item.type !== "Watched" &&
         last.type === item.type &&
         last.userId === item.userId &&
         new Date(last.createdAt).getTime() - new Date(item.createdAt).getTime() <= WINDOW_MS;

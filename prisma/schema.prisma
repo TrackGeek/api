@@ -327,6 +327,8 @@ enum ActivityType {
   ReviewAdded
   ProgressStarted
   ProgressCompleted
+  ProgressPaused
+  ProgressDropped
   Watched
   Followed
   MedalEarned
@@ -358,6 +360,8 @@ model Activity {
   tvShowEpisodeWatchId String?
   followingId          String?
   userMedalId          String?
+  animeId              String?
+  tvShowId             String?
 
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   reactions         Reaction[]
@@ -380,11 +384,15 @@ model Activity {
   tvShowEpisodeWatch TvShowEpisodeWatch? @relation(fields: [tvShowEpisodeWatchId], references: [id], onDelete: Cascade)
   following         Following?          @relation(fields: [followingId], references: [id], onDelete: Cascade)
   userMedal         UserMedal?          @relation(fields: [userMedalId], references: [id], onDelete: Cascade)
+  anime             Anime?              @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  tvShow            TvShow?             @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
   notifications Notification[]
 
   @@index([userId])
   @@index([type])
+  @@index([userId, type, animeId])
+  @@index([userId, type, tvShowId])
 }
 
 model Game {
@@ -543,6 +551,7 @@ model Anime {
   favorites          Favorite[]
   listItems          ListItem[]
   comments           Comment[]
+  activities         Activity[]
 }
 
 model Manga {
@@ -630,6 +639,7 @@ model TvShow {
   favorites           Favorite[]
   listItems           ListItem[]
   comments            Comment[]
+  activities          Activity[]
 
   @@map("TVShow")
 }

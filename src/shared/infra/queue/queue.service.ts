@@ -2,6 +2,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { JobsOptions, Queue } from "bullmq";
 import { CreateActivityDto } from "@/modules/activity/dto/activity.dto";
+import { SyncWatchedActivityDto } from "@/modules/activity/dto/sync-watched-activity.dto";
 import {
   CreateCommentNotificationDto,
   CreateReactionNotificationDto,
@@ -17,6 +18,7 @@ import {
   PAYMENT_SUCCESS_JOB,
   RESET_PASSWORD_JOB,
   SUBSCRIPTION_CANCELLED_JOB,
+  WATCHED_ACTIVITY_JOB,
 } from "@/shared/constants/job";
 import { ACTIVITY_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
 import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
@@ -29,6 +31,7 @@ type QueueName = typeof EMAIL_QUEUE | typeof ACTIVITY_QUEUE | typeof NOTIFICATIO
 
 type JobName =
   | typeof ACTIVITY_JOB
+  | typeof WATCHED_ACTIVITY_JOB
   | typeof NOTIFICATION_SYSTEM_JOB
   | typeof NOTIFICATION_COMMENT_JOB
   | typeof NOTIFICATION_REACTION_JOB
@@ -69,6 +72,10 @@ export class QueueService {
 
   async toActivityJob(createActivityDto: CreateActivityDto) {
     await this.addJob(ACTIVITY_QUEUE, ACTIVITY_JOB, createActivityDto);
+  }
+
+  async toWatchedActivityJob(syncWatchedActivityDto: SyncWatchedActivityDto) {
+    await this.addJob(ACTIVITY_QUEUE, WATCHED_ACTIVITY_JOB, syncWatchedActivityDto);
   }
 
   async toSystemNotificationJob(createSystemNotificationDto: CreateSystemNotificationDto) {

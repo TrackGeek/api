@@ -1,5 +1,7 @@
 export const ACTIVITY_JOB = "activity-job";
 
+export const WATCHED_ACTIVITY_JOB = "watched-activity-job";
+
 export const NOTIFICATION_SYSTEM_JOB = "notification-system-job";
 
 export const NOTIFICATION_COMMENT_JOB = "notification-comment-job";

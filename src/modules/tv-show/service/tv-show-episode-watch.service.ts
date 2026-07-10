@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { TvShowEpisodeWatch } from "@prisma/generated/client";
-import { ActivityType, WatchEpisodeStatus } from "@prisma/generated/enums";
+import { WatchEpisodeStatus } from "@prisma/generated/enums";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -20,19 +19,6 @@ export class TVShowEpisodeWatchService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
   ) {}
-
-  private async emitWatchedActivities(userId: string, watches: TvShowEpisodeWatch[]) {
-    for (const watch of watches) {
-      if (!WATCHED_STATUSES.includes(watch.status)) continue;
-
-      await this.queueService.toActivityJob({
-        type: ActivityType.Watched,
-        userId,
-        tvShowEpisodeWatchId: watch.id,
-        metadata: { ...watch },
-      });
-    }
-  }
 
   async createOrUpdateTVShowEpisodeWatch(createOrUpdateTVShowEpisodeWatchDto: CreateOrUpdateTVShowEpisodeWatchDto) {
     const { tvShowId, userId, episodes } = createOrUpdateTVShowEpisodeWatchDto;
@@ -56,12 +42,10 @@ export class TVShowEpisodeWatchService {
 
     const batchSize = 50;
 
-    const watches: TvShowEpisodeWatch[] = [];
-
     for (let i = 0; i < episodes.length; i += batchSize) {
       const batch = episodes.slice(i, i + batchSize);
 
-      const results = await Promise.all(
+      await Promise.all(
         batch.map(({ season, episode, status }) =>
           this.databaseService.tvShowEpisodeWatch.upsert({
             where: {
@@ -83,11 +67,17 @@ export class TVShowEpisodeWatchService {
           }),
         ),
       );
-
-      watches.push(...results);
     }
 
-    await this.emitWatchedActivities(userId, watches);
+    // Manual watching feeds a single per-series Watched activity (range in
+    // metadata); bulk "watch all" / series completion stays silent.
+    const watchedEpisodes = episodes
+      .filter(({ status }) => WATCHED_STATUSES.includes(status))
+      .map(({ episode }) => episode);
+
+    if (watchedEpisodes.length > 0) {
+      await this.queueService.toWatchedActivityJob({ userId, tvShowId, episodes: watchedEpisodes });
+    }
   }
 
   async watchAllEpisodesOfTVShow({ tvShowId, userId }: WatchAllEpisodesOfTVShowDto) {
@@ -107,15 +97,15 @@ export class TVShowEpisodeWatchService {
     const seasons = tvShow.seasons as unknown as TMDBTVShowSeason[];
     const batchSize = 50;
 
-    const watches: TvShowEpisodeWatch[] = [];
-
+    // Bulk mark (series completion / "watch all"): intentionally emits no
+    // Watched activities — those only come from manual, one-by-one watching.
     for (const season of seasons) {
       const episodeNumbers = Array.from({ length: season.numberOfEpisodes }, (_, i) => i + 1);
 
       for (let i = 0; i < episodeNumbers.length; i += batchSize) {
         const batch = episodeNumbers.slice(i, i + batchSize);
 
-        const results = await Promise.all(
+        await Promise.all(
           batch.map((episode) =>
             this.databaseService.tvShowEpisodeWatch.upsert({
               where: {
@@ -137,12 +127,8 @@ export class TVShowEpisodeWatchService {
             }),
           ),
         );
-
-        watches.push(...results);
       }
     }
-
-    await this.emitWatchedActivities(userId, watches);
   }
 
   async deleteTVShowEpisodeWatch({ userId, tvShowId, season, episode }: DeleteTVShowEpisodeWatchDto) {
