@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -6,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -13,6 +15,7 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { GetNotificationsDto } from "../dto/get-notifications.dto";
+import { UpdateNotificationPreferencesDto } from "../dto/notification-preference.dto";
 import { NotificationService } from "../service/notification.service";
 
 // Literal paths are declared before `/:notificationId`, otherwise Nest matches "read"/"unread" as
@@ -38,6 +41,20 @@ export class NotificationController {
     const count = await this.notificationService.getUnreadCount(session.user.id);
 
     return { count };
+  }
+
+  @Get("/preferences")
+  async getPreferences(@Session() session: UserSession) {
+    const preferences = await this.notificationService.getPreferences(session.user.id);
+
+    return { preferences };
+  }
+
+  @Patch("/preferences")
+  async updatePreferences(@Session() session: UserSession, @Body() body: UpdateNotificationPreferencesDto) {
+    const preferences = await this.notificationService.updatePreferences(session.user.id, body);
+
+    return { preferences };
   }
 
   @Post("/read/all")

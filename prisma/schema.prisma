@@ -64,6 +64,7 @@ model User {
   payments              Payment[]
   notificationsReceived Notification[]       @relation("NotificationRecipient")
   notificationsSent     Notification[]       @relation("NotificationActor")
+  notificationPreference NotificationPreference?
 
   @@unique([email])
   @@unique([username])
@@ -322,6 +323,20 @@ model Notification {
 
   @@index([recipientId, readAt])
   @@index([recipientId, createdAt])
+}
+
+// Per-user opt-out for notification categories. Absence of a row means every
+// category is enabled (default all-on). System notifications are never gated
+// here — they are always delivered.
+model NotificationPreference {
+  id        String   @id @default(uuid(7))
+  userId    String   @unique
+  comment   Boolean  @default(true)
+  reaction  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum ActivityType {
