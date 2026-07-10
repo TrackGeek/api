@@ -188,7 +188,9 @@ model Comment {
   id        String      @id @default(uuid(7))
   content   String
   type      CommentType
+  isSpoiler Boolean     @default(false)
   userId    String
+  parentId  String?
   animeId   String?
   mangaId   String?
   tvShowId  String?
@@ -200,6 +202,8 @@ model Comment {
   updatedAt DateTime    @updatedAt
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("CommentReplies")
   anime     Anime?     @relation(fields: [animeId], references: [id], onDelete: Cascade)
   manga     Manga?     @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   tvShow    TvShow?    @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
@@ -218,6 +222,7 @@ model Comment {
   @@index([gameId])
   @@index([bookId])
   @@index([profileId])
+  @@index([parentId])
 }
 
 enum ReactionType {
