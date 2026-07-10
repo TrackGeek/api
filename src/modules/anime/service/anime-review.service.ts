@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
+import { ActivityType } from "@prisma/generated/enums";
 import { AnimeReviewFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -59,9 +59,10 @@ export class AnimeReviewService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewReview,
+    await this.queueService.toActivityJob({
+      type: ActivityType.ReviewAdded,
       userId: createAnimeReviewDto.userId,
+      animeReviewId: animeReview.id,
       metadata: { ...animeReview },
     });
   }

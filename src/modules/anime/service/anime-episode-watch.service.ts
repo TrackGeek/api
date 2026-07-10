@@ -3,15 +3,21 @@ import { WatchEpisodeStatus } from "@prisma/generated/enums";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateOrUpdateAnimeEpisodeWatchDto } from "../dto/create-or-update-anime-episode-watch.dto";
 import { DeleteAllAnimeEpisodeWatchDto } from "../dto/delete-all-anime-episode-watch.dto";
 import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
 import { GetAnimeEpisodeWatchDto } from "../dto/get-anime-episode-watch.dto";
 import { WatchAllAnimeEpisodesDto } from "../dto/watch-all-anime-episodes.dto";
 
+const WATCHED_STATUSES: WatchEpisodeStatus[] = [WatchEpisodeStatus.Watching, WatchEpisodeStatus.Completed];
+
 @Injectable()
 export class AnimeEpisodeWatchService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createOrUpdateAnimeEpisodeWatch(createOrUpdateAnimeEpisodeWatchDto: CreateOrUpdateAnimeEpisodeWatchDto) {
     const { animeId, userId, episodes } = createOrUpdateAnimeEpisodeWatchDto;
@@ -59,6 +65,16 @@ export class AnimeEpisodeWatchService {
         ),
       );
     }
+
+    // Manual watching feeds a single per-series Watched activity (range in
+    // metadata); bulk "watch all" / series completion stays silent.
+    const watchedEpisodes = episodes
+      .filter(({ status }) => WATCHED_STATUSES.includes(status))
+      .map(({ episode }) => episode);
+
+    if (watchedEpisodes.length > 0) {
+      await this.queueService.toWatchedActivityJob({ userId, animeId, episodes: watchedEpisodes });
+    }
   }
 
   async watchAllAnimeEpisodes({ animeId, userId }: WatchAllAnimeEpisodesDto) {
@@ -78,6 +94,8 @@ export class AnimeEpisodeWatchService {
     const episodeNumbers = Array.from({ length: anime.numberOfEpisodes }, (_, i) => i + 1);
     const batchSize = 50;
 
+    // Bulk mark (series completion / "watch all"): intentionally emits no
+    // Watched activities — those only come from manual, one-by-one watching.
     for (let i = 0; i < episodeNumbers.length; i += batchSize) {
       const batch = episodeNumbers.slice(i, i + batchSize);
 

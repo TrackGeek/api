@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { ProgressStatus } from "@prisma/generated/enums";
 import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
+import { activityTypeFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -68,11 +69,16 @@ export class TVShowProgressService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewReview,
-      userId,
-      metadata: { ...tvShowProgress },
-    });
+    const activityType = activityTypeFromProgressStatus(status);
+
+    if (activityType) {
+      await this.queueService.toActivityJob({
+        type: activityType,
+        userId,
+        tvShowProgressId: tvShowProgress.id,
+        metadata: { ...tvShowProgress },
+      });
+    }
 
     if (status === ProgressStatus.Completed) {
       await this.tvShowEpisodeWatchService.watchAllEpisodesOfTVShow({ tvShowId, userId });

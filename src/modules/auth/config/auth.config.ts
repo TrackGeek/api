@@ -1,6 +1,7 @@
 import type { BetterAuthOptions } from "@better-auth/core";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ActivityType } from "@prisma/generated/enums";
 import * as bcrypt from "bcrypt";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer, customSession, lastLoginMethod, magicLink, openAPI, username } from "better-auth/plugins";
@@ -207,6 +208,23 @@ export function getAuthConfig(params: AuthConfigParams) {
             await profileService.createProfile({
               userId: user.id,
               avatarUrl: user.image,
+            });
+
+            await queueService.toActivityJob({
+              type: ActivityType.AccountCreated,
+              userId: user.id,
+              metadata: {
+                id: user.id,
+                name: user.name,
+              },
+            });
+
+            await queueService.toSystemNotificationJob({
+              recipientIds: [user.id],
+              metadata: {
+                titleKey: "notifications:welcome.title",
+                descriptionKey: "notifications:welcome.description",
+              },
             });
           },
         },

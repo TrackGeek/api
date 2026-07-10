@@ -4,16 +4,17 @@ import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { ActivityModule } from "./modules/activity/activity.module";
 import { AnimeModule } from "./modules/anime/anime.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { BookModule } from "./modules/book/book.module";
 import { CommentModule } from "./modules/comment/comment.module";
 import { FavoriteModule } from "./modules/favorite/favorite.module";
-import { FeedEventModule } from "./modules/feed-event/feed-event.module";
 import { GameModule } from "./modules/game/game.module";
 import { ListModule } from "./modules/list/list.module";
 import { MangaModule } from "./modules/manga/manga.module";
 import { MovieModule } from "./modules/movie/movie.module";
+import { NotificationModule } from "./modules/notification/notification.module";
 import { PaymentModule } from "./modules/payment/payment.module";
 import { ProfileModule } from "./modules/profile/profile.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
@@ -47,7 +48,7 @@ import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
     DatabaseModule,
     HealthModule,
     AuthModule,
-    FeedEventModule,
+    ActivityModule,
     CacheModule,
     IntegrationsModule,
     UploadModule,
@@ -55,6 +56,7 @@ import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
     ProfileModule,
     CommentModule,
     ReactionModule,
+    NotificationModule,
     GameModule,
     MovieModule,
     TVShowModule,

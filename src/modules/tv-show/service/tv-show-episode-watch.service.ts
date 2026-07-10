@@ -4,15 +4,21 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-show-episode-watch.dto";
 import { DeleteAllTVShowEpisodeWatchDto } from "../dto/delete-all-tv-show-episode-watch.dto";
 import { DeleteTVShowEpisodeWatchDto } from "../dto/delete-tv-show-episode-watch.dto";
 import { GetTVShowEpisodeWatchDto } from "../dto/get-tv-show-episode-watch.dto";
 import { WatchAllEpisodesOfTVShowDto } from "../dto/watch-all-episodes-of-tv-show.dto";
 
+const WATCHED_STATUSES: WatchEpisodeStatus[] = [WatchEpisodeStatus.Watching, WatchEpisodeStatus.Completed];
+
 @Injectable()
 export class TVShowEpisodeWatchService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createOrUpdateTVShowEpisodeWatch(createOrUpdateTVShowEpisodeWatchDto: CreateOrUpdateTVShowEpisodeWatchDto) {
     const { tvShowId, userId, episodes } = createOrUpdateTVShowEpisodeWatchDto;
@@ -62,6 +68,16 @@ export class TVShowEpisodeWatchService {
         ),
       );
     }
+
+    // Manual watching feeds a single per-series Watched activity (range in
+    // metadata); bulk "watch all" / series completion stays silent.
+    const watchedEpisodes = episodes
+      .filter(({ status }) => WATCHED_STATUSES.includes(status))
+      .map(({ episode }) => episode);
+
+    if (watchedEpisodes.length > 0) {
+      await this.queueService.toWatchedActivityJob({ userId, tvShowId, episodes: watchedEpisodes });
+    }
   }
 
   async watchAllEpisodesOfTVShow({ tvShowId, userId }: WatchAllEpisodesOfTVShowDto) {
@@ -81,6 +97,8 @@ export class TVShowEpisodeWatchService {
     const seasons = tvShow.seasons as unknown as TMDBTVShowSeason[];
     const batchSize = 50;
 
+    // Bulk mark (series completion / "watch all"): intentionally emits no
+    // Watched activities — those only come from manual, one-by-one watching.
     for (const season of seasons) {
       const episodeNumbers = Array.from({ length: season.numberOfEpisodes }, (_, i) => i + 1);
 

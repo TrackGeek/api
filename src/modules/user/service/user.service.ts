@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType, ProgressStatus } from "@prisma/generated/enums";
+import { ActivityType, ProgressStatus } from "@prisma/generated/enums";
 import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -319,9 +319,10 @@ export class UserService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewFollower,
+    await this.queueService.toActivityJob({
+      type: ActivityType.Followed,
       userId,
+      followingId: following.id,
       metadata: { ...following },
     });
   }

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
+import { ActivityType } from "@prisma/generated/enums";
 import { FavoriteFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -104,9 +104,10 @@ export class FavoriteService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewFavorite,
+    await this.queueService.toActivityJob({
+      type: ActivityType.FavoriteAdded,
       userId,
+      favoriteId: favorite.id,
       metadata: { ...favorite },
     });
   }

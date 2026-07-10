@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { FeedEventType } from "@prisma/generated/enums";
 import { BookProgressFindManyArgs } from "@prisma/generated/models";
+import { activityTypeFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -66,11 +66,16 @@ export class BookProgressService {
       },
     });
 
-    await this.queueService.toFeedEventJob({
-      type: FeedEventType.NewProgress,
-      userId,
-      metadata: { ...bookProgress },
-    });
+    const activityType = activityTypeFromProgressStatus(status);
+
+    if (activityType) {
+      await this.queueService.toActivityJob({
+        type: activityType,
+        userId,
+        bookProgressId: bookProgress.id,
+        metadata: { ...bookProgress },
+      });
+    }
   }
 
   async deleteBookProgress(bookProgressId: string, userId: string) {

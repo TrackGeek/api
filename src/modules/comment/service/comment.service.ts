@@ -3,18 +3,22 @@ import { CommentFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { CreateCommentDto } from "../dto/create-comment.dto";
 import { DeleteCommentDto } from "../dto/delete-comment.dto";
 import { GetCommentsDto } from "../dto/get-comments.dto";
 
 @Injectable()
 export class CommentService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async createComment(createCommentDto: CreateCommentDto) {
     const { type, content, userId, ...entityIds } = createCommentDto;
 
-    await this.databaseService.comment.create({
+    const comment = await this.databaseService.comment.create({
       data: {
         type,
         content,
@@ -22,6 +26,8 @@ export class CommentService {
         ...entityIds,
       },
     });
+
+    await this.queueService.toCommentNotificationJob({ commentId: comment.id });
   }
 
   async deleteComment(deleteCommentDto: DeleteCommentDto) {

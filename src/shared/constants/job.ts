@@ -1,6 +1,12 @@
-export const FEED_EVENT_JOB = "feed-event-job";
+export const ACTIVITY_JOB = "activity-job";
 
-export const FEED_EVENT_FLUSH_AGGREGATION_JOB = "feed-event-flush-aggregation-job";
+export const WATCHED_ACTIVITY_JOB = "watched-activity-job";
+
+export const NOTIFICATION_SYSTEM_JOB = "notification-system-job";
+
+export const NOTIFICATION_COMMENT_JOB = "notification-comment-job";
+
+export const NOTIFICATION_REACTION_JOB = "notification-reaction-job";
 
 export const MAGIC_LINK_JOB = "magic-link-job";
 

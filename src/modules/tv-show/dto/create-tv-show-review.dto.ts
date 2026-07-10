@@ -46,7 +46,7 @@ export class CreateTVShowReviewDto {
   readonly acting?: number;
 
   @IsOptional()
-  @MaxLength(250)
+  @MaxLength(500)
   @ApiPropertyOptional({
     type: "string",
     maxLength: 250,

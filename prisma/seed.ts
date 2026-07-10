@@ -47,7 +47,9 @@ export async function populateMedals(prisma: PrismaClient) {
     skipDuplicates: true,
   });
 
-  console.log(`Inserted ${medals.count} medals.`);
+  if (medals.count > 0) {
+    console.log(`Inserted ${medals.count} medals.`);
+  }
 }
 
 async function createFirstUser(prisma: PrismaClient) {
@@ -104,7 +106,9 @@ async function createFirstUser(prisma: PrismaClient) {
     }
   }
 
-  console.log(`Inserted ${insertedCount} users.`);
+  if (insertedCount > 0) {
+    console.log(`Inserted ${insertedCount} users.`);
+  }
 }
 
 main()

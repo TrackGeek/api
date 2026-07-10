@@ -19,7 +19,7 @@ export class CreateMangaReviewDto {
   readonly worldbuilding?: number;
 
   @IsOptional()
-  @MaxLength(250)
+  @MaxLength(500)
   readonly summary?: string;
 
   @IsOptional()
