@@ -245,7 +245,38 @@ export class UserService {
       }
     });
 
-    return { ...user, progressStats, counts, latestReviewType };
+    const progressModels = [
+      { type: "movie", model: this.databaseService.movieProgress },
+      { type: "tv", model: this.databaseService.tvShowProgress },
+      { type: "anime", model: this.databaseService.animeProgress },
+      { type: "game", model: this.databaseService.gameProgress },
+      { type: "book", model: this.databaseService.bookProgress },
+      { type: "manga", model: this.databaseService.mangaProgress },
+    ] as const;
+
+    const latestProgresses = await Promise.all(
+      progressModels.map(({ model }) =>
+        (model as { findFirst: (args: unknown) => Promise<{ updatedAt: Date } | null> }).findFirst({
+          where: { userId: user.id },
+          orderBy: { updatedAt: "desc" },
+          select: { updatedAt: true },
+        }),
+      ),
+    );
+
+    let latestProgressType: string | null = null;
+    let latestProgressDate = 0;
+
+    progressModels.forEach(({ type }, index) => {
+      const updatedAt = latestProgresses[index]?.updatedAt;
+
+      if (updatedAt && updatedAt.getTime() > latestProgressDate) {
+        latestProgressDate = updatedAt.getTime();
+        latestProgressType = type;
+      }
+    });
+
+    return { ...user, progressStats, counts, latestReviewType, latestProgressType };
   }
 
   getName(name: string | null | undefined, email: string) {
