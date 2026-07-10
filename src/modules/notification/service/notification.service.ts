@@ -5,11 +5,15 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { GetNotificationsByUserDto } from "../dto/get-notifications.dto";
+import { NotificationPreferences, UpdateNotificationPreferencesDto } from "../dto/notification-preference.dto";
 import {
   CreateCommentNotificationDto,
   CreateReactionNotificationDto,
   CreateSystemNotificationDto,
 } from "../dto/notification.dto";
+
+// Absence of a preference row means every category is enabled.
+const DEFAULT_PREFERENCES: NotificationPreferences = { comment: true, reaction: true };
 
 const REACTION_TARGETS = {
   [ReactionType.Comment]: { type: NotificationType.ReactionOnComment, relation: "comment", sourceField: "commentId" },
@@ -96,6 +100,10 @@ export class NotificationService {
       return;
     }
 
+    if (!(await this.isCategoryEnabled(recipientId, "comment"))) {
+      return;
+    }
+
     await this.databaseService.notification.create({
       data: {
         type: NotificationType.CommentOnProfile,
@@ -131,6 +139,10 @@ export class NotificationService {
     const sourceId = reaction[target.sourceField];
 
     if (!owner || !sourceId || owner.userId === reaction.userId) {
+      return;
+    }
+
+    if (!(await this.isCategoryEnabled(owner.userId, "reaction"))) {
       return;
     }
 
@@ -221,6 +233,37 @@ export class NotificationService {
     await this.databaseService.notification.deleteMany({
       where: { recipientId: userId },
     });
+  }
+
+  async getPreferences(userId: string): Promise<NotificationPreferences> {
+    const preference = await this.databaseService.notificationPreference.findUnique({
+      where: { userId },
+      select: { comment: true, reaction: true },
+    });
+
+    return preference ?? DEFAULT_PREFERENCES;
+  }
+
+  async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto): Promise<NotificationPreferences> {
+    const data = {
+      ...(dto.comment !== undefined && { comment: dto.comment }),
+      ...(dto.reaction !== undefined && { reaction: dto.reaction }),
+    };
+
+    const preference = await this.databaseService.notificationPreference.upsert({
+      where: { userId },
+      create: { userId, ...data },
+      update: data,
+      select: { comment: true, reaction: true },
+    });
+
+    return preference;
+  }
+
+  private async isCategoryEnabled(userId: string, category: keyof NotificationPreferences): Promise<boolean> {
+    const preferences = await this.getPreferences(userId);
+
+    return preferences[category];
   }
 
   private async updateReadAt(userId: string, notificationId: string, readAt: Date | null) {
