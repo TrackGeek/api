@@ -53,24 +53,50 @@ export class CommentService {
   }
 
   async getComments({ page, itemsPerPage, ...getCommentsDto }: GetCommentsDto) {
+    const userSelect = {
+      id: true,
+      name: true,
+      username: true,
+      profile: {
+        select: {
+          id: true,
+          avatarUrl: true,
+        },
+      },
+    } as const;
+
+    const reactionsInclude = {
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        emoji: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    } as const;
+
     const pagination = await this.databaseService.offsetPagination<CommentFindManyArgs>({
       model: "comment",
-      where: { ...getCommentsDto },
+      where: { ...getCommentsDto, parentId: null },
       page,
       itemsPerPage,
       orderBy: { createdAt: "desc" },
       include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
-              },
+          select: userSelect,
+        },
+        replies: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            user: {
+              select: userSelect,
             },
+            reactions: reactionsInclude,
           },
         },
         anime: {
@@ -121,20 +147,7 @@ export class CommentService {
             imageUrl: true,
           },
         },
-        reactions: {
-          take: 3,
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            emoji: true,
-            createdAt: true,
-            user: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
+        reactions: reactionsInclude,
       },
     });
 

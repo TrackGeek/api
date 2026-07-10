@@ -1,9 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { CommentType } from "@prisma/generated/enums";
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsOptional,
+  IsUUID,
   MaxLength,
   registerDecorator,
   ValidationArguments,
@@ -47,6 +49,21 @@ export class CreateCommentDto {
   @MaxLength(500)
   @ApiProperty({ type: "string", maxLength: 500 })
   readonly content: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiProperty({ type: "boolean", required: false, default: false })
+  readonly isSpoiler?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  @ApiProperty({
+    type: "string",
+    format: "uuid",
+    required: false,
+    description: "Parent comment id when replying",
+  })
+  readonly parentId?: string;
 
   @IsOptional()
   @CommentRequiredForType(CommentType.Anime)
