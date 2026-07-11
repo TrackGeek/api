@@ -276,7 +276,15 @@ export class UserService {
       }
     });
 
-    return { ...user, progressStats, counts, latestReviewType, latestProgressType };
+    const latestFavorite = await this.databaseService.favorite.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: { type: true },
+    });
+
+    const latestFavoriteType = latestFavorite?.type ?? null;
+
+    return { ...user, progressStats, counts, latestReviewType, latestProgressType, latestFavoriteType };
   }
 
   getName(name: string | null | undefined, email: string) {
