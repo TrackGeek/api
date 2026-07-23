@@ -49,7 +49,7 @@ export class TVShowProgressService {
           select: {
             id: true,
             tmdbId: true,
-            backdropUrl: true,
+            posterUrl: true,
             name: true,
           },
         },
@@ -119,7 +119,7 @@ export class TVShowProgressService {
           select: {
             id: true,
             tmdbId: true,
-            backdropUrl: true,
+            posterUrl: true,
             name: true,
           },
         },

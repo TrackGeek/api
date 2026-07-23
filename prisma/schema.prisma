@@ -671,7 +671,7 @@ model Movie {
   isAdult             Boolean?
   tmdbReviewScore     Float?
   belongsToCollection Json?
-  budget              Int?
+  budget              String?
   genres              Json?
   backdropUrl         String?
   homepage            String?
@@ -683,7 +683,7 @@ model Movie {
   productionCompanies Json?
   productionCountries Json?
   releaseDate         DateTime?
-  revenue             Int?
+  revenue             String?
   runtime             Int?
   spokenLanguages     Json?
   status              String?

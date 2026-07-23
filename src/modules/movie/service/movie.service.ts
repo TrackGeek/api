@@ -97,7 +97,11 @@ export class MovieService {
       const tmdbMovie = await this.integrationsService.tmdb.getMovieById(tmdbId);
 
       movie = await this.databaseService.movie.create({
-        data: tmdbMovie as unknown as MovieCreateInput,
+        data: {
+          ...tmdbMovie,
+          budget: String(tmdbMovie.budget),
+          revenue: String(tmdbMovie.revenue),
+        } as unknown as MovieCreateInput,
       });
     }
 
@@ -131,6 +135,8 @@ export class MovieService {
 
     const movieWithStats = {
       ...movie,
+      budget: Number(movie.budget),
+      revenue: Number(movie.revenue),
       tgReviewScore,
       progressStats,
     };
@@ -155,7 +161,11 @@ export class MovieService {
 
     await this.databaseService.movie.update({
       where: { tmdbId: refreshMovieDto.id },
-      data: tmdbMovie as unknown as MovieUpdateInput,
+      data: {
+        ...tmdbMovie,
+        budget: String(tmdbMovie.budget),
+        revenue: String(tmdbMovie.revenue),
+      } as unknown as MovieUpdateInput,
     });
 
     await this.getMovieByTmdbId(refreshMovieDto.id);
