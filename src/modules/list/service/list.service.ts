@@ -111,7 +111,7 @@ export class ListService {
           select: {
             id: true,
             tmdbId: true,
-            backdropUrl: true,
+            posterUrl: true,
             name: true,
           },
         },
@@ -135,7 +135,7 @@ export class ListService {
           select: {
             id: true,
             tmdbId: true,
-            backdropUrl: true,
+            posterUrl: true,
             title: true,
           },
         },
@@ -266,7 +266,7 @@ export class ListService {
               select: {
                 id: true,
                 tmdbId: true,
-                backdropUrl: true,
+                posterUrl: true,
                 name: true,
               },
             },
@@ -290,7 +290,7 @@ export class ListService {
               select: {
                 id: true,
                 tmdbId: true,
-                backdropUrl: true,
+                posterUrl: true,
                 title: true,
               },
             },
@@ -351,7 +351,7 @@ export class ListService {
           select: {
             id: true,
             tmdbId: true,
-            backdropUrl: true,
+            posterUrl: true,
             name: true,
           },
         },
@@ -375,7 +375,7 @@ export class ListService {
           select: {
             id: true,
             tmdbId: true,
-            backdropUrl: true,
+            posterUrl: true,
             title: true,
           },
         },
@@ -455,7 +455,7 @@ export class ListService {
               select: {
                 id: true,
                 tmdbId: true,
-                backdropUrl: true,
+                posterUrl: true,
                 name: true,
               },
             },
@@ -479,7 +479,7 @@ export class ListService {
               select: {
                 id: true,
                 tmdbId: true,
-                backdropUrl: true,
+                posterUrl: true,
                 title: true,
               },
             },

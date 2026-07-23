@@ -116,7 +116,7 @@ export interface TMDBMovieDetails {
     id: number;
     name: string;
   } | null;
-  budget: number;
+  budget: string;
   genres: string[];
   homepage: string | null;
   originalLanguage: string;
@@ -131,7 +131,7 @@ export interface TMDBMovieDetails {
   }[];
   productionCountries: string[];
   releaseDate: Date | null;
-  revenue: number;
+  revenue: string;
   runtime: number | null;
   spokenLanguages: {
     englishName: string;
@@ -715,7 +715,7 @@ export class TMDBService {
               name: movieData.belongs_to_collection.name,
             }
           : null,
-        budget: movieData.budget,
+        budget: movieData.budget.toString(),
         isAdult: movieData.adult,
         genres: movieData.genres.map((genre: any) => genre.name),
         homepage: movieData.homepage,
@@ -731,7 +731,7 @@ export class TMDBService {
         })),
         productionCountries: movieData.production_countries.map((country: any) => country.name),
         releaseDate: movieData.release_date ? new Date(movieData.release_date) : null,
-        revenue: movieData.revenue,
+        revenue: movieData.revenue.toString(),
         runtime: movieData.runtime,
         spokenLanguages: movieData.spoken_languages.map((lang: any) => ({
           englishName: lang.english_name,

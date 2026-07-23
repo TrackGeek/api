@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Movie" ALTER COLUMN "budget" SET DATA TYPE TEXT,
+ALTER COLUMN "revenue" SET DATA TYPE TEXT;
