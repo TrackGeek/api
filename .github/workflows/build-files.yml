@@ -3,14 +3,12 @@ name: Build Files
 on:
   push:
     branches:
-      - main
       - develop
   pull_request:
     types:
       - opened
       - reopened
     branches:
-      - main
       - develop
 
 jobs:

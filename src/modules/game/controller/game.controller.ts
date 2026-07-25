@@ -1,6 +1,19 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "@thallesp/nestjs-better-auth";
+import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { TopGameDto } from "@/modules/game/dto/top-game.dto";
 import { RefreshGameDto } from "../dto/refresh-game.dto";
 import { SearchGameDto } from "../dto/search-game.dto";
@@ -43,5 +56,12 @@ export class GameController {
     const game = await this.gameService.getGameByIgdbId(igdbId);
 
     return { game };
+  }
+
+  @Delete("/tracking/:gameId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard)
+  async resetGameTracking(@Param("gameId", new ParseUUIDPipe()) gameId: string, @Session() session: UserSession) {
+    await this.gameService.resetGameTracking({ gameId, userId: session.user.id });
   }
 }

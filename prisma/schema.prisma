@@ -843,6 +843,9 @@ model GameProgress {
   id          String         @id @default(uuid(7))
   status      ProgressStatus
   playCount   Int?
+  completion  String?
+  progress    Int?
+  notes       String?
   startedAt   DateTime?
   completedAt DateTime?
   userId      String

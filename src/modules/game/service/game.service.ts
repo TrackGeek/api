@@ -129,9 +129,9 @@ export class GameService {
     };
 
     const progressStats = {
-      watching: getStats(ProgressStatus.Watching),
+      playing: getStats(ProgressStatus.Playing),
       completed: getStats(ProgressStatus.Completed),
-      planToWatch: getStats(ProgressStatus.Planning),
+      planToPlay: getStats(ProgressStatus.Planning),
       dropped: getStats(ProgressStatus.Dropped),
     };
 
@@ -168,5 +168,12 @@ export class GameService {
     });
 
     await this.getGameByIgdbId(refreshGameDto.igdbId);
+  }
+
+  async resetGameTracking({ userId, gameId }: { userId: string; gameId: string }) {
+    await this.databaseService.$transaction([
+      this.databaseService.gameReview.deleteMany({ where: { userId, gameId } }),
+      this.databaseService.gameProgress.deleteMany({ where: { userId, gameId } }),
+    ]);
   }
 }
