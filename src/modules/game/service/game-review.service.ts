@@ -63,6 +63,8 @@ export class GameReviewService {
       gameReviewId: gameReview.id,
       metadata: { ...gameReview },
     });
+
+    return gameReview;
   }
 
   async getGameReviewById(gameReviewId: string) {

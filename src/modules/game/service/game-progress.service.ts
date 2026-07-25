@@ -16,7 +16,8 @@ export class GameProgressService {
   ) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
-    const { gameId, userId, status, playCount, completedAt, startedAt } = createOrUpdateGameProgressDto;
+    const { gameId, userId, status, playCount, completion, progress, notes, completedAt, startedAt } =
+      createOrUpdateGameProgressDto;
 
     const gameProgress = await this.databaseService.gameProgress.upsert({
       where: {
@@ -28,6 +29,9 @@ export class GameProgressService {
       update: {
         status,
         playCount,
+        completion,
+        progress,
+        notes,
         completedAt,
         startedAt,
       },
@@ -35,6 +39,9 @@ export class GameProgressService {
         gameId,
         userId,
         playCount,
+        completion,
+        progress,
+        notes,
         status,
         completedAt,
         startedAt,

@@ -27,10 +27,12 @@ export class GameReviewController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createGameReview(@Session() session: UserSession, @Body() body: CreateGameReviewDto) {
-    await this.gameReviewService.createGameReview({
+    const gameReview = await this.gameReviewService.createGameReview({
       ...body,
       userId: session.user.id,
     });
+
+    return { gameReview };
   }
 
   @Get("/")
