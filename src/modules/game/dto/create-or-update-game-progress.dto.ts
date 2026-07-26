@@ -9,7 +9,6 @@ import {
   IsOptional,
   IsPositive,
   IsString,
-  Max,
   MaxLength,
   Min,
 } from "class-validator";
@@ -39,9 +38,8 @@ export class CreateOrUpdateGameProgressDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  @Max(100)
-  @ApiPropertyOptional({ type: "integer", minimum: 0, maximum: 100 })
-  readonly progress?: number;
+  @ApiPropertyOptional({ type: "integer", minimum: 0 })
+  readonly hoursPlayed?: number;
 
   @IsOptional()
   @MaxLength(1000)
