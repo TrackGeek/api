@@ -16,7 +16,7 @@ export class MovieProgressService {
   ) {}
 
   async createOrUpdateMovieProgress(createOrUpdateMovieProgressDto: CreateOrUpdateMovieProgressDto) {
-    const { movieId, userId, status } = createOrUpdateMovieProgressDto;
+    const { movieId, userId, status, watchCount } = createOrUpdateMovieProgressDto;
 
     const movieProgress = await this.databaseService.movieProgress.upsert({
       where: {
@@ -27,11 +27,13 @@ export class MovieProgressService {
       },
       update: {
         status,
+        watchCount,
       },
       create: {
         movieId,
         userId,
         status,
+        watchCount,
       },
       include: {
         movie: {

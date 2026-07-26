@@ -844,7 +844,7 @@ model GameProgress {
   status      ProgressStatus
   playCount   Int?
   completion  String?
-  progress    Int?
+  hoursPlayed Int?
   notes       String?
   startedAt   DateTime?
   completedAt DateTime?

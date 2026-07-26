@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ProgressStatus } from "@prisma/generated/enums";
 import { Transform, Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, MaxLength } from "class-validator";
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateOrUpdateTVShowProgressDto {
   @IsEnum(ProgressStatus)
@@ -13,9 +13,12 @@ export class CreateOrUpdateTVShowProgressDto {
 
   @IsOptional()
   @IsInt()
-  @IsPositive()
+  @Min(0)
+  @Max(999)
   @ApiPropertyOptional({
-    type: "number",
+    type: "integer",
+    minimum: 0,
+    maximum: 999,
   })
   readonly watchCount?: number;
 

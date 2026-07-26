@@ -1,18 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ProgressStatus } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
-import {
-  IsDate,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsPositive,
-  IsString,
-  Max,
-  MaxLength,
-  Min,
-} from "class-validator";
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, MaxLength, Min } from "class-validator";
 
 export class CreateOrUpdateGameProgressDto {
   @IsEnum(ProgressStatus)
@@ -39,9 +28,8 @@ export class CreateOrUpdateGameProgressDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  @Max(100)
-  @ApiPropertyOptional({ type: "integer", minimum: 0, maximum: 100 })
-  readonly progress?: number;
+  @ApiPropertyOptional({ type: "integer", minimum: 0 })
+  readonly hoursPlayed?: number;
 
   @IsOptional()
   @MaxLength(1000)
