@@ -333,7 +333,7 @@ export interface JikanMangaDetails {
 export class JikanService {
   private readonly logger = new Logger(JikanService.name);
 
-  private readonly JIKAN_API_URL = "https://api.jikan.moe/v4";
+  private readonly JIKAN_API_URL = "https://api.tenrai.org/v1";
 
   constructor(
     private readonly httpService: HttpService,
