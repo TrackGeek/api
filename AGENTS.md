@@ -31,4 +31,4 @@ bun types        # TypeScript check
 - NestJS 11 with modular structure (`src/modules/*`)
 - Better Auth for OAuth (10 providers)
 - BullMQ + Redis for background jobs
-- External APIs: Jikan (anime/manga), TMDB (TV/movies), IGDB (games), Hardcover (books)
+- External APIs: Tenrai (anime/manga), TMDB (TV/movies), IGDB (games), Hardcover (books)

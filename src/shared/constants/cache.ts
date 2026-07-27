@@ -60,49 +60,49 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24 * 7,
   },
 
-  JIKAN_SEARCH_ANIMES: {
-    prefix: (filters: Record<string, any>) => `jikan:search:anime:${filtersToString(filters)}`,
+  TENRAI_SEARCH_ANIMES: {
+    prefix: (filters: Record<string, any>) => `tenrai:search:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_SEARCH_MANGAS: {
-    prefix: (filters: Record<string, any>) => `jikan:search:manga:${filtersToString(filters)}`,
+  TENRAI_SEARCH_MANGAS: {
+    prefix: (filters: Record<string, any>) => `tenrai:search:manga:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_ANIME_GENRES: {
-    prefix: "jikan:genres:anime",
+  TENRAI_ANIME_GENRES: {
+    prefix: "tenrai:genres:anime",
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_MANGA_GENRES: {
-    prefix: "jikan:genres:manga",
+  TENRAI_MANGA_GENRES: {
+    prefix: "tenrai:genres:manga",
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_ANIME_BY_ID: {
-    prefix: (malId: number) => `jikan:detail:anime:id:${malId}`,
+  TENRAI_ANIME_BY_ID: {
+    prefix: (malId: number) => `tenrai:detail:anime:id:${malId}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_ANIME_EPISODES_BY_ID: {
+  TENRAI_ANIME_EPISODES_BY_ID: {
     prefix: ({ malId, ...filters }: Record<string, any>) =>
-      `jikan:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
+      `tenrai:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_ANIME_RECOMMENDATIONS: {
-    prefix: (filters: Record<string, any>) => `jikan:recommendations:anime:${filtersToString(filters)}`,
+  TENRAI_ANIME_RECOMMENDATIONS: {
+    prefix: (filters: Record<string, any>) => `tenrai:recommendations:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_MANGA_RECOMMENDATIONS: {
-    prefix: (filters: Record<string, any>) => `jikan:recommendations:manga:${filtersToString(filters)}`,
+  TENRAI_MANGA_RECOMMENDATIONS: {
+    prefix: (filters: Record<string, any>) => `tenrai:recommendations:manga:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_TOP_ANIMES: {
-    prefix: (filters: Record<string, any>) => `jikan:top:anime:${filtersToString(filters)}`,
+  TENRAI_TOP_ANIMES: {
+    prefix: (filters: Record<string, any>) => `tenrai:top:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_TOP_MANGAS: {
-    prefix: (filters: Record<string, any>) => `jikan:top:manga:${filtersToString(filters)}`,
+  TENRAI_TOP_MANGAS: {
+    prefix: (filters: Record<string, any>) => `tenrai:top:manga:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  JIKAN_MANGA_BY_ID: {
-    prefix: (malId: number) => `jikan:detail:manga:id:${malId}`,
+  TENRAI_MANGA_BY_ID: {
+    prefix: (malId: number) => `tenrai:detail:manga:id:${malId}`,
     expiration: 3600 * 24 * 7,
   },
 

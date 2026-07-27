@@ -8,7 +8,7 @@ import { manyRequestWithDelay } from "@/shared/utils/request";
 import { CacheService } from "../cache/cache.service";
 import { DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE } from "../database/database.service";
 
-export interface JikanPagination<I> {
+export interface TenraiPagination<I> {
   total: number | null;
   pages: number;
   inPage: number;
@@ -17,7 +17,7 @@ export interface JikanPagination<I> {
   items: I[];
 }
 
-export enum JikanAnimeType {
+export enum TenraiAnimeType {
   TV = "tv",
   Movie = "movie",
   OVA = "ova",
@@ -29,7 +29,7 @@ export enum JikanAnimeType {
   TVSpecial = "tv_special",
 }
 
-export enum JikanMangaType {
+export enum TenraiMangaType {
   Manga = "manga",
   Novel = "novel",
   LightNovel = "lightnovel",
@@ -39,13 +39,13 @@ export enum JikanMangaType {
   Manhua = "manhua",
 }
 
-export enum JikanAnimeStatus {
+export enum TenraiAnimeStatus {
   Airing = "airing",
   Complete = "complete",
   Upcoming = "upcoming",
 }
 
-export enum JikanMangaStatus {
+export enum TenraiMangaStatus {
   Publishing = "publishing",
   Complete = "complete",
   Hiatus = "hiatus",
@@ -53,7 +53,7 @@ export enum JikanMangaStatus {
   Upcoming = "upcoming",
 }
 
-export enum JikanAnimeRatings {
+export enum TenraiAnimeRatings {
   G = "g",
   PG = "pg",
   PG13 = "pg13",
@@ -62,7 +62,7 @@ export enum JikanAnimeRatings {
   RX = "rx",
 }
 
-export enum JikanAnimeOrderBy {
+export enum TenraiAnimeOrderBy {
   Title = "title",
   StartDate = "start_date",
   EndDate = "end_date",
@@ -70,7 +70,7 @@ export enum JikanAnimeOrderBy {
   Type = "type",
 }
 
-export enum JikanMangaOrderBy {
+export enum TenraiMangaOrderBy {
   Title = "title",
   StartDate = "start_date",
   EndDate = "end_date",
@@ -78,39 +78,39 @@ export enum JikanMangaOrderBy {
   Type = "type",
 }
 
-export enum JikanAnimeFilter {
+export enum TenraiAnimeFilter {
   Airing = "airing",
   Upcoming = "upcoming",
   ByPopularity = "bypopularity",
   Favorite = "favorite",
 }
 
-export enum JikanMangaFilter {
+export enum TenraiMangaFilter {
   Publishing = "publishing",
   Upcoming = "upcoming",
   ByPopularity = "bypopularity",
   Favorite = "favorite",
 }
 
-export enum JikanSort {
+export enum TenraiSort {
   Desc = "desc",
   Asc = "asc",
 }
 
-export interface JikanSearchAnimeOptions {
+export interface TenraiSearchAnimeOptions {
   page?: number;
   query?: string;
-  type?: JikanAnimeType;
-  status?: JikanAnimeStatus;
-  rating?: JikanAnimeRatings;
+  type?: TenraiAnimeType;
+  status?: TenraiAnimeStatus;
+  rating?: TenraiAnimeRatings;
   genres?: string[];
-  orderBy?: JikanAnimeOrderBy;
-  sort?: JikanSort;
+  orderBy?: TenraiAnimeOrderBy;
+  sort?: TenraiSort;
   letter?: string;
   year?: string;
 }
 
-export interface JikanSearchAnime {
+export interface TenraiSearchAnime {
   malId: number;
   title: string;
   type: string;
@@ -122,19 +122,19 @@ export interface JikanSearchAnime {
   isAdult: boolean;
 }
 
-export interface JikanSearchMangaOptions {
+export interface TenraiSearchMangaOptions {
   page?: number;
   query?: string;
-  type?: JikanMangaType;
-  status?: JikanMangaStatus;
+  type?: TenraiMangaType;
+  status?: TenraiMangaStatus;
   genres?: string[];
-  orderBy?: JikanMangaOrderBy;
-  sort?: JikanSort;
+  orderBy?: TenraiMangaOrderBy;
+  sort?: TenraiSort;
   letter?: string;
   year?: string;
 }
 
-export interface JikanSearchManga {
+export interface TenraiSearchManga {
   malId: number;
   title: string;
   type: string;
@@ -145,19 +145,19 @@ export interface JikanSearchManga {
   isAdult: boolean;
 }
 
-export interface JikanAnimeEpisodeOptions {
+export interface TenraiAnimeEpisodeOptions {
   malId: number;
   page?: number;
 }
 
-export interface JikanTopAnimeOptions {
+export interface TenraiTopAnimeOptions {
   page?: number;
-  type?: JikanAnimeType;
-  filter: JikanAnimeFilter;
-  rating?: JikanAnimeRatings;
+  type?: TenraiAnimeType;
+  filter: TenraiAnimeFilter;
+  rating?: TenraiAnimeRatings;
 }
 
-export interface JikanTopAnime {
+export interface TenraiTopAnime {
   malId: number;
   title: string;
   type: string;
@@ -168,13 +168,13 @@ export interface JikanTopAnime {
   isAdult: boolean;
 }
 
-export interface JikanTopMangaOptions {
+export interface TenraiTopMangaOptions {
   page?: number;
-  type?: JikanMangaType;
-  filter: JikanMangaFilter;
+  type?: TenraiMangaType;
+  filter: TenraiMangaFilter;
 }
 
-export interface JikanTopManga {
+export interface TenraiTopManga {
   malId: number;
   title: string;
   type: string;
@@ -185,18 +185,18 @@ export interface JikanTopManga {
   isAdult: boolean;
 }
 
-export interface JikanGenre {
+export interface TenraiGenre {
   malId: number;
   name: string;
   count?: number;
 }
 
-export interface JikanTitle {
+export interface TenraiTitle {
   type: string;
   title: string;
 }
 
-export interface JikanDateProp {
+export interface TenraiDateProp {
   from: string | null;
   to: string | null;
   prop: {
@@ -206,13 +206,13 @@ export interface JikanDateProp {
   string: string | null;
 }
 
-export interface JikanMalEntry {
+export interface TenraiMalEntry {
   malId: number;
   type: string;
   name: string;
 }
 
-export interface JikanRelation {
+export interface TenraiRelation {
   relationType: string;
   entry: {
     malId: number;
@@ -221,25 +221,25 @@ export interface JikanRelation {
   }[];
 }
 
-export interface JikanVideo {
+export interface TenraiVideo {
   embedUrl: string | null;
   youtubeId: string | null;
   url: string | null;
 }
 
-export interface JikanAnimeDetails {
+export interface TenraiAnimeDetails {
   malId: number;
   url: string;
   imageUrl: string | null;
-  trailer: JikanVideo;
+  trailer: TenraiVideo;
   title: string;
-  titles: JikanTitle[];
+  titles: TenraiTitle[];
   type: string | null;
   source: string | null;
   malReviewScore: number | null;
   numberOfEpisodes: number | null;
   status: string | null;
-  aired: JikanDateProp;
+  aired: TenraiDateProp;
   duration: string | null;
   rating: string | null;
   rank: number | null;
@@ -254,9 +254,9 @@ export interface JikanAnimeDetails {
     timezone: string | null;
     string: string | null;
   };
-  producers: JikanMalEntry[];
-  licensors: JikanMalEntry[];
-  studios: JikanMalEntry[];
+  producers: TenraiMalEntry[];
+  licensors: TenraiMalEntry[];
+  studios: TenraiMalEntry[];
   genres: string[];
   explicitGenres: string[];
   themes: string[];
@@ -283,39 +283,39 @@ export interface JikanAnimeDetails {
   videos: {
     promo: {
       title: string;
-      video: JikanVideo;
+      video: TenraiVideo;
     }[];
     musicVideos: {
       title: string;
       author: string;
-      video: JikanVideo;
+      video: TenraiVideo;
     }[];
   };
 }
 
-export interface JikanAnimeEpisode {
+export interface TenraiAnimeEpisode {
   malId: number;
   title: string;
   episodeNumber: string;
   imageUrl: string | null;
 }
 
-export interface JikanMangaDetails {
+export interface TenraiMangaDetails {
   malId: number;
   url: string;
   imageUrl: string | null;
   title: string;
-  titles: JikanTitle[];
+  titles: TenraiTitle[];
   type: string | null;
   numberOfChapters: number | null;
   numberOfVolumes: number | null;
   status: string | null;
-  published: JikanDateProp;
+  published: TenraiDateProp;
   rank: number | null;
   popularity: number;
   synopsis: string | null;
-  authors: JikanMalEntry[];
-  serializations: JikanMalEntry[];
+  authors: TenraiMalEntry[];
+  serializations: TenraiMalEntry[];
   genres: string[];
   explicitGenres: string[];
   themes: string[];
@@ -330,10 +330,10 @@ export interface JikanMangaDetails {
 }
 
 @Injectable()
-export class JikanService {
-  private readonly logger = new Logger(JikanService.name);
+export class TenraiService {
+  private readonly logger = new Logger(TenraiService.name);
 
-  private readonly JIKAN_API_URL = "https://api.tenrai.org/v1";
+  private readonly TENRAI_API_URL = "https://api.tenrai.org/v1";
 
   constructor(
     private readonly httpService: HttpService,
@@ -351,7 +351,7 @@ export class JikanService {
     genres,
     letter,
     year,
-  }: JikanSearchAnimeOptions): Promise<JikanPagination<JikanSearchAnime>> {
+  }: TenraiSearchAnimeOptions): Promise<TenraiPagination<TenraiSearchAnime>> {
     try {
       const searchAnimeOptions = {
         query,
@@ -368,16 +368,16 @@ export class JikanService {
         endDate: year ? `${year}-12-31` : undefined,
       };
 
-      const searchAnimeKey = CACHE_KEYS.JIKAN_SEARCH_ANIMES.prefix({ ...searchAnimeOptions });
+      const searchAnimeKey = CACHE_KEYS.TENRAI_SEARCH_ANIMES.prefix({ ...searchAnimeOptions });
 
-      const cachedAnimes = await this.cacheService.get<JikanPagination<JikanSearchAnime>>(searchAnimeKey);
+      const cachedAnimes = await this.cacheService.get<TenraiPagination<TenraiSearchAnime>>(searchAnimeKey);
 
       if (cachedAnimes) {
         return cachedAnimes;
       }
 
       const animesResponse = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/anime`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/anime`, {
           params: {
             q: searchAnimeOptions.query,
             page: searchAnimeOptions.page,
@@ -398,7 +398,7 @@ export class JikanService {
       const itemsData = animesResponse.data.data;
       const paginationData = animesResponse.data.pagination;
 
-      const items: JikanSearchAnime[] = itemsData.map((anime: any) => ({
+      const items: TenraiSearchAnime[] = itemsData.map((anime: any) => ({
         malId: anime.mal_id,
         title: anime.title,
         type: anime.type,
@@ -413,7 +413,7 @@ export class JikanService {
         isAdult: anime.genres ? anime.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
-      const animes: JikanPagination<JikanSearchAnime> = {
+      const animes: TenraiPagination<TenraiSearchAnime> = {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: searchAnimeOptions.page,
@@ -422,10 +422,10 @@ export class JikanService {
         items,
       };
 
-      await this.cacheService.set<JikanPagination<JikanSearchAnime>>(
+      await this.cacheService.set<TenraiPagination<TenraiSearchAnime>>(
         searchAnimeKey,
         animes,
-        CACHE_KEYS.JIKAN_SEARCH_ANIMES.expiration,
+        CACHE_KEYS.TENRAI_SEARCH_ANIMES.expiration,
       );
 
       return animes;
@@ -434,9 +434,9 @@ export class JikanService {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to search animes from Jikan API`, error);
+      this.logger.error(`Failed to search animes from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
@@ -450,7 +450,7 @@ export class JikanService {
     genres,
     letter,
     year,
-  }: JikanSearchMangaOptions): Promise<JikanPagination<JikanSearchManga>> {
+  }: TenraiSearchMangaOptions): Promise<TenraiPagination<TenraiSearchManga>> {
     try {
       const searchMangaOptions = {
         query: query,
@@ -466,16 +466,16 @@ export class JikanService {
         endDate: year ? `${year}-12-31` : undefined,
       };
 
-      const searchMangaKey = CACHE_KEYS.JIKAN_SEARCH_MANGAS.prefix({ ...searchMangaOptions });
+      const searchMangaKey = CACHE_KEYS.TENRAI_SEARCH_MANGAS.prefix({ ...searchMangaOptions });
 
-      const cachedMangas = await this.cacheService.get<JikanPagination<JikanSearchManga>>(searchMangaKey);
+      const cachedMangas = await this.cacheService.get<TenraiPagination<TenraiSearchManga>>(searchMangaKey);
 
       if (cachedMangas) {
         return cachedMangas;
       }
 
       const mangasResponse = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/manga`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/manga`, {
           params: {
             q: searchMangaOptions.query,
             limit: searchMangaOptions.limit,
@@ -518,10 +518,10 @@ export class JikanService {
         items,
       };
 
-      await this.cacheService.set<JikanPagination<JikanSearchManga>>(
+      await this.cacheService.set<TenraiPagination<TenraiSearchManga>>(
         searchMangaKey,
         mangas,
-        CACHE_KEYS.JIKAN_SEARCH_MANGAS.expiration,
+        CACHE_KEYS.TENRAI_SEARCH_MANGAS.expiration,
       );
 
       return mangas;
@@ -530,21 +530,21 @@ export class JikanService {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to search mangas from Jikan API`, error);
+      this.logger.error(`Failed to search mangas from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
-  async getAnimeGenres(): Promise<JikanGenre[]> {
+  async getAnimeGenres(): Promise<TenraiGenre[]> {
     try {
-      const cachedGenres = await this.cacheService.get<JikanGenre[]>(CACHE_KEYS.JIKAN_ANIME_GENRES.prefix);
+      const cachedGenres = await this.cacheService.get<TenraiGenre[]>(CACHE_KEYS.TENRAI_ANIME_GENRES.prefix);
 
       if (cachedGenres) {
         return cachedGenres;
       }
 
-      const genresResponse = await firstValueFrom(this.httpService.get(`${this.JIKAN_API_URL}/genres/anime`));
+      const genresResponse = await firstValueFrom(this.httpService.get(`${this.TENRAI_API_URL}/genres/anime`));
 
       const genresData = genresResponse.data.data;
 
@@ -552,31 +552,31 @@ export class JikanService {
         malId: genre.mal_id,
         name: genre.name,
         count: genre.count,
-      })) as JikanGenre[];
+      })) as TenraiGenre[];
 
       await this.cacheService.set(
-        CACHE_KEYS.JIKAN_ANIME_GENRES.prefix,
+        CACHE_KEYS.TENRAI_ANIME_GENRES.prefix,
         genres,
-        CACHE_KEYS.JIKAN_ANIME_GENRES.expiration,
+        CACHE_KEYS.TENRAI_ANIME_GENRES.expiration,
       );
 
       return genres;
     } catch (error: any) {
-      this.logger.error("Failed to fetch anime genres from Jikan API", error);
+      this.logger.error("Failed to fetch anime genres from Tenrai API", error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
   async getMangaGenres() {
     try {
-      const cachedGenres = await this.cacheService.get<JikanGenre[]>(CACHE_KEYS.JIKAN_MANGA_GENRES.prefix);
+      const cachedGenres = await this.cacheService.get<TenraiGenre[]>(CACHE_KEYS.TENRAI_MANGA_GENRES.prefix);
 
       if (cachedGenres) {
         return cachedGenres;
       }
 
-      const genresResponse = await firstValueFrom(this.httpService.get(`${this.JIKAN_API_URL}/genres/manga`));
+      const genresResponse = await firstValueFrom(this.httpService.get(`${this.TENRAI_API_URL}/genres/manga`));
 
       const genresData = genresResponse.data.data;
 
@@ -584,23 +584,23 @@ export class JikanService {
         malId: genre.mal_id,
         name: genre.name,
         count: genre.count,
-      })) as JikanGenre[];
+      })) as TenraiGenre[];
 
       await this.cacheService.set(
-        CACHE_KEYS.JIKAN_MANGA_GENRES.prefix,
+        CACHE_KEYS.TENRAI_MANGA_GENRES.prefix,
         genres,
-        CACHE_KEYS.JIKAN_MANGA_GENRES.expiration,
+        CACHE_KEYS.TENRAI_MANGA_GENRES.expiration,
       );
 
       return genres;
     } catch (error: any) {
-      this.logger.error("Failed to fetch manga genres from Jikan API", error);
+      this.logger.error("Failed to fetch manga genres from Tenrai API", error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
-  async topAnimes({ page = DEFAULT_PAGINATION_PAGE, filter, rating, type }: JikanTopAnimeOptions) {
+  async topAnimes({ page = DEFAULT_PAGINATION_PAGE, filter, rating, type }: TenraiTopAnimeOptions) {
     try {
       const topAnimesOptions = {
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
@@ -610,16 +610,16 @@ export class JikanService {
         type,
       };
 
-      const topAnimesKey = CACHE_KEYS.JIKAN_TOP_ANIMES.prefix({ ...topAnimesOptions });
+      const topAnimesKey = CACHE_KEYS.TENRAI_TOP_ANIMES.prefix({ ...topAnimesOptions });
 
-      const cachedTopAnimes = await this.cacheService.get<JikanPagination<JikanTopAnime>>(topAnimesKey);
+      const cachedTopAnimes = await this.cacheService.get<TenraiPagination<TenraiTopAnime>>(topAnimesKey);
 
       if (cachedTopAnimes) {
         return cachedTopAnimes;
       }
 
       const topResponse = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/top/anime`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/top/anime`, {
           params: { ...topAnimesOptions },
         }),
       );
@@ -642,7 +642,7 @@ export class JikanService {
         isAdult: anime.genres ? anime.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
-      const topAnimes: JikanPagination<JikanTopAnime> = {
+      const topAnimes: TenraiPagination<TenraiTopAnime> = {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: topAnimesOptions.page,
@@ -651,21 +651,21 @@ export class JikanService {
         items,
       };
 
-      await this.cacheService.set<JikanPagination<JikanTopAnime>>(
+      await this.cacheService.set<TenraiPagination<TenraiTopAnime>>(
         topAnimesKey,
         topAnimes,
-        CACHE_KEYS.JIKAN_TOP_ANIMES.expiration,
+        CACHE_KEYS.TENRAI_TOP_ANIMES.expiration,
       );
 
       return topAnimes;
     } catch (error: any) {
-      this.logger.error("Failed to fetch top animes from Jikan API", error);
+      this.logger.error("Failed to fetch top animes from Tenrai API", error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
-  async topMangas({ page = DEFAULT_PAGINATION_PAGE, filter, type }: JikanTopMangaOptions) {
+  async topMangas({ page = DEFAULT_PAGINATION_PAGE, filter, type }: TenraiTopMangaOptions) {
     try {
       const topMangasOptions = {
         limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
@@ -674,16 +674,16 @@ export class JikanService {
         type,
       };
 
-      const topMangasKey = CACHE_KEYS.JIKAN_TOP_MANGAS.prefix({ ...topMangasOptions });
+      const topMangasKey = CACHE_KEYS.TENRAI_TOP_MANGAS.prefix({ ...topMangasOptions });
 
-      const cachedTopMangas = await this.cacheService.get<JikanPagination<JikanTopManga>>(topMangasKey);
+      const cachedTopMangas = await this.cacheService.get<TenraiPagination<TenraiTopManga>>(topMangasKey);
 
       if (cachedTopMangas) {
         return cachedTopMangas;
       }
 
       const topResponse = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/top/manga`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/top/manga`, {
           params: { ...topMangasOptions },
         }),
       );
@@ -704,7 +704,7 @@ export class JikanService {
         isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
       }));
 
-      const topMangas: JikanPagination<JikanTopManga> = {
+      const topMangas: TenraiPagination<TenraiTopManga> = {
         total: paginationData.items.total,
         pages: paginationData.last_visible_page,
         inPage: topMangasOptions.page,
@@ -713,23 +713,23 @@ export class JikanService {
         items,
       };
 
-      await this.cacheService.set<JikanPagination<JikanTopManga>>(
+      await this.cacheService.set<TenraiPagination<TenraiTopManga>>(
         topMangasKey,
         topMangas,
-        CACHE_KEYS.JIKAN_TOP_MANGAS.expiration,
+        CACHE_KEYS.TENRAI_TOP_MANGAS.expiration,
       );
 
       return topMangas;
     } catch (error: any) {
-      this.logger.error("Failed to fetch top mangas from Jikan API", error);
+      this.logger.error("Failed to fetch top mangas from Tenrai API", error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
-  async getAnimeById(id: number): Promise<JikanAnimeDetails> {
+  async getAnimeById(id: number): Promise<TenraiAnimeDetails> {
     try {
-      const cachedAnime = await this.cacheService.get<JikanAnimeDetails>(CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id));
+      const cachedAnime = await this.cacheService.get<TenraiAnimeDetails>(CACHE_KEYS.TENRAI_ANIME_BY_ID.prefix(id));
 
       if (cachedAnime) {
         return cachedAnime;
@@ -738,10 +738,10 @@ export class JikanService {
       const [animeFullResponse, charactersResponse, staffResponse, videosResponse] = await manyRequestWithDelay({
         httpService: this.httpService,
         urls: [
-          `${this.JIKAN_API_URL}/anime/${id}/full`,
-          `${this.JIKAN_API_URL}/anime/${id}/characters`,
-          `${this.JIKAN_API_URL}/anime/${id}/staff`,
-          `${this.JIKAN_API_URL}/anime/${id}/videos`,
+          `${this.TENRAI_API_URL}/anime/${id}/full`,
+          `${this.TENRAI_API_URL}/anime/${id}/characters`,
+          `${this.TENRAI_API_URL}/anime/${id}/staff`,
+          `${this.TENRAI_API_URL}/anime/${id}/videos`,
         ],
       });
 
@@ -800,7 +800,7 @@ export class JikanService {
 
       if (numberOfEpisodes === null) {
         const episodesResponse = await firstValueFrom(
-          this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/videos/episodes`, {
+          this.httpService.get(`${this.TENRAI_API_URL}/anime/${id}/videos/episodes`, {
             params: { page: 1 },
           }),
         );
@@ -864,12 +864,12 @@ export class JikanService {
         cast,
         videos,
         malReviewScore: animeFullData?.score ?? 0,
-      } as JikanAnimeDetails;
+      } as TenraiAnimeDetails;
 
       await this.cacheService.set(
-        CACHE_KEYS.JIKAN_ANIME_BY_ID.prefix(id),
+        CACHE_KEYS.TENRAI_ANIME_BY_ID.prefix(id),
         anime,
-        CACHE_KEYS.JIKAN_ANIME_BY_ID.expiration,
+        CACHE_KEYS.TENRAI_ANIME_BY_ID.expiration,
       );
 
       return anime;
@@ -878,16 +878,16 @@ export class JikanService {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch anime details for ID ${id} from Jikan API`, error);
+      this.logger.error(`Failed to fetch anime details for ID ${id} from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
   async getAnimeRelationsById(id: number) {
     try {
       const relationsResponse = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/anime/${id}/relations`),
+        this.httpService.get(`${this.TENRAI_API_URL}/anime/${id}/relations`),
       );
 
       const relationsData = relationsResponse.data.data;
@@ -898,7 +898,7 @@ export class JikanService {
 
       if (allEntries.length > 0) {
         const urls = allEntries.map(
-          (entry) => `${this.JIKAN_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
+          (entry) => `${this.TENRAI_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
         );
 
         const responses = await manyRequestWithDelay({
@@ -931,40 +931,40 @@ export class JikanService {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch anime relations for ID ${id} from Jikan API`, error);
+      this.logger.error(`Failed to fetch anime relations for ID ${id} from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
   async getAnimeEpisodesById({
     malId,
     page = DEFAULT_PAGINATION_PAGE,
-  }: JikanAnimeEpisodeOptions): Promise<JikanPagination<JikanAnimeEpisode>> {
+  }: TenraiAnimeEpisodeOptions): Promise<TenraiPagination<TenraiAnimeEpisode>> {
     try {
-      const cacheKey = CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.prefix({ malId, page });
-      const cached = await this.cacheService.get<JikanPagination<JikanAnimeEpisode>>(cacheKey);
+      const cacheKey = CACHE_KEYS.TENRAI_ANIME_EPISODES_BY_ID.prefix({ malId, page });
+      const cached = await this.cacheService.get<TenraiPagination<TenraiAnimeEpisode>>(cacheKey);
 
       if (cached) {
         return cached;
       }
 
       const response = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/anime/${malId}/videos/episodes`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/anime/${malId}/videos/episodes`, {
           params: { page },
         }),
       );
 
       const paginationData = response.data.pagination;
 
-      const items: JikanAnimeEpisode[] = (response.data.data ?? []).map((video: any) => ({
+      const items: TenraiAnimeEpisode[] = (response.data.data ?? []).map((video: any) => ({
         malId: video.mal_id,
         title: video.title,
         episodeNumber: video.episode,
         imageUrl: video.images?.jpg?.image_url ?? null,
       }));
 
-      const result: JikanPagination<JikanAnimeEpisode> = {
+      const result: TenraiPagination<TenraiAnimeEpisode> = {
         total: null,
         pages: paginationData.last_visible_page,
         inPage: page,
@@ -973,7 +973,7 @@ export class JikanService {
         items,
       };
 
-      await this.cacheService.set(cacheKey, result, CACHE_KEYS.JIKAN_ANIME_EPISODES_BY_ID.expiration);
+      await this.cacheService.set(cacheKey, result, CACHE_KEYS.TENRAI_ANIME_EPISODES_BY_ID.expiration);
 
       return result;
     } catch (error: any) {
@@ -981,15 +981,15 @@ export class JikanService {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch anime episodes for ID ${malId} from Jikan API`, error);
+      this.logger.error(`Failed to fetch anime episodes for ID ${malId} from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
-  async getMangaById(id: number): Promise<JikanMangaDetails> {
+  async getMangaById(id: number): Promise<TenraiMangaDetails> {
     try {
-      const cachedManga = await this.cacheService.get<JikanMangaDetails>(CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id));
+      const cachedManga = await this.cacheService.get<TenraiMangaDetails>(CACHE_KEYS.TENRAI_MANGA_BY_ID.prefix(id));
 
       if (cachedManga) {
         return cachedManga;
@@ -997,7 +997,7 @@ export class JikanService {
 
       const [mangaFullResponse, charactersResponse] = await manyRequestWithDelay({
         httpService: this.httpService,
-        urls: [`${this.JIKAN_API_URL}/manga/${id}/full`, `${this.JIKAN_API_URL}/manga/${id}/characters`],
+        urls: [`${this.TENRAI_API_URL}/manga/${id}/full`, `${this.TENRAI_API_URL}/manga/${id}/characters`],
       });
 
       const mangaFullData = mangaFullResponse.data.data;
@@ -1046,12 +1046,12 @@ export class JikanService {
         external: mangaFullData.external ? mangaFullData.external : [],
         characters,
         malReviewScore: mangaFullData?.score ?? 0,
-      } as JikanMangaDetails;
+      } as TenraiMangaDetails;
 
       await this.cacheService.set(
-        CACHE_KEYS.JIKAN_MANGA_BY_ID.prefix(id),
+        CACHE_KEYS.TENRAI_MANGA_BY_ID.prefix(id),
         manga,
-        CACHE_KEYS.JIKAN_MANGA_BY_ID.expiration,
+        CACHE_KEYS.TENRAI_MANGA_BY_ID.expiration,
       );
 
       return manga;
@@ -1060,16 +1060,16 @@ export class JikanService {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch manga details for ID ${id} from Jikan API`, error);
+      this.logger.error(`Failed to fetch manga details for ID ${id} from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 
   async getMangaRelationsById(id: number) {
     try {
       const relationsResponse = await firstValueFrom(
-        this.httpService.get(`${this.JIKAN_API_URL}/manga/${id}/relations`),
+        this.httpService.get(`${this.TENRAI_API_URL}/manga/${id}/relations`),
       );
 
       const relationsData = relationsResponse.data.data;
@@ -1080,7 +1080,7 @@ export class JikanService {
 
       if (allEntries.length > 0) {
         const urls = allEntries.map(
-          (entry) => `${this.JIKAN_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
+          (entry) => `${this.TENRAI_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
         );
 
         const responses = await manyRequestWithDelay({
@@ -1113,9 +1113,9 @@ export class JikanService {
         throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
       }
 
-      this.logger.error(`Failed to fetch anime relations for ID ${id} from Jikan API`, error);
+      this.logger.error(`Failed to fetch anime relations for ID ${id} from Tenrai API`, error);
 
-      throw new AppException(ERROR_CODES.JIKAN_SERVICE_UNAVAILABLE);
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
   }
 }

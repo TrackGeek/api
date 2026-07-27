@@ -30,7 +30,7 @@
 
 TrackGeek API is a NestJS-based backend that powers a unified media tracking platform. Users can track their progress across six different media types — **Anime**, **Manga**, **TV Shows**, **Movies**, **Games**, and **Books** — while interacting with a social community through reviews, comments, reactions, and activity feeds.
 
-The API integrates with external media databases (Jikan, TMDB, IGDB, Hardcover) to provide rich metadata and uses background job processing for async tasks like email delivery and feed event aggregation.
+The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover) to provide rich metadata and uses background job processing for async tasks like email delivery and feed event aggregation.
 
 </samp>
 
@@ -104,7 +104,7 @@ The API integrates with external media databases (Jikan, TMDB, IGDB, Hardcover) 
 
 | Service                            | Purpose                                |
 |------------------------------------|----------------------------------------|
-| [Jikan](https://jikan.moe)         | Anime and Manga metadata (MyAnimeList) |
+| [Tenrai](https://tenrai.org)       | Anime and Manga metadata (MyAnimeList) |
 | [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata           |
 | [IGDB](https://www.igdb.com)       | Video Games metadata                   |
 | [Hardcover](https://hardcover.app) | Books metadata                         |
@@ -156,7 +156,7 @@ src/
         ├── email/                   # Resend email service + templates
         ├── health/                  # Health check endpoints
         ├── i18n/                    # Internationalization
-        ├── integrations/            # External API clients (Jikan, TMDB, IGDB, Hardcover)
+        ├── integrations/            # External API clients (Tenrai, TMDB, IGDB, Hardcover)
         ├── metrics/                 # Prometheus metrics
         ├── queue/                   # BullMQ queue setup and processors
         └── upload/                  # File upload service (ImgBB)

@@ -1,11 +1,11 @@
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 import {
-  JikanMangaOrderBy,
-  JikanMangaStatus,
-  JikanMangaType,
-  JikanSort,
-} from "@/shared/infra/integrations/jikan.service";
+  TenraiMangaOrderBy,
+  TenraiMangaStatus,
+  TenraiMangaType,
+  TenraiSort,
+} from "@/shared/infra/integrations/tenrai.service";
 
 export class SearchMangaDto {
   @IsOptional()
@@ -17,26 +17,26 @@ export class SearchMangaDto {
   @IsOptional()
   readonly page?: number;
 
-  @IsEnum(JikanMangaType)
+  @IsEnum(TenraiMangaType)
   @IsOptional()
-  readonly type?: JikanMangaType;
+  readonly type?: TenraiMangaType;
 
-  @IsEnum(JikanMangaStatus)
+  @IsEnum(TenraiMangaStatus)
   @IsOptional()
-  readonly status?: JikanMangaStatus;
+  readonly status?: TenraiMangaStatus;
 
   @Transform(({ value }) => (value as string).split(","))
   @IsArray()
   @IsOptional()
   readonly genres?: string[];
 
-  @IsEnum(JikanMangaOrderBy)
+  @IsEnum(TenraiMangaOrderBy)
   @IsOptional()
-  readonly orderBy?: JikanMangaOrderBy;
+  readonly orderBy?: TenraiMangaOrderBy;
 
-  @IsEnum(JikanSort)
+  @IsEnum(TenraiSort)
   @IsOptional()
-  readonly sort?: JikanSort;
+  readonly sort?: TenraiSort;
 
   @Matches(/^[a-zA-Z]$/)
   @IsOptional()

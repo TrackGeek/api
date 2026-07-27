@@ -2,12 +2,12 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 import {
-  JikanAnimeOrderBy,
-  JikanAnimeRatings,
-  JikanAnimeStatus,
-  JikanAnimeType,
-  JikanSort,
-} from "@/shared/infra/integrations/jikan.service";
+  TenraiAnimeOrderBy,
+  TenraiAnimeRatings,
+  TenraiAnimeStatus,
+  TenraiAnimeType,
+  TenraiSort,
+} from "@/shared/infra/integrations/tenrai.service";
 
 export class SearchAnimeDto {
   @IsOptional()
@@ -23,35 +23,35 @@ export class SearchAnimeDto {
   @ApiPropertyOptional({ type: "integer", minimum: 1 })
   readonly page?: number;
 
-  @IsEnum(JikanAnimeType)
+  @IsEnum(TenraiAnimeType)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanAnimeType })
-  readonly type?: JikanAnimeType;
+  @ApiPropertyOptional({ enum: TenraiAnimeType })
+  readonly type?: TenraiAnimeType;
 
-  @IsEnum(JikanAnimeStatus)
+  @IsEnum(TenraiAnimeStatus)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanAnimeStatus })
-  readonly status?: JikanAnimeStatus;
+  @ApiPropertyOptional({ enum: TenraiAnimeStatus })
+  readonly status?: TenraiAnimeStatus;
 
-  @IsEnum(JikanAnimeRatings)
+  @IsEnum(TenraiAnimeRatings)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanAnimeRatings })
-  readonly rating?: JikanAnimeRatings;
+  @ApiPropertyOptional({ enum: TenraiAnimeRatings })
+  readonly rating?: TenraiAnimeRatings;
 
   @Transform(({ value }) => (value as string).split(","))
   @IsArray()
   @IsOptional()
   readonly genres?: string[];
 
-  @IsEnum(JikanAnimeOrderBy)
+  @IsEnum(TenraiAnimeOrderBy)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanAnimeOrderBy })
-  readonly orderBy?: JikanAnimeOrderBy;
+  @ApiPropertyOptional({ enum: TenraiAnimeOrderBy })
+  readonly orderBy?: TenraiAnimeOrderBy;
 
-  @IsEnum(JikanSort)
+  @IsEnum(TenraiSort)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanSort })
-  readonly sort?: JikanSort;
+  @ApiPropertyOptional({ enum: TenraiSort })
+  readonly sort?: TenraiSort;
 
   @Matches(/^[a-zA-Z]$/)
   @IsOptional()

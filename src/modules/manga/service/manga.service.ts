@@ -7,11 +7,11 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
-  JikanMangaOrderBy,
-  JikanMangaStatus,
-  JikanMangaType,
-  JikanSort,
-} from "@/shared/infra/integrations/jikan.service";
+  TenraiMangaOrderBy,
+  TenraiMangaStatus,
+  TenraiMangaType,
+  TenraiSort,
+} from "@/shared/infra/integrations/tenrai.service";
 import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { TopMangaDto } from "../dto/top-manga.dto";
@@ -24,10 +24,10 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    const jikanPagination = await this.integrationsService.jikan.searchMangas(searchMangaDto);
+    const tenraiPagination = await this.integrationsService.tenrai.searchMangas(searchMangaDto);
 
     const items = await Promise.all(
-      jikanPagination.items.map(async (item) => {
+      tenraiPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.mangaReview
           .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
           .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
@@ -47,16 +47,16 @@ export class MangaService {
     );
 
     return {
-      ...jikanPagination,
+      ...tenraiPagination,
       items,
     };
   }
 
   async topMangas(topMangaDto: TopMangaDto) {
-    const jikanPagination = await this.integrationsService.jikan.topMangas(topMangaDto);
+    const tenraiPagination = await this.integrationsService.tenrai.topMangas(topMangaDto);
 
     const items = await Promise.all(
-      jikanPagination.items.map(async (item) => {
+      tenraiPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.mangaReview
           .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
           .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
@@ -76,17 +76,17 @@ export class MangaService {
     );
 
     return {
-      ...jikanPagination,
+      ...tenraiPagination,
       items,
     };
   }
 
   async mangaFilters() {
-    const types = Object.values(JikanMangaType);
-    const status = Object.values(JikanMangaStatus);
-    const orderBy = Object.values(JikanMangaOrderBy);
-    const sort = Object.values(JikanSort);
-    const genres = await this.integrationsService.jikan.getMangaGenres();
+    const types = Object.values(TenraiMangaType);
+    const status = Object.values(TenraiMangaStatus);
+    const orderBy = Object.values(TenraiMangaOrderBy);
+    const sort = Object.values(TenraiSort);
+    const genres = await this.integrationsService.tenrai.getMangaGenres();
 
     return {
       types,
@@ -103,10 +103,10 @@ export class MangaService {
     });
 
     if (!manga) {
-      const jikanManga = await this.integrationsService.jikan.getMangaById(malId);
+      const tenraiManga = await this.integrationsService.tenrai.getMangaById(malId);
 
       manga = await this.databaseService.manga.create({
-        data: jikanManga as unknown as MangaCreateInput,
+        data: tenraiManga as unknown as MangaCreateInput,
       });
     }
 
@@ -161,7 +161,7 @@ export class MangaService {
       return manga.relations;
     }
 
-    const relations = await this.integrationsService.jikan.getMangaRelationsById(malId);
+    const relations = await this.integrationsService.tenrai.getMangaRelationsById(malId);
 
     await this.databaseService.manga.update({
       where: { malId },
@@ -187,12 +187,12 @@ export class MangaService {
       throw new AppException(ERROR_CODES.MANGA_ALREADY_REFRESHED);
     }
 
-    const jikanManga = await this.integrationsService.jikan.getMangaById(refreshMangaDto.malId);
-    const jikanRelations = await this.integrationsService.jikan.getMangaRelationsById(refreshMangaDto.malId);
+    const tenraiManga = await this.integrationsService.tenrai.getMangaById(refreshMangaDto.malId);
+    const tenraiRelations = await this.integrationsService.tenrai.getMangaRelationsById(refreshMangaDto.malId);
 
     await this.databaseService.manga.update({
       where: { malId: refreshMangaDto.malId },
-      data: { ...jikanManga, relations: jikanRelations } as unknown as MangaUpdateInput,
+      data: { ...tenraiManga, relations: tenraiRelations } as unknown as MangaUpdateInput,
     });
 
     await this.getMangaByMalId(refreshMangaDto.malId);

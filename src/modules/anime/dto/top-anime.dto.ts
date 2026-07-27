@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsPositive } from "class-validator";
-import { JikanAnimeFilter, JikanAnimeRatings, JikanAnimeType } from "@/shared/infra/integrations/jikan.service";
+import { TenraiAnimeFilter, TenraiAnimeRatings, TenraiAnimeType } from "@/shared/infra/integrations/tenrai.service";
 
 export class TopAnimeDto {
   @Type(() => Number)
@@ -11,17 +11,17 @@ export class TopAnimeDto {
   @ApiPropertyOptional({ type: "integer", minimum: 0 })
   readonly page?: number;
 
-  @IsEnum(JikanAnimeType)
+  @IsEnum(TenraiAnimeType)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanAnimeType })
-  readonly type?: JikanAnimeType;
+  @ApiPropertyOptional({ enum: TenraiAnimeType })
+  readonly type?: TenraiAnimeType;
 
-  @IsEnum(JikanAnimeFilter)
-  @ApiProperty({ enum: JikanAnimeFilter })
-  readonly filter: JikanAnimeFilter;
+  @IsEnum(TenraiAnimeFilter)
+  @ApiProperty({ enum: TenraiAnimeFilter })
+  readonly filter: TenraiAnimeFilter;
 
-  @IsEnum(JikanAnimeRatings)
+  @IsEnum(TenraiAnimeRatings)
   @IsOptional()
-  @ApiPropertyOptional({ enum: JikanAnimeRatings })
-  readonly rating?: JikanAnimeRatings;
+  @ApiPropertyOptional({ enum: TenraiAnimeRatings })
+  readonly rating?: TenraiAnimeRatings;
 }

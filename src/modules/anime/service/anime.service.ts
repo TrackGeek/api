@@ -7,12 +7,12 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService, DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
-  JikanAnimeOrderBy,
-  JikanAnimeRatings,
-  JikanAnimeStatus,
-  JikanAnimeType,
-  JikanSort,
-} from "@/shared/infra/integrations/jikan.service";
+  TenraiAnimeOrderBy,
+  TenraiAnimeRatings,
+  TenraiAnimeStatus,
+  TenraiAnimeType,
+  TenraiSort,
+} from "@/shared/infra/integrations/tenrai.service";
 import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
@@ -26,10 +26,10 @@ export class AnimeService {
   ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
-    const jikanPagination = await this.integrationsService.jikan.searchAnimes(searchAnimeDto);
+    const tenraiPagination = await this.integrationsService.tenrai.searchAnimes(searchAnimeDto);
 
     const items = await Promise.all(
-      jikanPagination.items.map(async (item) => {
+      tenraiPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.animeReview
           .aggregate({ where: { anime: { malId: item.malId } }, _avg: { overall: true } })
           .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
@@ -49,16 +49,16 @@ export class AnimeService {
     );
 
     return {
-      ...jikanPagination,
+      ...tenraiPagination,
       items,
     };
   }
 
   async topAnimes(topAnimeDto: TopAnimeDto) {
-    const jikanPagination = await this.integrationsService.jikan.topAnimes(topAnimeDto);
+    const tenraiPagination = await this.integrationsService.tenrai.topAnimes(topAnimeDto);
 
     const items = await Promise.all(
-      jikanPagination.items.map(async (item) => {
+      tenraiPagination.items.map(async (item) => {
         const tgReviewScore = await this.databaseService.animeReview
           .aggregate({ where: { anime: { malId: item.malId } }, _avg: { overall: true } })
           .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
@@ -78,18 +78,18 @@ export class AnimeService {
     );
 
     return {
-      ...jikanPagination,
+      ...tenraiPagination,
       items,
     };
   }
 
   async animeFilters() {
-    const types = Object.values(JikanAnimeType);
-    const status = Object.values(JikanAnimeStatus);
-    const ratings = Object.values(JikanAnimeRatings);
-    const orderBy = Object.values(JikanAnimeOrderBy);
-    const sort = Object.values(JikanSort);
-    const genres = await this.integrationsService.jikan.getAnimeGenres();
+    const types = Object.values(TenraiAnimeType);
+    const status = Object.values(TenraiAnimeStatus);
+    const ratings = Object.values(TenraiAnimeRatings);
+    const orderBy = Object.values(TenraiAnimeOrderBy);
+    const sort = Object.values(TenraiSort);
+    const genres = await this.integrationsService.tenrai.getAnimeGenres();
 
     return {
       types,
@@ -111,10 +111,10 @@ export class AnimeService {
     });
 
     if (!anime) {
-      const jikanAnime = await this.integrationsService.jikan.getAnimeById(malId);
+      const tenraiAnime = await this.integrationsService.tenrai.getAnimeById(malId);
 
       anime = await this.databaseService.anime.create({
-        data: jikanAnime as unknown as AnimeCreateInput,
+        data: tenraiAnime as unknown as AnimeCreateInput,
       });
     }
 
@@ -169,7 +169,7 @@ export class AnimeService {
       return anime.relations;
     }
 
-    const relations = await this.integrationsService.jikan.getAnimeRelationsById(malId);
+    const relations = await this.integrationsService.tenrai.getAnimeRelationsById(malId);
 
     await this.databaseService.anime.update({
       where: { malId },
@@ -198,7 +198,7 @@ export class AnimeService {
       return storedEpisodes[pageKey];
     }
 
-    const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
+    const episodes = await this.integrationsService.tenrai.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
 
     await this.databaseService.anime.update({
       where: { malId },
@@ -228,7 +228,7 @@ export class AnimeService {
     const existingEpisodes = anime.episodes ?? {};
     const episodesPageKeys = Object.keys(existingEpisodes);
 
-    const jikanEpisodes: Record<string, any> = {};
+    const tenraiEpisodes: Record<string, any> = {};
 
     for (const pageKey of episodesPageKeys) {
       const getAnimeEpisodesByMalIdDto: GetAnimeEpisodesByMalIdDto = {
@@ -236,22 +236,22 @@ export class AnimeService {
         page: Number(pageKey),
       };
 
-      const episodes = await this.integrationsService.jikan.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
+      const episodes = await this.integrationsService.tenrai.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
 
-      jikanEpisodes[pageKey] = episodes;
+      tenraiEpisodes[pageKey] = episodes;
 
       await new Promise((resolve) => setTimeout(resolve, 800));
     }
 
-    const jikanAnime = await this.integrationsService.jikan.getAnimeById(refreshAnimeDto.malId);
-    const jikanRelations = await this.integrationsService.jikan.getAnimeRelationsById(refreshAnimeDto.malId);
+    const tenraiAnime = await this.integrationsService.tenrai.getAnimeById(refreshAnimeDto.malId);
+    const tenraiRelations = await this.integrationsService.tenrai.getAnimeRelationsById(refreshAnimeDto.malId);
 
     await this.databaseService.anime.update({
       where: { malId: refreshAnimeDto.malId },
       data: {
-        ...jikanAnime,
-        relations: jikanRelations,
-        episodes: jikanEpisodes,
+        ...tenraiAnime,
+        relations: tenraiRelations,
+        episodes: tenraiEpisodes,
       } as unknown as AnimeUpdateInput,
     });
 

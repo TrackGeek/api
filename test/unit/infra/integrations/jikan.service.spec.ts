@@ -1,7 +1,7 @@
 import { of, throwError } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { JikanService } from "@/shared/infra/integrations/jikan.service";
+import { TenraiService } from "@/shared/infra/integrations/tenrai.service";
 
 vi.mock("@/shared/utils/request", () => ({
   manyRequestWithDelay: vi.fn(),
@@ -18,12 +18,12 @@ const mockCacheService = {
   set: vi.fn(),
 };
 
-describe("JikanService", () => {
-  let service: JikanService;
+describe("TenraiService", () => {
+  let service: TenraiService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new JikanService(mockHttpService as any, mockCacheService as any);
+    service = new TenraiService(mockHttpService as any, mockCacheService as any);
   });
 
   describe("searchAnimes", () => {

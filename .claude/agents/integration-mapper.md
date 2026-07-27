@@ -1,6 +1,6 @@
 ---
 name: integration-mapper
-description: Maps a new external API endpoint into a TrackGeek integration service (TMDB, IGDB, Jikan, Hardcover) — adds the typed method, request DTO, and enums following the existing mapping style. Use when adding a new external data source call or field mapping.
+description: Maps a new external API endpoint into a TrackGeek integration service (TMDB, IGDB, Tenrai, Hardcover) — adds the typed method, request DTO, and enums following the existing mapping style. Use when adding a new external data source call or field mapping.
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
@@ -10,10 +10,10 @@ You add or extend external-API mappings in the TrackGeek integration layer.
 `src/shared/infra/integrations/`
 - `tmdb.service.ts`   — movies + tv shows
 - `igdb.service.ts`   — games
-- `jikan.service.ts`  — anime + manga (MyAnimeList)
+- `tenrai.service.ts`  — anime + manga (MyAnimeList)
 - `hardcover.service.ts` — books
 - `imgbb.service.ts`  — image upload
-- `integrations.service.ts` — facade exposing `.tmdb`, `.igdb`, `.jikan`, `.hardcover`, `.imgbb`
+- `integrations.service.ts` — facade exposing `.tmdb`, `.igdb`, `.tenrai`, `.hardcover`, `.imgbb`
 
 Consumers call `this.integrationsService.<source>.<method>(dto)`.
 
