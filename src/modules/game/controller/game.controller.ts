@@ -15,6 +15,7 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { TopGameDto } from "@/modules/game/dto/top-game.dto";
+import { IGDBGameFilter } from "@/shared/infra/integrations/igdb.service";
 import { RefreshGameDto } from "../dto/refresh-game.dto";
 import { SearchGameDto } from "../dto/search-game.dto";
 import { GameService } from "../service/game.service";
@@ -26,6 +27,16 @@ export class GameController {
 
   @Get("/search")
   async searchGames(@Query() query: SearchGameDto) {
+    const hasFilters = Boolean(
+      query.query || query.genres?.length || query.gameMode || query.platform || query.year || query.status,
+    );
+
+    if (!hasFilters) {
+      const games = await this.gameService.topGames({ page: query.page, filter: IGDBGameFilter.Popular });
+
+      return { games };
+    }
+
     const games = await this.gameService.searchGames(query);
 
     return { games };
