@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
 
-export class CreateGameReviewScreenshotDto {
+export class CreateGameScreenshotDto {
   @IsUrl()
   @IsNotEmpty()
   @ApiProperty({
@@ -13,6 +13,7 @@ export class CreateGameReviewScreenshotDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(255)
   @ApiPropertyOptional({
     description: "Description of the screenshot",
     type: "string",
@@ -20,19 +21,21 @@ export class CreateGameReviewScreenshotDto {
   readonly description?: string;
 
   @IsBoolean()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: "Whether the screenshot contains spoilers",
     type: "boolean",
+    default: false,
   })
-  readonly isSpoiler: boolean;
+  readonly isSpoiler?: boolean;
 
   @IsNotEmpty()
   @ApiProperty({
-    description: "ID of the game review",
+    description: "ID of the game",
     example: "019ce334-c8ac-7883-949d-948f53218272",
     type: "string",
   })
-  readonly gameReviewId: string;
+  readonly gameId: string;
 
   readonly userId: string;
 }

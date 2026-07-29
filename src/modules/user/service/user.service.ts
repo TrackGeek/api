@@ -105,6 +105,7 @@ export class UserService {
             movieReviews: true,
             gameReviews: true,
             bookReviews: true,
+            gameScreenshots: true,
           },
         },
         userMedals: {
@@ -205,6 +206,7 @@ export class UserService {
     const counts = {
       lists: user._count.lists,
       favorites: user._count.favorites,
+      screenshots: user._count.gameScreenshots,
       reviews:
         user._count.animeReviews +
         user._count.mangaReviews +
