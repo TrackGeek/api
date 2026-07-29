@@ -1,15 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  ArrayMaxSize,
-  IsArray,
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  Max,
-  MaxLength,
-  Min,
-} from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateGameReviewDto {
   @IsNumber()
@@ -95,15 +85,6 @@ export class CreateGameReviewDto {
     default: true,
   })
   readonly recommended?: boolean;
-
-  @IsArray()
-  @IsOptional()
-  @ArrayMaxSize(10)
-  @ApiPropertyOptional({
-    type: "array",
-    maxItems: 10,
-  })
-  readonly screenshots?: string[];
 
   @IsNotEmpty()
   @ApiProperty({

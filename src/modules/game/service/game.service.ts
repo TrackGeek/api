@@ -174,6 +174,7 @@ export class GameService {
     await this.databaseService.$transaction([
       this.databaseService.gameReview.deleteMany({ where: { userId, gameId } }),
       this.databaseService.gameProgress.deleteMany({ where: { userId, gameId } }),
+      this.databaseService.gameScreenshot.deleteMany({ where: { userId, gameId } }),
     ]);
   }
 }

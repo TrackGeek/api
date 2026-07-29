@@ -3,7 +3,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 
 export const imageConfig = {
   fileFilter: (_req, file, cb) =>
-    file.originalname.match(/\.(jpg|jpeg|png|gif)$/)
+    file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/i)
       ? cb(null, true)
       : cb(new AppException(ERROR_CODES.IMAGE_TYPE_NOT_SUPPORTED), false),
   limits: {
