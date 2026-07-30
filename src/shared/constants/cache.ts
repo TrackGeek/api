@@ -32,7 +32,7 @@ export const CACHE_KEYS = {
 
   IGDB_ACCESS_TOKEN: "igdb:token",
   IGDB_SEARCH_GAMES: {
-    prefix: (filters: Record<string, any>) => `igdb:search:game:${filtersToString(filters)}`,
+    prefix: (filters: Record<string, any>) => `igdb:search:game:v2${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   IGDB_GAME_GENRES: {
@@ -82,7 +82,7 @@ export const CACHE_KEYS = {
   },
   TENRAI_ANIME_EPISODES_BY_ID: {
     prefix: ({ malId, ...filters }: Record<string, any>) =>
-      `tenrai:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
+      `tenrai:detail:anime:id:${malId}:episodes:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   TENRAI_ANIME_RECOMMENDATIONS: {

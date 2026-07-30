@@ -125,9 +125,9 @@ export class BookService {
     };
 
     const progressStats = {
-      watching: getStats(ProgressStatus.Watching),
+      reading: getStats(ProgressStatus.Reading),
       completed: getStats(ProgressStatus.Completed),
-      planToWatch: getStats(ProgressStatus.Planning),
+      planToRead: getStats(ProgressStatus.Planning),
       dropped: getStats(ProgressStatus.Dropped),
     };
 

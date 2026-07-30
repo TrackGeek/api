@@ -36,6 +36,15 @@ export enum IGDBSort {
   Asc = "asc",
 }
 
+const IGDB_GAME_ORDER_BY_FIELDS: Record<IGDBGameOrderBy, string> = {
+  [IGDBGameOrderBy.Name]: "name",
+  [IGDBGameOrderBy.TotalRating]: "total_rating",
+  [IGDBGameOrderBy.Popularity]: "total_rating_count",
+  [IGDBGameOrderBy.FirstReleaseDate]: "first_release_date",
+};
+
+const IGDB_PLAYABLE_GAME_TYPES = [0, 2, 4, 8, 9, 10, 11];
+
 export interface IGDBTopGameOptions {
   page?: number;
   filter?: IGDBGameFilter;
@@ -336,6 +345,8 @@ export class IGDBService {
 
       const whereConditions = [
         query ? `name ~ *"${query}"*` : null,
+        `game_type = (${IGDB_PLAYABLE_GAME_TYPES.join(",")})`,
+        "version_parent = null",
         gameMode ? `game_modes.slug = "${gameMode}"` : null,
         genres ? `genres.slug = (${genres.map((genre) => `"${genre}"`).join(",")})` : null,
         platform ? `platforms.slug = "${platform}"` : null,
@@ -368,14 +379,12 @@ export class IGDBService {
           total_rating,
           first_release_date;
         ${whereClause}
-        sort ${orderBy} ${sort};
+        sort ${IGDB_GAME_ORDER_BY_FIELDS[orderBy]} ${sort};
         limit ${limit};
         offset ${offset};
       `;
 
-      const igdbCountQuery = `
-        ${whereClause};
-      `;
+      const igdbCountQuery = whereClause;
 
       const headers = {
         "Client-ID": this.configService.get<string>("IGDB_CLIENT_ID"),
