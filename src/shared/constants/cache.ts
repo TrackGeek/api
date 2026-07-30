@@ -82,7 +82,7 @@ export const CACHE_KEYS = {
   },
   TENRAI_ANIME_EPISODES_BY_ID: {
     prefix: ({ malId, ...filters }: Record<string, any>) =>
-      `tenrai:detail:anime:id:${malId}:episode:${filtersToString(filters)}`,
+      `tenrai:detail:anime:id:${malId}:episodes:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   TENRAI_ANIME_RECOMMENDATIONS: {

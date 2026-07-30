@@ -950,18 +950,18 @@ export class TenraiService {
       }
 
       const response = await firstValueFrom(
-        this.httpService.get(`${this.TENRAI_API_URL}/anime/${malId}/videos/episodes`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/anime/${malId}/episodes`, {
           params: { page },
         }),
       );
 
       const paginationData = response.data.pagination;
 
-      const items: TenraiAnimeEpisode[] = (response.data.data ?? []).map((video: any) => ({
-        malId: video.mal_id,
-        title: video.title,
-        episodeNumber: video.episode,
-        imageUrl: video.images?.jpg?.image_url ?? null,
+      const items: TenraiAnimeEpisode[] = (response.data.data ?? []).map((episode: any) => ({
+        malId: episode.mal_id,
+        title: episode.title,
+        episodeNumber: String(episode.mal_id),
+        imageUrl: episode.images?.jpg?.image_url ?? null,
       }));
 
       const result: TenraiPagination<TenraiAnimeEpisode> = {
