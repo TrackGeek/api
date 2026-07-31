@@ -4,7 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { ActivityType } from "@prisma/generated/enums";
 import * as bcrypt from "bcrypt";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { bearer, customSession, lastLoginMethod, magicLink, openAPI, username } from "better-auth/plugins";
+import { bearer, customSession, lastLoginMethod, magicLink, openAPI, twoFactor, username } from "better-auth/plugins";
 import uuid from "uuid";
 import type { ProfileService } from "@/modules/profile/service/profile.service";
 import type { UserService } from "@/modules/user/service/user.service";
@@ -166,6 +166,19 @@ export function getAuthConfig(params: AuthConfigParams) {
       openAPI({ path: "/docs" }),
       bearer(),
       username(),
+      twoFactor({
+        issuer: "TrackGeek",
+        skipVerificationOnEnable: false,
+        totpOptions: {
+          digits: 6,
+          period: 30,
+        },
+        backupCodeOptions: {
+          amount: 10,
+          length: 10,
+          storeBackupCodes: "encrypted",
+        },
+      }),
       customSession(async (data) => {
         const user = await userService.getUserById(data.session.userId);
 
