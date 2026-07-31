@@ -1,22 +1,26 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsOptional, IsString } from "class-validator";
 
 export class UpdateProfileDto {
   readonly userId: string;
 
+  @IsOptional()
   @IsString()
-  @ApiProperty({ type: "string" })
-  readonly color: string;
+  @ApiPropertyOptional({ type: "string" })
+  readonly color?: string;
 
+  @IsOptional()
   @IsString()
-  @ApiProperty({ type: "string" })
-  readonly language: string;
+  @ApiPropertyOptional({ type: "string" })
+  readonly language?: string;
 
+  @IsOptional()
   @IsString()
-  @ApiProperty({ type: "string" })
-  readonly timezone: string;
+  @ApiPropertyOptional({ type: "string" })
+  readonly timezone?: string;
 
+  @IsOptional()
   @IsString()
-  @ApiProperty({ type: "string" })
-  readonly about: string;
+  @ApiPropertyOptional({ type: "string" })
+  readonly about?: string;
 }

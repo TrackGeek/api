@@ -31,12 +31,14 @@ model User {
   tier             UserTier?
   tierStartedAt    DateTime?
   role             UserRole  @default(User)
+  twoFactorEnabled Boolean   @default(false)
   stripeCustomerId String?
   accumulatedMoney Int       @default(0)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
   profile                Profile?
+  twoFactor              TwoFactor?
   sessions               Session[]
   accounts               Account[]
   comments               Comment[]
@@ -116,6 +118,19 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+}
+
+model TwoFactor {
+  id          String  @id
+  secret      String
+  backupCodes String
+  verified    Boolean @default(true)
+  userId      String  @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([secret])
+  @@index([userId])
 }
 
 model Profile {
