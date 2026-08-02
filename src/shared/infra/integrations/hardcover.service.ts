@@ -357,7 +357,11 @@ export class HardcoverService {
         hardcoverReviewScore: Math.round(book?.rating ?? 0),
         imageUrl: book.image?.url ?? null,
         tags: [
-          ...new Map((book.taggings?.map(({ tag }: any) => tag) ?? []).map((tag: any) => [tag.tag, tag])).values(),
+          ...new Map(
+            (book.taggings?.map(({ tag }: any) => tag) ?? [])
+              .filter((tag: any) => tag?.tag)
+              .map((tag: any) => [tag.tag, tag]),
+          ).values(),
         ] as HardcoverBookTag[],
         category: bookCategories.find((bc) => bc.id === book.book_category_id)?.name ?? null,
         releaseDate: book.release_date ? new Date(book.release_date) : null,
@@ -801,7 +805,11 @@ export class HardcoverService {
         ),
       );
 
-      const bookData = bookResponse.data.data.books_by_pk;
+      const bookData = bookResponse.data?.data?.books_by_pk;
+
+      if (!bookData) {
+        throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
+      }
 
       const bookCategories = await this.getBookCategories();
 
@@ -811,23 +819,29 @@ export class HardcoverService {
         title: bookData.title,
         alternativeTitles: bookData.alternative_titles,
         audioSeconds: bookData.audio_seconds,
-        taggings: [...new Map((bookData.taggings?.map(({ tag }) => tag) ?? []).map((tag) => [tag.tag, tag])).values()],
+        taggings: [
+          ...new Map(
+            (bookData.taggings?.map(({ tag }) => tag) ?? [])
+              .filter((tag) => tag?.tag)
+              .map((tag) => [tag.tag, tag]),
+          ).values(),
+        ],
         bookCategory: bookCategories.find((bc) => bc.id === bookData.book_category_id) ?? null,
         bookStatus: bookData.book_status ? { id: bookData.book_status.id, name: bookData.book_status.name } : null,
-        contributions: bookData.contributions
-          ? bookData.contributions.map((contribution) => ({
-              contribution: contribution.contribution,
-              author: {
-                name: contribution.author.name,
-                id: contribution.author.id,
-                imageUrl: contribution.author.image?.url ?? null,
-              },
-            }))
-          : [],
+        contributions: (bookData.contributions ?? [])
+          .filter((contribution) => contribution?.author)
+          .map((contribution) => ({
+            contribution: contribution.contribution,
+            author: {
+              name: contribution.author.name,
+              id: contribution.author.id,
+              imageUrl: contribution.author.image?.url ?? null,
+            },
+          })),
         canonical: bookData.canonical
           ? {
               id: bookData.canonical.id,
-              imageUrl: bookData.canonical.image.url ?? null,
+              imageUrl: bookData.canonical.image?.url ?? null,
               title: bookData.canonical.title,
             }
           : null,
@@ -836,7 +850,7 @@ export class HardcoverService {
         defaultAudioEdition: bookData.default_audio_edition
           ? {
               id: bookData.default_audio_edition.id,
-              imageUrl: bookData.default_audio_edition.image.url ?? null,
+              imageUrl: bookData.default_audio_edition.image?.url ?? null,
               title: bookData.default_audio_edition.title,
               language: bookData.default_audio_edition.language?.language ?? null,
             }
@@ -844,7 +858,7 @@ export class HardcoverService {
         defaultCoverEdition: bookData.default_cover_edition
           ? {
               id: bookData.default_cover_edition.id,
-              imageUrl: bookData.default_cover_edition.image.url ?? null,
+              imageUrl: bookData.default_cover_edition.image?.url ?? null,
               title: bookData.default_cover_edition.title,
               language: bookData.default_cover_edition.language?.language ?? null,
             }
@@ -852,7 +866,7 @@ export class HardcoverService {
         defaultEbookEdition: bookData.default_ebook_edition
           ? {
               id: bookData.default_ebook_edition.id,
-              imageUrl: bookData.default_ebook_edition.image.url ?? null,
+              imageUrl: bookData.default_ebook_edition.image?.url ?? null,
               title: bookData.default_ebook_edition.title,
               language: bookData.default_ebook_edition.language?.language ?? null,
             }
@@ -860,7 +874,7 @@ export class HardcoverService {
         defaultPhysicalEdition: bookData.default_physical_edition
           ? {
               id: bookData.default_physical_edition.id,
-              imageUrl: bookData.default_physical_edition.image.url ?? null,
+              imageUrl: bookData.default_physical_edition.image?.url ?? null,
               title: bookData.default_physical_edition.title,
               alternativeTitles: bookData.default_physical_edition.alternative_titles,
               language: bookData.default_physical_edition.language?.language ?? null,
@@ -868,18 +882,18 @@ export class HardcoverService {
           : null,
         description: bookData.description,
         editionsCount: bookData.editions_count,
-        featuredBookSeries: bookData.featured_book_series
+        featuredBookSeries: bookData.featured_book_series?.book
           ? {
               id: bookData.featured_book_series.id,
               book: {
                 id: bookData.featured_book_series.book.id,
                 title: bookData.featured_book_series.book.title,
-                imageUrl: bookData.featured_book_series.book.image.url ?? null,
+                imageUrl: bookData.featured_book_series.book.image?.url ?? null,
               },
             }
-          : {},
+          : null,
         headline: bookData.headline,
-        imageUrl: bookData.image.url ?? null,
+        imageUrl: bookData.image?.url ?? null,
         links: bookData.links,
         literaryTypeId: bookData.literary_type_id,
         numberOfPages: bookData.pages,
@@ -908,18 +922,18 @@ export class HardcoverService {
               position: series.position,
               id: series.id,
               book: {
-                id: series.book.id,
-                title: series.book.title,
-                imageUrl: series.book.image.url ?? null,
+                id: series.book?.id ?? null,
+                title: series.book?.title ?? null,
+                imageUrl: series.book?.image?.url ?? null,
               },
               details: series.details,
               featured: series.featured,
               series: {
-                name: series.series.name,
-                id: series.series.id,
-                state: series.series.state,
-                isCompleted: series.series.is_completed,
-                description: series.series.description,
+                name: series.series?.name ?? null,
+                id: series.series?.id ?? null,
+                state: series.series?.state ?? null,
+                isCompleted: series.series?.is_completed ?? false,
+                description: series.series?.description ?? null,
               },
             }))
           : [],
@@ -933,6 +947,10 @@ export class HardcoverService {
 
       return book;
     } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
       }
