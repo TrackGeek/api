@@ -2,5 +2,5 @@ import { IsInt } from "class-validator";
 
 export class RefreshMangaDto {
   @IsInt()
-  readonly malId: number;
+  readonly anilistId: number;
 }

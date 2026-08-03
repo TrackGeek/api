@@ -6,6 +6,7 @@ import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
+import { slugify } from "@/shared/utils/string";
 import { CacheService } from "../cache/cache.service";
 
 export interface HardcoverPagination<I> {
@@ -99,6 +100,29 @@ export interface HardcoverBookSeries {
     isCompleted: boolean;
     description: string | null;
   };
+}
+
+export interface HardcoverSeriesBook {
+  hardcoverId: number;
+  position: number | null;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  contributions: string[];
+  hardcoverReviewScore: number;
+  imageUrl: string | null;
+  releaseYear: number | null;
+  releaseDate: Date | null;
+}
+
+export interface HardcoverSeries {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  isCompleted: boolean;
+  imageUrl: string | null;
+  books: HardcoverSeriesBook[];
 }
 
 export interface HardcoverBookCategory {
@@ -357,7 +381,11 @@ export class HardcoverService {
         hardcoverReviewScore: Math.round(book?.rating ?? 0),
         imageUrl: book.image?.url ?? null,
         tags: [
-          ...new Map((book.taggings?.map(({ tag }: any) => tag) ?? []).map((tag: any) => [tag.tag, tag])).values(),
+          ...new Map(
+            (book.taggings?.map(({ tag }: any) => tag) ?? [])
+              .filter((tag: any) => tag?.tag)
+              .map((tag: any) => [tag.tag, tag]),
+          ).values(),
         ] as HardcoverBookTag[],
         category: bookCategories.find((bc) => bc.id === book.book_category_id)?.name ?? null,
         releaseDate: book.release_date ? new Date(book.release_date) : null,
@@ -801,7 +829,11 @@ export class HardcoverService {
         ),
       );
 
-      const bookData = bookResponse.data.data.books_by_pk;
+      const bookData = bookResponse.data?.data?.books_by_pk;
+
+      if (!bookData) {
+        throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
+      }
 
       const bookCategories = await this.getBookCategories();
 
@@ -811,23 +843,27 @@ export class HardcoverService {
         title: bookData.title,
         alternativeTitles: bookData.alternative_titles,
         audioSeconds: bookData.audio_seconds,
-        taggings: [...new Map((bookData.taggings?.map(({ tag }) => tag) ?? []).map((tag) => [tag.tag, tag])).values()],
+        taggings: [
+          ...new Map(
+            (bookData.taggings?.map(({ tag }) => tag) ?? []).filter((tag) => tag?.tag).map((tag) => [tag.tag, tag]),
+          ).values(),
+        ],
         bookCategory: bookCategories.find((bc) => bc.id === bookData.book_category_id) ?? null,
         bookStatus: bookData.book_status ? { id: bookData.book_status.id, name: bookData.book_status.name } : null,
-        contributions: bookData.contributions
-          ? bookData.contributions.map((contribution) => ({
-              contribution: contribution.contribution,
-              author: {
-                name: contribution.author.name,
-                id: contribution.author.id,
-                imageUrl: contribution.author.image?.url ?? null,
-              },
-            }))
-          : [],
+        contributions: (bookData.contributions ?? [])
+          .filter((contribution) => contribution?.author)
+          .map((contribution) => ({
+            contribution: contribution.contribution,
+            author: {
+              name: contribution.author.name,
+              id: contribution.author.id,
+              imageUrl: contribution.author.image?.url ?? null,
+            },
+          })),
         canonical: bookData.canonical
           ? {
               id: bookData.canonical.id,
-              imageUrl: bookData.canonical.image.url ?? null,
+              imageUrl: bookData.canonical.image?.url ?? null,
               title: bookData.canonical.title,
             }
           : null,
@@ -836,7 +872,7 @@ export class HardcoverService {
         defaultAudioEdition: bookData.default_audio_edition
           ? {
               id: bookData.default_audio_edition.id,
-              imageUrl: bookData.default_audio_edition.image.url ?? null,
+              imageUrl: bookData.default_audio_edition.image?.url ?? null,
               title: bookData.default_audio_edition.title,
               language: bookData.default_audio_edition.language?.language ?? null,
             }
@@ -844,7 +880,7 @@ export class HardcoverService {
         defaultCoverEdition: bookData.default_cover_edition
           ? {
               id: bookData.default_cover_edition.id,
-              imageUrl: bookData.default_cover_edition.image.url ?? null,
+              imageUrl: bookData.default_cover_edition.image?.url ?? null,
               title: bookData.default_cover_edition.title,
               language: bookData.default_cover_edition.language?.language ?? null,
             }
@@ -852,7 +888,7 @@ export class HardcoverService {
         defaultEbookEdition: bookData.default_ebook_edition
           ? {
               id: bookData.default_ebook_edition.id,
-              imageUrl: bookData.default_ebook_edition.image.url ?? null,
+              imageUrl: bookData.default_ebook_edition.image?.url ?? null,
               title: bookData.default_ebook_edition.title,
               language: bookData.default_ebook_edition.language?.language ?? null,
             }
@@ -860,7 +896,7 @@ export class HardcoverService {
         defaultPhysicalEdition: bookData.default_physical_edition
           ? {
               id: bookData.default_physical_edition.id,
-              imageUrl: bookData.default_physical_edition.image.url ?? null,
+              imageUrl: bookData.default_physical_edition.image?.url ?? null,
               title: bookData.default_physical_edition.title,
               alternativeTitles: bookData.default_physical_edition.alternative_titles,
               language: bookData.default_physical_edition.language?.language ?? null,
@@ -868,18 +904,18 @@ export class HardcoverService {
           : null,
         description: bookData.description,
         editionsCount: bookData.editions_count,
-        featuredBookSeries: bookData.featured_book_series
+        featuredBookSeries: bookData.featured_book_series?.book
           ? {
               id: bookData.featured_book_series.id,
               book: {
                 id: bookData.featured_book_series.book.id,
                 title: bookData.featured_book_series.book.title,
-                imageUrl: bookData.featured_book_series.book.image.url ?? null,
+                imageUrl: bookData.featured_book_series.book.image?.url ?? null,
               },
             }
-          : {},
+          : null,
         headline: bookData.headline,
-        imageUrl: bookData.image.url ?? null,
+        imageUrl: bookData.image?.url ?? null,
         links: bookData.links,
         literaryTypeId: bookData.literary_type_id,
         numberOfPages: bookData.pages,
@@ -908,18 +944,18 @@ export class HardcoverService {
               position: series.position,
               id: series.id,
               book: {
-                id: series.book.id,
-                title: series.book.title,
-                imageUrl: series.book.image.url ?? null,
+                id: series.book?.id ?? null,
+                title: series.book?.title ?? null,
+                imageUrl: series.book?.image?.url ?? null,
               },
               details: series.details,
               featured: series.featured,
               series: {
-                name: series.series.name,
-                id: series.series.id,
-                state: series.series.state,
-                isCompleted: series.series.is_completed,
-                description: series.series.description,
+                name: series.series?.name ?? null,
+                id: series.series?.id ?? null,
+                state: series.series?.state ?? null,
+                isCompleted: series.series?.is_completed ?? false,
+                description: series.series?.description ?? null,
               },
             }))
           : [],
@@ -933,12 +969,126 @@ export class HardcoverService {
 
       return book;
     } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.BOOK_NOT_FOUND);
       }
 
       this.logger.error(
         `Failed to fetch book details from Hardcover API for book ID ${hardcoverId}: ${error.message}`,
+        error.stack,
+      );
+
+      throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getSeriesById(seriesId: number): Promise<HardcoverSeries> {
+    try {
+      const cachedSeriesKey = CACHE_KEYS.HARDCOVER_SERIES_BY_ID.prefix(seriesId);
+
+      const cachedSeries = await this.cacheService.get<HardcoverSeries>(cachedSeriesKey);
+
+      if (cachedSeries) {
+        return cachedSeries;
+      }
+
+      const seriesResponse = await firstValueFrom(
+        this.httpService.post(
+          this.HARDCOVER_API_URL,
+          {
+            variables: { id: seriesId },
+            query: `
+						query GetSeriesById($id: Int!) {
+							series_by_pk(id: $id) {
+								id
+								name
+								description
+								is_completed
+								book_series(order_by: { position: asc }) {
+									position
+									book {
+										id
+										slug
+										title
+										description
+										rating
+										release_year
+										release_date
+										image {
+											url
+										}
+										contributions {
+											author {
+												id
+												name
+											}
+										}
+									}
+								}
+							}
+						}
+					`,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get<string>("HARDCOVER_API_KEY")}`,
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      );
+
+      if (seriesResponse.data?.errors) {
+        this.logger.error(`Error fetching series from Hardcover API: ${JSON.stringify(seriesResponse.data.errors)}`);
+
+        throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+      }
+
+      const seriesData = seriesResponse?.data?.data?.series_by_pk;
+
+      if (!seriesData) {
+        throw new AppException(ERROR_CODES.BOOK_FRANCHISE_NOT_FOUND);
+      }
+
+      const books: HardcoverSeriesBook[] = (seriesData.book_series ?? [])
+        .filter((entry: any) => entry?.book)
+        .map((entry: any) => ({
+          hardcoverId: Number(entry.book.id),
+          position: entry.position ?? null,
+          title: entry.book.title,
+          slug: entry.book.slug ?? null,
+          description: entry.book.description ?? null,
+          contributions: entry.book.contributions?.map(({ author }: any) => author?.name).filter(Boolean) ?? [],
+          hardcoverReviewScore: Math.round(entry.book.rating ?? 0),
+          imageUrl: entry.book.image?.url ?? null,
+          releaseYear: entry.book.release_year ?? null,
+          releaseDate: entry.book.release_date ? new Date(entry.book.release_date) : null,
+        }));
+
+      const series: HardcoverSeries = {
+        id: Number(seriesData.id),
+        name: seriesData.name,
+        slug: slugify(seriesData.name ?? ""),
+        description: seriesData.description ?? null,
+        isCompleted: seriesData.is_completed ?? false,
+        imageUrl: books.find((book) => book.imageUrl)?.imageUrl ?? null,
+        books,
+      };
+
+      await this.cacheService.set(cachedSeriesKey, series, CACHE_KEYS.HARDCOVER_SERIES_BY_ID.expiration);
+
+      return series;
+    } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Failed to fetch series details from Hardcover API for series ID ${seriesId}: ${error.message}`,
         error.stack,
       );
 

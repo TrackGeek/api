@@ -44,4 +44,11 @@ export class BookController {
 
     return { book };
   }
+
+  @Get("/franchise/:slug")
+  async getBookFranchise(@Param("slug") slug: string) {
+    const franchise = await this.bookService.getBookFranchise(slug);
+
+    return { franchise };
+  }
 }

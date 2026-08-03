@@ -29,27 +29,9 @@ export enum TenraiAnimeType {
   TVSpecial = "tv_special",
 }
 
-export enum TenraiMangaType {
-  Manga = "manga",
-  Novel = "novel",
-  LightNovel = "lightnovel",
-  OneShot = "oneshot",
-  Doujin = "doujin",
-  Manhwa = "manhwa",
-  Manhua = "manhua",
-}
-
 export enum TenraiAnimeStatus {
   Airing = "airing",
   Complete = "complete",
-  Upcoming = "upcoming",
-}
-
-export enum TenraiMangaStatus {
-  Publishing = "publishing",
-  Complete = "complete",
-  Hiatus = "hiatus",
-  Discontinued = "discontinued",
   Upcoming = "upcoming",
 }
 
@@ -70,23 +52,8 @@ export enum TenraiAnimeOrderBy {
   Type = "type",
 }
 
-export enum TenraiMangaOrderBy {
-  Title = "title",
-  StartDate = "start_date",
-  EndDate = "end_date",
-  Score = "score",
-  Type = "type",
-}
-
 export enum TenraiAnimeFilter {
   Airing = "airing",
-  Upcoming = "upcoming",
-  ByPopularity = "bypopularity",
-  Favorite = "favorite",
-}
-
-export enum TenraiMangaFilter {
-  Publishing = "publishing",
   Upcoming = "upcoming",
   ByPopularity = "bypopularity",
   Favorite = "favorite",
@@ -122,29 +89,6 @@ export interface TenraiSearchAnime {
   isAdult: boolean;
 }
 
-export interface TenraiSearchMangaOptions {
-  page?: number;
-  query?: string;
-  type?: TenraiMangaType;
-  status?: TenraiMangaStatus;
-  genres?: string[];
-  orderBy?: TenraiMangaOrderBy;
-  sort?: TenraiSort;
-  letter?: string;
-  year?: string;
-}
-
-export interface TenraiSearchManga {
-  malId: number;
-  title: string;
-  type: string;
-  publishedFrom: string | null;
-  status: string | null;
-  imageUrl: string | null;
-  genres: string[];
-  isAdult: boolean;
-}
-
 export interface TenraiAnimeEpisodeOptions {
   malId: number;
   page?: number;
@@ -162,23 +106,6 @@ export interface TenraiTopAnime {
   title: string;
   type: string;
   airedFrom: string | null;
-  status: string | null;
-  imageUrl: string | null;
-  genres: string[];
-  isAdult: boolean;
-}
-
-export interface TenraiTopMangaOptions {
-  page?: number;
-  type?: TenraiMangaType;
-  filter: TenraiMangaFilter;
-}
-
-export interface TenraiTopManga {
-  malId: number;
-  title: string;
-  type: string;
-  publishedFrom: string | null;
   status: string | null;
   imageUrl: string | null;
   genres: string[];
@@ -300,35 +227,6 @@ export interface TenraiAnimeEpisode {
   imageUrl: string | null;
 }
 
-export interface TenraiMangaDetails {
-  malId: number;
-  url: string;
-  imageUrl: string | null;
-  title: string;
-  titles: TenraiTitle[];
-  type: string | null;
-  numberOfChapters: number | null;
-  numberOfVolumes: number | null;
-  status: string | null;
-  published: TenraiDateProp;
-  rank: number | null;
-  popularity: number;
-  synopsis: string | null;
-  authors: TenraiMalEntry[];
-  serializations: TenraiMalEntry[];
-  genres: string[];
-  explicitGenres: string[];
-  themes: string[];
-  demographics: string[];
-  external: string[];
-  characters: {
-    malId: number;
-    name: string;
-    imageUrl: string | null;
-    role: string;
-  }[];
-}
-
 @Injectable()
 export class TenraiService {
   private readonly logger = new Logger(TenraiService.name);
@@ -440,102 +338,6 @@ export class TenraiService {
     }
   }
 
-  async searchMangas({
-    page = DEFAULT_PAGINATION_PAGE,
-    query,
-    sort,
-    orderBy,
-    status,
-    type,
-    genres,
-    letter,
-    year,
-  }: TenraiSearchMangaOptions): Promise<TenraiPagination<TenraiSearchManga>> {
-    try {
-      const searchMangaOptions = {
-        query: query,
-        limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
-        page,
-        sort,
-        status,
-        orderBy,
-        type,
-        genres: genres ? genres.join(",") : undefined,
-        letter,
-        startDate: year ? `${year}-01-01` : undefined,
-        endDate: year ? `${year}-12-31` : undefined,
-      };
-
-      const searchMangaKey = CACHE_KEYS.TENRAI_SEARCH_MANGAS.prefix({ ...searchMangaOptions });
-
-      const cachedMangas = await this.cacheService.get<TenraiPagination<TenraiSearchManga>>(searchMangaKey);
-
-      if (cachedMangas) {
-        return cachedMangas;
-      }
-
-      const mangasResponse = await firstValueFrom(
-        this.httpService.get(`${this.TENRAI_API_URL}/manga`, {
-          params: {
-            q: searchMangaOptions.query,
-            limit: searchMangaOptions.limit,
-            page: searchMangaOptions.page,
-            sort: searchMangaOptions.sort,
-            status: searchMangaOptions.status,
-            order_by: searchMangaOptions.orderBy,
-            type: searchMangaOptions.type,
-            genres: searchMangaOptions.genres,
-            letter: searchMangaOptions.letter,
-            start_date: searchMangaOptions.startDate,
-            end_date: searchMangaOptions.endDate,
-          },
-        }),
-      );
-
-      const itemsData = mangasResponse.data.data;
-      const paginationData = mangasResponse.data.pagination;
-
-      const items = itemsData.map((manga) => ({
-        malId: manga.mal_id,
-        title: manga.title,
-        type: manga.type,
-        rating: manga.rating,
-        publishedFrom: manga.published.from,
-        status: manga.status,
-        malReviewScore: manga?.score ?? 0,
-        synopsis: manga?.synopsis ?? null,
-        imageUrl: manga.images?.jpg?.image_url ?? null,
-        genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
-        isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
-      }));
-
-      const mangas = {
-        total: paginationData.items.total,
-        pages: paginationData.last_visible_page,
-        inPage: searchMangaOptions.page,
-        itemsInPage: items.length,
-        itemsPerPage: searchMangaOptions.limit,
-        items,
-      };
-
-      await this.cacheService.set<TenraiPagination<TenraiSearchManga>>(
-        searchMangaKey,
-        mangas,
-        CACHE_KEYS.TENRAI_SEARCH_MANGAS.expiration,
-      );
-
-      return mangas;
-    } catch (error: any) {
-      if (error?.response?.status === 404) {
-        throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
-      }
-
-      this.logger.error(`Failed to search mangas from Tenrai API`, error);
-
-      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
-    }
-  }
-
   async getAnimeGenres(): Promise<TenraiGenre[]> {
     try {
       const cachedGenres = await this.cacheService.get<TenraiGenre[]>(CACHE_KEYS.TENRAI_ANIME_GENRES.prefix);
@@ -563,38 +365,6 @@ export class TenraiService {
       return genres;
     } catch (error: any) {
       this.logger.error("Failed to fetch anime genres from Tenrai API", error);
-
-      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
-    }
-  }
-
-  async getMangaGenres() {
-    try {
-      const cachedGenres = await this.cacheService.get<TenraiGenre[]>(CACHE_KEYS.TENRAI_MANGA_GENRES.prefix);
-
-      if (cachedGenres) {
-        return cachedGenres;
-      }
-
-      const genresResponse = await firstValueFrom(this.httpService.get(`${this.TENRAI_API_URL}/genres/manga`));
-
-      const genresData = genresResponse.data.data;
-
-      const genres = genresData.map((genre) => ({
-        malId: genre.mal_id,
-        name: genre.name,
-        count: genre.count,
-      })) as TenraiGenre[];
-
-      await this.cacheService.set(
-        CACHE_KEYS.TENRAI_MANGA_GENRES.prefix,
-        genres,
-        CACHE_KEYS.TENRAI_MANGA_GENRES.expiration,
-      );
-
-      return genres;
-    } catch (error: any) {
-      this.logger.error("Failed to fetch manga genres from Tenrai API", error);
 
       throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
@@ -660,68 +430,6 @@ export class TenraiService {
       return topAnimes;
     } catch (error: any) {
       this.logger.error("Failed to fetch top animes from Tenrai API", error);
-
-      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
-    }
-  }
-
-  async topMangas({ page = DEFAULT_PAGINATION_PAGE, filter, type }: TenraiTopMangaOptions) {
-    try {
-      const topMangasOptions = {
-        limit: DEFAULT_PAGINATION_ITEMS_PER_PAGE,
-        page,
-        filter,
-        type,
-      };
-
-      const topMangasKey = CACHE_KEYS.TENRAI_TOP_MANGAS.prefix({ ...topMangasOptions });
-
-      const cachedTopMangas = await this.cacheService.get<TenraiPagination<TenraiTopManga>>(topMangasKey);
-
-      if (cachedTopMangas) {
-        return cachedTopMangas;
-      }
-
-      const topResponse = await firstValueFrom(
-        this.httpService.get(`${this.TENRAI_API_URL}/top/manga`, {
-          params: { ...topMangasOptions },
-        }),
-      );
-
-      const itemsData = topResponse.data.data;
-      const paginationData = topResponse.data.pagination;
-
-      const items = itemsData.map((manga) => ({
-        malId: manga.mal_id,
-        title: manga.title,
-        type: manga.type,
-        malReviewScore: manga?.score ?? 0,
-        publishedFrom: manga.published.from,
-        status: manga.status,
-        synopsis: manga?.synopsis ?? null,
-        imageUrl: manga.images?.jpg?.image_url ?? null,
-        genres: manga.genres ? manga.genres.map((genre) => genre.name) : [],
-        isAdult: manga.genres ? manga.genres.some((genre) => genre.mal_id === 12) : false,
-      }));
-
-      const topMangas: TenraiPagination<TenraiTopManga> = {
-        total: paginationData.items.total,
-        pages: paginationData.last_visible_page,
-        inPage: topMangasOptions.page,
-        itemsInPage: items.length,
-        itemsPerPage: topMangasOptions.limit,
-        items,
-      };
-
-      await this.cacheService.set<TenraiPagination<TenraiTopManga>>(
-        topMangasKey,
-        topMangas,
-        CACHE_KEYS.TENRAI_TOP_MANGAS.expiration,
-      );
-
-      return topMangas;
-    } catch (error: any) {
-      this.logger.error("Failed to fetch top mangas from Tenrai API", error);
 
       throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }
@@ -950,18 +658,18 @@ export class TenraiService {
       }
 
       const response = await firstValueFrom(
-        this.httpService.get(`${this.TENRAI_API_URL}/anime/${malId}/videos/episodes`, {
+        this.httpService.get(`${this.TENRAI_API_URL}/anime/${malId}/episodes`, {
           params: { page },
         }),
       );
 
       const paginationData = response.data.pagination;
 
-      const items: TenraiAnimeEpisode[] = (response.data.data ?? []).map((video: any) => ({
-        malId: video.mal_id,
-        title: video.title,
-        episodeNumber: video.episode,
-        imageUrl: video.images?.jpg?.image_url ?? null,
+      const items: TenraiAnimeEpisode[] = (response.data.data ?? []).map((episode: any) => ({
+        malId: episode.mal_id,
+        title: episode.title,
+        episodeNumber: String(episode.mal_id),
+        imageUrl: episode.images?.jpg?.image_url ?? null,
       }));
 
       const result: TenraiPagination<TenraiAnimeEpisode> = {
@@ -982,138 +690,6 @@ export class TenraiService {
       }
 
       this.logger.error(`Failed to fetch anime episodes for ID ${malId} from Tenrai API`, error);
-
-      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
-    }
-  }
-
-  async getMangaById(id: number): Promise<TenraiMangaDetails> {
-    try {
-      const cachedManga = await this.cacheService.get<TenraiMangaDetails>(CACHE_KEYS.TENRAI_MANGA_BY_ID.prefix(id));
-
-      if (cachedManga) {
-        return cachedManga;
-      }
-
-      const [mangaFullResponse, charactersResponse] = await manyRequestWithDelay({
-        httpService: this.httpService,
-        urls: [`${this.TENRAI_API_URL}/manga/${id}/full`, `${this.TENRAI_API_URL}/manga/${id}/characters`],
-      });
-
-      const mangaFullData = mangaFullResponse.data.data;
-      const charactersData = charactersResponse.data.data;
-
-      const characters = charactersData.map((char) => ({
-        malId: char.character.mal_id,
-        name: char.character.name,
-        imageUrl: char.character.images?.jpg?.image_url ?? null,
-        role: char.role,
-      }));
-
-      const manga = {
-        malId: mangaFullData.mal_id,
-        url: mangaFullData.url,
-        imageUrl: mangaFullData.images?.jpg?.image_url ?? null,
-        title: mangaFullData.title,
-        titles: mangaFullData.titles,
-        type: mangaFullData.type,
-        numberOfChapters: mangaFullData.chapters,
-        numberOfVolumes: mangaFullData.volumes,
-        status: mangaFullData.status,
-        published: mangaFullData.published,
-        rank: mangaFullData.rank,
-        popularity: mangaFullData.popularity,
-        synopsis: mangaFullData.synopsis,
-        isAdult: mangaFullData.genres ? mangaFullData.genres.some((genre) => genre.mal_id === 12) : false,
-        authors: mangaFullData.authors
-          ? mangaFullData.authors.map((author) => ({
-              malId: author.mal_id,
-              type: author.type,
-              name: author.name,
-            }))
-          : [],
-        serializations: mangaFullData.serializations
-          ? mangaFullData.serializations.map((serialization) => ({
-              malId: serialization.mal_id,
-              type: serialization.type,
-              name: serialization.name,
-            }))
-          : [],
-        genres: mangaFullData.genres ? mangaFullData.genres.map((genre) => genre.name) : [],
-        explicitGenres: mangaFullData.explicit_genres ? mangaFullData.explicit_genres.map((genre) => genre.name) : [],
-        themes: mangaFullData.themes ? mangaFullData.themes.map((theme) => theme.name) : [],
-        demographics: mangaFullData.demographics ? mangaFullData.demographics.map((demo) => demo.name) : [],
-        external: mangaFullData.external ? mangaFullData.external : [],
-        characters,
-        malReviewScore: mangaFullData?.score ?? 0,
-      } as TenraiMangaDetails;
-
-      await this.cacheService.set(
-        CACHE_KEYS.TENRAI_MANGA_BY_ID.prefix(id),
-        manga,
-        CACHE_KEYS.TENRAI_MANGA_BY_ID.expiration,
-      );
-
-      return manga;
-    } catch (error: any) {
-      if (error?.response?.status === 404) {
-        throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
-      }
-
-      this.logger.error(`Failed to fetch manga details for ID ${id} from Tenrai API`, error);
-
-      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
-    }
-  }
-
-  async getMangaRelationsById(id: number) {
-    try {
-      const relationsResponse = await firstValueFrom(
-        this.httpService.get(`${this.TENRAI_API_URL}/manga/${id}/relations`),
-      );
-
-      const relationsData = relationsResponse.data.data;
-
-      const allEntries = relationsData.flatMap((relation) => relation.entry);
-
-      const imageUrlMap = new Map<number, string | null>();
-
-      if (allEntries.length > 0) {
-        const urls = allEntries.map(
-          (entry) => `${this.TENRAI_API_URL}/${entry.type === "anime" ? "anime" : "manga"}/${entry.mal_id}`,
-        );
-
-        const responses = await manyRequestWithDelay({
-          httpService: this.httpService,
-          urls,
-          delayMs: 800,
-        });
-
-        for (let i = 0; i < allEntries.length; i++) {
-          const entry = allEntries[i];
-          const imageUrl = responses[i]?.data?.data?.images?.jpg?.image_url ?? null;
-
-          imageUrlMap.set(entry.mal_id, imageUrl);
-        }
-      }
-
-      const relations = relationsData.map((relation) => ({
-        relationType: relation.relation,
-        entry: relation.entry.map((entry) => ({
-          malId: entry.mal_id,
-          title: entry.name,
-          type: entry.type,
-          imageUrl: imageUrlMap.get(entry.mal_id) ?? null,
-        })),
-      }));
-
-      return relations;
-    } catch (error: any) {
-      if (error?.response?.status === 404) {
-        throw new AppException(ERROR_CODES.ANIME_NOT_FOUND);
-      }
-
-      this.logger.error(`Failed to fetch anime relations for ID ${id} from Tenrai API`, error);
 
       throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }

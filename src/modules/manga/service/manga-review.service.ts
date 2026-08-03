@@ -35,6 +35,7 @@ export class MangaReviewService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             imageUrl: true,
             title: true,
@@ -71,6 +72,7 @@ export class MangaReviewService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             imageUrl: true,
             title: true,
@@ -116,6 +118,7 @@ export class MangaReviewService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             imageUrl: true,
             title: true,

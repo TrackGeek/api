@@ -36,7 +36,7 @@ const SOURCE_FIELDS = [
 // anime/manga -> title + imageUrl, tvShow -> name + posterUrl,
 // movie -> title + posterUrl, game -> name + coverUrl, book -> title + imageUrl.
 const ANIME_SELECT = { select: { id: true, malId: true, title: true, imageUrl: true } };
-const MANGA_SELECT = { select: { id: true, malId: true, title: true, imageUrl: true } };
+const MANGA_SELECT = { select: { id: true, anilistId: true, malId: true, title: true, imageUrl: true } };
 const TVSHOW_SELECT = { select: { id: true, tmdbId: true, name: true, posterUrl: true } };
 const MOVIE_SELECT = { select: { id: true, tmdbId: true, title: true, posterUrl: true } };
 const GAME_SELECT = { select: { id: true, igdbId: true, name: true, coverUrl: true } };

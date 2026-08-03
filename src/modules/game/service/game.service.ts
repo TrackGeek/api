@@ -94,6 +94,31 @@ export class GameService {
     };
   }
 
+  async getGameFranchise(slug: string) {
+    const franchise = await this.integrationsService.igdb.getFranchiseBySlug(slug);
+
+    const trackedGames = await this.databaseService.game.findMany({
+      where: { igdbId: { in: franchise.games.map((game) => game.igdbId) } },
+      select: { igdbId: true, lastRefreshedAt: true, gameReviews: { select: { overall: true } } },
+    });
+
+    const games = franchise.games.map((game) => {
+      const tracked = trackedGames.find((trackedGame) => trackedGame.igdbId === game.igdbId);
+      const reviews = tracked?.gameReviews ?? [];
+      const tgReviewScore = reviews.length
+        ? parseFloat((reviews.reduce((sum, review) => sum + Number(review.overall), 0) / reviews.length).toFixed(1))
+        : 0;
+
+      return {
+        ...game,
+        tgReviewScore,
+        lastRefreshedAt: tracked?.lastRefreshedAt ?? null,
+      };
+    });
+
+    return { ...franchise, games };
+  }
+
   async getGameByIgdbId(igdbId: number) {
     let game = await this.databaseService.game.findUnique({
       where: { igdbId },

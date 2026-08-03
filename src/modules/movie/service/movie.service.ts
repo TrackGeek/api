@@ -8,6 +8,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { TMDBMovieOrderBy, TMDBSort } from "@/shared/infra/integrations/tmdb.service";
+import { parseIdFromSlug } from "@/shared/utils/string";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import type { SearchMovieDto } from "../dto/search-movie.dto";
 
@@ -86,6 +87,37 @@ export class MovieService {
       orderBy,
       sort,
     };
+  }
+
+  async getMovieFranchise(slug: string) {
+    const collectionId = parseIdFromSlug(slug);
+
+    if (collectionId === null) {
+      throw new AppException(ERROR_CODES.MOVIE_FRANCHISE_NOT_FOUND);
+    }
+
+    const collection = await this.integrationsService.tmdb.getMovieCollectionById(collectionId);
+
+    const trackedMovies = await this.databaseService.movie.findMany({
+      where: { tmdbId: { in: collection.parts.map((part) => part.tmdbId) } },
+      select: { tmdbId: true, lastRefreshedAt: true, movieReviews: { select: { overall: true } } },
+    });
+
+    const parts = collection.parts.map((part) => {
+      const tracked = trackedMovies.find((movie) => movie.tmdbId === part.tmdbId);
+      const reviews = tracked?.movieReviews ?? [];
+      const tgReviewScore = reviews.length
+        ? parseFloat((reviews.reduce((sum, review) => sum + Number(review.overall), 0) / reviews.length).toFixed(1))
+        : 0;
+
+      return {
+        ...part,
+        tgReviewScore,
+        lastRefreshedAt: tracked?.lastRefreshedAt ?? null,
+      };
+    });
+
+    return { ...collection, parts };
   }
 
   async getMovieByTmdbId(tmdbId: number) {

@@ -5,15 +5,32 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { GetNotificationsByUserDto } from "../dto/get-notifications.dto";
-import { NotificationPreferences, UpdateNotificationPreferencesDto } from "../dto/notification-preference.dto";
 import {
   CreateCommentNotificationDto,
   CreateReactionNotificationDto,
   CreateSystemNotificationDto,
 } from "../dto/notification.dto";
+import { NotificationPreferences, UpdateNotificationPreferencesDto } from "../dto/notification-preference.dto";
 
-// Absence of a preference row means every category is enabled.
-const DEFAULT_PREFERENCES: NotificationPreferences = { comment: true, reaction: true };
+const DEFAULT_PREFERENCES: NotificationPreferences = {
+  comment: true,
+  reaction: true,
+  newEpisode: true,
+  newChapter: true,
+  gameRelease: true,
+  reopenedCompleted: true,
+  sequelAdded: true,
+};
+
+const PREFERENCE_SELECT = {
+  comment: true,
+  reaction: true,
+  newEpisode: true,
+  newChapter: true,
+  gameRelease: true,
+  reopenedCompleted: true,
+  sequelAdded: true,
+} as const;
 
 const REACTION_TARGETS = {
   [ReactionType.Comment]: { type: NotificationType.ReactionOnComment, relation: "comment", sourceField: "commentId" },
@@ -238,23 +255,24 @@ export class NotificationService {
   async getPreferences(userId: string): Promise<NotificationPreferences> {
     const preference = await this.databaseService.notificationPreference.findUnique({
       where: { userId },
-      select: { comment: true, reaction: true },
+      select: PREFERENCE_SELECT,
     });
 
     return preference ?? DEFAULT_PREFERENCES;
   }
 
   async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto): Promise<NotificationPreferences> {
-    const data = {
-      ...(dto.comment !== undefined && { comment: dto.comment }),
-      ...(dto.reaction !== undefined && { reaction: dto.reaction }),
-    };
+    const data = Object.fromEntries(
+      Object.keys(PREFERENCE_SELECT)
+        .filter((key) => dto[key as keyof UpdateNotificationPreferencesDto] !== undefined)
+        .map((key) => [key, dto[key as keyof UpdateNotificationPreferencesDto]]),
+    );
 
     const preference = await this.databaseService.notificationPreference.upsert({
       where: { userId },
       create: { userId, ...data },
       update: data,
-      select: { comment: true, reaction: true },
+      select: PREFERENCE_SELECT,
     });
 
     return preference;

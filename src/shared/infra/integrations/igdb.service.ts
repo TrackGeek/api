@@ -36,6 +36,34 @@ export enum IGDBSort {
   Asc = "asc",
 }
 
+const IGDB_GAME_ORDER_BY_FIELDS: Record<IGDBGameOrderBy, string> = {
+  [IGDBGameOrderBy.Name]: "name",
+  [IGDBGameOrderBy.TotalRating]: "total_rating",
+  [IGDBGameOrderBy.Popularity]: "total_rating_count",
+  [IGDBGameOrderBy.FirstReleaseDate]: "first_release_date",
+};
+
+const IGDB_PLAYABLE_GAME_TYPES = [0, 2, 4, 8, 9, 10, 11];
+
+export interface IGDBFranchiseGame {
+  igdbId: number;
+  name: string;
+  slug: string;
+  summary: string | null;
+  igdbReviewScore: number | null;
+  firstReleaseDate: Date | null;
+  coverUrl: string | null;
+  artworkUrl: string | null;
+}
+
+export interface IGDBFranchise {
+  id: number;
+  name: string;
+  slug: string;
+  bannerUrl: string | null;
+  games: IGDBFranchiseGame[];
+}
+
 export interface IGDBTopGameOptions {
   page?: number;
   filter?: IGDBGameFilter;
@@ -336,6 +364,8 @@ export class IGDBService {
 
       const whereConditions = [
         query ? `name ~ *"${query}"*` : null,
+        `game_type = (${IGDB_PLAYABLE_GAME_TYPES.join(",")})`,
+        "version_parent = null",
         gameMode ? `game_modes.slug = "${gameMode}"` : null,
         genres ? `genres.slug = (${genres.map((genre) => `"${genre}"`).join(",")})` : null,
         platform ? `platforms.slug = "${platform}"` : null,
@@ -368,14 +398,12 @@ export class IGDBService {
           total_rating,
           first_release_date;
         ${whereClause}
-        sort ${orderBy} ${sort};
+        sort ${IGDB_GAME_ORDER_BY_FIELDS[orderBy]} ${sort};
         limit ${limit};
         offset ${offset};
       `;
 
-      const igdbCountQuery = `
-        ${whereClause};
-      `;
+      const igdbCountQuery = whereClause;
 
       const headers = {
         "Client-ID": this.configService.get<string>("IGDB_CLIENT_ID"),
@@ -1229,6 +1257,89 @@ export class IGDBService {
       if (error?.response?.status === 404) {
         throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
       }
+
+      throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getFranchiseBySlug(slug: string): Promise<IGDBFranchise> {
+    const accessToken = await this.getAccessToken();
+
+    try {
+      const cachedFranchiseKey = CACHE_KEYS.IGDB_FRANCHISE_BY_SLUG.prefix(slug);
+
+      const cachedFranchise = await this.cacheService.get<IGDBFranchise>(cachedFranchiseKey);
+
+      if (cachedFranchise) {
+        return cachedFranchise;
+      }
+
+      const igdbQuery = `
+        fields
+          name,
+          slug,
+          games.name,
+          games.slug,
+          games.summary,
+          games.total_rating,
+          games.first_release_date,
+          games.game_type,
+          games.cover.url,
+          games.artworks.url;
+        where slug = "${slug}";
+        limit 1;
+      `;
+
+      const franchiseResponse = await firstValueFrom(
+        this.httpService.post(`${this.IGDB_API_URL}/franchises`, igdbQuery, {
+          headers: {
+            "Client-ID": this.configService.get<string>("IGDB_CLIENT_ID"),
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }),
+      );
+
+      const franchiseData = franchiseResponse.data?.[0];
+
+      if (!franchiseData) {
+        throw new AppException(ERROR_CODES.GAME_FRANCHISE_NOT_FOUND);
+      }
+
+      const games: IGDBFranchiseGame[] = (franchiseData.games ?? [])
+        .filter((game: any) => IGDB_PLAYABLE_GAME_TYPES.includes(game?.game_type ?? 0))
+        .map((game: any) => ({
+          igdbId: game.id,
+          name: game.name,
+          slug: game.slug,
+          summary: game.summary ?? null,
+          igdbReviewScore: game.total_rating ?? null,
+          firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
+          coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
+          artworkUrl: game.artworks?.[0]?.url ? `https:${game.artworks[0].url.replace("t_thumb", "t_1080p")}` : null,
+        }))
+        .sort(
+          (a: IGDBFranchiseGame, b: IGDBFranchiseGame) =>
+            (a.firstReleaseDate?.getTime() ?? Number.MAX_SAFE_INTEGER) -
+            (b.firstReleaseDate?.getTime() ?? Number.MAX_SAFE_INTEGER),
+        );
+
+      const franchise: IGDBFranchise = {
+        id: franchiseData.id,
+        name: franchiseData.name,
+        slug: franchiseData.slug,
+        bannerUrl: games.find((game) => game.artworkUrl)?.artworkUrl ?? null,
+        games,
+      };
+
+      await this.cacheService.set(cachedFranchiseKey, franchise, CACHE_KEYS.IGDB_FRANCHISE_BY_SLUG.expiration);
+
+      return franchise;
+    } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
+      this.logger.error(`Failed to fetch franchise "${slug}" from IGDB: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }

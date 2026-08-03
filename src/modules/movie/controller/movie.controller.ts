@@ -44,4 +44,11 @@ export class MovieController {
 
     return { movie };
   }
+
+  @Get("/franchise/:slug")
+  async getMovieFranchise(@Param("slug") slug: string) {
+    const franchise = await this.movieService.getMovieFranchise(slug);
+
+    return { franchise };
+  }
 }

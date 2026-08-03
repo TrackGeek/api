@@ -102,6 +102,7 @@ export class ListService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             imageUrl: true,
             title: true,
@@ -257,6 +258,7 @@ export class ListService {
             manga: {
               select: {
                 id: true,
+                anilistId: true,
                 malId: true,
                 imageUrl: true,
                 title: true,
@@ -342,6 +344,7 @@ export class ListService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             imageUrl: true,
             title: true,
@@ -446,6 +449,7 @@ export class ListService {
             manga: {
               select: {
                 id: true,
+                anilistId: true,
                 malId: true,
                 imageUrl: true,
                 title: true,

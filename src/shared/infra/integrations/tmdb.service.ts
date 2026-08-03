@@ -6,6 +6,7 @@ import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
+import { slugify } from "@/shared/utils/string";
 import { CacheService } from "../cache/cache.service";
 
 export interface IGDBPagination<I> {
@@ -155,6 +156,28 @@ export interface TMDBMovieDetails {
   trailerId: string | null;
   external: Record<string, unknown> | null;
   backdrops: string[];
+}
+
+export interface TMDBMovieCollectionPart {
+  tmdbId: number;
+  title: string;
+  isAdult: boolean;
+  overview: string | null;
+  genres: string[];
+  tmdbReviewScore: number;
+  releaseDate: Date | null;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+}
+
+export interface TMDBMovieCollection {
+  id: number;
+  name: string;
+  slug: string;
+  overview: string | null;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  parts: TMDBMovieCollectionPart[];
 }
 
 export interface TMDBTVShowDetails {
@@ -773,6 +796,79 @@ export class TMDBService {
       }
 
       this.logger.error(`Failed to fetch movie details for ID ${tmdbId} from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getMovieCollectionById(collectionId: number): Promise<TMDBMovieCollection> {
+    try {
+      const cachedCollectionKey = CACHE_KEYS.TMDB_MOVIE_COLLECTION_BY_ID.prefix(collectionId);
+
+      const cachedCollection = await this.cacheService.get<TMDBMovieCollection>(cachedCollectionKey);
+
+      if (cachedCollection) {
+        return cachedCollection;
+      }
+
+      const collectionResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/collection/${collectionId}`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const collectionData = collectionResponse.data;
+
+      const movieGenres = await this.getMovieGenres();
+
+      const parts: TMDBMovieCollectionPart[] = (collectionData.parts ?? [])
+        .map((part: any) => ({
+          tmdbId: part.id,
+          title: part.title,
+          isAdult: part.adult,
+          overview: part.overview || null,
+          genres: (part.genre_ids ?? [])
+            .map((genre: any) => movieGenres.find((g) => g.id === genre) ?? null)
+            .filter((g: any) => g),
+          tmdbReviewScore: part.vote_average,
+          releaseDate: part.release_date ? new Date(part.release_date) : null,
+          posterUrl: part.poster_path ? `https://image.tmdb.org/t/p/w500${part.poster_path}` : null,
+          backdropUrl: part.backdrop_path
+            ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${part.backdrop_path}`
+            : null,
+        }))
+        .sort(
+          (a: TMDBMovieCollectionPart, b: TMDBMovieCollectionPart) =>
+            (a.releaseDate?.getTime() ?? Number.MAX_SAFE_INTEGER) -
+            (b.releaseDate?.getTime() ?? Number.MAX_SAFE_INTEGER),
+        );
+
+      const collection: TMDBMovieCollection = {
+        id: collectionData.id,
+        name: collectionData.name,
+        slug: slugify(collectionData.name ?? ""),
+        overview: collectionData.overview || null,
+        posterUrl: collectionData.poster_path ? `https://image.tmdb.org/t/p/w500${collectionData.poster_path}` : null,
+        backdropUrl: collectionData.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${collectionData.backdrop_path}`
+          : (parts.find((part) => part.backdropUrl)?.backdropUrl ?? null),
+        parts,
+      };
+
+      await this.cacheService.set(cachedCollectionKey, collection, CACHE_KEYS.TMDB_MOVIE_COLLECTION_BY_ID.expiration);
+
+      return collection;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.MOVIE_FRANCHISE_NOT_FOUND);
+      }
+
+      this.logger.error(
+        `Failed to fetch movie collection ${collectionId} from TMDB API: ${error.message}`,
+        error.stack,
+      );
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
