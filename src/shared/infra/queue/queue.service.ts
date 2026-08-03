@@ -1,5 +1,6 @@
 import { InjectQueue } from "@nestjs/bullmq";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JobsOptions, Queue } from "bullmq";
 import { CreateActivityDto } from "@/modules/activity/dto/activity.dto";
 import { SyncWatchedActivityDto } from "@/modules/activity/dto/sync-watched-activity.dto";

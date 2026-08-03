@@ -68,6 +68,7 @@ model User {
   notificationsReceived  Notification[]          @relation("NotificationRecipient")
   notificationsSent      Notification[]          @relation("NotificationActor")
   notificationPreference NotificationPreference?
+  statusTransitionLogs   StatusTransitionLog[]
 
   @@unique([email])
   @@unique([username])
@@ -299,6 +300,10 @@ enum NotificationType {
   ReactionOnMovieReview
   ReactionOnGameReview
   ReactionOnBookReview
+  NewEpisodeReleased
+  NewChapterReleased
+  NewGameReleased
+  SequelAdded
 }
 
 model Notification {
@@ -319,6 +324,7 @@ model Notification {
   movieReviewId  String?
   gameReviewId   String?
   bookReviewId   String?
+  releaseEventId String?
 
   recipient    User          @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   actor        User?         @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
@@ -332,18 +338,25 @@ model Notification {
   movieReview  MovieReview?  @relation(fields: [movieReviewId], references: [id], onDelete: Cascade)
   gameReview   GameReview?   @relation(fields: [gameReviewId], references: [id], onDelete: Cascade)
   bookReview   BookReview?   @relation(fields: [bookReviewId], references: [id], onDelete: Cascade)
+  releaseEvent ReleaseEvent? @relation(fields: [releaseEventId], references: [id], onDelete: Cascade)
 
+  @@unique([recipientId, releaseEventId])
   @@index([recipientId, readAt])
   @@index([recipientId, createdAt])
 }
 
 model NotificationPreference {
-  id        String   @id @default(uuid(7))
-  userId    String   @unique
-  comment   Boolean  @default(true)
-  reaction  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(uuid(7))
+  userId            String   @unique
+  comment           Boolean  @default(true)
+  reaction          Boolean  @default(true)
+  newEpisode        Boolean  @default(true)
+  newChapter        Boolean  @default(true)
+  gameRelease       Boolean  @default(true)
+  reopenedCompleted Boolean  @default(true)
+  sequelAdded       Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -488,6 +501,7 @@ model Game {
   favorites       Favorite[]
   listItems       ListItem[]
   comments        Comment[]
+  releaseEvents   ReleaseEvent[]
 }
 
 model Book {
@@ -582,6 +596,7 @@ model Anime {
   listItems          ListItem[]
   comments           Comment[]
   activities         Activity[]
+  releaseEvents      ReleaseEvent[]
 }
 
 model Manga {
@@ -623,6 +638,7 @@ model Manga {
   favorites       Favorite[]
   listItems       ListItem[]
   comments        Comment[]
+  releaseEvents   ReleaseEvent[]
 }
 
 model TvShow {
@@ -673,6 +689,7 @@ model TvShow {
   listItems           ListItem[]
   comments            Comment[]
   activities          Activity[]
+  releaseEvents       ReleaseEvent[]
 
   @@map("TVShow")
 }
@@ -1185,4 +1202,115 @@ model Payment {
   @@unique([stripeCheckoutSessionId])
   @@index([userId, status, createdAt])
   @@index([stripeProductId])
+}
+
+enum CatchupMediaType {
+  Anime
+  Manga
+  TvShow
+  Game
+}
+
+enum ReleaseEventType {
+  NewEpisodeReleased
+  NewChapterReleased
+  NewGameReleased
+  SequelAdded
+}
+
+enum ReleaseSource {
+  Tenrai
+  Anilist
+  Tmdb
+  Igdb
+}
+
+enum CatchupRunStatus {
+  Running
+  Success
+  Failed
+}
+
+model CatchupRun {
+  id         String           @id @default(uuid(7))
+  runDate    DateTime
+  status     CatchupRunStatus @default(Running)
+  stats      Json?
+  error      String?
+  startedAt  DateTime         @default(now())
+  finishedAt DateTime?
+
+  releaseEvents ReleaseEvent[]
+  auditLogs     CatchupAuditLog[]
+
+  @@index([runDate])
+  @@index([status, startedAt])
+}
+
+model ReleaseEvent {
+  id              String           @id @default(uuid(7))
+  type            ReleaseEventType
+  mediaType       CatchupMediaType
+  source          ReleaseSource
+  externalId      String
+  idempotencyKey  String           @unique
+  title           String
+  unitNumber      Int?
+  containerNumber Int?
+  unitTitle       String?
+  isAccessory     Boolean          @default(false)
+  releaseAt       DateTime
+  rawPayload      Json?
+  runId           String?
+  animeId         String?
+  mangaId         String?
+  tvShowId        String?
+  gameId          String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  run                  CatchupRun?           @relation(fields: [runId], references: [id], onDelete: SetNull)
+  anime                Anime?                @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  manga                Manga?                @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  tvShow               TvShow?               @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  game                 Game?                 @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  notifications        Notification[]
+  statusTransitionLogs StatusTransitionLog[]
+
+  @@index([mediaType, releaseAt])
+  @@index([releaseAt])
+  @@index([animeId])
+  @@index([mangaId])
+  @@index([tvShowId])
+  @@index([gameId])
+}
+
+model StatusTransitionLog {
+  id             String           @id @default(uuid(7))
+  userId         String
+  mediaType      CatchupMediaType
+  fromStatus     ProgressStatus
+  toStatus       ProgressStatus
+  reason         String
+  releaseEventId String?
+  createdAt      DateTime         @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  releaseEvent ReleaseEvent? @relation(fields: [releaseEventId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, releaseEventId])
+  @@index([userId, createdAt])
+}
+
+model CatchupAuditLog {
+  id        String   @id @default(uuid(7))
+  action    String
+  runId     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  run CatchupRun? @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([action, createdAt])
 }
