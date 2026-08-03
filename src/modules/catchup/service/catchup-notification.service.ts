@@ -38,11 +38,7 @@ export interface DispatchReleaseNotificationsParams {
 export class CatchupNotificationService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async dispatch({
-    releaseEvent,
-    userIds,
-    reopenedUserIds = [],
-  }: DispatchReleaseNotificationsParams): Promise<number> {
+  async dispatch({ releaseEvent, userIds, reopenedUserIds = [] }: DispatchReleaseNotificationsParams): Promise<number> {
     if (userIds.length === 0) {
       return 0;
     }

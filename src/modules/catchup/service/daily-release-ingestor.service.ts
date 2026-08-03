@@ -79,7 +79,11 @@ export class DailyReleaseIngestorService {
       return await ingest();
     } catch (error: any) {
       this.logger.error(`Catch-up ingestion failed | scope=${scope} error=${error.message}`);
-      await this.catchupAuditService.record(CATCHUP_AUDIT_ACTIONS.INGESTION_FAILED, { scope, error: error.message }, runId);
+      await this.catchupAuditService.record(
+        CATCHUP_AUDIT_ACTIONS.INGESTION_FAILED,
+        { scope, error: error.message },
+        runId,
+      );
 
       return [];
     }

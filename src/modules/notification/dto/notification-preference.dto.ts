@@ -29,12 +29,18 @@ export class UpdateNotificationPreferencesDto {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when a completed title gets new content." })
+  @ApiPropertyOptional({
+    type: "boolean",
+    description: "Receive notifications when a completed title gets new content.",
+  })
   readonly reopenedCompleted?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when a sequel of a finished title lands." })
+  @ApiPropertyOptional({
+    type: "boolean",
+    description: "Receive notifications when a sequel of a finished title lands.",
+  })
   readonly sequelAdded?: boolean;
 }
 
