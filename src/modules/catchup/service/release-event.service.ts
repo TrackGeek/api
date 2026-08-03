@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ReleaseEvent } from "@prisma/generated/models";
+import { ReleaseEventModel } from "@prisma/generated/models";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { CATCHUP_MEDIA_CONFIG } from "../constants/media-config";
 import { InternalTitleMatch, NormalizedRelease } from "../types/catchup.types";
@@ -11,7 +11,7 @@ export interface FindOrCreateReleaseEventParams {
 }
 
 export interface FindOrCreateReleaseEventResult {
-  readonly event: ReleaseEvent;
+  readonly event: ReleaseEventModel;
   readonly created: boolean;
 }
 

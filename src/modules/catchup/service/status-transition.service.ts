@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ProgressStatus, ReleaseEventType } from "@prisma/generated/enums";
-import { ReleaseEvent } from "@prisma/generated/models";
+import { ReleaseEventModel } from "@prisma/generated/models";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { STATUS_TRANSITION_REASONS } from "../constants/catchup.constants";
 import { CATCHUP_MEDIA_CONFIG } from "../constants/media-config";
@@ -19,7 +19,7 @@ export class StatusTransitionService {
     private readonly catchupFlagsService: CatchupFlagsService,
   ) {}
 
-  async autoReopenCompletedIfNeeded(user: ImpactedUser, releaseEvent: ReleaseEvent): Promise<boolean> {
+  async autoReopenCompletedIfNeeded(user: ImpactedUser, releaseEvent: ReleaseEventModel): Promise<boolean> {
     const flags = this.catchupFlagsService.flags;
     const config = CATCHUP_MEDIA_CONFIG[releaseEvent.mediaType];
     const reason = REOPEN_EVENT_REASONS[releaseEvent.type];
@@ -62,7 +62,7 @@ export class StatusTransitionService {
     return true;
   }
 
-  private progressModel(releaseEvent: ReleaseEvent) {
+  private progressModel(releaseEvent: ReleaseEventModel) {
     return this.databaseService[CATCHUP_MEDIA_CONFIG[releaseEvent.mediaType].progressModel] as any;
   }
 }

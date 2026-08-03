@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { NotificationType, ReleaseEventType } from "@prisma/generated/enums";
-import { ReleaseEvent } from "@prisma/generated/models";
+import { ReleaseEventModel } from "@prisma/generated/models";
 import { NotificationPreferences } from "@/modules/notification/dto/notification-preference.dto";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { CATCHUP_MEDIA_CONFIG } from "../constants/media-config";
@@ -29,7 +29,7 @@ const DEFAULT_PREFERENCES: Pick<
 };
 
 export interface DispatchReleaseNotificationsParams {
-  readonly releaseEvent: ReleaseEvent;
+  readonly releaseEvent: ReleaseEventModel;
   readonly userIds: string[];
   readonly reopenedUserIds?: string[];
 }
@@ -91,7 +91,7 @@ export class CatchupNotificationService {
     return count;
   }
 
-  private buildMetadata(releaseEvent: ReleaseEvent, reopened: boolean) {
+  private buildMetadata(releaseEvent: ReleaseEventModel, reopened: boolean) {
     const config = CATCHUP_MEDIA_CONFIG[releaseEvent.mediaType];
 
     return {

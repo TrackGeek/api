@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CatchupMediaType, ProgressStatus, ReleaseEventType } from "@prisma/generated/enums";
-import { ReleaseEvent } from "@prisma/generated/models";
+import { ReleaseEventModel } from "@prisma/generated/models";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { CATCHUP_MEDIA_CONFIG } from "../constants/media-config";
 import { ImpactedUser } from "../types/catchup.types";
@@ -13,7 +13,7 @@ export class UserImpactResolverService {
     private readonly catchupFlagsService: CatchupFlagsService,
   ) {}
 
-  async resolve(releaseEvent: ReleaseEvent): Promise<ImpactedUser[]> {
+  async resolve(releaseEvent: ReleaseEventModel): Promise<ImpactedUser[]> {
     if (releaseEvent.type === ReleaseEventType.SequelAdded) {
       return this.resolveSequelAudience(releaseEvent);
     }
@@ -54,7 +54,7 @@ export class UserImpactResolverService {
     return [...impacted.values()];
   }
 
-  private async resolveSequelAudience(releaseEvent: ReleaseEvent): Promise<ImpactedUser[]> {
+  private async resolveSequelAudience(releaseEvent: ReleaseEventModel): Promise<ImpactedUser[]> {
     const payload = (releaseEvent.rawPayload ?? {}) as Record<string, unknown>;
     const prequelAnimeId = typeof payload.prequelAnimeId === "string" ? payload.prequelAnimeId : null;
 

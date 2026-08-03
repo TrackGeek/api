@@ -8,6 +8,7 @@ import { ActivityModule } from "./modules/activity/activity.module";
 import { AnimeModule } from "./modules/anime/anime.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { BookModule } from "./modules/book/book.module";
+import { CatchupModule } from "./modules/catchup/catchup.module";
 import { CommentModule } from "./modules/comment/comment.module";
 import { FavoriteModule } from "./modules/favorite/favorite.module";
 import { GameModule } from "./modules/game/game.module";
@@ -66,6 +67,7 @@ import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
     FavoriteModule,
     ListModule,
     PaymentModule,
+    CatchupModule,
   ],
   providers: [
     {
