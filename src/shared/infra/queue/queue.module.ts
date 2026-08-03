@@ -2,10 +2,12 @@ import { BullModule } from "@nestjs/bullmq";
 import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ActivityModule } from "@/modules/activity/activity.module";
+import { CatchupModule } from "@/modules/catchup/catchup.module";
 import { NotificationModule } from "@/modules/notification/notification.module";
-import { ACTIVITY_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
+import { ACTIVITY_QUEUE, CATCHUP_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
 import { EmailModule } from "../email/email.module";
 import { ActivityProcessor } from "./processors/activity.processor";
+import { CatchupProcessor } from "./processors/catchup.processor";
 import { EmailProcessor } from "./processors/email.processor";
 import { NotificationProcessor } from "./processors/notification.processor";
 import { QueueService } from "./queue.service";
@@ -16,6 +18,7 @@ import { QueueService } from "./queue.service";
     EmailModule,
     ActivityModule,
     NotificationModule,
+    CatchupModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
@@ -36,9 +39,10 @@ import { QueueService } from "./queue.service";
     BullModule.registerQueue({ name: ACTIVITY_QUEUE }),
     BullModule.registerQueue({ name: NOTIFICATION_QUEUE }),
     BullModule.registerQueue({ name: EMAIL_QUEUE }),
+    BullModule.registerQueue({ name: CATCHUP_QUEUE }),
   ],
   controllers: [],
-  providers: [QueueService, ActivityProcessor, NotificationProcessor, EmailProcessor],
+  providers: [QueueService, ActivityProcessor, NotificationProcessor, EmailProcessor, CatchupProcessor],
   exports: [QueueService],
 })
 export class QueueModule {}

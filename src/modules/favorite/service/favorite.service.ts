@@ -64,6 +64,7 @@ export class FavoriteService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             title: true,
             imageUrl: true,
@@ -166,6 +167,7 @@ export class FavoriteService {
         manga: {
           select: {
             id: true,
+            anilistId: true,
             malId: true,
             title: true,
             imageUrl: true,

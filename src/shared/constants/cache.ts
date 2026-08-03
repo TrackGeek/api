@@ -29,6 +29,10 @@ export const CACHE_KEYS = {
     prefix: "hardcover:statuses:book",
     expiration: 3600 * 24 * 7,
   },
+  HARDCOVER_SERIES_BY_ID: {
+    prefix: (seriesId: number) => `hardcover:series:book:${seriesId}`,
+    expiration: 3600 * 24 * 7,
+  },
 
   IGDB_ACCESS_TOKEN: "igdb:token",
   IGDB_SEARCH_GAMES: {
@@ -59,21 +63,17 @@ export const CACHE_KEYS = {
     prefix: (igdbId: number) => `igdb:detail:game:id:${igdbId}`,
     expiration: 3600 * 24 * 7,
   },
+  IGDB_FRANCHISE_BY_SLUG: {
+    prefix: (slug: string) => `igdb:franchise:game:slug:${slug}`,
+    expiration: 3600 * 24 * 7,
+  },
 
   TENRAI_SEARCH_ANIMES: {
     prefix: (filters: Record<string, any>) => `tenrai:search:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  TENRAI_SEARCH_MANGAS: {
-    prefix: (filters: Record<string, any>) => `tenrai:search:manga:${filtersToString(filters)}`,
-    expiration: 3600 * 24 * 7,
-  },
   TENRAI_ANIME_GENRES: {
     prefix: "tenrai:genres:anime",
-    expiration: 3600 * 24 * 7,
-  },
-  TENRAI_MANGA_GENRES: {
-    prefix: "tenrai:genres:manga",
     expiration: 3600 * 24 * 7,
   },
   TENRAI_ANIME_BY_ID: {
@@ -89,20 +89,29 @@ export const CACHE_KEYS = {
     prefix: (filters: Record<string, any>) => `tenrai:recommendations:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  TENRAI_MANGA_RECOMMENDATIONS: {
-    prefix: (filters: Record<string, any>) => `tenrai:recommendations:manga:${filtersToString(filters)}`,
-    expiration: 3600 * 24 * 7,
-  },
   TENRAI_TOP_ANIMES: {
     prefix: (filters: Record<string, any>) => `tenrai:top:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  TENRAI_TOP_MANGAS: {
-    prefix: (filters: Record<string, any>) => `tenrai:top:manga:${filtersToString(filters)}`,
+
+  ANILIST_SEARCH_MANGAS: {
+    prefix: (filters: Record<string, any>) => `anilist:search:manga:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
-  TENRAI_MANGA_BY_ID: {
-    prefix: (malId: number) => `tenrai:detail:manga:id:${malId}`,
+  ANILIST_TOP_MANGAS: {
+    prefix: (filters: Record<string, any>) => `anilist:top:manga:${filtersToString(filters)}`,
+    expiration: 3600 * 24 * 7,
+  },
+  ANILIST_MANGA_BY_ID: {
+    prefix: (anilistId: number) => `anilist:detail:manga:id:${anilistId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  ANILIST_MANGA_GENRES: {
+    prefix: "anilist:genres:manga",
+    expiration: 3600 * 24 * 7,
+  },
+  ANILIST_MANGA_TAGS: {
+    prefix: "anilist:tags:manga",
     expiration: 3600 * 24 * 7,
   },
 
@@ -124,6 +133,10 @@ export const CACHE_KEYS = {
   },
   TMDB_MOVIE_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:detail:movie:id:${tmdbId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  TMDB_MOVIE_COLLECTION_BY_ID: {
+    prefix: (collectionId: number) => `tmdb:collection:movie:id:${collectionId}`,
     expiration: 3600 * 24 * 7,
   },
   TMDB_MOVIE_GENRES: {

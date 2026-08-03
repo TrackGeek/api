@@ -38,16 +38,16 @@ export class MangaController {
     await this.mangaService.refreshManga(refreshMangaDto);
   }
 
-  @Get("/detail/:malId")
-  async getMangaByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
-    const manga = await this.mangaService.getMangaByMalId(malId);
+  @Get("/detail/:anilistId")
+  async getMangaByAnilistId(@Param("anilistId", new ParseIntPipe()) anilistId: number) {
+    const manga = await this.mangaService.getMangaByAnilistId(anilistId);
 
     return { manga };
   }
 
-  @Get("/detail/:malId/relation")
-  async getMangaRelationsByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
-    const relations = await this.mangaService.getMangaRelationsByMalId(malId);
+  @Get("/detail/:anilistId/relation")
+  async getMangaRelationsByAnilistId(@Param("anilistId", new ParseIntPipe()) anilistId: number) {
+    const relations = await this.mangaService.getMangaRelationsByAnilistId(anilistId);
 
     return { relations };
   }

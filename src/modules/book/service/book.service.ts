@@ -8,6 +8,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
+import { parseIdFromSlug } from "@/shared/utils/string";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
 
@@ -88,6 +89,37 @@ export class BookService {
       ...hardcoverPagination,
       items,
     };
+  }
+
+  async getBookFranchise(slug: string) {
+    const seriesId = parseIdFromSlug(slug);
+
+    if (seriesId === null) {
+      throw new AppException(ERROR_CODES.BOOK_FRANCHISE_NOT_FOUND);
+    }
+
+    const series = await this.integrationsService.hardcover.getSeriesById(seriesId);
+
+    const trackedBooks = await this.databaseService.book.findMany({
+      where: { hardcoverId: { in: series.books.map((book) => book.hardcoverId) } },
+      select: { hardcoverId: true, lastRefreshedAt: true, bookReviews: { select: { overall: true } } },
+    });
+
+    const books = series.books.map((book) => {
+      const tracked = trackedBooks.find((trackedBook) => trackedBook.hardcoverId === book.hardcoverId);
+      const reviews = tracked?.bookReviews ?? [];
+      const tgReviewScore = reviews.length
+        ? parseFloat((reviews.reduce((sum, review) => sum + Number(review.overall), 0) / reviews.length).toFixed(1))
+        : 0;
+
+      return {
+        ...book,
+        tgReviewScore,
+        lastRefreshedAt: tracked?.lastRefreshedAt ?? null,
+      };
+    });
+
+    return { ...series, books };
   }
 
   async getBookByHardcoverId(hardcoverId: number) {

@@ -5,13 +5,16 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
-  TenraiMangaOrderBy,
-  TenraiMangaStatus,
-  TenraiMangaType,
-  TenraiSort,
-} from "@/shared/infra/integrations/tenrai.service";
+  type AnilistMangaDetails,
+  AnilistMangaOrderBy,
+  AnilistMangaStatus,
+  AnilistMangaType,
+  type AnilistPagination,
+  type AnilistSearchManga,
+  AnilistSort,
+} from "@/shared/infra/integrations/anilist.service";
+import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { TopMangaDto } from "../dto/top-manga.dto";
@@ -24,69 +27,23 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
-    const tenraiPagination = await this.integrationsService.tenrai.searchMangas(searchMangaDto);
+    const anilistPagination = await this.integrationsService.anilist.searchMangas(searchMangaDto);
 
-    const items = await Promise.all(
-      tenraiPagination.items.map(async (item) => {
-        const tgReviewScore = await this.databaseService.mangaReview
-          .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
-          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
-          .catch(() => 0);
-
-        const manga = await this.databaseService.manga.findUnique({
-          where: { malId: item.malId },
-          select: { lastRefreshedAt: true },
-        });
-
-        return {
-          ...item,
-          tgReviewScore,
-          lastRefreshedAt: manga?.lastRefreshedAt ?? null,
-        };
-      }),
-    );
-
-    return {
-      ...tenraiPagination,
-      items,
-    };
+    return this.withCommunityData(anilistPagination);
   }
 
   async topMangas(topMangaDto: TopMangaDto) {
-    const tenraiPagination = await this.integrationsService.tenrai.topMangas(topMangaDto);
+    const anilistPagination = await this.integrationsService.anilist.topMangas(topMangaDto);
 
-    const items = await Promise.all(
-      tenraiPagination.items.map(async (item) => {
-        const tgReviewScore = await this.databaseService.mangaReview
-          .aggregate({ where: { manga: { malId: item.malId } }, _avg: { overall: true } })
-          .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
-          .catch(() => 0);
-
-        const manga = await this.databaseService.manga.findUnique({
-          where: { malId: item.malId },
-          select: { lastRefreshedAt: true },
-        });
-
-        return {
-          ...item,
-          tgReviewScore,
-          lastRefreshedAt: manga?.lastRefreshedAt ?? null,
-        };
-      }),
-    );
-
-    return {
-      ...tenraiPagination,
-      items,
-    };
+    return this.withCommunityData(anilistPagination);
   }
 
   async mangaFilters() {
-    const types = Object.values(TenraiMangaType);
-    const status = Object.values(TenraiMangaStatus);
-    const orderBy = Object.values(TenraiMangaOrderBy);
-    const sort = Object.values(TenraiSort);
-    const genres = await this.integrationsService.tenrai.getMangaGenres();
+    const types = Object.values(AnilistMangaType);
+    const status = Object.values(AnilistMangaStatus);
+    const orderBy = Object.values(AnilistMangaOrderBy);
+    const sort = Object.values(AnilistSort);
+    const genres = await this.integrationsService.anilist.getMangaGenres();
 
     return {
       types,
@@ -97,27 +54,19 @@ export class MangaService {
     };
   }
 
-  async getMangaByMalId(malId: number) {
-    let manga = await this.databaseService.manga.findUnique({
-      where: { malId },
-    });
-
-    if (!manga) {
-      const tenraiManga = await this.integrationsService.tenrai.getMangaById(malId);
-
-      manga = await this.databaseService.manga.create({
-        data: tenraiManga as unknown as MangaCreateInput,
-      });
-    }
+  async getMangaByAnilistId(anilistId: number) {
+    const manga =
+      (await this.databaseService.manga.findUnique({ where: { anilistId } })) ??
+      (await this.saveManga(await this.fetchFromAnilist(anilistId)));
 
     const tgReviewScore = await this.databaseService.mangaReview
-      .aggregate({ where: { manga: { malId } }, _avg: { overall: true } })
+      .aggregate({ where: { mangaId: manga.id }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
       .catch(() => 0);
 
     const progressGroups = await this.databaseService.mangaProgress.groupBy({
       by: ["status"],
-      where: { manga: { malId } },
+      where: { mangaId: manga.id },
       _count: { status: true },
     });
 
@@ -132,24 +81,23 @@ export class MangaService {
     };
 
     const progressStats = {
-      watching: getStats(ProgressStatus.Watching),
+      reading: getStats(ProgressStatus.Reading),
       completed: getStats(ProgressStatus.Completed),
-      planToWatch: getStats(ProgressStatus.Planning),
+      planning: getStats(ProgressStatus.Planning),
+      paused: getStats(ProgressStatus.Paused),
       dropped: getStats(ProgressStatus.Dropped),
     };
 
-    const mangaWithStats = {
+    return {
       ...manga,
       tgReviewScore,
       progressStats,
     };
-
-    return mangaWithStats;
   }
 
-  async getMangaRelationsByMalId(malId: number) {
+  async getMangaRelationsByAnilistId(anilistId: number) {
     const manga = await this.databaseService.manga.findUnique({
-      where: { malId },
+      where: { anilistId },
       select: { relations: true },
     });
 
@@ -161,11 +109,11 @@ export class MangaService {
       return manga.relations;
     }
 
-    const relations = await this.integrationsService.tenrai.getMangaRelationsById(malId);
+    const relations = await this.integrationsService.anilist.getMangaRelationsById(anilistId);
 
     await this.databaseService.manga.update({
-      where: { malId },
-      data: { relations },
+      where: { anilistId },
+      data: { relations } as unknown as MangaUpdateInput,
     });
 
     return relations;
@@ -173,7 +121,7 @@ export class MangaService {
 
   async refreshManga(refreshMangaDto: RefreshMangaDto) {
     const manga = await this.databaseService.manga.findUnique({
-      where: { malId: refreshMangaDto.malId },
+      where: { anilistId: refreshMangaDto.anilistId },
       select: {
         lastRefreshedAt: true,
       },
@@ -187,14 +135,78 @@ export class MangaService {
       throw new AppException(ERROR_CODES.MANGA_ALREADY_REFRESHED);
     }
 
-    const tenraiManga = await this.integrationsService.tenrai.getMangaById(refreshMangaDto.malId);
-    const tenraiRelations = await this.integrationsService.tenrai.getMangaRelationsById(refreshMangaDto.malId);
+    await this.saveManga(await this.fetchFromAnilist(refreshMangaDto.anilistId));
+  }
 
-    await this.databaseService.manga.update({
-      where: { malId: refreshMangaDto.malId },
-      data: { ...tenraiManga, relations: tenraiRelations } as unknown as MangaUpdateInput,
+  /** Legacy links carry the MAL id, so an unknown AniList id falls back to a MAL lookup. */
+  private async fetchFromAnilist(id: number) {
+    try {
+      return await this.integrationsService.anilist.getMangaById(id);
+    } catch (error) {
+      if (error instanceof AppException && error.getStatus() === ERROR_CODES.MANGA_NOT_FOUND.status) {
+        return this.integrationsService.anilist.getMangaByMalId(id);
+      }
+
+      throw error;
+    }
+  }
+
+  /** Rows created from MyAnimeList keep their progress/reviews: they are adopted by malId. */
+  private async saveManga(anilistManga: AnilistMangaDetails) {
+    const { publishedFrom: _publishedFrom, ...manga } = anilistManga;
+
+    const data = { ...manga, lastRefreshedAt: new Date() };
+
+    const existing = await this.databaseService.manga.findFirst({
+      where: {
+        OR: [{ anilistId: manga.anilistId }, ...(manga.malId ? [{ malId: manga.malId }] : [])],
+      },
+      select: { id: true },
     });
 
-    await this.getMangaByMalId(refreshMangaDto.malId);
+    if (existing) {
+      return this.databaseService.manga.update({
+        where: { id: existing.id },
+        data: data as unknown as MangaUpdateInput,
+      });
+    }
+
+    return this.databaseService.manga.create({ data: data as unknown as MangaCreateInput });
+  }
+
+  private async withCommunityData(pagination: AnilistPagination<AnilistSearchManga>) {
+    const anilistIds = pagination.items.map((item) => item.anilistId);
+
+    const mangas = await this.databaseService.manga.findMany({
+      where: { anilistId: { in: anilistIds } },
+      select: { id: true, anilistId: true, lastRefreshedAt: true },
+    });
+
+    const reviewScores = await this.databaseService.mangaReview.groupBy({
+      by: ["mangaId"],
+      where: { mangaId: { in: mangas.map((manga) => manga.id) } },
+      _avg: { overall: true },
+    });
+
+    const scoreByMangaId = new Map(
+      reviewScores.map((score) => [score.mangaId, score._avg.overall ? parseFloat(score._avg.overall.toFixed(1)) : 0]),
+    );
+
+    const mangaByAnilistId = new Map(mangas.map((manga) => [manga.anilistId, manga]));
+
+    const items = pagination.items.map((item) => {
+      const manga = mangaByAnilistId.get(item.anilistId);
+
+      return {
+        ...item,
+        tgReviewScore: manga ? (scoreByMangaId.get(manga.id) ?? 0) : 0,
+        lastRefreshedAt: manga?.lastRefreshedAt ?? null,
+      };
+    });
+
+    return {
+      ...pagination,
+      items,
+    };
   }
 }

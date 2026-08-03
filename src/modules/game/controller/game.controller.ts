@@ -58,6 +58,13 @@ export class GameController {
     return { game };
   }
 
+  @Get("/franchise/:slug")
+  async getGameFranchise(@Param("slug") slug: string) {
+    const franchise = await this.gameService.getGameFranchise(slug);
+
+    return { franchise };
+  }
+
   @Delete("/tracking/:gameId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)

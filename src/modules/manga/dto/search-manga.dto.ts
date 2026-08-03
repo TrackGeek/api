@@ -1,11 +1,11 @@
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
 import {
-  TenraiMangaOrderBy,
-  TenraiMangaStatus,
-  TenraiMangaType,
-  TenraiSort,
-} from "@/shared/infra/integrations/tenrai.service";
+  AnilistMangaOrderBy,
+  AnilistMangaStatus,
+  AnilistMangaType,
+  AnilistSort,
+} from "@/shared/infra/integrations/anilist.service";
 
 export class SearchMangaDto {
   @IsOptional()
@@ -17,30 +17,26 @@ export class SearchMangaDto {
   @IsOptional()
   readonly page?: number;
 
-  @IsEnum(TenraiMangaType)
+  @IsEnum(AnilistMangaType)
   @IsOptional()
-  readonly type?: TenraiMangaType;
+  readonly type?: AnilistMangaType;
 
-  @IsEnum(TenraiMangaStatus)
+  @IsEnum(AnilistMangaStatus)
   @IsOptional()
-  readonly status?: TenraiMangaStatus;
+  readonly status?: AnilistMangaStatus;
 
   @Transform(({ value }) => (value as string).split(","))
   @IsArray()
   @IsOptional()
   readonly genres?: string[];
 
-  @IsEnum(TenraiMangaOrderBy)
+  @IsEnum(AnilistMangaOrderBy)
   @IsOptional()
-  readonly orderBy?: TenraiMangaOrderBy;
+  readonly orderBy?: AnilistMangaOrderBy;
 
-  @IsEnum(TenraiSort)
+  @IsEnum(AnilistSort)
   @IsOptional()
-  readonly sort?: TenraiSort;
-
-  @Matches(/^[a-zA-Z]$/)
-  @IsOptional()
-  readonly letter?: string;
+  readonly sort?: AnilistSort;
 
   @IsOptional()
   @Matches(/^\d{4}$/)

@@ -11,9 +11,45 @@ export class UpdateNotificationPreferencesDto {
   @IsBoolean()
   @ApiPropertyOptional({ type: "boolean", description: "Receive notifications for reactions to your content." })
   readonly reaction?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when a new episode is released." })
+  readonly newEpisode?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when a new chapter is released." })
+  readonly newChapter?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when a tracked game releases." })
+  readonly gameRelease?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    type: "boolean",
+    description: "Receive notifications when a completed title gets new content.",
+  })
+  readonly reopenedCompleted?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    type: "boolean",
+    description: "Receive notifications when a sequel of a finished title lands.",
+  })
+  readonly sequelAdded?: boolean;
 }
 
 export interface NotificationPreferences {
   readonly comment: boolean;
   readonly reaction: boolean;
+  readonly newEpisode: boolean;
+  readonly newChapter: boolean;
+  readonly gameRelease: boolean;
+  readonly reopenedCompleted: boolean;
+  readonly sequelAdded: boolean;
 }
