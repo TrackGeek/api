@@ -115,6 +115,18 @@ export const ERROR_CODES = {
     code: "MOVIE_ALREADY_REFRESHED",
     status: 409,
   },
+  MOVIE_FRANCHISE_NOT_FOUND: {
+    code: "MOVIE_FRANCHISE_NOT_FOUND",
+    status: 404,
+  },
+  GAME_FRANCHISE_NOT_FOUND: {
+    code: "GAME_FRANCHISE_NOT_FOUND",
+    status: 404,
+  },
+  BOOK_FRANCHISE_NOT_FOUND: {
+    code: "BOOK_FRANCHISE_NOT_FOUND",
+    status: 404,
+  },
   MANGA_NOT_FOUND: {
     code: "MANGA_NOT_FOUND",
     status: 404,

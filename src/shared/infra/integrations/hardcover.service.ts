@@ -6,6 +6,7 @@ import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DEFAULT_PAGINATION_ITEMS_PER_PAGE, DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
+import { slugify } from "@/shared/utils/string";
 import { CacheService } from "../cache/cache.service";
 
 export interface HardcoverPagination<I> {
@@ -99,6 +100,29 @@ export interface HardcoverBookSeries {
     isCompleted: boolean;
     description: string | null;
   };
+}
+
+export interface HardcoverSeriesBook {
+  hardcoverId: number;
+  position: number | null;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  contributions: string[];
+  hardcoverReviewScore: number;
+  imageUrl: string | null;
+  releaseYear: number | null;
+  releaseDate: Date | null;
+}
+
+export interface HardcoverSeries {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  isCompleted: boolean;
+  imageUrl: string | null;
+  books: HardcoverSeriesBook[];
 }
 
 export interface HardcoverBookCategory {
@@ -821,9 +845,7 @@ export class HardcoverService {
         audioSeconds: bookData.audio_seconds,
         taggings: [
           ...new Map(
-            (bookData.taggings?.map(({ tag }) => tag) ?? [])
-              .filter((tag) => tag?.tag)
-              .map((tag) => [tag.tag, tag]),
+            (bookData.taggings?.map(({ tag }) => tag) ?? []).filter((tag) => tag?.tag).map((tag) => [tag.tag, tag]),
           ).values(),
         ],
         bookCategory: bookCategories.find((bc) => bc.id === bookData.book_category_id) ?? null,
@@ -957,6 +979,116 @@ export class HardcoverService {
 
       this.logger.error(
         `Failed to fetch book details from Hardcover API for book ID ${hardcoverId}: ${error.message}`,
+        error.stack,
+      );
+
+      throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getSeriesById(seriesId: number): Promise<HardcoverSeries> {
+    try {
+      const cachedSeriesKey = CACHE_KEYS.HARDCOVER_SERIES_BY_ID.prefix(seriesId);
+
+      const cachedSeries = await this.cacheService.get<HardcoverSeries>(cachedSeriesKey);
+
+      if (cachedSeries) {
+        return cachedSeries;
+      }
+
+      const seriesResponse = await firstValueFrom(
+        this.httpService.post(
+          this.HARDCOVER_API_URL,
+          {
+            variables: { id: seriesId },
+            query: `
+						query GetSeriesById($id: Int!) {
+							series_by_pk(id: $id) {
+								id
+								name
+								description
+								is_completed
+								book_series(order_by: { position: asc }) {
+									position
+									book {
+										id
+										slug
+										title
+										description
+										rating
+										release_year
+										release_date
+										image {
+											url
+										}
+										contributions {
+											author {
+												id
+												name
+											}
+										}
+									}
+								}
+							}
+						}
+					`,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get<string>("HARDCOVER_API_KEY")}`,
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      );
+
+      if (seriesResponse.data?.errors) {
+        this.logger.error(`Error fetching series from Hardcover API: ${JSON.stringify(seriesResponse.data.errors)}`);
+
+        throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+      }
+
+      const seriesData = seriesResponse?.data?.data?.series_by_pk;
+
+      if (!seriesData) {
+        throw new AppException(ERROR_CODES.BOOK_FRANCHISE_NOT_FOUND);
+      }
+
+      const books: HardcoverSeriesBook[] = (seriesData.book_series ?? [])
+        .filter((entry: any) => entry?.book)
+        .map((entry: any) => ({
+          hardcoverId: Number(entry.book.id),
+          position: entry.position ?? null,
+          title: entry.book.title,
+          slug: entry.book.slug ?? null,
+          description: entry.book.description ?? null,
+          contributions: entry.book.contributions?.map(({ author }: any) => author?.name).filter(Boolean) ?? [],
+          hardcoverReviewScore: Math.round(entry.book.rating ?? 0),
+          imageUrl: entry.book.image?.url ?? null,
+          releaseYear: entry.book.release_year ?? null,
+          releaseDate: entry.book.release_date ? new Date(entry.book.release_date) : null,
+        }));
+
+      const series: HardcoverSeries = {
+        id: Number(seriesData.id),
+        name: seriesData.name,
+        slug: slugify(seriesData.name ?? ""),
+        description: seriesData.description ?? null,
+        isCompleted: seriesData.is_completed ?? false,
+        imageUrl: books.find((book) => book.imageUrl)?.imageUrl ?? null,
+        books,
+      };
+
+      await this.cacheService.set(cachedSeriesKey, series, CACHE_KEYS.HARDCOVER_SERIES_BY_ID.expiration);
+
+      return series;
+    } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Failed to fetch series details from Hardcover API for series ID ${seriesId}: ${error.message}`,
         error.stack,
       );
 

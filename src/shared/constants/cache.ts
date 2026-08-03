@@ -29,6 +29,10 @@ export const CACHE_KEYS = {
     prefix: "hardcover:statuses:book",
     expiration: 3600 * 24 * 7,
   },
+  HARDCOVER_SERIES_BY_ID: {
+    prefix: (seriesId: number) => `hardcover:series:book:${seriesId}`,
+    expiration: 3600 * 24 * 7,
+  },
 
   IGDB_ACCESS_TOKEN: "igdb:token",
   IGDB_SEARCH_GAMES: {
@@ -57,6 +61,10 @@ export const CACHE_KEYS = {
   },
   IGDB_GAME_BY_ID: {
     prefix: (igdbId: number) => `igdb:detail:game:id:${igdbId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  IGDB_FRANCHISE_BY_SLUG: {
+    prefix: (slug: string) => `igdb:franchise:game:slug:${slug}`,
     expiration: 3600 * 24 * 7,
   },
 
@@ -125,6 +133,10 @@ export const CACHE_KEYS = {
   },
   TMDB_MOVIE_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:detail:movie:id:${tmdbId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  TMDB_MOVIE_COLLECTION_BY_ID: {
+    prefix: (collectionId: number) => `tmdb:collection:movie:id:${collectionId}`,
     expiration: 3600 * 24 * 7,
   },
   TMDB_MOVIE_GENRES: {

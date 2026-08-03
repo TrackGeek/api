@@ -31,7 +31,9 @@ export class CatchupProcessor extends WorkerHost {
 
   @OnWorkerEvent("active")
   onActive(job: Job) {
-    this.logger.log(`Processing job [${CATCHUP_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`);
+    this.logger.log(
+      `Processing job [${CATCHUP_QUEUE}] | job=${job.id} name=${job.name} attempt=${job.attemptsMade + 1}`,
+    );
   }
 
   @OnWorkerEvent("completed")
