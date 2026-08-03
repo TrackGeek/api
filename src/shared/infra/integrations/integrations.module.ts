@@ -1,4 +1,5 @@
 import { Global, Module } from "@nestjs/common";
+import { AnilistService } from "./anilist.service";
 import { HardcoverService } from "./hardcover.service";
 import { IGDBService } from "./igdb.service";
 import { IMGBBService } from "./imgbb.service";
@@ -9,7 +10,23 @@ import { TMDBService } from "./tmdb.service";
 @Global()
 @Module({
   imports: [],
-  providers: [HardcoverService, IGDBService, IMGBBService, TenraiService, TMDBService, IntegrationsService],
-  exports: [HardcoverService, IGDBService, IMGBBService, TenraiService, TMDBService, IntegrationsService],
+  providers: [
+    AnilistService,
+    HardcoverService,
+    IGDBService,
+    IMGBBService,
+    TenraiService,
+    TMDBService,
+    IntegrationsService,
+  ],
+  exports: [
+    AnilistService,
+    HardcoverService,
+    IGDBService,
+    IMGBBService,
+    TenraiService,
+    TMDBService,
+    IntegrationsService,
+  ],
 })
 export class IntegrationsModule {}

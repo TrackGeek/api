@@ -586,26 +586,29 @@ model Anime {
 
 model Manga {
   id               String   @id @default(uuid(7))
-  malId            Int      @unique
+  anilistId        Int?     @unique
+  malId            Int?     @unique
   url              String
   imageUrl         String?
+  bannerUrl        String?
   title            String
   titles           Json?
   isAdult          Boolean?
-  malReviewScore   Float?
+  anilistScore     Float?
   type             String?
+  source           String?
+  countryOfOrigin  String?
   numberOfChapters Int?
   numberOfVolumes  Int?
   status           String?
-  publishing       Boolean?
   published        Json?
-  rank             Int?
   popularity       Int?
+  favoritesCount   Int?
   synopsis         String?
   authors          Json?
   serializations   Json?
   genres           Json?
-  explicitGenres   Json?
+  tags             Json?
   themes           Json?
   demographics     Json?
   relations        Json?

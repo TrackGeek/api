@@ -127,6 +127,10 @@ export const ERROR_CODES = {
     code: "TENRAI_SERVICE_UNAVAILABLE",
     status: 503,
   },
+  ANILIST_SERVICE_UNAVAILABLE: {
+    code: "ANILIST_SERVICE_UNAVAILABLE",
+    status: 503,
+  },
   ANIME_ALREADY_REFRESHED: {
     code: "ANIME_ALREADY_REFRESHED",
     status: 409,

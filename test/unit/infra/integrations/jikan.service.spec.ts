@@ -83,55 +83,6 @@ describe("TenraiService", () => {
     });
   });
 
-  describe("searchMangas", () => {
-    it("should return cached mangas when cache hit", async () => {
-      const cached = [{ malId: 1, title: "Naruto", type: "Manga", publishedFrom: null, imageUrl: null }];
-      mockCacheService.get.mockResolvedValue(cached);
-
-      const result = await service.searchMangas("Naruto" as any);
-
-      expect(result).toEqual(cached);
-      expect(mockHttpService.get).not.toHaveBeenCalled();
-    });
-
-    it("should fetch mangas, map them and cache the result", async () => {
-      mockCacheService.get.mockResolvedValue(null);
-      mockCacheService.set.mockResolvedValue(undefined);
-      mockHttpService.get.mockReturnValue(
-        of({
-          data: {
-            data: [
-              {
-                mal_id: 11,
-                title: "Naruto",
-                type: "Manga",
-                published: { from: "1999-09-21T00:00:00+00:00" },
-                images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto-manga.jpg" } },
-                genres: [],
-                status: "Finished",
-              },
-            ],
-            pagination: { has_next_page: false, items: { total: 1, count: 1 } },
-          },
-        }),
-      );
-
-      const result = await service.searchMangas({ query: "Naruto" });
-
-      expect(result.items).toHaveLength(1);
-      expect(result.items[0].malId).toBe(11);
-      expect(result.items[0].title).toBe("Naruto");
-      expect(mockCacheService.set).toHaveBeenCalled();
-    });
-
-    it("should throw AppException when request fails", async () => {
-      mockCacheService.get.mockResolvedValue(null);
-      mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
-
-      await expect(service.searchMangas("Naruto" as any)).rejects.toBeInstanceOf(AppException);
-    });
-  });
-
   describe("getAnimeById", () => {
     const animeFullData = {
       mal_id: 20,
@@ -258,65 +209,6 @@ describe("TenraiService", () => {
       mockHttpService.get.mockReturnValue(throwError(() => new Error("Service down")));
 
       await expect(service.getAnimeEpisodesById({ malId: 20 })).rejects.toBeInstanceOf(AppException);
-    });
-  });
-
-  describe("getMangaById", () => {
-    const mangaFullData = {
-      mal_id: 11,
-      url: "https://myanimelist.net/manga/11",
-      images: { jpg: { image_url: "https://cdn.myanimelist.net/naruto-manga.jpg" } },
-      title: "Naruto",
-      titles: [],
-      type: "Manga",
-      chapters: 700,
-      volumes: 72,
-      status: "Finished",
-      published: { from: "1999-09-21T00:00:00+00:00" },
-      rank: 100,
-      popularity: 5,
-      synopsis: "Naruto manga...",
-      authors: [{ mal_id: 1, type: "manga", name: "Masashi Kishimoto" }],
-      serializations: [],
-      genres: [{ name: "Action" }],
-      explicit_genres: [],
-      themes: [],
-      demographics: [{ name: "Shounen" }],
-      external: [],
-      relations: [],
-    };
-
-    it("should return cached manga when cache hit", async () => {
-      const cached = { malId: 11, title: "Naruto" };
-      mockCacheService.get.mockResolvedValue(cached);
-
-      const result = await service.getMangaById(11);
-
-      expect(result).toEqual(cached);
-      expect(manyRequestWithDelay).not.toHaveBeenCalled();
-    });
-
-    it("should fetch manga details and cache the result", async () => {
-      mockCacheService.get.mockResolvedValue(null);
-      mockCacheService.set.mockResolvedValue(undefined);
-      vi.mocked(manyRequestWithDelay).mockResolvedValue([
-        { data: { data: mangaFullData } },
-        { data: { data: [] } },
-      ] as any);
-
-      const result = await service.getMangaById(11);
-
-      expect(result.malId).toBe(11);
-      expect(result.title).toBe("Naruto");
-      expect(result.authors[0].name).toBe("Masashi Kishimoto");
-      expect(mockCacheService.set).toHaveBeenCalled();
-    });
-
-    it("should throw AppException when request fails", async () => {
-      mockCacheService.get.mockResolvedValue(null);
-      vi.mocked(manyRequestWithDelay).mockRejectedValue(new Error("Service down"));
-
-      await expect(service.getMangaById(11)).rejects.toBeInstanceOf(AppException);
     });
   });
 });

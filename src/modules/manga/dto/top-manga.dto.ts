@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsPositive } from "class-validator";
-import { TenraiMangaFilter, TenraiMangaType } from "@/shared/infra/integrations/tenrai.service";
+import { AnilistMangaFilter, AnilistMangaType } from "@/shared/infra/integrations/anilist.service";
 
 export class TopMangaDto {
   @Type(() => Number)
@@ -9,10 +9,10 @@ export class TopMangaDto {
   @IsOptional()
   readonly page?: number;
 
-  @IsEnum(TenraiMangaType)
+  @IsEnum(AnilistMangaType)
   @IsOptional()
-  readonly type?: TenraiMangaType;
+  readonly type?: AnilistMangaType;
 
-  @IsEnum(TenraiMangaFilter)
-  readonly filter: TenraiMangaFilter;
+  @IsEnum(AnilistMangaFilter)
+  readonly filter: AnilistMangaFilter;
 }
