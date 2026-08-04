@@ -6,6 +6,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
+import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
@@ -16,6 +18,7 @@ export class AnimeProgressService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
     private readonly animeEpisodeWatchService: AnimeEpisodeWatchService,
+    private readonly mediaFilterService: MediaFilterService,
   ) {}
 
   async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
@@ -104,39 +107,54 @@ export class AnimeProgressService {
   }
 
   async getAnimeProgress(getAnimeProgressDto: GetAnimeProgressDto) {
-    const animeProgress = await this.databaseService.offsetPagination<AnimeProgressFindManyArgs>({
-      model: "animeProgress",
-      itemsPerPage: getAnimeProgressDto.itemsPerPage,
-      page: getAnimeProgressDto.page,
-      where: {
-        ...(getAnimeProgressDto.animeId && { animeId: getAnimeProgressDto.animeId }),
-        ...(getAnimeProgressDto.userId && { userId: getAnimeProgressDto.userId }),
-      },
-      include: {
-        anime: {
-          select: {
-            id: true,
-            malId: true,
-            imageUrl: true,
-            title: true,
-          },
+    const mediaWhere = buildMediaWhere("anime", getAnimeProgressDto);
+
+    const where = {
+      ...(getAnimeProgressDto.animeId && { animeId: getAnimeProgressDto.animeId }),
+      ...(getAnimeProgressDto.userId && { userId: getAnimeProgressDto.userId }),
+      ...(mediaWhere && { anime: mediaWhere }),
+    };
+
+    const [animeProgresses, statusCounts] = await Promise.all([
+      this.databaseService.offsetPagination<AnimeProgressFindManyArgs>({
+        model: "animeProgress",
+        itemsPerPage: getAnimeProgressDto.itemsPerPage,
+        page: getAnimeProgressDto.page,
+        where: {
+          ...where,
+          ...(getAnimeProgressDto.status && { status: getAnimeProgressDto.status }),
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
+        include: {
+          anime: {
+            select: {
+              id: true,
+              malId: true,
+              imageUrl: true,
+              title: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profile: {
+                select: {
+                  id: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.mediaFilterService.countProgressByStatus("animeProgress", where),
+    ]);
 
-    return animeProgress;
+    return { animeProgresses, statusCounts };
+  }
+
+  async getAnimeProgressFilters(userId: string) {
+    return this.mediaFilterService.getFilterOptions("anime", userId);
   }
 }

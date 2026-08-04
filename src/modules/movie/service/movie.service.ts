@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ProgressStatus } from "@prisma/generated/client";
 import { MovieCreateInput, MovieUpdateInput } from "@prisma/generated/models";
 import { TopMovieDto } from "@/modules/movie/dto/top-movie.dto";
+import { PersonSyncService, type TmdbPersonSeed } from "@/modules/person/service/person-sync.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -17,6 +18,7 @@ export class MovieService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
+    private readonly personSyncService: PersonSyncService,
   ) {}
 
   async searchMovies(searchMovieDto: SearchMovieDto) {
@@ -165,10 +167,17 @@ export class MovieService {
       dropped: getStats(ProgressStatus.Dropped),
     };
 
+    const { cast, crew } = await this.personSyncService.linkTmdbCredits({
+      cast: movie.cast as unknown as TmdbPersonSeed[],
+      crew: movie.crew as unknown as TmdbPersonSeed[],
+    });
+
     const movieWithStats = {
       ...movie,
       budget: Number(movie.budget),
       revenue: Number(movie.revenue),
+      cast,
+      crew,
       tgReviewScore,
       progressStats,
     };
