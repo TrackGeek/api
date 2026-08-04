@@ -31,6 +31,7 @@ import { MetricsModule } from "./shared/infra/metrics/metrics.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
+import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
     EmailModule,
     QueueModule,
     DatabaseModule,
+    MediaFilterModule,
     HealthModule,
     AuthModule,
     ActivityModule,

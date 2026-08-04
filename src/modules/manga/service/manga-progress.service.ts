@@ -5,6 +5,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
+import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
 import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 
@@ -13,6 +15,7 @@ export class MangaProgressService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaFilterService: MediaFilterService,
   ) {}
 
   async createOrUpdateMangaProgress(createOrUpdateMangaProgressDto: CreateOrUpdateMangaProgressDto) {
@@ -107,40 +110,55 @@ export class MangaProgressService {
   }
 
   async getMangaProgress(getMangaProgressDto: GetMangaProgressDto) {
-    const mangaProgress = await this.databaseService.offsetPagination<MangaProgressFindManyArgs>({
-      model: "mangaProgress",
-      itemsPerPage: getMangaProgressDto.itemsPerPage,
-      page: getMangaProgressDto.page,
-      where: {
-        ...(getMangaProgressDto.mangaId && { mangaId: getMangaProgressDto.mangaId }),
-        ...(getMangaProgressDto.userId && { userId: getMangaProgressDto.userId }),
-      },
-      include: {
-        manga: {
-          select: {
-            id: true,
-            anilistId: true,
-            malId: true,
-            imageUrl: true,
-            title: true,
-          },
+    const mediaWhere = buildMediaWhere("manga", getMangaProgressDto);
+
+    const where = {
+      ...(getMangaProgressDto.mangaId && { mangaId: getMangaProgressDto.mangaId }),
+      ...(getMangaProgressDto.userId && { userId: getMangaProgressDto.userId }),
+      ...(mediaWhere && { manga: mediaWhere }),
+    };
+
+    const [mangaProgresses, statusCounts] = await Promise.all([
+      this.databaseService.offsetPagination<MangaProgressFindManyArgs>({
+        model: "mangaProgress",
+        itemsPerPage: getMangaProgressDto.itemsPerPage,
+        page: getMangaProgressDto.page,
+        where: {
+          ...where,
+          ...(getMangaProgressDto.status && { status: getMangaProgressDto.status }),
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
+        include: {
+          manga: {
+            select: {
+              id: true,
+              anilistId: true,
+              malId: true,
+              imageUrl: true,
+              title: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profile: {
+                select: {
+                  id: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.mediaFilterService.countProgressByStatus("mangaProgress", where),
+    ]);
 
-    return mangaProgress;
+    return { mangaProgresses, statusCounts };
+  }
+
+  async getMangaProgressFilters(userId: string) {
+    return this.mediaFilterService.getFilterOptions("manga", userId);
   }
 }

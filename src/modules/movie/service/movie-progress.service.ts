@@ -5,6 +5,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
+import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateMovieProgressDto } from "../dto/create-or-update-movie-progress.dto";
 import { GetMovieProgressDto } from "../dto/get-movie-progress.dto";
 
@@ -13,6 +15,7 @@ export class MovieProgressService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaFilterService: MediaFilterService,
   ) {}
 
   async createOrUpdateMovieProgress(createOrUpdateMovieProgressDto: CreateOrUpdateMovieProgressDto) {
@@ -89,40 +92,55 @@ export class MovieProgressService {
   }
 
   async getMovieProgress(getMovieProgressDto: GetMovieProgressDto) {
-    const movieProgress = await this.databaseService.offsetPagination<MovieProgressFindManyArgs>({
-      model: "movieProgress",
-      itemsPerPage: getMovieProgressDto.itemsPerPage,
-      page: getMovieProgressDto.page,
-      where: {
-        ...(getMovieProgressDto.userId && { userId: getMovieProgressDto.userId }),
-        ...(getMovieProgressDto.movieId && { movieId: getMovieProgressDto.movieId }),
-      },
-      include: {
-        movie: {
-          select: {
-            id: true,
-            imdbId: true,
-            tmdbId: true,
-            posterUrl: true,
-            title: true,
-          },
+    const mediaWhere = buildMediaWhere("movie", getMovieProgressDto);
+
+    const where = {
+      ...(getMovieProgressDto.userId && { userId: getMovieProgressDto.userId }),
+      ...(getMovieProgressDto.movieId && { movieId: getMovieProgressDto.movieId }),
+      ...(mediaWhere && { movie: mediaWhere }),
+    };
+
+    const [movieProgresses, statusCounts] = await Promise.all([
+      this.databaseService.offsetPagination<MovieProgressFindManyArgs>({
+        model: "movieProgress",
+        itemsPerPage: getMovieProgressDto.itemsPerPage,
+        page: getMovieProgressDto.page,
+        where: {
+          ...where,
+          ...(getMovieProgressDto.status && { status: getMovieProgressDto.status }),
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
+        include: {
+          movie: {
+            select: {
+              id: true,
+              imdbId: true,
+              tmdbId: true,
+              posterUrl: true,
+              title: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profile: {
+                select: {
+                  id: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.mediaFilterService.countProgressByStatus("movieProgress", where),
+    ]);
 
-    return movieProgress;
+    return { movieProgresses, statusCounts };
+  }
+
+  async getMovieProgressFilters(userId: string) {
+    return this.mediaFilterService.getFilterOptions("movie", userId);
   }
 }

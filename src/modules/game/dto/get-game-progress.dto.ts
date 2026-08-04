@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsUUID } from "class-validator";
-import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
+import { ProgressFilterParamsDto } from "@/shared/media-filter/dtos/progress-filter.dto";
 
-export class GetGameProgressDto extends OffsetPaginationParamsDto {
+export class GetGameProgressDto extends ProgressFilterParamsDto {
   @IsUUID()
   @IsOptional()
   @ApiProperty({

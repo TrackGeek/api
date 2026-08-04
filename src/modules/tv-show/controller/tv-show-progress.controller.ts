@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { GetProgressFiltersDto } from "@/shared/media-filter/dtos/get-progress-filters.dto";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TVShowProgressService } from "../service/tv-show-progress.service";
@@ -27,10 +28,15 @@ export class TVShowProgressController {
     await this.tvShowProgressService.deleteTVShowProgress(tvShowProgressId, session.user.id);
   }
 
+  @Get("/filters")
+  async getTVShowProgressFilters(@Query() query: GetProgressFiltersDto) {
+    const filters = await this.tvShowProgressService.getTVShowProgressFilters(query.userId);
+
+    return { filters };
+  }
+
   @Get("/")
   async getTVShowProgressesByUserId(@Query() query: GetTVShowProgressDto) {
-    const tvShowProgresses = await this.tvShowProgressService.getTVShowProgress(query);
-
-    return { tvShowProgresses };
+    return this.tvShowProgressService.getTVShowProgress(query);
   }
 }
