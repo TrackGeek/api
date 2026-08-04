@@ -5,6 +5,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
+import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
 
@@ -13,6 +15,7 @@ export class BookProgressService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaFilterService: MediaFilterService,
   ) {}
 
   async createOrUpdateBookProgress(createOrUpdateBookProgressDto: CreateOrUpdateBookProgressDto) {
@@ -94,39 +97,54 @@ export class BookProgressService {
   }
 
   async getBookProgress(getBookProgressDto: GetBookProgressDto) {
-    const bookProgress = await this.databaseService.offsetPagination<BookProgressFindManyArgs>({
-      model: "bookProgress",
-      itemsPerPage: getBookProgressDto.itemsPerPage,
-      page: getBookProgressDto.page,
-      where: {
-        ...(getBookProgressDto.bookId && { bookId: getBookProgressDto.bookId }),
-        ...(getBookProgressDto.userId && { userId: getBookProgressDto.userId }),
-      },
-      include: {
-        book: {
-          select: {
-            id: true,
-            hardcoverId: true,
-            imageUrl: true,
-            title: true,
-          },
+    const mediaWhere = buildMediaWhere("book", getBookProgressDto);
+
+    const where = {
+      ...(getBookProgressDto.bookId && { bookId: getBookProgressDto.bookId }),
+      ...(getBookProgressDto.userId && { userId: getBookProgressDto.userId }),
+      ...(mediaWhere && { book: mediaWhere }),
+    };
+
+    const [bookProgresses, statusCounts] = await Promise.all([
+      this.databaseService.offsetPagination<BookProgressFindManyArgs>({
+        model: "bookProgress",
+        itemsPerPage: getBookProgressDto.itemsPerPage,
+        page: getBookProgressDto.page,
+        where: {
+          ...where,
+          ...(getBookProgressDto.status && { status: getBookProgressDto.status }),
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
+        include: {
+          book: {
+            select: {
+              id: true,
+              hardcoverId: true,
+              imageUrl: true,
+              title: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profile: {
+                select: {
+                  id: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.mediaFilterService.countProgressByStatus("bookProgress", where),
+    ]);
 
-    return bookProgress;
+    return { bookProgresses, statusCounts };
+  }
+
+  async getBookProgressFilters(userId: string) {
+    return this.mediaFilterService.getFilterOptions("book", userId);
   }
 }

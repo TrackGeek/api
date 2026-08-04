@@ -17,6 +17,7 @@ import { MangaModule } from "./modules/manga/manga.module";
 import { MovieModule } from "./modules/movie/movie.module";
 import { NotificationModule } from "./modules/notification/notification.module";
 import { PaymentModule } from "./modules/payment/payment.module";
+import { PersonModule } from "./modules/person/person.module";
 import { ProfileModule } from "./modules/profile/profile.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
 import { TVShowModule } from "./modules/tv-show/tv-show.module";
@@ -31,6 +32,7 @@ import { MetricsModule } from "./shared/infra/metrics/metrics.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
+import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
     EmailModule,
     QueueModule,
     DatabaseModule,
+    MediaFilterModule,
     HealthModule,
     AuthModule,
     ActivityModule,
@@ -64,6 +67,7 @@ import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
     MangaModule,
     BookModule,
     AnimeModule,
+    PersonModule,
     FavoriteModule,
     ListModule,
     PaymentModule,

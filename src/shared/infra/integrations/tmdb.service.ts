@@ -280,6 +280,41 @@ export interface TMDBMovieGenre {
   name: string;
 }
 
+export interface TMDBPersonCredit {
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  title: string;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  releaseDate: Date | null;
+  tmdbReviewScore: number | null;
+  popularity: number | null;
+  isAdult: boolean;
+  character: string | null;
+  job: string | null;
+  department: string | null;
+  episodeCount: number | null;
+}
+
+export interface TMDBPersonDetails {
+  tmdbId: number;
+  name: string;
+  biography: string | null;
+  birthday: Date | null;
+  deathday: Date | null;
+  placeOfBirth: string | null;
+  knownForDepartment: string | null;
+  alsoKnownAs: string[];
+  gender: number | null;
+  homepage: string | null;
+  popularity: number | null;
+  imageUrl: string | null;
+  images: string[];
+  external: Record<string, string | null>;
+  cast: TMDBPersonCredit[];
+  crew: TMDBPersonCredit[];
+}
+
 @Injectable()
 export class TMDBService {
   private readonly logger = new Logger(TMDBService.name);
@@ -1100,6 +1135,109 @@ export class TMDBService {
         `Failed to fetch TV show seasons for ID ${tmdbId} season ${seasonId} from TMDB API: ${error.message}`,
         error.stack,
       );
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getPersonById(tmdbId: number): Promise<TMDBPersonDetails> {
+    try {
+      const cachedPerson = await this.cacheService.get<TMDBPersonDetails>(CACHE_KEYS.TMDB_PERSON_BY_ID.prefix(tmdbId));
+
+      if (cachedPerson) {
+        return cachedPerson;
+      }
+
+      const personResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/person/${tmdbId}`, {
+          params: {
+            append_to_response: "combined_credits,external_ids,images",
+          },
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const personData = personResponse.data;
+      const combinedCredits = personData.combined_credits ?? { cast: [], crew: [] };
+
+      const toCredit = (credit: any): TMDBPersonCredit | null => {
+        const mediaType = credit.media_type === "tv" ? "tv" : credit.media_type === "movie" ? "movie" : null;
+
+        if (!mediaType) {
+          return null;
+        }
+
+        const date = mediaType === "movie" ? credit.release_date : credit.first_air_date;
+
+        return {
+          tmdbId: credit.id,
+          mediaType,
+          title: mediaType === "movie" ? credit.title : credit.name,
+          posterUrl: credit.poster_path ? `https://image.tmdb.org/t/p/w500${credit.poster_path}` : null,
+          backdropUrl: credit.backdrop_path
+            ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${credit.backdrop_path}`
+            : null,
+          releaseDate: date ? new Date(date) : null,
+          tmdbReviewScore: credit.vote_average ?? null,
+          popularity: credit.popularity ?? null,
+          isAdult: !!credit.adult,
+          character: credit.character || null,
+          job: credit.job || null,
+          department: credit.department || null,
+          episodeCount: credit.episode_count ?? null,
+        };
+      };
+
+      const dedupe = (credits: TMDBPersonCredit[]) => {
+        const byKey = new Map<string, TMDBPersonCredit>();
+
+        for (const credit of credits) {
+          const key = `${credit.mediaType}:${credit.tmdbId}:${credit.job ?? credit.character ?? ""}`;
+
+          if (!byKey.has(key)) {
+            byKey.set(key, credit);
+          }
+        }
+
+        return [...byKey.values()];
+      };
+
+      const person: TMDBPersonDetails = {
+        tmdbId: personData.id,
+        name: personData.name,
+        biography: personData.biography || null,
+        birthday: personData.birthday ? new Date(personData.birthday) : null,
+        deathday: personData.deathday ? new Date(personData.deathday) : null,
+        placeOfBirth: personData.place_of_birth || null,
+        knownForDepartment: personData.known_for_department || null,
+        alsoKnownAs: personData.also_known_as ?? [],
+        gender: personData.gender ?? null,
+        homepage: personData.homepage || null,
+        popularity: personData.popularity ?? null,
+        imageUrl: personData.profile_path ? `https://image.tmdb.org/t/p/w500${personData.profile_path}` : null,
+        images: (personData.images?.profiles ?? []).map(
+          (profile: any) => `https://image.tmdb.org/t/p/w500${profile.file_path}`,
+        ),
+        external: personData.external_ids ?? {},
+        cast: dedupe((combinedCredits.cast ?? []).map(toCredit).filter(Boolean)),
+        crew: dedupe((combinedCredits.crew ?? []).map(toCredit).filter(Boolean)),
+      };
+
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_PERSON_BY_ID.prefix(tmdbId),
+        person,
+        CACHE_KEYS.TMDB_PERSON_BY_ID.expiration,
+      );
+
+      return person;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.PERSON_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch person details for ID ${tmdbId} from TMDB API: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }

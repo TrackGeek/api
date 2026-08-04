@@ -5,6 +5,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
+import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 
@@ -13,6 +15,7 @@ export class GameProgressService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaFilterService: MediaFilterService,
   ) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
@@ -99,39 +102,54 @@ export class GameProgressService {
   }
 
   async getGameProgress(getGameProgressDto: GetGameProgressDto) {
-    const gameProgress = await this.databaseService.offsetPagination<GameProgressFindManyArgs>({
-      model: "gameProgress",
-      itemsPerPage: getGameProgressDto.itemsPerPage,
-      page: getGameProgressDto.page,
-      where: {
-        ...(getGameProgressDto.gameId && { gameId: getGameProgressDto.gameId }),
-        ...(getGameProgressDto.userId && { userId: getGameProgressDto.userId }),
-      },
-      include: {
-        game: {
-          select: {
-            id: true,
-            igdbId: true,
-            coverUrl: true,
-            name: true,
-          },
+    const mediaWhere = buildMediaWhere("game", getGameProgressDto);
+
+    const where = {
+      ...(getGameProgressDto.gameId && { gameId: getGameProgressDto.gameId }),
+      ...(getGameProgressDto.userId && { userId: getGameProgressDto.userId }),
+      ...(mediaWhere && { game: mediaWhere }),
+    };
+
+    const [gameProgresses, statusCounts] = await Promise.all([
+      this.databaseService.offsetPagination<GameProgressFindManyArgs>({
+        model: "gameProgress",
+        itemsPerPage: getGameProgressDto.itemsPerPage,
+        page: getGameProgressDto.page,
+        where: {
+          ...where,
+          ...(getGameProgressDto.status && { status: getGameProgressDto.status }),
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
+        include: {
+          game: {
+            select: {
+              id: true,
+              igdbId: true,
+              coverUrl: true,
+              name: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profile: {
+                select: {
+                  id: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.mediaFilterService.countProgressByStatus("gameProgress", where),
+    ]);
 
-    return gameProgress;
+    return { gameProgresses, statusCounts };
+  }
+
+  async getGameProgressFilters(userId: string) {
+    return this.mediaFilterService.getFilterOptions("game", userId);
   }
 }

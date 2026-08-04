@@ -127,6 +127,10 @@ export const ERROR_CODES = {
     code: "BOOK_FRANCHISE_NOT_FOUND",
     status: 404,
   },
+  PERSON_NOT_FOUND: {
+    code: "PERSON_NOT_FOUND",
+    status: 404,
+  },
   MANGA_NOT_FOUND: {
     code: "MANGA_NOT_FOUND",
     status: 404,

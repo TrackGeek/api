@@ -6,6 +6,8 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
+import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
@@ -16,6 +18,7 @@ export class TVShowProgressService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
     private readonly tvShowEpisodeWatchService: TVShowEpisodeWatchService,
+    private readonly mediaFilterService: MediaFilterService,
   ) {}
 
   async createOrUpdateTVShowProgress(createOrUpdateTVShowProgressDto: CreateOrUpdateTVShowProgressDto) {
@@ -106,39 +109,54 @@ export class TVShowProgressService {
   }
 
   async getTVShowProgress(getTVShowProgressDto: GetTVShowProgressDto) {
-    const tvShowProgress = await this.databaseService.offsetPagination<TvShowProgressFindManyArgs>({
-      model: "tvShowProgress",
-      itemsPerPage: getTVShowProgressDto.itemsPerPage,
-      page: getTVShowProgressDto.page,
-      where: {
-        ...(getTVShowProgressDto.userId && { userId: getTVShowProgressDto.userId }),
-        ...(getTVShowProgressDto.tvShowId && { tvShowId: getTVShowProgressDto.tvShowId }),
-      },
-      include: {
-        tvShow: {
-          select: {
-            id: true,
-            tmdbId: true,
-            posterUrl: true,
-            name: true,
-          },
+    const mediaWhere = buildMediaWhere("tv", getTVShowProgressDto);
+
+    const where = {
+      ...(getTVShowProgressDto.userId && { userId: getTVShowProgressDto.userId }),
+      ...(getTVShowProgressDto.tvShowId && { tvShowId: getTVShowProgressDto.tvShowId }),
+      ...(mediaWhere && { tvShow: mediaWhere }),
+    };
+
+    const [tvShowProgresses, statusCounts] = await Promise.all([
+      this.databaseService.offsetPagination<TvShowProgressFindManyArgs>({
+        model: "tvShowProgress",
+        itemsPerPage: getTVShowProgressDto.itemsPerPage,
+        page: getTVShowProgressDto.page,
+        where: {
+          ...where,
+          ...(getTVShowProgressDto.status && { status: getTVShowProgressDto.status }),
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
+        include: {
+          tvShow: {
+            select: {
+              id: true,
+              tmdbId: true,
+              posterUrl: true,
+              name: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profile: {
+                select: {
+                  id: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.mediaFilterService.countProgressByStatus("tvShowProgress", where),
+    ]);
 
-    return tvShowProgress;
+    return { tvShowProgresses, statusCounts };
+  }
+
+  async getTVShowProgressFilters(userId: string) {
+    return this.mediaFilterService.getFilterOptions("tv", userId);
   }
 }

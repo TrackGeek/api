@@ -1,7 +1,7 @@
 import { IsOptional, IsUUID } from "class-validator";
-import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
+import { ProgressFilterParamsDto } from "@/shared/media-filter/dtos/progress-filter.dto";
 
-export class GetMangaProgressDto extends OffsetPaginationParamsDto {
+export class GetMangaProgressDto extends ProgressFilterParamsDto {
   @IsOptional()
   @IsUUID()
   readonly userId?: string;
