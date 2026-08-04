@@ -93,6 +93,10 @@ export const CACHE_KEYS = {
     prefix: (filters: Record<string, any>) => `tenrai:top:anime:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
+  TENRAI_PERSON_BY_ID: {
+    prefix: (malId: number) => `tenrai:detail:person:id:${malId}`,
+    expiration: 3600 * 24 * 7,
+  },
 
   ANILIST_SEARCH_MANGAS: {
     prefix: (filters: Record<string, any>) => `anilist:search:manga:${filtersToString(filters)}`,
@@ -157,6 +161,10 @@ export const CACHE_KEYS = {
   },
   TMDB_TV_SHOW_GENRES: {
     prefix: "tmdb:genres:tvShow",
+    expiration: 3600 * 24 * 7,
+  },
+  TMDB_PERSON_BY_ID: {
+    prefix: (tmdbId: number) => `tmdb:detail:person:id:${tmdbId}`,
     expiration: 3600 * 24 * 7,
   },
 

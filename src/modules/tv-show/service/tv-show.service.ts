@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ProgressStatus } from "@prisma/generated/client";
 import { TvShowCreateInput, TvShowUpdateInput } from "@prisma/generated/models";
+import { PersonSyncService, type TmdbPersonSeed } from "@/modules/person/service/person-sync.service";
 import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -25,6 +26,7 @@ export class TVShowService {
     private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
+    private readonly personSyncService: PersonSyncService,
   ) {}
 
   async searchTVShows(searchTVShowDto: SearchTVShowDto) {
@@ -141,8 +143,17 @@ export class TVShowService {
       dropped: getStats(ProgressStatus.Dropped),
     };
 
+    const { cast, crew, createdBy } = await this.personSyncService.linkTmdbCredits({
+      cast: tvShow.cast as unknown as TmdbPersonSeed[],
+      crew: tvShow.crew as unknown as TmdbPersonSeed[],
+      createdBy: tvShow.createdBy as unknown as TmdbPersonSeed[],
+    });
+
     const tvShowWithStats = {
       ...tvShow,
+      cast,
+      crew,
+      createdBy,
       tgReviewScore,
       progressStats,
     };

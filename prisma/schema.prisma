@@ -736,6 +736,31 @@ model Movie {
   comments        Comment[]
 }
 
+model Person {
+  id                 String    @id @default(uuid(7))
+  slug               String    @unique
+  name               String
+  tmdbId             Int?      @unique
+  malId              Int?      @unique
+  imageUrl           String?
+  biography          String?
+  birthday           DateTime?
+  deathday           DateTime?
+  placeOfBirth       String?
+  knownForDepartment String?
+  alsoKnownAs        String[]
+  gender             Int?
+  homepage           String?
+  popularity         Float?
+  external           Json?
+  images             String[]
+  lastRefreshedAt    DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([name])
+}
+
 enum WatchEpisodeStatus {
   NotWatched
   Watching

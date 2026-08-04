@@ -227,6 +227,56 @@ export interface TenraiAnimeEpisode {
   imageUrl: string | null;
 }
 
+const MAL_PLACEHOLDER_IMAGES = [
+  "https://cdn.myanimelist.net/images/questionmark_23.gif",
+  "https://myanimelist.net/img/sp/icon/apple-touch-icon-256.png",
+];
+
+export function sanitizeMalImageUrl(imageUrl: string | null | undefined): string | null {
+  if (!imageUrl) {
+    return null;
+  }
+
+  return MAL_PLACEHOLDER_IMAGES.some((placeholder) => imageUrl.startsWith(placeholder)) ? null : imageUrl;
+}
+
+export interface TenraiPersonAnimeCredit {
+  malId: number;
+  title: string;
+  imageUrl: string | null;
+  position: string;
+}
+
+export interface TenraiPersonVoiceCredit {
+  role: string;
+  anime: {
+    malId: number;
+    title: string;
+    imageUrl: string | null;
+  };
+  character: {
+    malId: number;
+    name: string;
+    imageUrl: string | null;
+  };
+}
+
+export interface TenraiPersonDetails {
+  malId: number;
+  name: string;
+  givenName: string | null;
+  familyName: string | null;
+  alternateNames: string[];
+  imageUrl: string | null;
+  url: string | null;
+  websiteUrl: string | null;
+  birthday: Date | null;
+  favorites: number | null;
+  about: string | null;
+  animeStaff: TenraiPersonAnimeCredit[];
+  voices: TenraiPersonVoiceCredit[];
+}
+
 @Injectable()
 export class TenraiService {
   private readonly logger = new Logger(TenraiService.name);
@@ -690,6 +740,65 @@ export class TenraiService {
       }
 
       this.logger.error(`Failed to fetch anime episodes for ID ${malId} from Tenrai API`, error);
+
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getPersonById(malId: number): Promise<TenraiPersonDetails> {
+    try {
+      const cacheKey = CACHE_KEYS.TENRAI_PERSON_BY_ID.prefix(malId);
+      const cachedPerson = await this.cacheService.get<TenraiPersonDetails>(cacheKey);
+
+      if (cachedPerson) {
+        return cachedPerson;
+      }
+
+      const response = await firstValueFrom(this.httpService.get(`${this.TENRAI_API_URL}/people/${malId}/full`));
+      const personData = response.data.data;
+
+      const person: TenraiPersonDetails = {
+        malId: personData.mal_id,
+        name: personData.name,
+        givenName: personData.given_name || null,
+        familyName: personData.family_name || null,
+        alternateNames: personData.alternate_names ?? [],
+        imageUrl: sanitizeMalImageUrl(personData.images?.jpg?.image_url),
+        url: personData.url || null,
+        websiteUrl: personData.website_url || null,
+        birthday: personData.birthday ? new Date(personData.birthday) : null,
+        favorites: personData.favorites ?? null,
+        about: personData.about || null,
+        animeStaff: (personData.anime ?? []).map((entry: any) => ({
+          malId: entry.anime.mal_id,
+          title: entry.anime.title,
+          imageUrl: sanitizeMalImageUrl(entry.anime.images?.jpg?.image_url),
+          position: entry.position,
+        })),
+        voices: (personData.voices ?? []).map((entry: any) => ({
+          role: entry.role,
+          anime: {
+            malId: entry.anime.mal_id,
+            title: entry.anime.title,
+            imageUrl: sanitizeMalImageUrl(entry.anime.images?.jpg?.image_url),
+          },
+          character: {
+            malId: entry.character.mal_id,
+            name: entry.character.name,
+            imageUrl: sanitizeMalImageUrl(entry.character.images?.jpg?.image_url),
+          },
+        })),
+      };
+
+      await this.cacheService.set(cacheKey, person, CACHE_KEYS.TENRAI_PERSON_BY_ID.expiration);
+
+      return person;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.PERSON_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch person for ID ${malId} from Tenrai API`, error);
 
       throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }

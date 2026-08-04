@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ProgressStatus } from "@prisma/generated/client";
 import { AnimeCreateInput, AnimeUpdateInput } from "@prisma/generated/models";
+import { type MalPersonSeed, PersonSyncService } from "@/modules/person/service/person-sync.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
@@ -23,6 +24,7 @@ export class AnimeService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
+    private readonly personSyncService: PersonSyncService,
   ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
@@ -146,8 +148,15 @@ export class AnimeService {
       dropped: getStats(ProgressStatus.Dropped),
     };
 
+    const { cast, characters } = await this.personSyncService.linkAnimeCredits(
+      anime.cast as unknown as MalPersonSeed[],
+      anime.characters as unknown as { voiceActors?: MalPersonSeed[] }[],
+    );
+
     const animeWithStats = {
       ...anime,
+      cast,
+      characters,
       tgReviewScore,
       progressStats,
     };
