@@ -1,7 +1,7 @@
 import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { ActivityModule } from "./modules/activity/activity.module";
@@ -28,10 +28,8 @@ import { DatabaseModule } from "./shared/infra/database/database.module";
 import { EmailModule } from "./shared/infra/email/email.module";
 import { HealthModule } from "./shared/infra/health/health.module";
 import { IntegrationsModule } from "./shared/infra/integrations/integrations.module";
-import { MetricsModule } from "./shared/infra/metrics/metrics.module";
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
-import { MetricsInterceptor } from "./shared/interceptors/metrics.interceptor";
 import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
 
 @Module({
@@ -43,7 +41,6 @@ import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
         { name: "write", ttl: 60_000, limit: 100, blockDuration: 300_000 },
       ],
     }),
-    MetricsModule,
     JwtModule.register({ global: true }),
     HttpModule.register({ global: true }),
     EmailModule,
@@ -77,10 +74,6 @@ import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
     {
       provide: APP_GUARD,
       useClass: HttpThrottlerGuard,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: MetricsInterceptor,
     },
   ],
   controllers: [],

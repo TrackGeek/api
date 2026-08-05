@@ -68,7 +68,6 @@ The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover)
 **Infrastructure**
 - Background job processing with BullMQ (email delivery, feed event aggregation);
 - Redis caching for performance optimization;
-- Prometheus metrics collection and monitoring;
 - Rate limiting with configurable read/write throttlers;
 - Internationalization (i18n) support;
 - File uploads via ImgBB integration;
@@ -90,7 +89,6 @@ The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover)
 | Authentication   | Better Auth (OAuth2, Magic Link, Credentials) |
 | Payments         | Stripe                                        |
 | Email            | Resend + Handlebars templates                 |
-| Monitoring       | Prometheus + prom-client                      |
 | API Docs         | Swagger/OpenAPI + Scalar                      |
 | Linting          | Biome                                         |
 | Testing          | Vitest (unit), Playwright (e2e), k6 (load)    |
@@ -157,7 +155,6 @@ src/
         ├── health/                  # Health check endpoints
         ├── i18n/                    # Internationalization
         ├── integrations/            # External API clients (Tenrai, TMDB, IGDB, Hardcover)
-        ├── metrics/                 # Prometheus metrics
         ├── queue/                   # BullMQ queue setup and processors
         └── upload/                  # File upload service (ImgBB)
 ```

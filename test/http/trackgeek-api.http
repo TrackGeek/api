@@ -4,9 +4,6 @@
 ### 1. Healthz
 GET {{apiUrl}}/healthz
 
-### 2. Metrics
-GET {{apiUrl}}/prometheus
-
 ### 3. Login to trackgeek-api
 # @name login
 POST {{apiUrl}}/auth/sign-in/email
