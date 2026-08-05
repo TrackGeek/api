@@ -1,39 +1,23 @@
 import { Injectable } from "@nestjs/common";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import { HealthIndicatorResult, HealthIndicatorService } from "@nestjs/terminus";
+import { CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class HealthService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly healthIndicatorService: HealthIndicatorService,
+    private readonly cacheService: CacheService,
+  ) {}
 
-  async check() {
-    const apiStart = performance.now();
-
-    let dbLatencyMs: number | null = null;
-    let dbStatus: "ok" | "error" = "ok";
+  async checkRedis<Key extends string>(key: Key): Promise<HealthIndicatorResult<Key>> {
+    const indicator = this.healthIndicatorService.check(key);
 
     try {
-      const dbStart = performance.now();
+      await this.cacheService.redis.ping();
 
-      await this.databaseService.$queryRaw`SELECT 1`;
-
-      dbLatencyMs = Math.round(performance.now() - dbStart);
-    } catch {
-      dbStatus = "error";
+      return indicator.up();
+    } catch (error) {
+      return indicator.down({ message: error instanceof Error ? error.message : "Redis ping failed" });
     }
-
-    const apiLatencyMs = Math.round(performance.now() - apiStart);
-
-    return {
-      versionCode: 1,
-      status: dbStatus === "ok" ? "ok" : "degraded",
-      api: {
-        status: "ok",
-        latencyMs: apiLatencyMs,
-      },
-      database: {
-        status: dbStatus,
-        latencyMs: dbLatencyMs,
-      },
-    };
   }
 }
