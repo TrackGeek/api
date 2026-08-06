@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { CommentType, NotificationType, ReactionType } from "@prisma/generated/enums";
 import { NotificationFindManyArgs } from "@prisma/generated/models";
+import { RELEASE_EVENT_MEDIA_INCLUDE } from "@/modules/catchup/constants/catchup.constants";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -198,6 +199,19 @@ export class NotificationService {
             id: true,
             type: true,
             emoji: true,
+          },
+        },
+        releaseEvent: {
+          select: {
+            id: true,
+            type: true,
+            mediaType: true,
+            title: true,
+            unitTitle: true,
+            unitNumber: true,
+            containerNumber: true,
+            releaseAt: true,
+            ...RELEASE_EVENT_MEDIA_INCLUDE,
           },
         },
       },
