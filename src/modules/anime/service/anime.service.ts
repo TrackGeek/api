@@ -5,7 +5,11 @@ import { type MalPersonSeed, PersonSyncService } from "@/modules/person/service/
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DatabaseService, DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.service";
+import {
+  DatabaseService,
+  DEFAULT_PAGINATION_ITEMS_PER_PAGE,
+  DEFAULT_PAGINATION_PAGE,
+} from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
   TenraiAnimeOrderBy,
@@ -14,10 +18,41 @@ import {
   TenraiAnimeType,
   TenraiSort,
 } from "@/shared/infra/integrations/tenrai.service";
+import {
+  compareBy,
+  getTgScoredContent,
+  matchesAllNames,
+  matchesQuery,
+  normalizeToken,
+  paginateLocal,
+  toNameList,
+} from "@/shared/utils/tg-review-search";
 import { GetAnimeEpisodesByMalIdDto } from "../dto/get-anime-episodes-by-mal-id.dto";
 import type { RefreshAnimeDto } from "../dto/refresh-anime.dto";
 import type { SearchAnimeDto } from "../dto/search-anime.dto";
 import { TopAnimeDto } from "../dto/top-anime.dto";
+
+const ANIME_STATUS_LABELS: Record<TenraiAnimeStatus, string> = {
+  [TenraiAnimeStatus.Airing]: "Currently Airing",
+  [TenraiAnimeStatus.Complete]: "Finished Airing",
+  [TenraiAnimeStatus.Upcoming]: "Not yet aired",
+};
+
+export interface ReviewedAnimeSortable {
+  title: string;
+  type: string | null;
+  airedFrom: string | null;
+  airedTo: string | null;
+  tgReviewScore: number;
+}
+
+const ANIME_ORDER_BY_VALUE: Record<TenraiAnimeOrderBy, (anime: ReviewedAnimeSortable) => number | string | null> = {
+  [TenraiAnimeOrderBy.Title]: (anime) => anime.title.toLowerCase(),
+  [TenraiAnimeOrderBy.StartDate]: (anime) => (anime.airedFrom ? new Date(anime.airedFrom).getTime() : 0),
+  [TenraiAnimeOrderBy.EndDate]: (anime) => (anime.airedTo ? new Date(anime.airedTo).getTime() : 0),
+  [TenraiAnimeOrderBy.Score]: (anime) => anime.tgReviewScore,
+  [TenraiAnimeOrderBy.Type]: (anime) => (anime.type ?? "").toLowerCase(),
+};
 
 @Injectable()
 export class AnimeService {
@@ -28,6 +63,10 @@ export class AnimeService {
   ) {}
 
   async searchAnimes(searchAnimeDto: SearchAnimeDto) {
+    if (searchAnimeDto.minTgScore != null) {
+      return this.searchReviewedAnimes(searchAnimeDto);
+    }
+
     const tenraiPagination = await this.integrationsService.tenrai.searchAnimes(searchAnimeDto);
 
     const items = await Promise.all(
@@ -54,6 +93,75 @@ export class AnimeService {
       ...tenraiPagination,
       items,
     };
+  }
+
+  /**
+   * The TrackGeek rating filter can only match animes we already store, so it searches our own
+   * records instead of Tenrai — which keeps pagination and totals accurate.
+   */
+  private async searchReviewedAnimes({
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    type,
+    status,
+    genres,
+    year,
+    orderBy = TenraiAnimeOrderBy.Score,
+    sort = TenraiSort.Desc,
+    minTgScore = 0,
+  }: SearchAnimeDto) {
+    const scored = await getTgScoredContent(this.databaseService.animeReview, "animeId", minTgScore);
+    const scoreById = new Map(scored.map((entry) => [entry.id, entry.tgReviewScore]));
+
+    const animes = await this.databaseService.anime.findMany({
+      where: { id: { in: [...scoreById.keys()] } },
+      select: {
+        id: true,
+        malId: true,
+        title: true,
+        type: true,
+        status: true,
+        year: true,
+        genres: true,
+        imageUrl: true,
+        isAdult: true,
+        malReviewScore: true,
+        synopsis: true,
+        aired: true,
+        lastRefreshedAt: true,
+      },
+    });
+
+    const items = animes
+      .map((anime) => {
+        const aired = anime.aired as { from?: string | null; to?: string | null } | null;
+
+        return {
+          malId: anime.malId,
+          title: anime.title,
+          type: anime.type,
+          airedFrom: aired?.from ?? null,
+          airedTo: aired?.to ?? null,
+          status: anime.status,
+          malReviewScore: anime.malReviewScore ?? 0,
+          synopsis: anime.synopsis,
+          imageUrl: anime.imageUrl,
+          genres: toNameList(anime.genres),
+          isAdult: anime.isAdult ?? false,
+          releaseYear: anime.year ?? (aired?.from ? new Date(aired.from).getFullYear() : null),
+          tgReviewScore: scoreById.get(anime.id) ?? 0,
+          lastRefreshedAt: anime.lastRefreshedAt,
+        };
+      })
+      .filter((anime) => matchesQuery(anime.title, query))
+      .filter((anime) => !type || normalizeToken(anime.type) === normalizeToken(type))
+      .filter((anime) => !status || normalizeToken(anime.status) === normalizeToken(ANIME_STATUS_LABELS[status]))
+      .filter((anime) => matchesAllNames(anime.genres, genres))
+      .filter((anime) => !year || String(anime.releaseYear ?? "") === year);
+
+    const sorted = compareBy(items, ANIME_ORDER_BY_VALUE[orderBy], sort);
+
+    return paginateLocal(sorted, page, DEFAULT_PAGINATION_ITEMS_PER_PAGE);
   }
 
   async topAnimes(topAnimeDto: TopAnimeDto) {

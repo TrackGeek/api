@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, Matches } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsPositive, Matches, Max, Min } from "class-validator";
 import {
   TenraiAnimeOrderBy,
   TenraiAnimeRatings,
@@ -61,4 +61,12 @@ export class SearchAnimeDto {
   @IsOptional()
   @Matches(/^\d{4}$/)
   readonly year?: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  @IsOptional()
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
+  readonly minTgScore?: number;
 }

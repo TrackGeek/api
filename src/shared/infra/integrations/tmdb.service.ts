@@ -54,7 +54,8 @@ export interface TMDBSearchTVShowOptions {
   page?: number;
   orderBy?: TMDBTVShowOrderBy;
   sort?: TMDBSort;
-  genres?: number[];
+  genres?: string[];
+  year?: string;
 }
 
 export interface TMDBSearchMovieOptions {
@@ -62,7 +63,8 @@ export interface TMDBSearchMovieOptions {
   page?: number;
   orderBy?: TMDBMovieOrderBy;
   sort?: TMDBSort;
-  genres?: number[];
+  genres?: string[];
+  year?: string;
 }
 
 export interface TMDBTopMovieOptions {
@@ -327,15 +329,31 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
+  /** Genre filters arrive as display names from the UI, but TMDB only matches numeric ids. */
+  private toGenreIds(values: string[] | undefined, catalog: { id: number; name: string }[]): number[] | undefined {
+    if (!values?.length) return undefined;
+
+    const ids = values
+      .map((value) => {
+        if (/^\d+$/.test(value)) return Number(value);
+
+        return catalog.find((genre) => genre.name.toLowerCase() === value.toLowerCase())?.id ?? null;
+      })
+      .filter((id): id is number => id !== null);
+
+    return ids.length ? ids : undefined;
+  }
+
   async searchTVShows({
     query = "A",
     page = DEFAULT_PAGINATION_PAGE,
     orderBy,
     sort = TMDBSort.Desc,
     genres,
+    year,
   }: TMDBSearchTVShowOptions): Promise<IGDBPagination<TMDBSearchTVShowResult>> {
     try {
-      const cachedTVShowsKey = CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix({ query, page, orderBy, sort, genres });
+      const cachedTVShowsKey = CACHE_KEYS.TMDB_SEARCH_TV_SHOWS.prefix({ query, page, orderBy, sort, genres, year });
       const cachedTVShows = await this.cacheService.get<IGDBPagination<TMDBSearchTVShowResult>>(cachedTVShowsKey);
 
       if (cachedTVShows) {
@@ -344,7 +362,7 @@ export class TMDBService {
 
       const tvShowsResponse = await firstValueFrom(
         this.httpService.get(`${this.TMDB_API_URL}/search/tv`, {
-          params: { query, page },
+          params: { query, page, first_air_date_year: year },
           headers: {
             Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
           },
@@ -369,8 +387,10 @@ export class TMDBService {
 
       const effectiveOrderBy = orderBy ?? TMDBTVShowOrderBy.Score;
 
-      if (genres?.length) {
-        items = items.filter((item: any) => genres.every((id) => item.genres.some((g: any) => g.id === id)));
+      const genreIds = this.toGenreIds(genres, tvShowGenres);
+
+      if (genreIds?.length) {
+        items = items.filter((item: any) => genreIds.every((id) => item.genres.some((g: any) => g.id === id)));
       }
 
       items = items.sort((a: any, b: any) => {
@@ -423,9 +443,10 @@ export class TMDBService {
     orderBy,
     sort = TMDBSort.Desc,
     genres,
+    year,
   }: TMDBSearchMovieOptions): Promise<IGDBPagination<TMDBSearchMovieResult>> {
     try {
-      const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page, orderBy, sort, genres });
+      const cachedMoviesKey = CACHE_KEYS.TMDB_SEARCH_MOVIES.prefix({ query, page, orderBy, sort, genres, year });
 
       const cachedMovies = await this.cacheService.get<IGDBPagination<TMDBSearchMovieResult>>(cachedMoviesKey);
 
@@ -435,7 +456,7 @@ export class TMDBService {
 
       const movieResponse = await firstValueFrom(
         this.httpService.get(`${this.TMDB_API_URL}/search/movie`, {
-          params: { query, page },
+          params: { query, page, primary_release_year: year },
           headers: {
             Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
           },
@@ -458,8 +479,10 @@ export class TMDBService {
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       }));
 
-      if (genres?.length) {
-        items = items.filter((item: any) => genres.every((id) => item.genres.some((g: any) => g.id === id)));
+      const genreIds = this.toGenreIds(genres, movieGenres);
+
+      if (genreIds?.length) {
+        items = items.filter((item: any) => genreIds.every((id) => item.genres.some((g: any) => g.id === id)));
       }
 
       const effectiveOrderBy = orderBy ?? TMDBMovieOrderBy.Score;

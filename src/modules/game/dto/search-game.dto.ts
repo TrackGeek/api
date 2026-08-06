@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsPositive, IsString, Matches, Max, Min } from "class-validator";
 import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 
 export class SearchGameDto {
@@ -61,6 +61,16 @@ export class SearchGameDto {
   })
   readonly platform?: string;
 
+  @Transform(({ value }) => (value as string).split(","))
+  @IsArray()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Filter games by one or more platforms, by name or slug. Matches any of them.",
+    example: "PlayStation 5,PC (Microsoft Windows)",
+    type: "string",
+  })
+  readonly platforms?: string[];
+
   @IsOptional()
   @Matches(/^\d{4}$/)
   readonly year?: string;
@@ -73,4 +83,12 @@ export class SearchGameDto {
     type: "string",
   })
   readonly status?: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  @IsOptional()
+  @ApiPropertyOptional({ type: "number", minimum: 0, maximum: 5 })
+  readonly minTgScore?: number;
 }

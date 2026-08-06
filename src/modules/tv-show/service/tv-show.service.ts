@@ -8,7 +8,11 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import {
+  DatabaseService,
+  DEFAULT_PAGINATION_ITEMS_PER_PAGE,
+  DEFAULT_PAGINATION_PAGE,
+} from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
   TMDBSort,
@@ -16,9 +20,29 @@ import {
   TMDBTVShowSeason,
   TMDBTVShowSeasonEpisode,
 } from "@/shared/infra/integrations/tmdb.service";
+import {
+  compareBy,
+  getTgScoredContent,
+  matchesAllNames,
+  matchesQuery,
+  paginateLocal,
+  toNameList,
+} from "@/shared/utils/tg-review-search";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { ResetTVShowTrackingDto } from "../dto/reset-tv-show-tracking.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
+
+export interface ReviewedTVShowSortable {
+  name: string;
+  firstAirDate: Date | null;
+  tgReviewScore: number;
+}
+
+const TV_SHOW_ORDER_BY_VALUE: Record<TMDBTVShowOrderBy, (tvShow: ReviewedTVShowSortable) => number | string | null> = {
+  [TMDBTVShowOrderBy.Name]: (tvShow) => tvShow.name.toLowerCase(),
+  [TMDBTVShowOrderBy.FirstAirDate]: (tvShow) => tvShow.firstAirDate?.getTime() ?? 0,
+  [TMDBTVShowOrderBy.Score]: (tvShow) => tvShow.tgReviewScore,
+};
 
 @Injectable()
 export class TVShowService {
@@ -30,6 +54,10 @@ export class TVShowService {
   ) {}
 
   async searchTVShows(searchTVShowDto: SearchTVShowDto) {
+    if (searchTVShowDto.minTgScore != null) {
+      return this.searchReviewedTVShows(searchTVShowDto);
+    }
+
     const tmdbPagination = await this.integrationsService.tmdb.searchTVShows(searchTVShowDto);
 
     const items = await Promise.all(
@@ -56,6 +84,58 @@ export class TVShowService {
       ...tmdbPagination,
       items,
     };
+  }
+
+  /**
+   * The TrackGeek rating filter can only match TV shows we already store, so it searches our own
+   * records instead of TMDB — which keeps pagination and totals accurate.
+   */
+  private async searchReviewedTVShows({
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    genres,
+    year,
+    orderBy = TMDBTVShowOrderBy.Score,
+    sort = TMDBSort.Desc,
+    minTgScore = 0,
+  }: SearchTVShowDto) {
+    const scored = await getTgScoredContent(this.databaseService.tvShowReview, "tvShowId", minTgScore);
+    const scoreById = new Map(scored.map((entry) => [entry.id, entry.tgReviewScore]));
+
+    const tvShows = await this.databaseService.tvShow.findMany({
+      where: { id: { in: [...scoreById.keys()] } },
+      select: {
+        id: true,
+        tmdbId: true,
+        name: true,
+        genres: true,
+        isAdult: true,
+        tmdbReviewScore: true,
+        firstAirDate: true,
+        posterUrl: true,
+        lastRefreshedAt: true,
+      },
+    });
+
+    const items = tvShows
+      .map((tvShow) => ({
+        tmdbId: tvShow.tmdbId,
+        name: tvShow.name ?? "",
+        isAdult: tvShow.isAdult ?? false,
+        genres: toNameList(tvShow.genres),
+        tmdbReviewScore: tvShow.tmdbReviewScore ?? 0,
+        firstAirDate: tvShow.firstAirDate,
+        posterUrl: tvShow.posterUrl,
+        tgReviewScore: scoreById.get(tvShow.id) ?? 0,
+        lastRefreshedAt: tvShow.lastRefreshedAt,
+      }))
+      .filter((tvShow) => matchesQuery(tvShow.name, query))
+      .filter((tvShow) => matchesAllNames(tvShow.genres, genres))
+      .filter((tvShow) => !year || String(tvShow.firstAirDate?.getFullYear() ?? "") === year);
+
+    const sorted = compareBy(items, TV_SHOW_ORDER_BY_VALUE[orderBy], sort);
+
+    return paginateLocal(sorted, page, DEFAULT_PAGINATION_ITEMS_PER_PAGE);
   }
 
   async topTVShows(topTvShowDto: TopTvShowDto) {

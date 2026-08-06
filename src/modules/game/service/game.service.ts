@@ -5,11 +5,38 @@ import { TopGameDto } from "@/modules/game/dto/top-game.dto";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import {
+  DatabaseService,
+  DEFAULT_PAGINATION_ITEMS_PER_PAGE,
+  DEFAULT_PAGINATION_PAGE,
+} from "@/shared/infra/database/database.service";
 import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
+import {
+  compareBy,
+  getTgScoredContent,
+  matchesAllTokens,
+  matchesAnyToken,
+  matchesQuery,
+  normalizeToken,
+  paginateLocal,
+} from "@/shared/utils/tg-review-search";
 import type { RefreshGameDto } from "../dto/refresh-game.dto";
 import type { SearchGameDto } from "../dto/search-game.dto";
+
+export interface ReviewedGameSortable {
+  name: string | null;
+  firstReleaseDate: Date | null;
+  totalRatingCount: number;
+  tgReviewScore: number;
+}
+
+const GAME_ORDER_BY_VALUE: Record<IGDBGameOrderBy, (game: ReviewedGameSortable) => number | string | null> = {
+  [IGDBGameOrderBy.Name]: (game) => (game.name ?? "").toLowerCase(),
+  [IGDBGameOrderBy.TotalRating]: (game) => game.tgReviewScore,
+  [IGDBGameOrderBy.Popularity]: (game) => game.totalRatingCount,
+  [IGDBGameOrderBy.FirstReleaseDate]: (game) => game.firstReleaseDate?.getTime() ?? 0,
+};
 
 @Injectable()
 export class GameService {
@@ -19,6 +46,10 @@ export class GameService {
   ) {}
 
   async searchGames(searchGameDto: SearchGameDto) {
+    if (searchGameDto.minTgScore != null) {
+      return this.searchReviewedGames(searchGameDto);
+    }
+
     const igdbPagination = await this.integrationsService.igdb.searchGames(searchGameDto);
 
     const items = await Promise.all(
@@ -45,6 +76,79 @@ export class GameService {
       ...igdbPagination,
       items,
     };
+  }
+
+  /**
+   * The TrackGeek rating filter can only match games we already store, so it searches our own
+   * records instead of IGDB — which keeps pagination and totals accurate.
+   */
+  private async searchReviewedGames({
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    genres,
+    gameMode,
+    platform,
+    platforms,
+    year,
+    status,
+    orderBy = IGDBGameOrderBy.TotalRating,
+    sort = IGDBSort.Desc,
+    minTgScore = 0,
+  }: SearchGameDto) {
+    const scored = await getTgScoredContent(this.databaseService.gameReview, "gameId", minTgScore);
+    const scoreById = new Map(scored.map((entry) => [entry.id, entry.tgReviewScore]));
+
+    const wantedPlatforms = [platform, ...(platforms ?? [])].filter((value): value is string => !!value);
+
+    const games = await this.databaseService.game.findMany({
+      where: { id: { in: [...scoreById.keys()] } },
+      select: {
+        id: true,
+        igdbId: true,
+        slug: true,
+        name: true,
+        summary: true,
+        coverUrl: true,
+        firstReleaseDate: true,
+        gameStatus: true,
+        gameModes: true,
+        genres: true,
+        platforms: true,
+        involvedCompanies: true,
+        totalRating: true,
+        totalRatingCount: true,
+        lastRefreshedAt: true,
+      },
+    });
+
+    const items = games
+      .filter((game) => matchesQuery(game.name, query))
+      .filter((game) => matchesAllTokens(game.genres, genres))
+      .filter((game) => matchesAnyToken(game.platforms, wantedPlatforms))
+      .filter((game) => !gameMode || matchesAnyToken(game.gameModes, [gameMode]))
+      .filter((game) => !status || normalizeToken(game.gameStatus) === normalizeToken(status))
+      .filter((game) => !year || String(game.firstReleaseDate?.getFullYear() ?? "") === year)
+      .map((game) => ({
+        igdbId: game.igdbId,
+        igdbReviewScore: game.totalRating ?? null,
+        slug: game.slug,
+        name: game.name,
+        summary: game.summary,
+        gameStatus: game.gameStatus,
+        gameModes: game.gameModes ?? [],
+        genres: game.genres ?? [],
+        involvedCompanies: game.involvedCompanies ?? [],
+        platforms: game.platforms ?? [],
+        coverUrl: game.coverUrl,
+        firstReleaseDate: game.firstReleaseDate,
+        totalRatingCount: game.totalRatingCount ?? 0,
+        tgReviewScore: scoreById.get(game.id) ?? 0,
+        lastRefreshedAt: game.lastRefreshedAt,
+      }));
+
+    const sorted = compareBy(items, GAME_ORDER_BY_VALUE[orderBy], sort);
+
+    return paginateLocal(sorted, page, DEFAULT_PAGINATION_ITEMS_PER_PAGE);
   }
 
   async topGames(topGameDto: TopGameDto) {

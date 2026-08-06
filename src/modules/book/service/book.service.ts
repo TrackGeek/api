@@ -5,12 +5,37 @@ import { TopBookDto } from "@/modules/book/dto/top-book.dto";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import {
+  DatabaseService,
+  DEFAULT_PAGINATION_ITEMS_PER_PAGE,
+  DEFAULT_PAGINATION_PAGE,
+} from "@/shared/infra/database/database.service";
 import { HardcoverBookOrderBy, HardcoverSort } from "@/shared/infra/integrations/hardcover.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { parseIdFromSlug } from "@/shared/utils/string";
+import {
+  compareBy,
+  getTgScoredContent,
+  matchesAllTokens,
+  matchesQuery,
+  normalizeToken,
+  paginateLocal,
+  toNameList,
+} from "@/shared/utils/tg-review-search";
 import type { RefreshBookDto } from "../dto/refresh-book.dto";
 import type { SearchBookDto } from "../dto/search-book.dto";
+
+export interface ReviewedBookSortable {
+  title: string;
+  releaseDate: Date | null;
+  tgReviewScore: number;
+}
+
+const BOOK_ORDER_BY_VALUE: Record<HardcoverBookOrderBy, (book: ReviewedBookSortable) => number | string | null> = {
+  [HardcoverBookOrderBy.Title]: (book) => book.title.toLowerCase(),
+  [HardcoverBookOrderBy.ReleaseDate]: (book) => book.releaseDate?.getTime() ?? 0,
+  [HardcoverBookOrderBy.Rating]: (book) => book.tgReviewScore,
+};
 
 @Injectable()
 export class BookService {
@@ -20,7 +45,17 @@ export class BookService {
   ) {}
 
   async searchBooks(searchBookDto: SearchBookDto) {
-    const hardcoverPagination = await this.integrationsService.hardcover.searchBooks(searchBookDto);
+    // The UI labels this filter "genres" for every content type; Hardcover calls them categories.
+    const categories = searchBookDto.categories ?? searchBookDto.genres;
+
+    if (searchBookDto.minTgScore != null) {
+      return this.searchReviewedBooks({ ...searchBookDto, categories });
+    }
+
+    const hardcoverPagination = await this.integrationsService.hardcover.searchBooks({
+      ...searchBookDto,
+      categories,
+    });
 
     const items = await Promise.all(
       hardcoverPagination.items.map(async (item) => {
@@ -46,6 +81,74 @@ export class BookService {
       ...hardcoverPagination,
       items,
     };
+  }
+
+  /**
+   * The TrackGeek rating filter can only match books we already store, so it searches our own
+   * records instead of Hardcover — which keeps pagination and totals accurate.
+   */
+  private async searchReviewedBooks({
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    categories,
+    year,
+    status,
+    orderBy = HardcoverBookOrderBy.Rating,
+    sort = HardcoverSort.Desc,
+    minTgScore = 0,
+  }: SearchBookDto) {
+    const scored = await getTgScoredContent(this.databaseService.bookReview, "bookId", minTgScore);
+    const scoreById = new Map(scored.map((entry) => [entry.id, entry.tgReviewScore]));
+
+    const books = await this.databaseService.book.findMany({
+      where: { id: { in: [...scoreById.keys()] } },
+      select: {
+        id: true,
+        hardcoverId: true,
+        title: true,
+        description: true,
+        contributions: true,
+        imageUrl: true,
+        taggings: true,
+        bookCategory: true,
+        bookStatus: true,
+        hardcoverReviewScore: true,
+        releaseDate: true,
+        releaseYear: true,
+        lastRefreshedAt: true,
+      },
+    });
+
+    const items = books
+      .map((book) => {
+        const tags = Array.isArray(book.taggings)
+          ? (book.taggings as any[]).map((tagging) => tagging?.tag?.tag ?? tagging?.tag).filter(Boolean)
+          : [];
+
+        return {
+          hardcoverId: book.hardcoverId,
+          title: book.title,
+          description: book.description,
+          contributions: toNameList(book.contributions),
+          hardcoverReviewScore: book.hardcoverReviewScore ?? 0,
+          imageUrl: (book.imageUrl as { url?: string } | null)?.url ?? null,
+          tags,
+          category: (book.bookCategory as { name?: string } | null)?.name ?? null,
+          status: (book.bookStatus as { name?: string } | null)?.name ?? null,
+          releaseDate: book.releaseDate,
+          releaseYear: book.releaseYear ?? book.releaseDate?.getFullYear() ?? null,
+          tgReviewScore: scoreById.get(book.id) ?? 0,
+          lastRefreshedAt: book.lastRefreshedAt,
+        };
+      })
+      .filter((book) => matchesQuery(book.title, query))
+      .filter((book) => matchesAllTokens([book.category, ...book.tags], categories))
+      .filter((book) => !status || normalizeToken(book.status) === normalizeToken(status))
+      .filter((book) => !year || String(book.releaseYear ?? "") === year);
+
+    const sorted = compareBy(items, BOOK_ORDER_BY_VALUE[orderBy], sort);
+
+    return paginateLocal(sorted, page, DEFAULT_PAGINATION_ITEMS_PER_PAGE);
   }
 
   async bookFilters() {

@@ -99,6 +99,7 @@ export interface IGDBSearchGameOptions {
   genres?: string[];
   gameMode?: string;
   platform?: string;
+  platforms?: string[];
   status?: string;
   year?: string;
 }
@@ -327,6 +328,38 @@ export class IGDBService {
     }
   }
 
+  private async toGenreSlugs(values?: (string | undefined)[]): Promise<string[] | undefined> {
+    const wanted = (values ?? []).filter((value): value is string => !!value);
+
+    if (!wanted.length) return undefined;
+
+    const genres = await this.getGameGenres();
+
+    return wanted.map((value) => {
+      const match = genres.find((genre) => genre.slug === value || genre.name?.toLowerCase() === value.toLowerCase());
+
+      return match?.slug ?? value;
+    });
+  }
+
+  private async toPlatformSlugs(values?: (string | undefined)[]): Promise<string[] | undefined> {
+    const wanted = (values ?? []).filter((value): value is string => !!value);
+
+    if (!wanted.length) return undefined;
+
+    const platforms = await this.getGamePlatforms();
+
+    const slugs = wanted.map((value) => {
+      const match = platforms.find(
+        (platform) => platform.slug === value || platform.name?.toLowerCase() === value.toLowerCase(),
+      );
+
+      return match?.slug ?? value;
+    });
+
+    return [...new Set(slugs)];
+  }
+
   async searchGames({
     query,
     page = DEFAULT_PAGINATION_PAGE,
@@ -335,20 +368,24 @@ export class IGDBService {
     gameMode,
     genres,
     platform,
+    platforms,
     year,
     status,
   }: IGDBSearchGameOptions): Promise<IGDBPagination<IGDBSearchGameResult>> {
     const accessToken = await this.getAccessToken();
 
     try {
+      const genreSlugs = await this.toGenreSlugs(genres);
+      const platformSlugs = await this.toPlatformSlugs([platform, ...(platforms ?? [])]);
+
       const cachedGamesKey = CACHE_KEYS.IGDB_SEARCH_GAMES.prefix({
         query,
         page,
         sort,
         orderBy,
         gameMode,
-        platform,
-        genres: genres ? genres.join(",") : undefined,
+        platform: platformSlugs?.join(","),
+        genres: genreSlugs?.join(","),
         year,
         status,
       });
@@ -367,8 +404,8 @@ export class IGDBService {
         `game_type = (${IGDB_PLAYABLE_GAME_TYPES.join(",")})`,
         "version_parent = null",
         gameMode ? `game_modes.slug = "${gameMode}"` : null,
-        genres ? `genres.slug = (${genres.map((genre) => `"${genre}"`).join(",")})` : null,
-        platform ? `platforms.slug = "${platform}"` : null,
+        genreSlugs ? `genres.slug = (${genreSlugs.map((genre) => `"${genre}"`).join(",")})` : null,
+        platformSlugs ? `platforms.slug = (${platformSlugs.map((slug) => `"${slug}"`).join(",")})` : null,
         year
           ? `first_release_date >= ${Math.floor(new Date(Number(year), 0, 1).getTime() / 1000)} & first_release_date < ${Math.floor(new Date(Number(year) + 1, 0, 1).getTime() / 1000)}`
           : null,
