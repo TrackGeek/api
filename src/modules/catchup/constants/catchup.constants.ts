@@ -50,3 +50,12 @@ export const DEFAULT_TOLERANCE_DAYS = 1;
 export const DEFAULT_FEED_WINDOW_DAYS = 7;
 
 export const EXTERNAL_REQUEST_DELAY_MS = 800;
+
+// Media relations carried by a release event. Shared by the catch-up feed and by release
+// notifications, which both need the cover and the external id used to build the title link.
+export const RELEASE_EVENT_MEDIA_INCLUDE = {
+  anime: { select: { id: true, malId: true, title: true, imageUrl: true } },
+  manga: { select: { id: true, anilistId: true, malId: true, title: true, imageUrl: true } },
+  tvShow: { select: { id: true, tmdbId: true, name: true, posterUrl: true } },
+  game: { select: { id: true, igdbId: true, slug: true, name: true, coverUrl: true } },
+} as const;

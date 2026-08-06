@@ -4,7 +4,11 @@ import { MangaCreateInput, MangaUpdateInput } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import {
+  DatabaseService,
+  DEFAULT_PAGINATION_ITEMS_PER_PAGE,
+  DEFAULT_PAGINATION_PAGE,
+} from "@/shared/infra/database/database.service";
 import {
   type AnilistMangaDetails,
   AnilistMangaOrderBy,
@@ -15,9 +19,42 @@ import {
   AnilistSort,
 } from "@/shared/infra/integrations/anilist.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
+import {
+  compareBy,
+  getTgScoredContent,
+  matchesAllNames,
+  matchesQuery,
+  normalizeToken,
+  paginateLocal,
+  toNameList,
+} from "@/shared/utils/tg-review-search";
 import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { TopMangaDto } from "../dto/top-manga.dto";
+
+const MANGA_STATUS_LABELS: Record<AnilistMangaStatus, string> = {
+  [AnilistMangaStatus.Publishing]: "Publishing",
+  [AnilistMangaStatus.Complete]: "Finished",
+  [AnilistMangaStatus.Hiatus]: "On Hiatus",
+  [AnilistMangaStatus.Discontinued]: "Discontinued",
+  [AnilistMangaStatus.Upcoming]: "Not yet published",
+};
+
+export interface ReviewedMangaSortable {
+  title: string;
+  publishedFrom: string | null;
+  publishedTo: string | null;
+  popularity: number;
+  tgReviewScore: number;
+}
+
+const MANGA_ORDER_BY_VALUE: Record<AnilistMangaOrderBy, (manga: ReviewedMangaSortable) => number | string | null> = {
+  [AnilistMangaOrderBy.Title]: (manga) => manga.title.toLowerCase(),
+  [AnilistMangaOrderBy.StartDate]: (manga) => (manga.publishedFrom ? new Date(manga.publishedFrom).getTime() : 0),
+  [AnilistMangaOrderBy.EndDate]: (manga) => (manga.publishedTo ? new Date(manga.publishedTo).getTime() : 0),
+  [AnilistMangaOrderBy.Score]: (manga) => manga.tgReviewScore,
+  [AnilistMangaOrderBy.Popularity]: (manga) => manga.popularity,
+};
 
 @Injectable()
 export class MangaService {
@@ -27,9 +64,91 @@ export class MangaService {
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
+    if (searchMangaDto.minTgScore != null) {
+      return this.searchReviewedMangas(searchMangaDto);
+    }
+
     const anilistPagination = await this.integrationsService.anilist.searchMangas(searchMangaDto);
 
     return this.withCommunityData(anilistPagination);
+  }
+
+  /**
+   * The TrackGeek rating filter can only match mangas we already store, so it searches our own
+   * records instead of Anilist — which keeps pagination and totals accurate.
+   */
+  private async searchReviewedMangas({
+    page = DEFAULT_PAGINATION_PAGE,
+    query,
+    type,
+    status,
+    genres,
+    year,
+    orderBy = AnilistMangaOrderBy.Score,
+    sort = AnilistSort.Desc,
+    minTgScore = 0,
+  }: SearchMangaDto) {
+    const scored = await getTgScoredContent(this.databaseService.mangaReview, "mangaId", minTgScore);
+    const scoreById = new Map(scored.map((entry) => [entry.id, entry.tgReviewScore]));
+
+    const mangas = await this.databaseService.manga.findMany({
+      where: { id: { in: [...scoreById.keys()] } },
+      select: {
+        id: true,
+        anilistId: true,
+        malId: true,
+        title: true,
+        type: true,
+        status: true,
+        genres: true,
+        tags: true,
+        imageUrl: true,
+        bannerUrl: true,
+        isAdult: true,
+        anilistScore: true,
+        synopsis: true,
+        popularity: true,
+        published: true,
+        lastRefreshedAt: true,
+      },
+    });
+
+    const items = mangas
+      .map((manga) => {
+        const published = manga.published as { from?: string | null; to?: string | null } | null;
+
+        return {
+          anilistId: manga.anilistId,
+          malId: manga.malId,
+          title: manga.title,
+          type: manga.type,
+          publishedFrom: published?.from ?? null,
+          publishedTo: published?.to ?? null,
+          status: manga.status,
+          anilistScore: manga.anilistScore,
+          synopsis: manga.synopsis,
+          imageUrl: manga.imageUrl,
+          bannerUrl: manga.bannerUrl,
+          genres: toNameList(manga.genres),
+          // Anilist splits genres and tags, and the UI offers both under a single genre filter.
+          searchableGenres: [...toNameList(manga.genres), ...toNameList(manga.tags)],
+          isAdult: manga.isAdult ?? false,
+          popularity: manga.popularity ?? 0,
+          releaseYear: published?.from ? new Date(published.from).getFullYear() : null,
+          tgReviewScore: scoreById.get(manga.id) ?? 0,
+          lastRefreshedAt: manga.lastRefreshedAt,
+        };
+      })
+      .filter((manga) => matchesQuery(manga.title, query))
+      .filter((manga) => !type || normalizeToken(manga.type) === normalizeToken(type))
+      .filter((manga) => !status || normalizeToken(manga.status) === normalizeToken(MANGA_STATUS_LABELS[status]))
+      .filter((manga) => matchesAllNames(manga.searchableGenres, genres))
+      .filter((manga) => !year || String(manga.releaseYear ?? "") === year)
+      .map(({ searchableGenres: _searchableGenres, ...manga }) => manga);
+
+    const sorted = compareBy(items, MANGA_ORDER_BY_VALUE[orderBy], sort);
+
+    return paginateLocal(sorted, page, DEFAULT_PAGINATION_ITEMS_PER_PAGE);
   }
 
   async topMangas(topMangaDto: TopMangaDto) {

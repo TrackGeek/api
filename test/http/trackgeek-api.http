@@ -1,9 +1,6 @@
 ### Variables
 @apiUrl = http://localhost:40287
 
-### 1. Healthz
-GET {{apiUrl}}/healthz
-
 ### 3. Login to trackgeek-api
 # @name login
 POST {{apiUrl}}/auth/sign-in/email

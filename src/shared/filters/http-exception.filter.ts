@@ -19,7 +19,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return response.status(status).json(ERROR_CODES.NOT_FOUND);
       }
 
-      const isAppException = typeof message === "object" && message !== null && "code" in message;
+      const isObjectResponse = typeof message === "object" && message !== null;
+
+      // @nestjs/terminus throws a ServiceUnavailableException carrying the health check result,
+      // which must reach the client untouched.
+      const isHealthCheckResult = isObjectResponse && "info" in message && "details" in message;
+
+      if (isHealthCheckResult) {
+        return response.status(status).json(message);
+      }
+
+      const isAppException = isObjectResponse && "code" in message;
 
       if (isAppException) {
         return response.status(status).json(message?.code);
