@@ -37,8 +37,8 @@ import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot({
       throttlers: [
-        { name: "read", ttl: 60_000, limit: 200, blockDuration: 300_000 },
-        { name: "write", ttl: 60_000, limit: 100, blockDuration: 300_000 },
+        { name: "read", ttl: 60_000, limit: 500, blockDuration: 300_000 },
+        { name: "write", ttl: 60_000, limit: 250, blockDuration: 300_000 },
       ],
     }),
     JwtModule.register({ global: true }),
