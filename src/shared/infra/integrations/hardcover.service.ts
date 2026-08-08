@@ -194,6 +194,10 @@ export interface HardcoverBookDetails {
   bookSeries: HardcoverBookSeries[];
 }
 
+function escapeGraphqlString(value: string): string {
+  return value.replace(/["\\]/g, "\\$&");
+}
+
 @Injectable()
 export class HardcoverService {
   private readonly logger = new Logger(HardcoverService.name);
@@ -273,24 +277,27 @@ export class HardcoverService {
 
       const whereConditions = [
         query
-          ? `
-          _or: [
+          ? `{ _or: [
             { id: { _in: [${hitIds.join(", ")}] } },
             { canonical_id: { _in: [${hitIds.join(", ")}] } }
-          ]
-        `
+          ] }`
           : null,
-        year ? `release_year: { _eq: ${year} }` : null,
-        status ? `book_status: { name: { _eq: "${status}" } }` : null,
-        categories
-          ? `book_category_id: { _in: [${bookCategories
-              .filter((bc) => categories.includes(bc.name))
-              .map((bc) => bc.id)
-              .join(", ")}] }`
-          : null,
+        year ? `{ release_year: { _eq: ${year} } }` : null,
+        status ? `{ book_status: { name: { _eq: "${escapeGraphqlString(status)}" } } }` : null,
+        // The UI genre list mixes Hardcover categories with Hardcover tags, so a genre matches either one.
+        ...(categories ?? []).map((category) => {
+          const categoryIds = bookCategories
+            .filter((bc) => bc.name.toLowerCase() === category.toLowerCase())
+            .map((bc) => bc.id);
+
+          return `{ _or: [
+            ${categoryIds.length ? `{ book_category_id: { _in: [${categoryIds.join(", ")}] } },` : ""}
+            { taggings: { tag: { tag: { _eq: "${escapeGraphqlString(category)}" } } } }
+          ] }`;
+        }),
       ].filter(Boolean);
 
-      const whereClause = whereConditions.length ? `where: { ${whereConditions.join(" , ")} }` : "";
+      const whereClause = whereConditions.length ? `where: { _and: [${whereConditions.join(", ")}] }` : "";
 
       const booksResponse = await firstValueFrom(
         this.httpService.post(
