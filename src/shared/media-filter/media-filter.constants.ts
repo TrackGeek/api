@@ -15,6 +15,19 @@ export enum MediaReleaseState {
   Cancelled = "Cancelled",
 }
 
+/** Sortable columns exposed by every `GET /{type}/progress` endpoint. */
+export enum ProgressSortBy {
+  Name = "name",
+  AddedAt = "addedAt",
+  UpdatedAt = "updatedAt",
+  ReleaseDate = "releaseDate",
+}
+
+export enum ProgressSortOrder {
+  Asc = "asc",
+  Desc = "desc",
+}
+
 /** Display order used when returning the states available in a user's library. */
 export const MEDIA_RELEASE_STATE_ORDER: MediaReleaseState[] = [
   MediaReleaseState.Ongoing,

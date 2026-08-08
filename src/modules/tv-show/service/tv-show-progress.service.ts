@@ -7,7 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
-import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
+import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
@@ -126,6 +126,7 @@ export class TVShowProgressService {
           ...where,
           ...(getTVShowProgressDto.status && { status: getTVShowProgressDto.status }),
         },
+        orderBy: buildProgressOrderBy("tv", getTVShowProgressDto),
         include: {
           tvShow: {
             select: {

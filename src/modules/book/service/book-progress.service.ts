@@ -6,7 +6,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
-import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
+import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
 
@@ -114,6 +114,7 @@ export class BookProgressService {
           ...where,
           ...(getBookProgressDto.status && { status: getBookProgressDto.status }),
         },
+        orderBy: buildProgressOrderBy("book", getBookProgressDto),
         include: {
           book: {
             select: {
