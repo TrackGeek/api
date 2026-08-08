@@ -10,6 +10,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { BookModule } from "./modules/book/book.module";
 import { CatchupModule } from "./modules/catchup/catchup.module";
 import { CommentModule } from "./modules/comment/comment.module";
+import { CompanyModule } from "./modules/company/company.module";
 import { FavoriteModule } from "./modules/favorite/favorite.module";
 import { GameModule } from "./modules/game/game.module";
 import { ListModule } from "./modules/list/list.module";
@@ -65,6 +66,7 @@ import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
     BookModule,
     AnimeModule,
     PersonModule,
+    CompanyModule,
     FavoriteModule,
     ListModule,
     PaymentModule,

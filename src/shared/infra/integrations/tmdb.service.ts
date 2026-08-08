@@ -9,6 +9,8 @@ import { DEFAULT_PAGINATION_PAGE } from "@/shared/infra/database/database.servic
 import { slugify } from "@/shared/utils/string";
 import { CacheService } from "../cache/cache.service";
 
+const TMDB_COMPANY_MEDIA_MAX_PAGES = 3;
+
 export interface IGDBPagination<I> {
   total: number | null;
   pages: number;
@@ -128,6 +130,7 @@ export interface TMDBMovieDetails {
   popularity: number;
   posterUrl: string | null;
   productionCompanies: {
+    id: number;
     logoUrl: string | null;
     name: string;
     originCountry: string;
@@ -230,6 +233,7 @@ export interface TMDBTVShowDetails {
   popularity: number;
   posterUrl: string | null;
   productionCompanies: {
+    id: number;
     logoUrl: string | null;
     name: string;
     originCountry: string;
@@ -296,6 +300,31 @@ export interface TMDBPersonCredit {
   job: string | null;
   department: string | null;
   episodeCount: number | null;
+}
+
+export interface TMDBCompanyDetails {
+  id: number;
+  name: string;
+  description: string | null;
+  headquarters: string | null;
+  homepage: string | null;
+  logoUrl: string | null;
+  originCountry: string | null;
+  parentCompany: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface TMDBCompanyMedia {
+  tmdbId: number;
+  title: string;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  releaseDate: Date | null;
+  tmdbReviewScore: number | null;
+  popularity: number | null;
+  isAdult: boolean;
 }
 
 export interface TMDBPersonDetails {
@@ -806,6 +835,7 @@ export class TMDBService {
         popularity: movieData.popularity,
         posterUrl: movieData.poster_path ? `https://image.tmdb.org/t/p/w500${movieData.poster_path}` : null,
         productionCompanies: movieData.production_companies.map((company: any) => ({
+          id: company.id,
           logoUrl: company.logo_path ? `https://image.tmdb.org/t/p/w500${company.logo_path}` : null,
           name: company.name,
           originCountry: company.origin_country,
@@ -932,6 +962,127 @@ export class TMDBService {
     }
   }
 
+  async getCompanyById(companyId: number): Promise<TMDBCompanyDetails> {
+    try {
+      const cachedCompanyKey = CACHE_KEYS.TMDB_COMPANY_BY_ID.prefix(companyId);
+
+      const cachedCompany = await this.cacheService.get<TMDBCompanyDetails>(cachedCompanyKey);
+
+      if (cachedCompany) {
+        return cachedCompany;
+      }
+
+      const companyResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/company/${companyId}`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const companyData = companyResponse.data;
+
+      const company: TMDBCompanyDetails = {
+        id: companyData.id,
+        name: companyData.name,
+        description: companyData.description || null,
+        headquarters: companyData.headquarters || null,
+        homepage: companyData.homepage || null,
+        logoUrl: companyData.logo_path ? `https://image.tmdb.org/t/p/w500${companyData.logo_path}` : null,
+        originCountry: companyData.origin_country || null,
+        parentCompany: companyData.parent_company
+          ? { id: companyData.parent_company.id, name: companyData.parent_company.name }
+          : null,
+      };
+
+      await this.cacheService.set(cachedCompanyKey, company, CACHE_KEYS.TMDB_COMPANY_BY_ID.expiration);
+
+      return company;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.COMPANY_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch company ${companyId} from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  /** Discover only returns 20 items per page, so a few pages are merged to build a representative catalog. */
+  async getCompanyMedia(companyId: number, mediaType: "movie" | "tv"): Promise<TMDBCompanyMedia[]> {
+    try {
+      const cachedMediaKey = CACHE_KEYS.TMDB_COMPANY_MEDIA_BY_ID.prefix(companyId, mediaType);
+
+      const cachedMedia = await this.cacheService.get<TMDBCompanyMedia[]>(cachedMediaKey);
+
+      if (cachedMedia) {
+        return cachedMedia;
+      }
+
+      const discover = (page: number) =>
+        firstValueFrom(
+          this.httpService.get(`${this.TMDB_API_URL}/discover/${mediaType}`, {
+            params: {
+              with_companies: companyId,
+              sort_by: "popularity.desc",
+              include_adult: false,
+              page,
+            },
+            headers: {
+              Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+            },
+          }),
+        );
+
+      const firstPage = await discover(DEFAULT_PAGINATION_PAGE);
+      const lastPage = Math.min(firstPage.data.total_pages ?? 1, TMDB_COMPANY_MEDIA_MAX_PAGES);
+
+      const remainingPages = await Promise.all(
+        Array.from({ length: Math.max(lastPage - 1, 0) }, (_, index) => discover(index + 2)),
+      );
+
+      const results = [firstPage, ...remainingPages].flatMap((response) => response.data.results ?? []);
+
+      const media: TMDBCompanyMedia[] = results
+        .map((result: any) => {
+          const releaseDate = mediaType === "movie" ? result.release_date : result.first_air_date;
+
+          return {
+            tmdbId: result.id,
+            title: mediaType === "movie" ? result.title : result.name,
+            posterUrl: result.poster_path ? `https://image.tmdb.org/t/p/w500${result.poster_path}` : null,
+            backdropUrl: result.backdrop_path
+              ? `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${result.backdrop_path}`
+              : null,
+            releaseDate: releaseDate ? new Date(releaseDate) : null,
+            tmdbReviewScore: result.vote_average ?? null,
+            popularity: result.popularity ?? null,
+            isAdult: result.adult ?? false,
+          };
+        })
+        .sort(
+          (a: TMDBCompanyMedia, b: TMDBCompanyMedia) =>
+            (b.releaseDate?.getTime() ?? 0) - (a.releaseDate?.getTime() ?? 0),
+        );
+
+      await this.cacheService.set(cachedMediaKey, media, CACHE_KEYS.TMDB_COMPANY_MEDIA_BY_ID.expiration);
+
+      return media;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.COMPANY_NOT_FOUND);
+      }
+
+      this.logger.error(
+        `Failed to fetch ${mediaType} for company ${companyId} from TMDB API: ${error.message}`,
+        error.stack,
+      );
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
   async getTVShowById(tmdbId: number): Promise<TMDBTVShowDetails> {
     try {
       const cachedTVShow = await this.cacheService.get<TMDBTVShowDetails>(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(tmdbId));
@@ -1017,6 +1168,7 @@ export class TMDBService {
         popularity: tvShowData.popularity,
         posterUrl: tvShowData.poster_path ? `https://image.tmdb.org/t/p/w500${tvShowData.poster_path}` : null,
         productionCompanies: tvShowData.production_companies.map((company: any) => ({
+          id: company.id,
           logoUrl: company.logo_path ? `https://image.tmdb.org/t/p/w500${company.logo_path}` : null,
           name: company.name,
           originCountry: company.origin_country,
