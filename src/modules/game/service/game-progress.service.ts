@@ -6,7 +6,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
-import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
+import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 
@@ -119,6 +119,7 @@ export class GameProgressService {
           ...where,
           ...(getGameProgressDto.status && { status: getGameProgressDto.status }),
         },
+        orderBy: buildProgressOrderBy("game", getGameProgressDto),
         include: {
           game: {
             select: {

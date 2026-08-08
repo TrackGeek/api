@@ -67,6 +67,10 @@ export const CACHE_KEYS = {
     prefix: (slug: string) => `igdb:franchise:game:slug:${slug}`,
     expiration: 3600 * 24 * 7,
   },
+  IGDB_COMPANY_BY_ID: {
+    prefix: (companyId: number) => `igdb:company:game:id:${companyId}`,
+    expiration: 3600 * 24 * 7,
+  },
 
   TENRAI_SEARCH_ANIMES: {
     prefix: (filters: Record<string, any>) => `tenrai:search:anime:${filtersToString(filters)}`,
@@ -95,6 +99,10 @@ export const CACHE_KEYS = {
   },
   TENRAI_PERSON_BY_ID: {
     prefix: (malId: number) => `tenrai:detail:person:id:${malId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  TENRAI_PRODUCER_BY_ID: {
+    prefix: (malId: number) => `tenrai:detail:producer:id:${malId}`,
     expiration: 3600 * 24 * 7,
   },
 
@@ -165,6 +173,14 @@ export const CACHE_KEYS = {
   },
   TMDB_PERSON_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:detail:person:id:${tmdbId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  TMDB_COMPANY_BY_ID: {
+    prefix: (companyId: number) => `tmdb:detail:company:id:${companyId}`,
+    expiration: 3600 * 24 * 7,
+  },
+  TMDB_COMPANY_MEDIA_BY_ID: {
+    prefix: (companyId: number, mediaType: string) => `tmdb:company:${mediaType}:id:${companyId}`,
     expiration: 3600 * 24 * 7,
   },
 

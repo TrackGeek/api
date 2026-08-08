@@ -45,6 +45,10 @@ const IGDB_GAME_ORDER_BY_FIELDS: Record<IGDBGameOrderBy, string> = {
 
 const IGDB_PLAYABLE_GAME_TYPES = [0, 2, 4, 8, 9, 10, 11];
 
+const IGDB_COMPANY_INVOLVEMENT_LIMIT = 500;
+
+const IGDB_COMPANY_GAMES_LIMIT = 100;
+
 export interface IGDBFranchiseGame {
   igdbId: number;
   name: string;
@@ -62,6 +66,30 @@ export interface IGDBFranchise {
   slug: string;
   bannerUrl: string | null;
   games: IGDBFranchiseGame[];
+}
+
+export interface IGDBCompanyGame {
+  igdbId: number;
+  name: string;
+  slug: string;
+  summary: string | null;
+  igdbReviewScore: number | null;
+  firstReleaseDate: Date | null;
+  coverUrl: string | null;
+  artworkUrl: string | null;
+  roles: string[];
+}
+
+export interface IGDBCompany {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  startDate: Date | null;
+  logoUrl: string | null;
+  websiteUrl: string | null;
+  bannerUrl: string | null;
+  games: IGDBCompanyGame[];
 }
 
 export interface IGDBTopGameOptions {
@@ -213,6 +241,7 @@ export interface IGDBGameDetails {
   genres: IGDBGenre[];
   involvedCompanies: {
     checksum: string | null;
+    companyId: number | null;
     companyName: string | null;
     developer: boolean;
     porting: boolean;
@@ -1162,6 +1191,7 @@ export class IGDBService {
         involvedCompanies:
           gameData?.involved_companies?.map((company: any) => ({
             checksum: company?.checksum ?? null,
+            companyId: company?.company?.id ?? null,
             companyName: company?.company?.name ?? null,
             developer: company?.developer ?? false,
             porting: company?.porting ?? false,
@@ -1380,5 +1410,138 @@ export class IGDBService {
 
       throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
     }
+  }
+
+  async getCompanyById(companyId: number): Promise<IGDBCompany> {
+    const accessToken = await this.getAccessToken();
+
+    try {
+      const cachedCompanyKey = CACHE_KEYS.IGDB_COMPANY_BY_ID.prefix(companyId);
+
+      const cachedCompany = await this.cacheService.get<IGDBCompany>(cachedCompanyKey);
+
+      if (cachedCompany) {
+        return cachedCompany;
+      }
+
+      const headers = {
+        "Client-ID": this.configService.get<string>("IGDB_CLIENT_ID"),
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const [companyResponse, involvementResponse] = await Promise.all([
+        firstValueFrom(
+          this.httpService.post(
+            `${this.IGDB_API_URL}/companies`,
+            `
+              fields name, slug, description, start_date, logo.url, websites.url;
+              where id = ${companyId};
+              limit 1;
+            `,
+            { headers },
+          ),
+        ),
+        firstValueFrom(
+          this.httpService.post(
+            `${this.IGDB_API_URL}/involved_companies`,
+            `
+              fields game, developer, publisher, porting, supporting;
+              where company = ${companyId};
+              limit ${IGDB_COMPANY_INVOLVEMENT_LIMIT};
+            `,
+            { headers },
+          ),
+        ),
+      ]);
+
+      const companyData = companyResponse.data?.[0];
+
+      if (!companyData) {
+        throw new AppException(ERROR_CODES.COMPANY_NOT_FOUND);
+      }
+
+      const involvements: any[] = (involvementResponse.data ?? []).filter((involvement: any) => involvement?.game);
+
+      const rolesByGameId = new Map<number, string[]>();
+
+      for (const involvement of involvements) {
+        const roles = rolesByGameId.get(involvement.game) ?? [];
+
+        for (const [role, isInvolved] of Object.entries({
+          developer: involvement.developer,
+          publisher: involvement.publisher,
+          porting: involvement.porting,
+          supporting: involvement.supporting,
+        })) {
+          if (isInvolved && !roles.includes(role)) {
+            roles.push(role);
+          }
+        }
+
+        rolesByGameId.set(involvement.game, roles);
+      }
+
+      const games = rolesByGameId.size ? await this.getCompanyGames([...rolesByGameId.keys()], rolesByGameId) : [];
+
+      const company: IGDBCompany = {
+        id: companyData.id,
+        name: companyData.name,
+        slug: companyData.slug,
+        description: companyData.description || null,
+        startDate: companyData.start_date ? new Date(companyData.start_date * 1000) : null,
+        logoUrl: companyData.logo?.url ? `https:${companyData.logo.url.replace("t_thumb", "t_logo_med")}` : null,
+        websiteUrl: companyData.websites?.[0]?.url ?? null,
+        bannerUrl: games.find((game) => game.artworkUrl)?.artworkUrl ?? null,
+        games,
+      };
+
+      await this.cacheService.set(cachedCompanyKey, company, CACHE_KEYS.IGDB_COMPANY_BY_ID.expiration);
+
+      return company;
+    } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
+      this.logger.error(`Failed to fetch company ${companyId} from IGDB: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.IGDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  private async getCompanyGames(gameIds: number[], rolesByGameId: Map<number, string[]>): Promise<IGDBCompanyGame[]> {
+    const accessToken = await this.getAccessToken();
+
+    const gamesResponse = await firstValueFrom(
+      this.httpService.post(
+        `${this.IGDB_API_URL}/games`,
+        `
+          fields name, slug, summary, total_rating, first_release_date, game_type, cover.url, artworks.url;
+          where id = (${gameIds.join(",")});
+          sort first_release_date desc;
+          limit ${IGDB_COMPANY_GAMES_LIMIT};
+        `,
+        {
+          headers: {
+            "Client-ID": this.configService.get<string>("IGDB_CLIENT_ID"),
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      ),
+    );
+
+    return (gamesResponse.data ?? [])
+      .filter((game: any) => IGDB_PLAYABLE_GAME_TYPES.includes(game?.game_type ?? 0))
+      .map((game: any) => ({
+        igdbId: game.id,
+        name: game.name,
+        slug: game.slug,
+        summary: game.summary ?? null,
+        igdbReviewScore: game.total_rating ?? null,
+        firstReleaseDate: game.first_release_date ? new Date(game.first_release_date * 1000) : null,
+        coverUrl: game.cover?.url ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}` : null,
+        artworkUrl: game.artworks?.[0]?.url ? `https:${game.artworks[0].url.replace("t_thumb", "t_1080p")}` : null,
+        roles: rolesByGameId.get(game.id) ?? [],
+      }));
   }
 }

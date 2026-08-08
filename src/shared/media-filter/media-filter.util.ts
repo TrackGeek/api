@@ -2,6 +2,8 @@ import type { ProgressFilterParamsDto } from "./dtos/progress-filter.dto";
 import {
   MediaReleaseState,
   type MediaType,
+  ProgressSortBy,
+  ProgressSortOrder,
   rawStatusesForStates,
   unreleasedRawStatuses,
 } from "./media-filter.constants";
@@ -26,24 +28,32 @@ const genreInObjectArray = (column: string, key: string) => (genre: string) => (
 });
 
 interface MediaFilterFields {
+  /** Name of the media relation on the progress model. */
+  relation: string;
   /** Column holding the display title, used by the search filter. */
   titleColumn: string;
   /** Column holding the raw provider release status, or `null` when the provider has none. */
   statusColumn: string | null;
+  /** Sortable release columns, most significant first. Empty when the provider only stores it inside JSON. */
+  releaseColumns: string[];
   genre: (genre: string) => Where;
   year: (year: number) => Where;
 }
 
 const MEDIA_FILTER_FIELDS: Record<MediaType, MediaFilterFields> = {
   anime: {
+    relation: "anime",
     titleColumn: "title",
     statusColumn: "status",
+    releaseColumns: ["year"],
     genre: genreInStringArray("genres"),
     year: (year) => ({ year }),
   },
   manga: {
+    relation: "manga",
     titleColumn: "title",
     statusColumn: "status",
+    releaseColumns: [],
     genre: genreInStringArray("genres"),
     year: (year) => ({
       published: {
@@ -54,32 +64,45 @@ const MEDIA_FILTER_FIELDS: Record<MediaType, MediaFilterFields> = {
     }),
   },
   tv: {
+    relation: "tvShow",
     titleColumn: "name",
     statusColumn: "status",
+    releaseColumns: ["firstAirDate"],
     genre: genreInStringArray("genres"),
     year: (year) => yearRange("firstAirDate", year),
   },
   movie: {
+    relation: "movie",
     titleColumn: "title",
     statusColumn: "status",
+    releaseColumns: ["releaseDate"],
     genre: genreInStringArray("genres"),
     year: (year) => yearRange("releaseDate", year),
   },
   game: {
+    relation: "game",
     titleColumn: "name",
     statusColumn: "gameStatus",
+    releaseColumns: ["firstReleaseDate"],
     genre: genreInObjectArray("genres", "name"),
     year: (year) => yearRange("firstReleaseDate", year),
   },
   book: {
+    relation: "book",
     titleColumn: "title",
     statusColumn: null,
+    releaseColumns: ["releaseYear", "releaseDate"],
     genre: genreInObjectArray("taggings", "tag"),
     year: (year) => ({
       OR: [{ releaseYear: year }, { AND: [{ releaseYear: null }, yearRange("releaseDate", year)] }],
     }),
   },
 };
+
+/** Media types whose release date lives in a sortable column. */
+export function supportsReleaseDateSort(mediaType: MediaType): boolean {
+  return MEDIA_FILTER_FIELDS[mediaType].releaseColumns.length > 0;
+}
 
 /** Books carry no release status, so "released" is decided by the release date/year. */
 function bookReleasedWhere(released: boolean): Where {
@@ -161,4 +184,34 @@ export function buildMediaWhere(mediaType: MediaType, filters: ProgressFilterPar
   const applicable = clauses.filter((clause) => Object.keys(clause).length > 0);
 
   return applicable.length > 0 ? { AND: applicable } : undefined;
+}
+
+/**
+ * Builds the `orderBy` applied to a progress listing. Every branch ends on the uuid v7 `id`
+ * so rows keep a stable order across pages when the sorted column has duplicates.
+ */
+export function buildProgressOrderBy(mediaType: MediaType, filters: ProgressFilterParamsDto): Where[] {
+  const { relation, titleColumn, releaseColumns } = MEDIA_FILTER_FIELDS[mediaType];
+  const sortBy = filters.sortBy ?? ProgressSortBy.AddedAt;
+  const sort = filters.sortOrder ?? (sortBy === ProgressSortBy.Name ? ProgressSortOrder.Asc : ProgressSortOrder.Desc);
+  const byId: Where = { id: sort };
+
+  if (sortBy === ProgressSortBy.Name) {
+    return [{ [relation]: { [titleColumn]: sort } }, byId];
+  }
+
+  if (sortBy === ProgressSortBy.UpdatedAt) {
+    return [{ updatedAt: sort }, byId];
+  }
+
+  // Manga only stores its start date inside `published`, which Prisma cannot order by path.
+  if (sortBy === ProgressSortBy.ReleaseDate && releaseColumns.length > 0) {
+    return [
+      ...releaseColumns.map((column) => ({ [relation]: { [column]: { sort, nulls: "last" } } })),
+      { [relation]: { [titleColumn]: "asc" } },
+      byId,
+    ];
+  }
+
+  return [{ createdAt: sort }, byId];
 }

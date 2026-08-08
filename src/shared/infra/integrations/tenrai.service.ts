@@ -277,6 +277,32 @@ export interface TenraiPersonDetails {
   voices: TenraiPersonVoiceCredit[];
 }
 
+export interface TenraiProducerAnime {
+  malId: number;
+  title: string;
+  imageUrl: string | null;
+  type: string | null;
+  airedFrom: string | null;
+  malReviewScore: number | null;
+  isAdult: boolean;
+}
+
+export interface TenraiProducerDetails {
+  malId: number;
+  name: string;
+  alternateNames: string[];
+  imageUrl: string | null;
+  url: string | null;
+  about: string | null;
+  established: Date | null;
+  favorites: number | null;
+  total: number | null;
+  external: { name: string; url: string }[];
+  animes: TenraiProducerAnime[];
+}
+
+const TENRAI_PRODUCER_ANIME_MAX_PAGES = 2;
+
 @Injectable()
 export class TenraiService {
   private readonly logger = new Logger(TenraiService.name);
@@ -799,6 +825,75 @@ export class TenraiService {
       }
 
       this.logger.error(`Failed to fetch person for ID ${malId} from Tenrai API`, error);
+
+      throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getProducerById(malId: number): Promise<TenraiProducerDetails> {
+    try {
+      const cacheKey = CACHE_KEYS.TENRAI_PRODUCER_BY_ID.prefix(malId);
+      const cachedProducer = await this.cacheService.get<TenraiProducerDetails>(cacheKey);
+
+      if (cachedProducer) {
+        return cachedProducer;
+      }
+
+      const animeUrls = Array.from(
+        { length: TENRAI_PRODUCER_ANIME_MAX_PAGES },
+        (_, index) =>
+          `${this.TENRAI_API_URL}/anime?producers=${malId}&order_by=score&sort=desc&limit=${DEFAULT_PAGINATION_ITEMS_PER_PAGE}&page=${index + DEFAULT_PAGINATION_PAGE}`,
+      );
+
+      const [producerResponse, ...animeResponses] = await manyRequestWithDelay({
+        httpService: this.httpService,
+        urls: [`${this.TENRAI_API_URL}/producers/${malId}/full`, ...animeUrls],
+      });
+
+      const producerData = producerResponse.data.data;
+
+      const animes: TenraiProducerAnime[] = animeResponses
+        .flatMap((response) => response.data?.data ?? [])
+        .map((anime: any) => ({
+          malId: anime.mal_id,
+          title: anime.title,
+          imageUrl: sanitizeMalImageUrl(anime.images?.jpg?.image_url),
+          type: anime.type ?? null,
+          airedFrom: anime.aired?.from ?? null,
+          malReviewScore: anime.score ?? null,
+          isAdult: anime.genres ? anime.genres.some((genre: any) => genre.mal_id === 12) : false,
+        }));
+
+      const producer: TenraiProducerDetails = {
+        malId: producerData.mal_id,
+        name:
+          producerData.titles?.find((title: any) => title.type === "Default")?.title ??
+          producerData.titles?.[0]?.title ??
+          "",
+        alternateNames: (producerData.titles ?? [])
+          .filter((title: any) => title.type !== "Default")
+          .map((title: any) => title.title),
+        imageUrl: sanitizeMalImageUrl(producerData.images?.jpg?.image_url),
+        url: producerData.url || null,
+        about: producerData.about || null,
+        established: producerData.established ? new Date(producerData.established) : null,
+        favorites: producerData.favorites ?? null,
+        total: producerData.count ?? null,
+        external: (producerData.external ?? [])
+          .filter((entry: any) => entry?.url)
+          .map((entry: any) => ({ name: entry.name ?? entry.url, url: entry.url })),
+        animes,
+      };
+
+      await this.cacheService.set(cacheKey, producer, CACHE_KEYS.TENRAI_PRODUCER_BY_ID.expiration);
+
+      return producer;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new AppException(ERROR_CODES.COMPANY_NOT_FOUND);
+      }
+
+      this.logger.error(`Failed to fetch producer for ID ${malId} from Tenrai API`, error);
 
       throw new AppException(ERROR_CODES.TENRAI_SERVICE_UNAVAILABLE);
     }

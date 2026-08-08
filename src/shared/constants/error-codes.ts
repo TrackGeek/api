@@ -131,6 +131,10 @@ export const ERROR_CODES = {
     code: "PERSON_NOT_FOUND",
     status: 404,
   },
+  COMPANY_NOT_FOUND: {
+    code: "COMPANY_NOT_FOUND",
+    status: 404,
+  },
   MANGA_NOT_FOUND: {
     code: "MANGA_NOT_FOUND",
     status: 404,

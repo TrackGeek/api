@@ -3,7 +3,7 @@ import { ProgressStatus } from "@prisma/generated/enums";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, MaxLength } from "class-validator";
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
-import { MediaReleaseState } from "../media-filter.constants";
+import { MediaReleaseState, ProgressSortBy, ProgressSortOrder } from "../media-filter.constants";
 
 /** Query strings arrive either repeated (`genres=a&genres=b`) or comma-joined (`genres=a,b`). */
 const toStringArray = ({ value }: { value: unknown }): string[] | undefined => {
@@ -58,4 +58,14 @@ export class ProgressFilterParamsDto extends OffsetPaginationParamsDto {
   @MaxLength(200)
   @ApiPropertyOptional({ type: String, description: "Case-insensitive match against the media title." })
   readonly search?: string;
+
+  @IsOptional()
+  @IsEnum(ProgressSortBy)
+  @ApiPropertyOptional({ enum: ProgressSortBy, description: "Defaults to the date the entry was added." })
+  readonly sortBy?: ProgressSortBy;
+
+  @IsOptional()
+  @IsEnum(ProgressSortOrder)
+  @ApiPropertyOptional({ enum: ProgressSortOrder, description: "Defaults to `asc` for `name`, `desc` otherwise." })
+  readonly sortOrder?: ProgressSortOrder;
 }

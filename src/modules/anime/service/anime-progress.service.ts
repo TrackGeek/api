@@ -7,7 +7,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
-import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
+import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
@@ -124,6 +124,7 @@ export class AnimeProgressService {
           ...where,
           ...(getAnimeProgressDto.status && { status: getAnimeProgressDto.status }),
         },
+        orderBy: buildProgressOrderBy("anime", getAnimeProgressDto),
         include: {
           anime: {
             select: {

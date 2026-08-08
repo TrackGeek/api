@@ -6,7 +6,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
-import { buildMediaWhere } from "@/shared/media-filter/media-filter.util";
+import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
 import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 
@@ -127,6 +127,7 @@ export class MangaProgressService {
           ...where,
           ...(getMangaProgressDto.status && { status: getMangaProgressDto.status }),
         },
+        orderBy: buildProgressOrderBy("manga", getMangaProgressDto),
         include: {
           manga: {
             select: {
