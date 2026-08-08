@@ -134,17 +134,27 @@ model TwoFactor {
   @@index([userId])
 }
 
+enum ContentType {
+  Anime
+  Manga
+  TVShow
+  Movie
+  Game
+  Book
+}
+
 model Profile {
-  id        String   @id @default(uuid(7))
-  userId    String   @unique
-  color     String?  @default("#10b981")
-  language  String?  @default("en-US")
-  timezone  String?
-  about     String?  @default("Hello! I'm using TrackGeek.")
-  bannerUrl String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(uuid(7))
+  userId       String        @unique
+  color        String?       @default("#10b981")
+  language     String?       @default("en-US")
+  timezone     String?
+  about        String?       @default("Hello! I'm using TrackGeek.")
+  bannerUrl    String?
+  avatarUrl    String?
+  contentTypes ContentType[] @default([Anime, Manga, TVShow, Movie, Game, Book])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments      Comment[]

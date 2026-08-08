@@ -28,6 +28,7 @@ export class ProfileService {
         language: updateProfileDto.language,
         timezone: updateProfileDto.timezone,
         about: updateProfileDto.about,
+        contentTypes: updateProfileDto.contentTypes,
       },
     });
   }
