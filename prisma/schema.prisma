@@ -910,6 +910,7 @@ model GameProgress {
   playCount   Int?
   completion  String?
   hoursPlayed Int?
+  platforms   String[]
   notes       String?
   startedAt   DateTime?
   completedAt DateTime?
