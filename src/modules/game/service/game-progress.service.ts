@@ -19,8 +19,10 @@ export class GameProgressService {
   ) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
-    const { gameId, userId, status, playCount, completion, hoursPlayed, notes, completedAt, startedAt } =
+    const { gameId, userId, status, playCount, completion, hoursPlayed, platforms, notes, completedAt, startedAt } =
       createOrUpdateGameProgressDto;
+
+    const playedPlatforms = platforms && (await this.resolveGamePlatforms(gameId, platforms));
 
     const gameProgress = await this.databaseService.gameProgress.upsert({
       where: {
@@ -34,6 +36,7 @@ export class GameProgressService {
         playCount,
         completion,
         hoursPlayed,
+        ...(playedPlatforms && { platforms: playedPlatforms }),
         notes,
         completedAt,
         startedAt,
@@ -44,6 +47,7 @@ export class GameProgressService {
         playCount,
         completion,
         hoursPlayed,
+        platforms: playedPlatforms ?? [],
         notes,
         status,
         completedAt,
@@ -84,6 +88,45 @@ export class GameProgressService {
         metadata: { ...gameProgress },
       });
     }
+  }
+
+  private async resolveGamePlatforms(gameId: string, platforms: string[]) {
+    const game = await this.databaseService.game.findUnique({
+      where: { id: gameId },
+      select: { platforms: true },
+    });
+
+    if (!game) {
+      throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+    }
+
+    const available = (game.platforms ?? []) as unknown as { name?: string | null; slug?: string | null }[];
+
+    const slugByToken = new Map<string, string>();
+
+    for (const platform of available) {
+      if (!platform?.slug) continue;
+
+      slugByToken.set(platform.slug.toLowerCase(), platform.slug);
+
+      if (platform.name) {
+        slugByToken.set(platform.name.toLowerCase(), platform.slug);
+      }
+    }
+
+    const resolved = new Set<string>();
+
+    for (const platform of platforms) {
+      const slug = slugByToken.get(platform.trim().toLowerCase());
+
+      if (!slug) {
+        throw new AppException(ERROR_CODES.INVALID_GAME_PLATFORMS);
+      }
+
+      resolved.add(slug);
+    }
+
+    return [...resolved];
   }
 
   async deleteGameProgress(gameProgressId: string, userId: string) {

@@ -211,6 +211,10 @@ export const ERROR_CODES = {
     code: "PROGRESS_NOT_FOUND",
     status: 404,
   },
+  INVALID_GAME_PLATFORMS: {
+    code: "INVALID_GAME_PLATFORMS",
+    status: 400,
+  },
   INVALID_CHAPTERS_READ: {
     code: "INVALID_CHAPTERS_READ",
     status: 400,
