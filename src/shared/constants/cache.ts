@@ -118,6 +118,10 @@ export const CACHE_KEYS = {
     prefix: (anilistId: number) => `anilist:detail:manga:id:${anilistId}`,
     expiration: 3600 * 24 * 7,
   },
+  ANILIST_STAFF_BY_ID: {
+    prefix: (anilistId: number) => `anilist:detail:staff:id:${anilistId}`,
+    expiration: 3600 * 24 * 7,
+  },
   ANILIST_MANGA_GENRES: {
     prefix: "anilist:genres:manga",
     expiration: 3600 * 24 * 7,
