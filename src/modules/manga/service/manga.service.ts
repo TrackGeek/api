@@ -276,7 +276,7 @@ export class MangaService {
       placeOfBirth: staff.homeTown,
       knownForDepartment: staff.primaryOccupations[0] ?? null,
       alsoKnownAs: [...(staff.nativeName ? [staff.nativeName] : []), ...staff.alternativeNames],
-      gender: null,
+      gender: staff.gender,
       homepage: null,
       popularity: staff.favoritesCount,
       images: staff.imageUrl ? [staff.imageUrl] : [],
