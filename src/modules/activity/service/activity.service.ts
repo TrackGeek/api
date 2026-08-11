@@ -314,7 +314,11 @@ export class ActivityService {
 
     const pagination = await this.databaseService.offsetPagination<ActivityFindManyArgs>({
       model: "activity",
-      orderBy: [{ reactions: { _count: "desc" } }, { createdAt: "desc" }],
+      orderBy: [
+        { reactions: { _count: "desc" } },
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
       where: {
         createdAt: { gte: since },
         reactions: { some: {} },
