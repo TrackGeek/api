@@ -10,6 +10,8 @@ import { GetActivitiesByUserDto } from "../dto/get-activities-by-user.dto";
 import { GetActivitiesByUserFollowingDto } from "../dto/get-activities-by-user-following.dto";
 import { SyncWatchedActivityDto } from "../dto/sync-watched-activity.dto";
 
+const TRENDING_WINDOW_DAYS = 7;
+
 const SOURCE_FIELDS = [
   "listId",
   "listItemId",
@@ -304,6 +306,37 @@ export class ActivityService {
     });
 
     return { ...pagination, items: this.groupActivities(pagination.items) };
+  }
+
+  async getTrendingActivities(getActivitiesDto: GetActivitiesDto) {
+    const since = new Date();
+    since.setDate(since.getDate() - TRENDING_WINDOW_DAYS);
+
+    const pagination = await this.databaseService.offsetPagination<ActivityFindManyArgs>({
+      model: "activity",
+      orderBy: [
+        { reactions: { _count: "desc" } },
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
+      where: {
+        createdAt: { gte: since },
+        reactions: { some: {} },
+      },
+      page: getActivitiesDto.page,
+      itemsPerPage: getActivitiesDto.itemsPerPage,
+      include: INCLUDE,
+    });
+
+    const items = pagination.items.map((item: any) => ({
+      type: item.type,
+      userId: item.userId,
+      createdAt: item.createdAt,
+      count: 1,
+      items: [item],
+    }));
+
+    return { ...pagination, items };
   }
 
   // Collapse consecutive activities of the same (userId, type) inside a 1h window

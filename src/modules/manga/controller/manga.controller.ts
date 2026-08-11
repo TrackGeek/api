@@ -38,6 +38,13 @@ export class MangaController {
     await this.mangaService.refreshManga(refreshMangaDto);
   }
 
+  @Get("/cast/:anilistId")
+  async getMangaCastByAnilistId(@Param("anilistId", new ParseIntPipe()) anilistId: number) {
+    const person = await this.mangaService.getMangaCastByAnilistId(anilistId);
+
+    return { person };
+  }
+
   @Get("/detail/:anilistId")
   async getMangaByAnilistId(@Param("anilistId", new ParseIntPipe()) anilistId: number) {
     const manga = await this.mangaService.getMangaByAnilistId(anilistId);
