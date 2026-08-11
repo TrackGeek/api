@@ -18,6 +18,13 @@ export class ActivityController {
     return { activities };
   }
 
+  @Get("/trending")
+  async getTrendingActivities(@Query() query: GetActivitiesDto) {
+    const activities = await this.activityService.getTrendingActivities(query);
+
+    return { activities };
+  }
+
   @Get("/user/:userId")
   async getActivitiesByUserId(@Param("userId") userId: string, @Query() query: GetActivitiesByUserDto) {
     const activities = await this.activityService.getActivitiesByUserId({

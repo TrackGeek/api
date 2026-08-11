@@ -115,6 +115,41 @@ export interface AnilistCharacter {
   role: string | null;
 }
 
+export interface AnilistStaffMedia {
+  anilistId: number;
+  malId: number | null;
+  type: "ANIME" | "MANGA";
+  title: string;
+  imageUrl: string | null;
+  bannerUrl: string | null;
+  startDate: string | null;
+  year: number | null;
+  roles: string[];
+  anilistScore: number | null;
+  popularity: number | null;
+  isAdult: boolean;
+}
+
+export interface AnilistStaffDetails {
+  anilistId: number;
+  name: string;
+  nativeName: string | null;
+  alternativeNames: string[];
+  imageUrl: string | null;
+  description: string | null;
+  primaryOccupations: string[];
+  gender: string | null;
+  dateOfBirth: string | null;
+  dateOfDeath: string | null;
+  age: number | null;
+  yearsActive: number[];
+  homeTown: string | null;
+  bloodType: string | null;
+  url: string | null;
+  favoritesCount: number | null;
+  media: AnilistStaffMedia[];
+}
+
 export interface AnilistRelationNode {
   id: string;
   name: string;
@@ -522,6 +557,69 @@ export class AnilistService {
     return manga.relations;
   }
 
+  async getStaffById(anilistId: number): Promise<AnilistStaffDetails> {
+    const cachedStaff = await this.cacheService.get<AnilistStaffDetails>(
+      CACHE_KEYS.ANILIST_STAFF_BY_ID.prefix(anilistId),
+    );
+
+    if (cachedStaff) {
+      return cachedStaff;
+    }
+
+    const data = await this.request<{ Staff: any }>(
+      `query ($id: Int) {
+        Staff(id: $id) {
+          id
+          name { full native alternative }
+          image { large }
+          description(asHtml: false)
+          primaryOccupations
+          gender
+          dateOfBirth { year month day }
+          dateOfDeath { year month day }
+          age
+          yearsActive
+          homeTown
+          bloodType
+          siteUrl
+          favourites
+          staffMedia(sort: POPULARITY_DESC, perPage: 50) {
+            edges {
+              staffRole
+              node {
+                id
+                idMal
+                type
+                isAdult
+                averageScore
+                popularity
+                title { romaji english native }
+                coverImage { extraLarge large }
+                bannerImage
+                startDate { year month day }
+              }
+            }
+          }
+        }
+      }`,
+      { id: anilistId },
+    );
+
+    if (!data.Staff) {
+      throw new AppException(ERROR_CODES.PERSON_NOT_FOUND);
+    }
+
+    const staff = this.toStaffDetails(data.Staff);
+
+    await this.cacheService.set(
+      CACHE_KEYS.ANILIST_STAFF_BY_ID.prefix(staff.anilistId),
+      staff,
+      CACHE_KEYS.ANILIST_STAFF_BY_ID.expiration,
+    );
+
+    return staff;
+  }
+
   private async cacheMangaDetails(media: any): Promise<AnilistMangaDetails> {
     if (!media) {
       throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
@@ -640,7 +738,59 @@ export class AnilistService {
     };
   }
 
-  /** Relations are shaped as a react-flow graph: the manga itself is the center node. */
+  private toStaffDetails(staff: any): AnilistStaffDetails {
+    const byId = new Map<number, AnilistStaffMedia>();
+
+    for (const edge of staff.staffMedia?.edges ?? []) {
+      const node = edge.node;
+      const role = edge.staffRole ?? null;
+      const existing = byId.get(node.id);
+
+      if (existing) {
+        if (role && !existing.roles.includes(role)) {
+          existing.roles.push(role);
+        }
+
+        continue;
+      }
+
+      byId.set(node.id, {
+        anilistId: node.id,
+        malId: node.idMal ?? null,
+        type: node.type,
+        title: this.toTitle(node),
+        imageUrl: node.coverImage?.extraLarge ?? node.coverImage?.large ?? null,
+        bannerUrl: node.bannerImage ?? null,
+        startDate: this.toDate(node.startDate),
+        year: node.startDate?.year ?? null,
+        roles: role ? [role] : [],
+        anilistScore: node.averageScore ? node.averageScore / 10 : null,
+        popularity: node.popularity ?? null,
+        isAdult: !!node.isAdult,
+      });
+    }
+
+    return {
+      anilistId: staff.id,
+      name: staff.name?.full ?? staff.name?.native ?? "",
+      nativeName: staff.name?.native ?? null,
+      alternativeNames: (staff.name?.alternative ?? []).filter(Boolean),
+      imageUrl: staff.image?.large ?? null,
+      description: this.toStaffMarkdown(staff.description),
+      primaryOccupations: staff.primaryOccupations ?? [],
+      gender: staff.gender ?? null,
+      dateOfBirth: this.toDate(staff.dateOfBirth),
+      dateOfDeath: this.toDate(staff.dateOfDeath),
+      age: staff.age ?? null,
+      yearsActive: staff.yearsActive ?? [],
+      homeTown: staff.homeTown ?? null,
+      bloodType: staff.bloodType ?? null,
+      url: staff.siteUrl ?? null,
+      favoritesCount: staff.favourites ?? null,
+      media: [...byId.values()],
+    };
+  }
+
   private toRelations(media: any): AnilistRelations {
     const rootId = String(media.id);
 
@@ -736,6 +886,17 @@ export class AnilistService {
     const to = format(media.endDate) ?? (media.status === "FINISHED" ? "?" : "Present");
 
     return `${from} to ${to}`;
+  }
+  
+  private toStaffMarkdown(description: string | null) {
+    if (!description) return null;
+
+    return description
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/~!|!~/g, "")
+      .replace(/img\d*%?\(([^)]+)\)/gi, "![]($1)")
+      .replace(/youtube\(([^)]+)\)/gi, "[YouTube]($1)")
+      .trim();
   }
 
   private toPlainText(description: string | null) {
