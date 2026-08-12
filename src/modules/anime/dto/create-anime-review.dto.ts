@@ -59,8 +59,8 @@ export class CreateAnimeReviewDto {
   readonly cons?: string;
 
   @IsOptional()
-  @MaxLength(1000)
-  @ApiPropertyOptional({ type: "string", maxLength: 1000 })
+  @MaxLength(10000)
+  @ApiPropertyOptional({ type: "string", maxLength: 10000 })
   readonly notes?: string;
 
   @IsBoolean()
