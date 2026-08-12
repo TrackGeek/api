@@ -23,7 +23,7 @@ export class CreateMangaReviewDto {
   readonly summary?: string;
 
   @IsOptional()
-  @MaxLength(1000)
+  @MaxLength(10000)
   readonly notes?: string;
 
   @IsOptional()
