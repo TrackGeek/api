@@ -887,7 +887,7 @@ export class AnilistService {
 
     return `${from} to ${to}`;
   }
-  
+
   private toStaffMarkdown(description: string | null) {
     if (!description) return null;
 
