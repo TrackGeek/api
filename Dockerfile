@@ -21,10 +21,13 @@ FROM node:24-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=40287
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY package.json prisma.config.ts ./
-COPY prisma ./prisma
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --chown=node:node package.json prisma.config.ts ./
+COPY --chown=node:node prisma ./prisma
 USER node
 EXPOSE 40287
 CMD ["sh", "-c", "npm run prisma:migrate:deploy && npm run start"]
