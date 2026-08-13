@@ -125,40 +125,45 @@ export class UserService {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
 
-    const buildStats = (groups: ProgressGroup[], statuses: ProgressStatus[]) => {
+    // Each bucket is keyed by its first status; repeat statuses fold into the
+    // active bucket so a rewatcher still counts as watching.
+    const buildStats = (groups: ProgressGroup[], buckets: ProgressStatus[][]) => {
       const total = groups.reduce((sum, g) => sum + g._count.status, 0);
 
-      const getStat = (status: ProgressStatus) => {
-        const count = groups.find((g) => g.status === status)?._count.status ?? 0;
+      const getStat = (statuses: ProgressStatus[]) => {
+        const count = groups.filter((g) => statuses.includes(g.status)).reduce((sum, g) => sum + g._count.status, 0);
 
         return { count, percentage: total > 0 ? parseFloat(((count / total) * 100).toFixed(1)) : 0 };
       };
 
-      return Object.fromEntries([["total", total], ...statuses.map((s) => [s.toLowerCase(), getStat(s)])]);
+      return Object.fromEntries([
+        ["total", total],
+        ...buckets.map((statuses) => [statuses[0].toLowerCase(), getStat(statuses)]),
+      ]);
     };
 
     const watchingStatuses = [
-      ProgressStatus.Watching,
-      ProgressStatus.Completed,
-      ProgressStatus.Paused,
-      ProgressStatus.Dropped,
-      ProgressStatus.Planning,
+      [ProgressStatus.Watching, ProgressStatus.Rewatching],
+      [ProgressStatus.Completed],
+      [ProgressStatus.Paused],
+      [ProgressStatus.Dropped],
+      [ProgressStatus.Planning],
     ];
 
     const readingStatuses = [
-      ProgressStatus.Reading,
-      ProgressStatus.Completed,
-      ProgressStatus.Paused,
-      ProgressStatus.Dropped,
-      ProgressStatus.Planning,
+      [ProgressStatus.Reading, ProgressStatus.Rereading],
+      [ProgressStatus.Completed],
+      [ProgressStatus.Paused],
+      [ProgressStatus.Dropped],
+      [ProgressStatus.Planning],
     ];
 
     const playingStatuses = [
-      ProgressStatus.Playing,
-      ProgressStatus.Completed,
-      ProgressStatus.Paused,
-      ProgressStatus.Dropped,
-      ProgressStatus.Planning,
+      [ProgressStatus.Playing, ProgressStatus.Replaying],
+      [ProgressStatus.Completed],
+      [ProgressStatus.Paused],
+      [ProgressStatus.Dropped],
+      [ProgressStatus.Planning],
     ];
 
     const [animeGroups, mangaGroups, tvShowGroups, movieGroups, gameGroups, bookGroups] = await Promise.all([

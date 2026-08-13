@@ -241,8 +241,10 @@ export class AnimeService {
 
     const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
 
-    const getStats = (status: ProgressStatus) => {
-      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+    const getStats = (...statuses: ProgressStatus[]) => {
+      const count = progressGroups
+        .filter((g) => statuses.includes(g.status))
+        .reduce((sum, g) => sum + g._count.status, 0);
       return {
         count,
         percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
@@ -250,7 +252,7 @@ export class AnimeService {
     };
 
     const progressStats = {
-      watching: getStats(ProgressStatus.Watching),
+      watching: getStats(ProgressStatus.Watching, ProgressStatus.Rewatching),
       completed: getStats(ProgressStatus.Completed),
       planToWatch: getStats(ProgressStatus.Planning),
       dropped: getStats(ProgressStatus.Dropped),

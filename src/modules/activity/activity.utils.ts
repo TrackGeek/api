@@ -1,10 +1,17 @@
 import { ActivityType, ProgressStatus } from "@prisma/generated/enums";
 
-const STARTED_STATUSES: ProgressStatus[] = [ProgressStatus.Watching, ProgressStatus.Playing, ProgressStatus.Reading];
+const STARTED_STATUSES: ProgressStatus[] = [
+  ProgressStatus.Watching,
+  ProgressStatus.Playing,
+  ProgressStatus.Reading,
+  ProgressStatus.Rewatching,
+  ProgressStatus.Replaying,
+  ProgressStatus.Rereading,
+];
 
 // Maps a progress status to the activity it should emit.
-// Started (Watching/Playing/Reading), Completed, Paused and Dropped generate
-// activities; every other status returns null (no activity).
+// Started (Watching/Playing/Reading and their repeat variants), Completed,
+// Paused and Dropped generate activities; every other status returns null.
 export function activityTypeFromProgressStatus(status: ProgressStatus): ActivityType | null {
   if (status === ProgressStatus.Completed) {
     return ActivityType.ProgressCompleted;

@@ -823,6 +823,9 @@ enum ProgressStatus {
   Watching
   Playing
   Reading
+  Rewatching
+  Replaying
+  Rereading
   Completed
   Paused
   Dropped
