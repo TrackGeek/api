@@ -19,6 +19,7 @@ bun types        # TypeScript check
 - **Package manager**: Bun
 - **ORM**: Prisma 7 - always run `prisma:generate` after schema changes
 - **Linter**: Biome (not ESLint/Prettier) - 120 char line width, double quotes
+- **Better Auth schema drift**: auth models (`User`, `Session`, `Account`, `Verification`, `TwoFactor`) are hand-written in `schema.prisma`. After bumping `better-auth`, run `bunx @better-auth/cli generate` and diff the output against `schema.prisma` — plugin schema changes (e.g. the 2FA lockout fields added in 1.6.x) otherwise only surface as `PrismaClientValidationError` at runtime.
 
 ## Required Order
 

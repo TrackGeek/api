@@ -23,7 +23,8 @@ ENV NODE_ENV=production
 ENV PORT=40287
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-COPY package.json ./
+COPY package.json prisma.config.ts ./
+COPY prisma ./prisma
 USER node
 EXPOSE 40287
-CMD ["node", "dist/src/main"]
+CMD ["sh", "-c", "npm run prisma:migrate:deploy && npm run start"]

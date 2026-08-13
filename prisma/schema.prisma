@@ -122,11 +122,13 @@ model Verification {
 }
 
 model TwoFactor {
-  id          String  @id
-  secret      String
-  backupCodes String
-  verified    Boolean @default(true)
-  userId      String  @unique
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(true)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+  userId                  String    @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
