@@ -82,10 +82,13 @@ export class StripeService {
     return customerId;
   }
 
+  /**
+   * Pra usar tem que criar o produto no Stripe com o nome "Donate" e ativar ele. O ID do produto é usado para criar os preços.
+   */
   async donateProduct(): Promise<Stripe.Product> {
     const donateProduct = await this.client.products
       .list({ active: true, limit: 100 })
-      .then((res) => (res.data?.[0]?.name === "Donate" ? res.data?.[0] : null))
+      .then((res) => (res.data?.find((product) => product.name === "Donate") as Stripe.Product | undefined) ?? null)
       .catch(() => null);
 
     if (!donateProduct) {
