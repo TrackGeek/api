@@ -28,6 +28,7 @@ import {
   paginateLocal,
   toNameList,
 } from "@/shared/utils/tg-review-search";
+import { GetTVShowWatchProvidersDto } from "../dto/get-tv-show-watch-providers.dto";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { ResetTVShowTrackingDto } from "../dto/reset-tv-show-tracking.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
@@ -296,6 +297,14 @@ export class TVShowService {
     );
 
     return episodes;
+  }
+
+  async getTVShowWatchProviders(tmdbId: number, { region }: GetTVShowWatchProvidersDto) {
+    return this.integrationsService.tmdb.getWatchProviders("tv", tmdbId, region);
+  }
+
+  async getWatchProviderRegions() {
+    return this.integrationsService.tmdb.getWatchProviderRegions();
   }
 
   async refreshTVShow(refreshTVShowDto: RefreshTVShowDto) {

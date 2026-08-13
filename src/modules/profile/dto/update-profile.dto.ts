@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { ContentType } from "@prisma/generated/enums";
-import { ArrayNotEmpty, ArrayUnique, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { ArrayNotEmpty, ArrayUnique, IsArray, IsEnum, IsISO31661Alpha2, IsOptional, IsString } from "class-validator";
 
 export class UpdateProfileDto {
   readonly userId: string;
@@ -19,6 +20,12 @@ export class UpdateProfileDto {
   @IsString()
   @ApiPropertyOptional({ type: "string" })
   readonly timezone?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === "string" ? value.toUpperCase() : value))
+  @IsISO31661Alpha2()
+  @ApiPropertyOptional({ type: "string", example: "BR" })
+  readonly watchRegion?: string;
 
   @IsOptional()
   @IsString()

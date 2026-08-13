@@ -149,6 +149,7 @@ model Profile {
   color        String?       @default("#10b981")
   language     String?       @default("en-US")
   timezone     String?
+  watchRegion  String?       @default("US")
   about        String?       @default("Hello! I'm using TrackGeek.")
   bannerUrl    String?
   avatarUrl    String?

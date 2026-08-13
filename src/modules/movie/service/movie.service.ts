@@ -22,6 +22,7 @@ import {
   paginateLocal,
   toNameList,
 } from "@/shared/utils/tg-review-search";
+import { GetMovieWatchProvidersDto } from "../dto/get-movie-watch-providers.dto";
 import { RefreshMovieDto } from "../dto/refresh-movie.dto";
 import type { SearchMovieDto } from "../dto/search-movie.dto";
 
@@ -265,6 +266,14 @@ export class MovieService {
     };
 
     return movieWithStats;
+  }
+
+  async getMovieWatchProviders(tmdbId: number, { region }: GetMovieWatchProvidersDto) {
+    return this.integrationsService.tmdb.getWatchProviders("movie", tmdbId, region);
+  }
+
+  async getWatchProviderRegions() {
+    return this.integrationsService.tmdb.getWatchProviderRegions();
   }
 
   async refreshMovie(refreshMovieDto: RefreshMovieDto) {
