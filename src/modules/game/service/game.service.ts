@@ -249,8 +249,10 @@ export class GameService {
 
     const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
 
-    const getStats = (status: ProgressStatus) => {
-      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+    const getStats = (...statuses: ProgressStatus[]) => {
+      const count = progressGroups
+        .filter((g) => statuses.includes(g.status))
+        .reduce((sum, g) => sum + g._count.status, 0);
       return {
         count,
         percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
@@ -258,7 +260,7 @@ export class GameService {
     };
 
     const progressStats = {
-      playing: getStats(ProgressStatus.Playing),
+      playing: getStats(ProgressStatus.Playing, ProgressStatus.Replaying),
       completed: getStats(ProgressStatus.Completed),
       planToPlay: getStats(ProgressStatus.Planning),
       dropped: getStats(ProgressStatus.Dropped),

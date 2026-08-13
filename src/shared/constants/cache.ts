@@ -187,6 +187,14 @@ export const CACHE_KEYS = {
     prefix: (companyId: number, mediaType: string) => `tmdb:company:${mediaType}:id:${companyId}`,
     expiration: 3600 * 24 * 7,
   },
+  TMDB_WATCH_PROVIDERS_BY_ID: {
+    prefix: (mediaType: string, tmdbId: number) => `tmdb:watch:provider:${mediaType}:id:${tmdbId}`,
+    expiration: 3600 * 24 * 3,
+  },
+  TMDB_WATCH_PROVIDER_REGIONS: {
+    prefix: "tmdb:watch:provider:region",
+    expiration: 3600 * 24 * 3,
+  },
 
   CONVERT_CURRENCY: {
     prefix: (value: number, from: string, to: string) => `currency:convert:${value}:${from}:${to}`,

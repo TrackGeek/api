@@ -251,8 +251,10 @@ export class BookService {
 
     const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
 
-    const getStats = (status: ProgressStatus) => {
-      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+    const getStats = (...statuses: ProgressStatus[]) => {
+      const count = progressGroups
+        .filter((g) => statuses.includes(g.status))
+        .reduce((sum, g) => sum + g._count.status, 0);
       return {
         count,
         percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
@@ -260,7 +262,7 @@ export class BookService {
     };
 
     const progressStats = {
-      reading: getStats(ProgressStatus.Reading),
+      reading: getStats(ProgressStatus.Reading, ProgressStatus.Rereading),
       completed: getStats(ProgressStatus.Completed),
       planToRead: getStats(ProgressStatus.Planning),
       dropped: getStats(ProgressStatus.Dropped),

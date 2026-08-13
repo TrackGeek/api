@@ -27,6 +27,7 @@ export class ProfileService {
         color: updateProfileDto.color,
         language: updateProfileDto.language,
         timezone: updateProfileDto.timezone,
+        watchRegion: updateProfileDto.watchRegion,
         about: updateProfileDto.about,
         contentTypes: updateProfileDto.contentTypes,
       },

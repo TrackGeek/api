@@ -15,6 +15,7 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { TopTvShowDto } from "@/modules/tv-show/dto/top-tv-show.dto";
+import { GetTVShowWatchProvidersDto } from "../dto/get-tv-show-watch-providers.dto";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { SearchTVShowDto } from "../dto/search-tv-show.dto";
 import { TVShowService } from "../service/tv-show.service";
@@ -49,6 +50,23 @@ export class TVShowController {
   @UseGuards(AuthGuard)
   async refreshTVShow(@Body() body: RefreshTVShowDto) {
     await this.tvShowService.refreshTVShow(body);
+  }
+
+  @Get("/watch/provider/region")
+  async getWatchProviderRegions() {
+    const regions = await this.tvShowService.getWatchProviderRegions();
+
+    return { regions };
+  }
+
+  @Get("/detail/:tmdbId/watch/provider")
+  async getTVShowWatchProviders(
+    @Param("tmdbId", new ParseIntPipe()) tmdbId: number,
+    @Query() query: GetTVShowWatchProvidersDto,
+  ) {
+    const watchProviders = await this.tvShowService.getTVShowWatchProviders(tmdbId, query);
+
+    return { watchProviders };
   }
 
   @Get("/detail/:tmdbId")

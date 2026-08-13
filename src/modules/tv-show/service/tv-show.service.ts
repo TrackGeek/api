@@ -28,6 +28,7 @@ import {
   paginateLocal,
   toNameList,
 } from "@/shared/utils/tg-review-search";
+import { GetTVShowWatchProvidersDto } from "../dto/get-tv-show-watch-providers.dto";
 import { RefreshTVShowDto } from "../dto/refresh-tv-show.dto";
 import { ResetTVShowTrackingDto } from "../dto/reset-tv-show-tracking.dto";
 import type { SearchTVShowDto } from "../dto/search-tv-show.dto";
@@ -208,8 +209,10 @@ export class TVShowService {
 
     const totalProgress = progressGroups.reduce((sum, g) => sum + g._count.status, 0);
 
-    const getStats = (status: ProgressStatus) => {
-      const count = progressGroups.find((g) => g.status === status)?._count.status ?? 0;
+    const getStats = (...statuses: ProgressStatus[]) => {
+      const count = progressGroups
+        .filter((g) => statuses.includes(g.status))
+        .reduce((sum, g) => sum + g._count.status, 0);
       return {
         count,
         percentage: totalProgress > 0 ? parseFloat(((count / totalProgress) * 100).toFixed(1)) : 0,
@@ -217,7 +220,7 @@ export class TVShowService {
     };
 
     const progressStats = {
-      watching: getStats(ProgressStatus.Watching),
+      watching: getStats(ProgressStatus.Watching, ProgressStatus.Rewatching),
       completed: getStats(ProgressStatus.Completed),
       planToWatch: getStats(ProgressStatus.Planning),
       dropped: getStats(ProgressStatus.Dropped),
@@ -294,6 +297,14 @@ export class TVShowService {
     );
 
     return episodes;
+  }
+
+  async getTVShowWatchProviders(tmdbId: number, { region }: GetTVShowWatchProvidersDto) {
+    return this.integrationsService.tmdb.getWatchProviders("tv", tmdbId, region);
+  }
+
+  async getWatchProviderRegions() {
+    return this.integrationsService.tmdb.getWatchProviderRegions();
   }
 
   async refreshTVShow(refreshTVShowDto: RefreshTVShowDto) {

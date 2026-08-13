@@ -346,6 +346,38 @@ export interface TMDBPersonDetails {
   crew: TMDBPersonCredit[];
 }
 
+export type TMDBWatchMediaType = "movie" | "tv";
+
+export const TMDB_WATCH_PROVIDER_OFFERS = ["flatrate", "free", "ads", "rent", "buy"] as const;
+
+export type TMDBWatchProviderOffer = (typeof TMDB_WATCH_PROVIDER_OFFERS)[number];
+
+export interface TMDBWatchProvider {
+  id: number;
+  name: string;
+  logoUrl: string | null;
+  displayPriority: number | null;
+}
+
+export type TMDBWatchProviderOffers = Record<TMDBWatchProviderOffer, TMDBWatchProvider[]>;
+
+export interface TMDBRegionWatchProviders extends TMDBWatchProviderOffers {
+  link: string | null;
+}
+
+export interface TMDBWatchProviders extends TMDBRegionWatchProviders {
+  region: string;
+  availableRegions: string[];
+}
+
+export interface TMDBWatchProviderRegion {
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
+export const TMDB_DEFAULT_WATCH_REGION = "US";
+
 @Injectable()
 export class TMDBService {
   private readonly logger = new Logger(TMDBService.name);
@@ -1413,6 +1445,150 @@ export class TMDBService {
       }
 
       this.logger.error(`Failed to fetch person details for ID ${tmdbId} from TMDB API: ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  private toWatchProviders(offers: any): TMDBWatchProvider[] {
+    return (offers ?? [])
+      .map((offer: any) => ({
+        id: offer.provider_id,
+        name: offer.provider_name,
+        logoUrl: offer.logo_path ? `https://image.tmdb.org/t/p/w185${offer.logo_path}` : null,
+        displayPriority: offer.display_priority ?? null,
+      }))
+      .sort(
+        (a: TMDBWatchProvider, b: TMDBWatchProvider) =>
+          (a.displayPriority ?? Number.MAX_SAFE_INTEGER) - (b.displayPriority ?? Number.MAX_SAFE_INTEGER),
+      );
+  }
+
+  /**
+   * TMDB returns every region in a single call, so the whole map is cached at once and sliced per
+   * region afterwards. Availability moves between services often, hence the short 3 day expiration.
+   */
+  private async getWatchProvidersByMedia(
+    mediaType: TMDBWatchMediaType,
+    tmdbId: number,
+  ): Promise<Record<string, TMDBRegionWatchProviders>> {
+    const cachedKey = CACHE_KEYS.TMDB_WATCH_PROVIDERS_BY_ID.prefix(mediaType, tmdbId);
+    const cached = await this.cacheService.get<Record<string, TMDBRegionWatchProviders>>(cachedKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const providersResponse = await firstValueFrom(
+      this.httpService.get(`${this.TMDB_API_URL}/${mediaType}/${tmdbId}/watch/providers`, {
+        headers: {
+          Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+        },
+      }),
+    );
+
+    const results = providersResponse.data?.results ?? {};
+
+    const providersByRegion = Object.entries(results).reduce<Record<string, TMDBRegionWatchProviders>>(
+      (accumulator, [region, offers]: [string, any]) => {
+        const regionProviders = TMDB_WATCH_PROVIDER_OFFERS.reduce((offersByType, offerType) => {
+          offersByType[offerType] = this.toWatchProviders(offers?.[offerType]);
+
+          return offersByType;
+        }, {} as TMDBWatchProviderOffers);
+
+        const hasOffers = TMDB_WATCH_PROVIDER_OFFERS.some((offerType) => regionProviders[offerType].length > 0);
+
+        if (hasOffers) {
+          accumulator[region] = { link: offers?.link ?? null, ...regionProviders };
+        }
+
+        return accumulator;
+      },
+      {},
+    );
+
+    await this.cacheService.set(cachedKey, providersByRegion, CACHE_KEYS.TMDB_WATCH_PROVIDERS_BY_ID.expiration);
+
+    return providersByRegion;
+  }
+
+  async getWatchProviders(
+    mediaType: TMDBWatchMediaType,
+    tmdbId: number,
+    region: string = TMDB_DEFAULT_WATCH_REGION,
+  ): Promise<TMDBWatchProviders> {
+    try {
+      const providersByRegion = await this.getWatchProvidersByMedia(mediaType, tmdbId);
+      const regionCode = region.toUpperCase();
+      const regionProviders = providersByRegion[regionCode];
+
+      const emptyOffers = TMDB_WATCH_PROVIDER_OFFERS.reduce((offersByType, offerType) => {
+        offersByType[offerType] = [];
+
+        return offersByType;
+      }, {} as TMDBWatchProviderOffers);
+
+      return {
+        region: regionCode,
+        availableRegions: Object.keys(providersByRegion).sort(),
+        ...emptyOffers,
+        ...regionProviders,
+        link: regionProviders?.link ?? null,
+      };
+    } catch (error: any) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
+      if (error?.response?.status === 404) {
+        throw new AppException(mediaType === "movie" ? ERROR_CODES.MOVIE_NOT_FOUND : ERROR_CODES.TV_SHOW_NOT_FOUND);
+      }
+
+      this.logger.error(
+        `Failed to fetch watch providers for ${mediaType} ID ${tmdbId} from TMDB API: ${error.message}`,
+        error.stack,
+      );
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async getWatchProviderRegions(): Promise<TMDBWatchProviderRegion[]> {
+    try {
+      const cachedRegions = await this.cacheService.get<TMDBWatchProviderRegion[]>(
+        CACHE_KEYS.TMDB_WATCH_PROVIDER_REGIONS.prefix,
+      );
+
+      if (cachedRegions) {
+        return cachedRegions;
+      }
+
+      const regionsResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}/watch/providers/regions`, {
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const regions: TMDBWatchProviderRegion[] = (regionsResponse.data?.results ?? [])
+        .map((region: any) => ({
+          code: region.iso_3166_1,
+          name: region.english_name,
+          nativeName: region.native_name,
+        }))
+        .sort((a: TMDBWatchProviderRegion, b: TMDBWatchProviderRegion) => a.name.localeCompare(b.name));
+
+      await this.cacheService.set(
+        CACHE_KEYS.TMDB_WATCH_PROVIDER_REGIONS.prefix,
+        regions,
+        CACHE_KEYS.TMDB_WATCH_PROVIDER_REGIONS.expiration,
+      );
+
+      return regions;
+    } catch (error: any) {
+      this.logger.error(`Failed to fetch watch provider regions from TMDB API: ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }
