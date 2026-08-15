@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
+import { GameMediaType } from "@prisma/generated/enums";
 import { GameScreenshotFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { parseVideoUrl } from "@/shared/utils/video-url";
 import { CreateGameScreenshotDto } from "../dto/create-game-screenshot.dto";
 import { DeleteGameScreenshotDto } from "../dto/delete-game-screenshot.dto";
 import { GetGameScreenshotsDto } from "../dto/get-game-screenshots.dto";
@@ -47,9 +49,18 @@ export class GameScreenshotService {
       throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
     }
 
+    const type = createGameScreenshotDto.type ?? GameMediaType.Image;
+    const video = type === GameMediaType.Video ? parseVideoUrl(createGameScreenshotDto.url) : null;
+
+    if (type === GameMediaType.Video && !video) {
+      throw new AppException(ERROR_CODES.INVALID_VIDEO_URL);
+    }
+
     return this.databaseService.gameScreenshot.create({
       data: {
-        url: createGameScreenshotDto.url,
+        url: video?.url ?? createGameScreenshotDto.url,
+        type,
+        provider: video?.provider,
         description: createGameScreenshotDto.description,
         isSpoiler: createGameScreenshotDto.isSpoiler ?? false,
         userId: createGameScreenshotDto.userId,

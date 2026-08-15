@@ -1,15 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
+import { GameMediaType } from "@prisma/generated/enums";
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
 
 export class CreateGameScreenshotDto {
   @IsUrl()
   @IsNotEmpty()
   @ApiProperty({
-    description: "URL of the screenshot",
+    description: "URL of the screenshot, or of the YouTube/Twitch video when type is Video",
     example: "https://example.com/screenshot.png",
     type: "string",
   })
   readonly url: string;
+
+  @IsEnum(GameMediaType)
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Kind of media the URL points to",
+    enum: GameMediaType,
+    default: GameMediaType.Image,
+  })
+  readonly type?: GameMediaType;
 
   @IsString()
   @IsOptional()

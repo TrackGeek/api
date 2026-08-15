@@ -31,6 +31,10 @@ export const ERROR_CODES = {
     code: "GAME_ALREADY_REFRESHED",
     status: 409,
   },
+  INVALID_VIDEO_URL: {
+    code: "INVALID_VIDEO_URL",
+    status: 400,
+  },
   INTERNAL_SERVER_ERROR: {
     code: "INTERNAL_SERVER_ERROR",
     status: 500,

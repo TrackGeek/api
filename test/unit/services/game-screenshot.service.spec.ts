@@ -1,3 +1,4 @@
+import { GameMediaType, GameVideoProvider } from "@prisma/generated/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameScreenshotService } from "@/modules/game/service/game-screenshot.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -115,6 +116,8 @@ describe("GameScreenshotService", () => {
         expect.objectContaining({
           data: {
             url: "https://example.com/img.png",
+            type: GameMediaType.Image,
+            provider: undefined,
             description: undefined,
             isSpoiler: false,
             userId: "user-1",
@@ -140,6 +143,8 @@ describe("GameScreenshotService", () => {
         expect.objectContaining({
           data: {
             url: "https://example.com/img.png",
+            type: GameMediaType.Image,
+            provider: undefined,
             description: "My screenshot",
             isSpoiler: true,
             userId: "user-1",
@@ -147,6 +152,43 @@ describe("GameScreenshotService", () => {
           },
         }),
       );
+    });
+
+    it("should store the canonical link and provider for a video", async () => {
+      mockGameFindUnique.mockResolvedValueOnce({ id: "game-1" });
+      mockGameScreenshotCreate.mockResolvedValueOnce({ id: "screenshot-1" });
+
+      await service.createGameScreenshot({
+        url: "https://youtu.be/dQw4w9WgXcQ?t=42",
+        type: GameMediaType.Video,
+        gameId: "game-1",
+        userId: "user-1",
+      });
+
+      expect(mockGameScreenshotCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            type: GameMediaType.Video,
+            provider: GameVideoProvider.YouTube,
+          }),
+        }),
+      );
+    });
+
+    it("should throw INVALID_VIDEO_URL when the video link is not supported", async () => {
+      mockGameFindUnique.mockResolvedValueOnce({ id: "game-1" });
+
+      await expect(
+        service.createGameScreenshot({
+          url: "https://vimeo.com/123456",
+          type: GameMediaType.Video,
+          gameId: "game-1",
+          userId: "user-1",
+        }),
+      ).rejects.toMatchObject({ status: ERROR_CODES.INVALID_VIDEO_URL.status });
+
+      expect(mockGameScreenshotCreate).not.toHaveBeenCalled();
     });
 
     it("should throw GAME_NOT_FOUND when game does not exist", async () => {
