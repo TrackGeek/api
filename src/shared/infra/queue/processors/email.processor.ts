@@ -2,6 +2,7 @@ import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 import {
+  DELETE_ACCOUNT_JOB,
   MAGIC_LINK_JOB,
   PAYMENT_FAILED_JOB,
   PAYMENT_SUCCESS_JOB,
@@ -28,6 +29,12 @@ export class EmailProcessor extends WorkerHost {
 
     if (job.name === RESET_PASSWORD_JOB) {
       await this.emailService.sendResetPasswordEmail(job.data);
+
+      return;
+    }
+
+    if (job.name === DELETE_ACCOUNT_JOB) {
+      await this.emailService.sendDeleteAccountEmail(job.data);
 
       return;
     }

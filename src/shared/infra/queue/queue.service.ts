@@ -13,6 +13,7 @@ import {
   ACTIVITY_JOB,
   CATCHUP_DAILY_JOB,
   CATCHUP_DAILY_SCHEDULER_ID,
+  DELETE_ACCOUNT_JOB,
   MAGIC_LINK_JOB,
   NOTIFICATION_COMMENT_JOB,
   NOTIFICATION_REACTION_JOB,
@@ -24,6 +25,7 @@ import {
   WATCHED_ACTIVITY_JOB,
 } from "@/shared/constants/job";
 import { ACTIVITY_QUEUE, CATCHUP_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
+import { DeleteAccountEmailDto } from "../email/dto/delete-account-email.dto";
 import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
 import { PaymentFailedEmailDto } from "../email/dto/payment-failed-email.dto";
 import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
@@ -40,6 +42,7 @@ type JobName =
   | typeof NOTIFICATION_REACTION_JOB
   | typeof MAGIC_LINK_JOB
   | typeof RESET_PASSWORD_JOB
+  | typeof DELETE_ACCOUNT_JOB
   | typeof PAYMENT_SUCCESS_JOB
   | typeof PAYMENT_FAILED_JOB
   | typeof SUBSCRIPTION_CANCELLED_JOB
@@ -131,6 +134,10 @@ export class QueueService implements OnModuleInit {
 
   async toResetPasswordJob(resetPasswordEmailDto: ResetPasswordEmailDto) {
     await this.addJob(EMAIL_QUEUE, RESET_PASSWORD_JOB, resetPasswordEmailDto);
+  }
+
+  async toDeleteAccountJob(deleteAccountEmailDto: DeleteAccountEmailDto) {
+    await this.addJob(EMAIL_QUEUE, DELETE_ACCOUNT_JOB, deleteAccountEmailDto);
   }
 
   async toPaymentSuccessJob(paymentSuccessEmailDto: PaymentSuccessEmailDto) {

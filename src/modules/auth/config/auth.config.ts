@@ -6,6 +6,7 @@ import * as bcrypt from "bcrypt";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer, customSession, lastLoginMethod, magicLink, openAPI, twoFactor, username } from "better-auth/plugins";
 import uuid from "uuid";
+import type { StripeService } from "@/modules/payment/service/stripe.service";
 import type { ProfileService } from "@/modules/profile/service/profile.service";
 import type { UserService } from "@/modules/user/service/user.service";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
@@ -17,12 +18,13 @@ interface AuthConfigParams {
   userService?: UserService;
   profileService?: ProfileService;
   queueService?: QueueService;
+  stripeService?: StripeService;
 }
 
 const logger = new Logger("BetterAuth");
 
 export function getAuthConfig(params: AuthConfigParams) {
-  const { configService, databaseService, userService, profileService, queueService } =
+  const { configService, databaseService, userService, profileService, queueService, stripeService } =
     params as Required<AuthConfigParams>;
 
   const authLogLevel = configService.get<"debug" | "info" | "warn" | "error">("BETTER_AUTH_LOG_LEVEL") ?? "info";
@@ -97,6 +99,28 @@ export function getAuthConfig(params: AuthConfigParams) {
         profile: {
           type: "json",
           required: false,
+        },
+      },
+      deleteUser: {
+        enabled: true,
+        deleteTokenExpiresIn: 60 * 60 * 3,
+        sendDeleteAccountVerification: async ({ user, url }) => {
+          await queueService.toDeleteAccountJob({
+            name: userService.getName(user.name, user.email),
+            email: user.email,
+            url,
+          });
+        },
+        beforeDelete: async (user) => {
+          try {
+            const subscription = await stripeService.getCurrentSubscription(user.id);
+
+            if (subscription) {
+              await stripeService.cancelCurrentSubscription(user.id);
+            }
+          } catch (error: any) {
+            logger.error(`Failed to cancel subscription before deleting user | user=${user.id} error=${error.message}`);
+          }
         },
       },
     },

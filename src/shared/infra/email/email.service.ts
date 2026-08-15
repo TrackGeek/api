@@ -4,6 +4,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import handlebars from "handlebars";
 import { ResendService } from "nestjs-resend";
+import { DeleteAccountEmailDto } from "./dto/delete-account-email.dto";
 import { MagicLinkEmailDto } from "./dto/magic-link-email.dto";
 import { PaymentFailedEmailDto } from "./dto/payment-failed-email.dto";
 import { PaymentSuccessEmailDto } from "./dto/payment-success-email.dto";
@@ -41,6 +42,15 @@ export class EmailService {
       to: resetPasswordEmailDto.email,
       subject: "Reset your password for TrackGeek",
       html: this.getHtmlTemplate("reset-password-email", resetPasswordEmailDto),
+    });
+  }
+
+  async sendDeleteAccountEmail(deleteAccountEmailDto: DeleteAccountEmailDto) {
+    await this.resendService.send({
+      from: this.configService.get<string>("RESEND_FROM")!,
+      to: deleteAccountEmailDto.email,
+      subject: "Confirm your TrackGeek account deletion",
+      html: this.getHtmlTemplate("delete-account-email", deleteAccountEmailDto),
     });
   }
 
