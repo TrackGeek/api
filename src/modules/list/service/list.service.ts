@@ -3,8 +3,13 @@ import { ActivityType } from "@prisma/generated/enums";
 import { ListFindManyArgs, ListItemFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { DatabaseService } from "@/shared/infra/database/database.service";
+import {
+  DatabaseService,
+  DEFAULT_PAGINATION_ITEMS_PER_PAGE,
+  DEFAULT_PAGINATION_PAGE,
+} from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { stripListTypeSuffix } from "@/shared/utils/list-name";
 import { AddItemToListDto } from "../dto/add-item-to-list.dto";
 import { CreateListDto } from "../dto/create-list.dto";
 import { DeleteListDto } from "../dto/delete-list.dto";
@@ -14,6 +19,79 @@ import { GetListsByUserIdDto } from "../dto/get-lists-by-user-id.dto";
 import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto";
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
 import { UpdateListDto } from "../dto/update-list.dto";
+
+const LIST_PREVIEW_INCLUDE = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      profile: {
+        select: {
+          id: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  },
+  _count: {
+    select: { listItems: true },
+  },
+  listItems: {
+    take: 4,
+    include: {
+      anime: {
+        select: {
+          id: true,
+          malId: true,
+          imageUrl: true,
+          title: true,
+        },
+      },
+      manga: {
+        select: {
+          id: true,
+          anilistId: true,
+          malId: true,
+          imageUrl: true,
+          title: true,
+        },
+      },
+      tvShow: {
+        select: {
+          id: true,
+          tmdbId: true,
+          posterUrl: true,
+          name: true,
+        },
+      },
+      book: {
+        select: {
+          id: true,
+          hardcoverId: true,
+          imageUrl: true,
+          title: true,
+        },
+      },
+      game: {
+        select: {
+          id: true,
+          igdbId: true,
+          coverUrl: true,
+          name: true,
+        },
+      },
+      movie: {
+        select: {
+          id: true,
+          tmdbId: true,
+          posterUrl: true,
+          title: true,
+        },
+      },
+    },
+  },
+} as const;
 
 @Injectable()
 export class ListService {
@@ -199,109 +277,98 @@ export class ListService {
     return list;
   }
 
+  private buildListsByUserIdWhere(getListsByUserIdDto: GetListsByUserIdDto) {
+    return {
+      userId: getListsByUserIdDto.userId,
+      type: getListsByUserIdDto.type,
+      ...(getListsByUserIdDto.query && {
+        OR: [
+          { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } },
+          {
+            listItems: {
+              some: {
+                OR: [
+                  { anime: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                  { manga: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                  { tvShow: { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                  { movie: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                  { game: { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                  { book: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
+                ],
+              },
+            },
+          },
+        ],
+      }),
+    };
+  }
+
   async getListsByUserId(getListsByUserIdDto: GetListsByUserIdDto) {
+    if (getListsByUserIdDto.grouped) {
+      return this.getGroupedListsByUserId(getListsByUserIdDto);
+    }
+
     const lists = await this.databaseService.offsetPagination<ListFindManyArgs>({
       model: "list",
       itemsPerPage: getListsByUserIdDto.itemsPerPage,
       page: getListsByUserIdDto.page,
-      where: {
-        userId: getListsByUserIdDto.userId,
-        type: getListsByUserIdDto.type,
-        ...(getListsByUserIdDto.query && {
-          OR: [
-            { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } },
-            {
-              listItems: {
-                some: {
-                  OR: [
-                    { anime: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
-                    { manga: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
-                    { tvShow: { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
-                    { movie: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
-                    { game: { name: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
-                    { book: { title: { contains: getListsByUserIdDto.query, mode: "insensitive" as const } } },
-                  ],
-                },
-              },
-            },
-          ],
-        }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: { listItems: true },
-        },
-        listItems: {
-          take: 4,
-          include: {
-            anime: {
-              select: {
-                id: true,
-                malId: true,
-                imageUrl: true,
-                title: true,
-              },
-            },
-            manga: {
-              select: {
-                id: true,
-                anilistId: true,
-                malId: true,
-                imageUrl: true,
-                title: true,
-              },
-            },
-            tvShow: {
-              select: {
-                id: true,
-                tmdbId: true,
-                posterUrl: true,
-                name: true,
-              },
-            },
-            book: {
-              select: {
-                id: true,
-                hardcoverId: true,
-                imageUrl: true,
-                title: true,
-              },
-            },
-            game: {
-              select: {
-                id: true,
-                igdbId: true,
-                coverUrl: true,
-                name: true,
-              },
-            },
-            movie: {
-              select: {
-                id: true,
-                tmdbId: true,
-                posterUrl: true,
-                title: true,
-              },
-            },
-          },
-        },
-      },
+      where: this.buildListsByUserIdWhere(getListsByUserIdDto),
+      include: LIST_PREVIEW_INCLUDE,
     });
 
     return lists;
+  }
+
+  private async getGroupedListsByUserId(getListsByUserIdDto: GetListsByUserIdDto) {
+    const page = getListsByUserIdDto.page ?? DEFAULT_PAGINATION_PAGE;
+    const itemsPerPage = getListsByUserIdDto.itemsPerPage ?? DEFAULT_PAGINATION_ITEMS_PER_PAGE;
+    const where = this.buildListsByUserIdWhere(getListsByUserIdDto);
+
+    const matches = await this.databaseService.list.findMany({
+      where,
+      select: { id: true, name: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const groups = new Map<string, { key: string; name: string; listIds: string[] }>();
+
+    for (const match of matches) {
+      const name = stripListTypeSuffix(match.name);
+      const key = name.toLowerCase();
+      const group = groups.get(key);
+
+      if (group) {
+        group.listIds.push(match.id);
+        continue;
+      }
+
+      groups.set(key, { key, name, listIds: [match.id] });
+    }
+
+    const allGroups = [...groups.values()];
+    const pageGroups = allGroups.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+    const lists = await this.databaseService.list.findMany({
+      where: { id: { in: pageGroups.flatMap((group) => group.listIds) } },
+      include: LIST_PREVIEW_INCLUDE,
+    });
+
+    const listsById = new Map(lists.map((list) => [list.id, list]));
+
+    const items = pageGroups.map((group) => ({
+      key: group.key,
+      name: group.name,
+      lists: group.listIds.map((listId) => listsById.get(listId)).filter((list) => list !== undefined),
+    }));
+
+    return {
+      total: allGroups.length,
+      pages: Math.ceil(allGroups.length / itemsPerPage),
+      inPage: page,
+      itemsInPage: items.length,
+      itemsPerPage,
+      items,
+    };
   }
 
   async getListStatus(getListStatusDto: GetListStatusDto & { userId: string }) {
@@ -418,78 +485,7 @@ export class ListService {
         type,
         listItems: { some: { ...entityIds } },
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profile: {
-              select: {
-                id: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: { listItems: true },
-        },
-        listItems: {
-          take: 4,
-          include: {
-            anime: {
-              select: {
-                id: true,
-                malId: true,
-                imageUrl: true,
-                title: true,
-              },
-            },
-            manga: {
-              select: {
-                id: true,
-                anilistId: true,
-                malId: true,
-                imageUrl: true,
-                title: true,
-              },
-            },
-            tvShow: {
-              select: {
-                id: true,
-                tmdbId: true,
-                posterUrl: true,
-                name: true,
-              },
-            },
-            book: {
-              select: {
-                id: true,
-                hardcoverId: true,
-                imageUrl: true,
-                title: true,
-              },
-            },
-            game: {
-              select: {
-                id: true,
-                igdbId: true,
-                coverUrl: true,
-                name: true,
-              },
-            },
-            movie: {
-              select: {
-                id: true,
-                tmdbId: true,
-                posterUrl: true,
-                title: true,
-              },
-            },
-          },
-        },
-      },
+      include: LIST_PREVIEW_INCLUDE,
     });
 
     return lists;
