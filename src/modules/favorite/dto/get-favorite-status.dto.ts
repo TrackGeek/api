@@ -46,4 +46,10 @@ export class GetFavoriteStatusDto {
   @IsUUID()
   @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Book" })
   readonly bookId?: string;
+
+  @IsOptional()
+  @FavoriteRequiredForType(FavoriteType.Person)
+  @IsUUID()
+  @ApiPropertyOptional({ type: "string", format: "uuid", description: "Required when type is Person" })
+  readonly personId?: string;
 }

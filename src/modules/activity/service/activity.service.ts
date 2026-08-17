@@ -44,6 +44,10 @@ const MOVIE_SELECT = { select: { id: true, tmdbId: true, title: true, posterUrl:
 const GAME_SELECT = { select: { id: true, igdbId: true, name: true, coverUrl: true } };
 const BOOK_SELECT = { select: { id: true, hardcoverId: true, title: true, imageUrl: true } };
 
+// Only favorites can point at a person — ListItem has no such relation, so this
+// stays out of POLY_MEDIA.
+const PERSON_SELECT = { select: { id: true, slug: true, name: true, imageUrl: true } };
+
 // Every one of the 6 media relations (favorite/listItem are polymorphic — one is non-null).
 const POLY_MEDIA = {
   anime: ANIME_SELECT,
@@ -172,7 +176,7 @@ const INCLUDE = {
   // Lists / favorites (polymorphic media).
   list: { select: { id: true, name: true } },
   listItem: { select: { id: true, ...POLY_MEDIA } },
-  favorite: { select: { id: true, type: true, ...POLY_MEDIA } },
+  favorite: { select: { id: true, type: true, ...POLY_MEDIA, person: PERSON_SELECT } },
   // Social.
   following: { select: { id: true, following: USER_SELECT } },
   userMedal: { select: { id: true, medal: { select: { id: true, name: true, imageUrl: true } } } },

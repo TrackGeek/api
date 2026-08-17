@@ -755,6 +755,7 @@ model Person {
   name               String
   tmdbId             Int?      @unique
   malId              Int?      @unique
+  anilistId          Int?      @unique
   imageUrl           String?
   biography          String?
   birthday           DateTime?
@@ -770,6 +771,8 @@ model Person {
   lastRefreshedAt    DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+
+  favorites Favorite[]
 
   @@index([name])
 }
@@ -1187,6 +1190,7 @@ enum FavoriteType {
   Movie
   Game
   Book
+  Person
 }
 
 model Favorite {
@@ -1200,6 +1204,7 @@ model Favorite {
   movieId   String?
   gameId    String?
   bookId    String?
+  personId  String?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
@@ -1210,6 +1215,7 @@ model Favorite {
   movie      Movie?     @relation(fields: [movieId], references: [id], onDelete: Cascade)
   game       Game?      @relation(fields: [gameId], references: [id], onDelete: Cascade)
   book       Book?      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  person     Person?    @relation(fields: [personId], references: [id], onDelete: Cascade)
   activities Activity[]
 
   @@unique([userId, animeId])
@@ -1218,6 +1224,7 @@ model Favorite {
   @@unique([userId, movieId])
   @@unique([userId, gameId])
   @@unique([userId, bookId])
+  @@unique([userId, personId])
 }
 
 enum PaymentStatus {
