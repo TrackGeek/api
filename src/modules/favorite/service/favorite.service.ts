@@ -102,6 +102,14 @@ export class FavoriteService {
             imageUrl: true,
           },
         },
+        person: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            imageUrl: true,
+          },
+        },
       },
     });
 
@@ -136,6 +144,7 @@ export class FavoriteService {
             { movie: { title: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
             { game: { name: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
             { book: { title: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
+            { person: { name: { contains: getFavoritesByUserIdDto.query, mode: "insensitive" as const } } },
           ],
         }),
       },
@@ -202,6 +211,14 @@ export class FavoriteService {
             id: true,
             hardcoverId: true,
             title: true,
+            imageUrl: true,
+          },
+        },
+        person: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
             imageUrl: true,
           },
         },

@@ -17,7 +17,6 @@ import {
   type AnilistPagination,
   type AnilistSearchManga,
   AnilistSort,
-  type AnilistStaffMedia,
 } from "@/shared/infra/integrations/anilist.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import {
@@ -29,6 +28,7 @@ import {
   paginateLocal,
   toNameList,
 } from "@/shared/utils/tg-review-search";
+import { PersonService } from "../../person/service/person.service";
 import type { RefreshMangaDto } from "../dto/refresh-manga.dto";
 import type { SearchMangaDto } from "../dto/search-manga.dto";
 import { TopMangaDto } from "../dto/top-manga.dto";
@@ -40,27 +40,6 @@ const MANGA_STATUS_LABELS: Record<AnilistMangaStatus, string> = {
   [AnilistMangaStatus.Discontinued]: "Discontinued",
   [AnilistMangaStatus.Upcoming]: "Not yet published",
 };
-
-export type MangaCreditMediaType = "manga" | "anime";
-
-export interface MangaCredit {
-  key: string;
-  mediaType: MangaCreditMediaType;
-  id: number;
-  title: string;
-  imageUrl: string | null;
-  backdropUrl: string | null;
-  releaseDate: string | null;
-  year: number | null;
-  roles: string[];
-  isCast: boolean;
-  isAdult: boolean;
-  episodeCount: number | null;
-  externalReviewScore: number | null;
-  popularity: number | null;
-  tgReviewScore: number;
-  isTracked: boolean;
-}
 
 export interface ReviewedMangaSortable {
   title: string;
@@ -83,6 +62,7 @@ export class MangaService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
+    private readonly personService: PersonService,
   ) {}
 
   async searchMangas(searchMangaDto: SearchMangaDto) {
@@ -259,99 +239,7 @@ export class MangaService {
   }
 
   async getMangaCastByAnilistId(anilistId: number) {
-    const staff = await this.integrationsService.anilist.getStaffById(anilistId);
-    const credits = await this.withCreditTrackingData(staff.media);
-    const countOf = (mediaType: MangaCreditMediaType) =>
-      credits.filter((credit) => credit.mediaType === mediaType).length;
-
-    return {
-      id: `anilist:${staff.anilistId}`,
-      slug: String(staff.anilistId),
-      anilistId: staff.anilistId,
-      tmdbId: null,
-      malId: null,
-      name: staff.name,
-      imageUrl: staff.imageUrl,
-      biography: staff.description,
-      birthday: staff.dateOfBirth,
-      deathday: staff.dateOfDeath,
-      placeOfBirth: staff.homeTown,
-      knownForDepartment: staff.primaryOccupations[0] ?? null,
-      alsoKnownAs: [...(staff.nativeName ? [staff.nativeName] : []), ...staff.alternativeNames],
-      gender: staff.gender,
-      homepage: null,
-      popularity: staff.favoritesCount,
-      images: staff.imageUrl ? [staff.imageUrl] : [],
-      external: { anilist: staff.url },
-      source: "anilist",
-      credits,
-      stats: {
-        total: credits.length,
-        movies: 0,
-        tvShows: 0,
-        anime: countOf("anime"),
-        manga: countOf("manga"),
-        tracked: credits.filter((credit) => credit.isTracked).length,
-      },
-    };
-  }
-
-  private async withCreditTrackingData(media: AnilistStaffMedia[]): Promise<MangaCredit[]> {
-    const drafts = media
-      .map((entry) => {
-        const mediaType: MangaCreditMediaType = entry.type === "ANIME" ? "anime" : "manga";
-        const id = mediaType === "anime" ? entry.malId : entry.anilistId;
-
-        return id === null ? null : { entry, mediaType, id, key: `${mediaType}:${id}` };
-      })
-      .filter((draft) => draft !== null);
-
-    const [mangas, animes] = await Promise.all([
-      this.databaseService.manga.findMany({
-        where: { anilistId: { in: drafts.filter((d) => d.mediaType === "manga").map((d) => d.id) } },
-        select: { anilistId: true, mangaReviews: { select: { overall: true } } },
-      }),
-      this.databaseService.anime.findMany({
-        where: { malId: { in: drafts.filter((d) => d.mediaType === "anime").map((d) => d.id) } },
-        select: { malId: true, animeReviews: { select: { overall: true } } },
-      }),
-    ]);
-
-    const averageScore = (reviews: { overall: unknown }[]) =>
-      reviews.length === 0
-        ? 0
-        : parseFloat((reviews.reduce((sum, review) => sum + Number(review.overall), 0) / reviews.length).toFixed(1));
-
-    const scores = new Map<string, number>();
-
-    for (const manga of mangas) {
-      scores.set(`manga:${manga.anilistId}`, averageScore(manga.mangaReviews));
-    }
-
-    for (const anime of animes) {
-      scores.set(`anime:${anime.malId}`, averageScore(anime.animeReviews));
-    }
-
-    return drafts
-      .map(({ entry, mediaType, id, key }) => ({
-        key,
-        mediaType,
-        id,
-        title: entry.title,
-        imageUrl: entry.imageUrl,
-        backdropUrl: entry.bannerUrl,
-        releaseDate: entry.startDate,
-        year: entry.year,
-        roles: entry.roles,
-        isCast: false,
-        isAdult: entry.isAdult,
-        episodeCount: null,
-        externalReviewScore: entry.anilistScore,
-        popularity: entry.popularity,
-        tgReviewScore: scores.get(key) ?? 0,
-        isTracked: scores.has(key),
-      }))
-      .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.title.localeCompare(b.title));
+    return this.personService.getPersonByAnilistId(anilistId);
   }
 
   async refreshManga(refreshMangaDto: RefreshMangaDto) {
