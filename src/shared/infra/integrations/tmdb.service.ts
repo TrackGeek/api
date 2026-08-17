@@ -69,6 +69,11 @@ export interface TMDBSearchMovieOptions {
   year?: string;
 }
 
+export interface TMDBSearchPersonOptions {
+  query?: string;
+  page?: number;
+}
+
 export interface TMDBTopMovieOptions {
   page?: number;
   filter: TMDBMovieFilter;
@@ -109,6 +114,16 @@ export interface TMDBSearchTVShowResult {
   name: string;
   firstAirDate: Date | null;
   posterUrl: string | null;
+}
+
+export interface TMDBSearchPersonResult {
+  tmdbId: number;
+  name: string;
+  imageUrl: string | null;
+  knownForDepartment: string | null;
+  popularity: number | null;
+  isAdult: boolean;
+  knownFor: string[];
 }
 
 export interface TMDBMovieDetails {
@@ -590,6 +605,70 @@ export class TMDBService {
       }
 
       this.logger.error(`Failed to search movies from TMDB API for query "${query}": ${error.message}`, error.stack);
+
+      throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
+    }
+  }
+
+  async searchPeople({
+    query: rawQuery,
+    page = DEFAULT_PAGINATION_PAGE,
+  }: TMDBSearchPersonOptions): Promise<IGDBPagination<TMDBSearchPersonResult>> {
+    const query = rawQuery?.trim() ?? "";
+
+    try {
+      const cachedPeopleKey = CACHE_KEYS.TMDB_SEARCH_PEOPLE.prefix({ query, page });
+
+      const cachedPeople = await this.cacheService.get<IGDBPagination<TMDBSearchPersonResult>>(cachedPeopleKey);
+
+      if (cachedPeople) {
+        return cachedPeople;
+      }
+
+      // An empty query falls back to the popular people list, which is a far better
+      // default for the cast search than the placeholder letter the title searches use.
+      const personResponse = await firstValueFrom(
+        this.httpService.get(`${this.TMDB_API_URL}${query ? "/search/person" : "/person/popular"}`, {
+          params: query ? { query, page } : { page },
+          headers: {
+            Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}`,
+          },
+        }),
+      );
+
+      const peopleData = personResponse.data;
+
+      const items: TMDBSearchPersonResult[] = peopleData.results.map((person: any) => ({
+        tmdbId: person.id,
+        name: person.name,
+        imageUrl: person.profile_path ? `https://image.tmdb.org/t/p/w500${person.profile_path}` : null,
+        knownForDepartment: person.known_for_department ?? null,
+        popularity: person.popularity ?? null,
+        isAdult: Boolean(person.adult),
+        knownFor: (person.known_for ?? [])
+          .filter((credit: any) => credit.media_type === "movie" || credit.media_type === "tv")
+          .map((credit: any) => credit.title ?? credit.name)
+          .filter((title: any) => title),
+      }));
+
+      const people: IGDBPagination<TMDBSearchPersonResult> = {
+        total: null,
+        pages: peopleData.total_pages,
+        inPage: page,
+        itemsInPage: items.length,
+        itemsPerPage: null,
+        items,
+      };
+
+      await this.cacheService.set<IGDBPagination<TMDBSearchPersonResult>>(
+        cachedPeopleKey,
+        people,
+        CACHE_KEYS.TMDB_SEARCH_PEOPLE.expiration,
+      );
+
+      return people;
+    } catch (error: any) {
+      this.logger.error(`Failed to search people from TMDB API for query "${query}": ${error.message}`, error.stack);
 
       throw new AppException(ERROR_CODES.TMDB_SERVICE_UNAVAILABLE);
     }

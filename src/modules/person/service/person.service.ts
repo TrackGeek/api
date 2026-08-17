@@ -3,12 +3,14 @@ import type { Person } from "@prisma/generated/client";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import type { AnilistStaffDetails, AnilistStaffMedia } from "@/shared/infra/integrations/anilist.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import type { TenraiPersonDetails } from "@/shared/infra/integrations/tenrai.service";
 import type { TMDBPersonCredit, TMDBPersonDetails } from "@/shared/infra/integrations/tmdb.service";
-import { normalizePersonName } from "./person-sync.service";
+import type { SearchPersonDto } from "../dto/search-person.dto";
+import { normalizePersonName, PersonSyncService } from "./person-sync.service";
 
-export type PersonCreditMediaType = "movie" | "tv" | "anime";
+export type PersonCreditMediaType = "movie" | "tv" | "anime" | "manga";
 
 export interface PersonCredit {
   key: string;
@@ -64,7 +66,22 @@ export class PersonService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
+    private readonly personSyncService: PersonSyncService,
   ) {}
+
+  async searchPeople(searchPersonDto: SearchPersonDto) {
+    const people = await this.integrationsService.tmdb.searchPeople(searchPersonDto);
+
+    const slugs = await this.personSyncService.resolveTmdbPeople(
+      people.items.map((person) => ({ id: person.tmdbId, name: person.name, profileUrl: person.imageUrl })),
+    );
+
+    const items = people.items
+      .map((person) => ({ ...person, slug: slugs.get(person.tmdbId) ?? null }))
+      .filter((person) => person.slug !== null);
+
+    return { ...people, itemsInPage: items.length, items };
+  }
 
   async getPersonBySlug(slug: string) {
     const person = await this.databaseService.person.findUnique({ where: { slug } });
@@ -81,7 +98,31 @@ export class PersonService {
       return this.hydrateFromMal(person, person.malId);
     }
 
+    if (person.anilistId !== null) {
+      return this.hydrateFromAnilist(person, person.anilistId);
+    }
+
     throw new AppException(ERROR_CODES.PERSON_NOT_FOUND);
+  }
+
+  /**
+   * AniList staff (manga cast) is only ever reached by AniList id, so the tracked
+   * `Person` row is created on first visit before the live details are folded in.
+   */
+  async getPersonByAnilistId(anilistId: number) {
+    const details = await this.integrationsService.anilist.getStaffById(anilistId);
+
+    const person = await this.personSyncService.resolveAnilistPerson({
+      anilistId: details.anilistId,
+      name: details.name,
+      imageUrl: details.imageUrl,
+    });
+
+    if (!person) {
+      throw new AppException(ERROR_CODES.PERSON_NOT_FOUND);
+    }
+
+    return this.applyAnilistDetails(person, details);
   }
 
   private async hydrateFromTmdb(person: Person, tmdbId: number) {
@@ -133,6 +174,89 @@ export class PersonService {
     });
 
     return this.toResponse(updated, "mal", credits);
+  }
+
+  private async hydrateFromAnilist(person: Person, anilistId: number) {
+    const details = await this.integrationsService.anilist.getStaffById(anilistId);
+
+    return this.applyAnilistDetails(person, details);
+  }
+
+  private async applyAnilistDetails(person: Person, details: AnilistStaffDetails) {
+    const credits = await this.withAnilistCreditTrackingData(details.media);
+
+    const updated = await this.databaseService.person.update({
+      where: { id: person.id },
+      data: {
+        name: details.name,
+        imageUrl: details.imageUrl ?? person.imageUrl,
+        biography: details.description,
+        birthday: toDate(details.dateOfBirth),
+        deathday: toDate(details.dateOfDeath),
+        placeOfBirth: details.homeTown,
+        knownForDepartment: details.primaryOccupations[0] ?? null,
+        alsoKnownAs: [...(details.nativeName ? [details.nativeName] : []), ...details.alternativeNames],
+        popularity: details.favoritesCount,
+        images: details.imageUrl ? [details.imageUrl] : [],
+        external: { anilist: details.url },
+        lastRefreshedAt: new Date(),
+      },
+    });
+
+    return this.toResponse(updated, "anilist", credits);
+  }
+
+  private async withAnilistCreditTrackingData(media: AnilistStaffMedia[]): Promise<PersonCredit[]> {
+    const drafts = media
+      .map((entry) => {
+        const mediaType: PersonCreditMediaType = entry.type === "ANIME" ? "anime" : "manga";
+        const id = mediaType === "anime" ? entry.malId : entry.anilistId;
+
+        return id === null ? null : { entry, mediaType, id, key: `${mediaType}:${id}` };
+      })
+      .filter((draft) => draft !== null);
+
+    const [mangas, animes] = await Promise.all([
+      this.databaseService.manga.findMany({
+        where: { anilistId: { in: drafts.filter((draft) => draft.mediaType === "manga").map((draft) => draft.id) } },
+        select: { anilistId: true, mangaReviews: { select: { overall: true } } },
+      }),
+      this.databaseService.anime.findMany({
+        where: { malId: { in: drafts.filter((draft) => draft.mediaType === "anime").map((draft) => draft.id) } },
+        select: { malId: true, animeReviews: { select: { overall: true } } },
+      }),
+    ]);
+
+    const scores = new Map<string, number>();
+
+    for (const manga of mangas) {
+      scores.set(`manga:${manga.anilistId}`, averageScore(manga.mangaReviews));
+    }
+
+    for (const anime of animes) {
+      scores.set(`anime:${anime.malId}`, averageScore(anime.animeReviews));
+    }
+
+    return drafts
+      .map(({ entry, mediaType, id, key }) => ({
+        key,
+        mediaType,
+        id,
+        title: entry.title,
+        imageUrl: entry.imageUrl,
+        backdropUrl: entry.bannerUrl,
+        releaseDate: toDate(entry.startDate),
+        year: entry.year,
+        roles: entry.roles,
+        isCast: false,
+        isAdult: entry.isAdult,
+        episodeCount: null,
+        externalReviewScore: entry.anilistScore,
+        popularity: entry.popularity,
+        tgReviewScore: scores.get(key) ?? 0,
+        isTracked: scores.has(key),
+      }))
+      .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.title.localeCompare(b.title));
   }
 
   private toTmdbCreditDrafts(details: TMDBPersonDetails): CreditDraft[] {
@@ -273,7 +397,7 @@ export class PersonService {
       .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.title.localeCompare(b.title));
   }
 
-  private toResponse(person: Person, source: "tmdb" | "mal", credits: PersonCredit[]) {
+  private toResponse(person: Person, source: "tmdb" | "mal" | "anilist", credits: PersonCredit[]) {
     const countOf = (mediaType: PersonCreditMediaType) =>
       credits.filter((credit) => credit.mediaType === mediaType).length;
 
@@ -286,6 +410,7 @@ export class PersonService {
         movies: countOf("movie"),
         tvShows: countOf("tv"),
         anime: countOf("anime"),
+        manga: countOf("manga"),
         tracked: credits.filter((credit) => credit.isTracked).length,
       },
     };

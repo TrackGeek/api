@@ -15,6 +15,12 @@ export interface MalPersonSeed {
   imageUrl?: string | null;
 }
 
+export interface AnilistPersonSeed {
+  anilistId: number;
+  name: string;
+  imageUrl?: string | null;
+}
+
 const UNIQUE_CONSTRAINT_ERROR = "P2002";
 
 export function normalizePersonName(name: string): string {
@@ -122,6 +128,27 @@ export class PersonSyncService {
   }
 
   /**
+   * Resolves an AniList staff member to its tracked `Person` row, creating it when
+   * missing. AniList staff is otherwise only fetched live, so this is what makes a
+   * manga cast member favouritable.
+   */
+  async resolveAnilistPerson(seed: AnilistPersonSeed) {
+    const existing = await this.databaseService.person.findUnique({
+      where: { anilistId: seed.anilistId },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.createPerson({
+      anilistId: seed.anilistId,
+      name: seed.name,
+      imageUrl: seed.imageUrl ?? null,
+    });
+  }
+
+  /**
    * Stamps a `/cast` slug onto every TMDB cast and crew entry of a movie or TV show,
    * so the UI can turn each credit into a link.
    */
@@ -160,7 +187,13 @@ export class PersonSyncService {
     };
   }
 
-  private async createPerson(data: { name: string; tmdbId?: number; malId?: number; imageUrl: string | null }) {
+  private async createPerson(data: {
+    name: string;
+    tmdbId?: number;
+    malId?: number;
+    anilistId?: number;
+    imageUrl: string | null;
+  }) {
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
         return await this.databaseService.person.create({
@@ -178,9 +211,13 @@ export class PersonSyncService {
 
         if (!isSlugCollision) {
           // Another request created this same person concurrently.
-          return this.databaseService.person.findFirst({
-            where: data.tmdbId ? { tmdbId: data.tmdbId } : { malId: data.malId },
-          });
+          const where = data.tmdbId
+            ? { tmdbId: data.tmdbId }
+            : data.malId
+              ? { malId: data.malId }
+              : { anilistId: data.anilistId };
+
+          return this.databaseService.person.findFirst({ where });
         }
       }
     }
