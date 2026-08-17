@@ -204,4 +204,8 @@ export const CACHE_KEYS = {
     prefix: (value: number, from: string, to: string) => `currency:convert:${value}:${from}:${to}`,
     expiration: 3600 * 6,
   },
+  IP_CURRENCY: {
+    prefix: (ip: string) => `currency:ip:${ip}`,
+    expiration: 3600 * 24,
+  },
 } as const;

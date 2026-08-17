@@ -2,6 +2,7 @@ import { HttpService } from "@nestjs/axios";
 import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ActivityType, PaymentStatus } from "@prisma/generated/enums";
+import countryToCurrency, { type Countries } from "country-to-currency";
 import { firstValueFrom } from "rxjs";
 import Stripe from "stripe";
 import { CACHE_KEYS } from "@/shared/constants/cache";
@@ -12,7 +13,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
-import { formatValue, getUserCurrency } from "@/shared/utils/currency";
+import { formatValue } from "@/shared/utils/currency";
 import { PerkService } from "./perk.service";
 
 export interface PriceValue {
@@ -34,6 +35,32 @@ interface ConvertValue {
   value: number;
   currency: string;
 }
+
+interface GeoProvider {
+  name: string;
+  url: (ip: string) => string;
+  parse: (data: any) => string | null;
+}
+
+// Providers are asked only for a country code — the country-to-currency map does the rest, so a
+// provider that drops its `currency` field (as ipapi.co and ipwho.is have) costs nothing here.
+// Tried in order; the first one that answers with a country wins.
+const GEO_PROVIDERS: GeoProvider[] = [
+  {
+    name: "ipwho.is",
+    url: (ip) => `https://ipwho.is/${ip}`,
+    parse: (data) => (data?.success === false ? null : (data?.country_code ?? null)),
+  },
+  {
+    name: "freeipapi.com",
+    url: (ip) => `https://free.freeipapi.com/api/json/${ip}`,
+    parse: (data) => data?.countryCode ?? null,
+  },
+];
+
+const GEO_REQUEST_TIMEOUT = 3000;
+
+const GEO_FAILURE_CACHE_EXPIRATION = 300;
 
 @Injectable()
 export class StripeService {
@@ -98,6 +125,55 @@ export class StripeService {
     return donateProduct;
   }
 
+  async getUserCurrency(clientIp?: ClientIpType): Promise<string> {
+    if (!clientIp || clientIp.isLocal || clientIp.address === "0.0.0.0") {
+      return DEFAULT_CURRENCY;
+    }
+
+    const cacheKey = CACHE_KEYS.IP_CURRENCY.prefix(clientIp.address);
+
+    const cachedCurrency = await this.cacheService.get<string>(cacheKey);
+
+    if (cachedCurrency) {
+      return cachedCurrency;
+    }
+
+    const countryCode = await this.resolveCountryCode(clientIp.address);
+
+    if (!countryCode) {
+      // Short TTL so a transient provider outage does not pin the default currency for a full day.
+      await this.cacheService.set<string>(cacheKey, DEFAULT_CURRENCY, GEO_FAILURE_CACHE_EXPIRATION);
+
+      return DEFAULT_CURRENCY;
+    }
+
+    const currency = (countryToCurrency[countryCode as Countries] ?? DEFAULT_CURRENCY).toLowerCase();
+
+    await this.cacheService.set<string>(cacheKey, currency, CACHE_KEYS.IP_CURRENCY.expiration);
+
+    return currency;
+  }
+
+  private async resolveCountryCode(ip: string): Promise<string | null> {
+    for (const provider of GEO_PROVIDERS) {
+      try {
+        const response = await firstValueFrom(this.httpService.get(provider.url(ip), { timeout: GEO_REQUEST_TIMEOUT }));
+
+        const countryCode = provider.parse(response.data);
+
+        if (countryCode) {
+          return countryCode.toUpperCase();
+        }
+
+        this.logger.warn(`Geo provider ${provider.name} returned no country for ip ${ip}`);
+      } catch (error: any) {
+        this.logger.warn(`Geo provider ${provider.name} failed for ip ${ip}: ${error?.message}`);
+      }
+    }
+
+    return null;
+  }
+
   async convertCurrency(value: number, from: string, to: string): Promise<ConvertValue> {
     try {
       if (from.toLowerCase() === to.toLowerCase()) {
@@ -158,7 +234,7 @@ export class StripeService {
   }
 
   async getPrices(clientIp?: ClientIpType): Promise<Price[]> {
-    const userCurrency = await getUserCurrency(clientIp);
+    const userCurrency = await this.getUserCurrency(clientIp);
     const donateProduct = await this.donateProduct();
 
     const prices = [300, 500, 1000, 1500, 2500, 5000];

@@ -17,7 +17,6 @@ import Stripe from "stripe";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { ClientIp, type ClientIpType } from "@/shared/decorators/client-ip.decorator";
 import { AppException } from "@/shared/exceptions/app.exceptions";
-import { getUserCurrency } from "@/shared/utils/currency";
 import { StripeService } from "../service/stripe.service";
 
 @ApiTags("Payment")
@@ -32,7 +31,7 @@ export class StripeController {
 
   @Get("/currency")
   async getCurrency(@ClientIp() clientIp: ClientIpType) {
-    const currency = await getUserCurrency(clientIp);
+    const currency = await this.stripeService.getUserCurrency(clientIp);
 
     return { currency };
   }

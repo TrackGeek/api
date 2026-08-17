@@ -17,30 +17,39 @@ const LOCAL_IP_PATTERNS = [
   /^fe80:/i, // IPv6 link-local
 ];
 
+function normalizeIp(ip: string): string {
+  return ip.replace(/^::ffff:/i, "").trim();
+}
+
 function extractIp(req: Request): string {
-  const forwarded = req.headers["x-forwarded-for"];
+  // `req.ip` already resolves X-Forwarded-For according to the `trust proxy` hop count set in
+  // main.ts, so a forged header from a non-trusted hop is ignored. Never parse the header by hand.
+  if (req.ip) return normalizeIp(req.ip);
 
-  if (forwarded) {
-    const first = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(",")[0];
+  const realIp = req.headers["x-real-ip"];
 
-    return first.trim();
+  if (realIp) {
+    const first = Array.isArray(realIp) ? realIp[0] : realIp.split(",")[0];
+
+    return normalizeIp(first);
   }
 
-  return req.socket?.remoteAddress ?? req.ip ?? "0.0.0.0";
+  return req.socket?.remoteAddress ? normalizeIp(req.socket.remoteAddress) : "0.0.0.0";
 }
 
 function isLocalIp(ip: string): boolean {
-  const normalized = ip.replace(/^::ffff:/i, "");
-
-  return LOCAL_IP_PATTERNS.some((pattern) => pattern.test(normalized));
+  return LOCAL_IP_PATTERNS.some((pattern) => pattern.test(ip));
 }
 
-export const ClientIp = createParamDecorator((_data: unknown, ctx: ExecutionContext): ClientIpType => {
-  const req = ctx.switchToHttp().getRequest<Request>();
+export function resolveClientIp(req: Request): ClientIpType {
   const address = extractIp(req);
 
   return {
     address,
     isLocal: isLocalIp(address),
   };
+}
+
+export const ClientIp = createParamDecorator((_data: unknown, ctx: ExecutionContext): ClientIpType => {
+  return resolveClientIp(ctx.switchToHttp().getRequest<Request>());
 });

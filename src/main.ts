@@ -1,5 +1,6 @@
 import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
@@ -7,14 +8,29 @@ import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import { setupDocs } from "./shared/infra/docs/setup";
 
+function resolveTrustProxy(): number | string | boolean {
+  const value = process.env.TRUST_PROXY;
+
+  if (!value) return 1;
+
+  if (value === "true" || value === "false") return value === "true";
+
+  const hops = Number(value);
+
+  // A non-numeric value is an IP/CIDR allow-list, which Express accepts as-is.
+  return Number.isNaN(hops) ? value : hops;
+}
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
     cors: {
       origin: process.env.WEB_URL,
       credentials: true,
     },
   });
+
+  app.set("trust proxy", resolveTrustProxy());
 
   app.use(
     bodyParser.json({

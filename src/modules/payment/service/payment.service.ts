@@ -6,7 +6,6 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { getUserCurrency } from "@/shared/utils/currency";
 import { CreatePaymentDto } from "../dto/create-payment.dto";
 import { GetPaymentsDto } from "../dto/get-payments.dto";
 import { StripeService } from "./stripe.service";
@@ -74,7 +73,7 @@ export class PaymentService {
 
     const donateProduct = await this.stripeService.donateProduct();
 
-    const currency = await getUserCurrency(clientIp);
+    const currency = await this.stripeService.getUserCurrency(clientIp);
 
     const expiredAt = new Date();
 
