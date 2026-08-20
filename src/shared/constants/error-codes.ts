@@ -203,6 +203,22 @@ export const ERROR_CODES = {
     code: "LIST_ITEM_NOT_FOUND",
     status: 404,
   },
+  SETUP_PHOTO_NOT_FOUND: {
+    code: "SETUP_PHOTO_NOT_FOUND",
+    status: 404,
+  },
+  SETUP_ITEM_NOT_FOUND: {
+    code: "SETUP_ITEM_NOT_FOUND",
+    status: 404,
+  },
+  SETUP_PHOTO_LIMIT_REACHED: {
+    code: "SETUP_PHOTO_LIMIT_REACHED",
+    status: 409,
+  },
+  SETUP_ITEM_LIMIT_REACHED: {
+    code: "SETUP_ITEM_LIMIT_REACHED",
+    status: 409,
+  },
   REVIEW_NOT_FOUND: {
     code: "REVIEW_NOT_FOUND",
     status: 404,

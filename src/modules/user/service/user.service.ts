@@ -92,7 +92,12 @@ export class UserService {
     const user = await this.databaseService.user.findUnique({
       where: { username },
       include: {
-        profile: true,
+        profile: {
+          include: {
+            setupPhotos: { orderBy: { position: "asc" } },
+            setupItems: { orderBy: { position: "asc" } },
+          },
+        },
         _count: {
           select: {
             followers: true,
