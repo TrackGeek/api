@@ -162,6 +162,36 @@ model Profile {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments      Comment[]
   notifications Notification[]
+  setupPhotos   SetupPhoto[]
+  setupItems    SetupItem[]
+}
+
+model SetupPhoto {
+  id        String   @id @default(uuid(7))
+  profileId String
+  url       String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model SetupItem {
+  id        String   @id @default(uuid(7))
+  profileId String
+  name      String
+  brand     String?
+  link      String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
 }
 
 model Medal {
