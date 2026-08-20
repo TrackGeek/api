@@ -123,9 +123,14 @@ describe("MissionService", () => {
       // Primeira chamada: métrica de contador (ReviewsWritten). Segunda: a derivada.
       mockMissionFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([mission]);
       mockXpLedgerFindMany.mockResolvedValueOnce(
-        [ContentType.Anime, ContentType.Manga, ContentType.TVShow, ContentType.Movie, ContentType.Game, ContentType.Book].map(
-          (contentType) => ({ contentType }),
-        ),
+        [
+          ContentType.Anime,
+          ContentType.Manga,
+          ContentType.TVShow,
+          ContentType.Movie,
+          ContentType.Game,
+          ContentType.Book,
+        ].map((contentType) => ({ contentType })),
       );
       mockUserMissionUpsert.mockResolvedValueOnce({ id: userMissionId, progress: 6, completedAt: null });
       mockUserMissionUpdate.mockResolvedValueOnce({ id: userMissionId, progress: 6, completedAt: new Date() });
@@ -137,9 +142,7 @@ describe("MissionService", () => {
     });
 
     it("StreakReached mede o maior streak, não o atual", async () => {
-      mockMissionFindMany.mockResolvedValueOnce([
-        buildMission({ metric: MissionMetric.StreakReached, target: 30 }),
-      ]);
+      mockMissionFindMany.mockResolvedValueOnce([buildMission({ metric: MissionMetric.StreakReached, target: 30 })]);
       mockUserXpFindUnique.mockResolvedValueOnce({ currentStreak: 2, longestStreak: 12 });
       mockUserMissionUpsert.mockResolvedValueOnce({ id: faker.string.uuid(), progress: 12, completedAt: null });
 
