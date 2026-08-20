@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, IsUrl, MaxLength, ValidateIf } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, ValidateIf } from "class-validator";
 
 export class UpdateSetupItemDto {
   readonly userId: string;
@@ -7,10 +7,11 @@ export class UpdateSetupItemDto {
   readonly itemId: string;
 
   @IsString()
+  @IsNotEmpty()
   @IsOptional()
   @MaxLength(100)
   @ApiPropertyOptional({
-    description: "Name of the component",
+    description: "Name of the component, or text of the title",
     example: 'Odyssey G7 27"',
     type: "string",
   })

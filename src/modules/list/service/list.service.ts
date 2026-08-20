@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ActivityType } from "@prisma/generated/enums";
+import { ActivityType, ContentType, XpReason } from "@prisma/generated/enums";
 import { ListFindManyArgs, ListItemFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import {
   DatabaseService,
@@ -135,10 +136,17 @@ export class ListService {
       listId: list.id,
       metadata: { ...list },
     });
+
+    await this.queueService.toXpJob({
+      userId,
+      reason: XpReason.ListCreated,
+      contentType: type as unknown as ContentType,
+      sourceKey: XP_SOURCE_KEYS.list(list.id),
+    });
   }
 
   async addItemToList(addItemToListDto: AddItemToListDto) {
-    const { listId, userId, position, type: _, ...entityIds } = addItemToListDto;
+    const { listId, userId, position, type, ...entityIds } = addItemToListDto;
 
     const listAlreadyExists = await this.databaseService.list.findFirst({
       where: {
@@ -246,6 +254,17 @@ export class ListService {
       listItemId: listItem.id,
       metadata: { ...listItem },
     });
+
+    const mediaId = Object.values(entityIds).find((id): id is string => Boolean(id));
+
+    if (mediaId) {
+      await this.queueService.toXpJob({
+        userId,
+        reason: XpReason.ListItemAdded,
+        contentType: type as unknown as ContentType,
+        sourceKey: XP_SOURCE_KEYS.listItem(listId, mediaId),
+      });
+    }
   }
 
   async getListById(listId: string) {

@@ -9,6 +9,7 @@ import {
   CreateReactionNotificationDto,
   CreateSystemNotificationDto,
 } from "@/modules/notification/dto/notification.dto";
+import { GrantXpDto } from "@/modules/xp/dto/grant-xp.dto";
 import {
   ACTIVITY_JOB,
   CATCHUP_DAILY_JOB,
@@ -23,8 +24,9 @@ import {
   RESET_PASSWORD_JOB,
   SUBSCRIPTION_CANCELLED_JOB,
   WATCHED_ACTIVITY_JOB,
+  XP_JOB,
 } from "@/shared/constants/job";
-import { ACTIVITY_QUEUE, CATCHUP_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE } from "@/shared/constants/queue";
+import { ACTIVITY_QUEUE, CATCHUP_QUEUE, EMAIL_QUEUE, NOTIFICATION_QUEUE, XP_QUEUE } from "@/shared/constants/queue";
 import { DeleteAccountEmailDto } from "../email/dto/delete-account-email.dto";
 import { MagicLinkEmailDto } from "../email/dto/magic-link-email.dto";
 import { PaymentFailedEmailDto } from "../email/dto/payment-failed-email.dto";
@@ -32,7 +34,12 @@ import { PaymentSuccessEmailDto } from "../email/dto/payment-success-email.dto";
 import { ResetPasswordEmailDto } from "../email/dto/reset-password-email.dto";
 import { SubscriptionCancelledEmailDto } from "../email/dto/subscription-cancelled-email.dto";
 
-type QueueName = typeof EMAIL_QUEUE | typeof ACTIVITY_QUEUE | typeof NOTIFICATION_QUEUE | typeof CATCHUP_QUEUE;
+type QueueName =
+  | typeof EMAIL_QUEUE
+  | typeof ACTIVITY_QUEUE
+  | typeof NOTIFICATION_QUEUE
+  | typeof CATCHUP_QUEUE
+  | typeof XP_QUEUE;
 
 type JobName =
   | typeof ACTIVITY_JOB
@@ -46,7 +53,8 @@ type JobName =
   | typeof PAYMENT_SUCCESS_JOB
   | typeof PAYMENT_FAILED_JOB
   | typeof SUBSCRIPTION_CANCELLED_JOB
-  | typeof CATCHUP_DAILY_JOB;
+  | typeof CATCHUP_DAILY_JOB
+  | typeof XP_JOB;
 
 const DEFAULT_CATCHUP_CRON = "0 4 * * *";
 
@@ -64,6 +72,8 @@ export class QueueService implements OnModuleInit {
     private readonly notificationQueue: Queue,
     @InjectQueue(CATCHUP_QUEUE)
     private readonly catchupQueue: Queue,
+    @InjectQueue(XP_QUEUE)
+    private readonly xpQueue: Queue,
   ) {}
 
   async onModuleInit() {
@@ -98,6 +108,7 @@ export class QueueService implements OnModuleInit {
         [ACTIVITY_QUEUE]: this.activityQueue,
         [NOTIFICATION_QUEUE]: this.notificationQueue,
         [CATCHUP_QUEUE]: this.catchupQueue,
+        [XP_QUEUE]: this.xpQueue,
       } as const;
 
       const job = await queues[queueName].add(jobName, data, options);
@@ -106,6 +117,10 @@ export class QueueService implements OnModuleInit {
     } catch (error: any) {
       this.logger.error(`Failed to add job to queue [${queueName}] | error=${error.message}`);
     }
+  }
+
+  async toXpJob(grantXpDto: GrantXpDto) {
+    await this.addJob(XP_QUEUE, XP_JOB, grantXpDto);
   }
 
   async toActivityJob(createActivityDto: CreateActivityDto) {

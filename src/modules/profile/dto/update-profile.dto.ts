@@ -13,6 +13,21 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional({ type: "string", nullable: true })
+  readonly avatarFrame?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ type: "string", nullable: true })
+  readonly title?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ type: "string", nullable: true })
+  readonly bannerEffect?: string | null;
+
+  @IsOptional()
+  @IsString()
   @ApiPropertyOptional({ type: "string" })
   readonly language?: string;
 

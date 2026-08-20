@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { ActivityType, ProgressStatus } from "@prisma/generated/enums";
+import { ActivityType, ProgressStatus, XpReason } from "@prisma/generated/enums";
 import { FollowingFindManyArgs, UserFindManyArgs } from "@prisma/generated/models";
+import { CoinService } from "@/modules/coin/service/coin.service";
+import { MissionService } from "@/modules/mission/service/mission.service";
+import { XpService } from "@/modules/xp/service/xp.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -19,6 +23,9 @@ type ProgressGroup = {
 export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
+    private readonly xpService: XpService,
+    private readonly coinService: CoinService,
+    private readonly missionService: MissionService,
     private readonly queueService: QueueService,
   ) {}
 
@@ -296,7 +303,23 @@ export class UserService {
 
     const latestFavoriteType = latestFavorite?.type ?? null;
 
-    return { ...user, progressStats, counts, latestReviewType, latestProgressType, latestFavoriteType };
+    const [xp, coins, missions] = await Promise.all([
+      this.xpService.getXpByUserId(user.id),
+      this.coinService.getWalletByUserId(user.id),
+      this.missionService.getMissionSummaryByUserId(user.id),
+    ]);
+
+    return {
+      ...user,
+      progressStats,
+      counts,
+      latestReviewType,
+      latestProgressType,
+      latestFavoriteType,
+      xp,
+      coins,
+      missions,
+    };
   }
 
   getName(name: string | null | undefined, email: string) {
@@ -375,6 +398,12 @@ export class UserService {
       userId,
       followingId: following.id,
       metadata: { ...following },
+    });
+
+    await this.queueService.toXpJob({
+      userId,
+      reason: XpReason.Followed,
+      sourceKey: XP_SOURCE_KEYS.follow(targetUserId),
     });
   }
 

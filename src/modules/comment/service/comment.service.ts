@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import { XpReason } from "@prisma/generated/enums";
 import { CommentFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -41,6 +43,12 @@ export class CommentService {
     });
 
     await this.queueService.toCommentNotificationJob({ commentId: comment.id });
+
+    await this.queueService.toXpJob({
+      userId,
+      reason: XpReason.CommentAdded,
+      sourceKey: XP_SOURCE_KEYS.comment(comment.id),
+    });
   }
 
   async deleteComment(deleteCommentDto: DeleteCommentDto) {
@@ -74,6 +82,13 @@ export class CommentService {
         select: {
           id: true,
           avatarUrl: true,
+          avatarFrame: true,
+          title: true,
+        },
+      },
+      xp: {
+        select: {
+          level: true,
         },
       },
     } as const;

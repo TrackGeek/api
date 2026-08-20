@@ -42,6 +42,16 @@ export class UpdateNotificationPreferencesDto {
     description: "Receive notifications when a sequel of a finished title lands.",
   })
   readonly sequelAdded?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when you reach a new level." })
+  readonly levelUp?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ type: "boolean", description: "Receive notifications when you complete a mission." })
+  readonly mission?: boolean;
 }
 
 export interface NotificationPreferences {
@@ -52,4 +62,6 @@ export interface NotificationPreferences {
   readonly gameRelease: boolean;
   readonly reopenedCompleted: boolean;
   readonly sequelAdded: boolean;
+  readonly levelUp: boolean;
+  readonly mission: boolean;
 }

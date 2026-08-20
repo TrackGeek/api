@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
 import { CatchupController } from "./controller/catchup.controller";
+import { CatchupService } from "./service/catchup.service";
 import { CatchupAuditService } from "./service/catchup-audit.service";
 import { CatchupFeedService } from "./service/catchup-feed.service";
 import { CatchupFlagsService } from "./service/catchup-flags.service";
 import { CatchupNotificationService } from "./service/catchup-notification.service";
 import { CatchupRunService } from "./service/catchup-run.service";
-import { CatchupService } from "./service/catchup.service";
 import { DailyReleaseIngestorService } from "./service/daily-release-ingestor.service";
 import { ReleaseEventService } from "./service/release-event.service";
 import { ReleaseMatcherService } from "./service/release-matcher.service";

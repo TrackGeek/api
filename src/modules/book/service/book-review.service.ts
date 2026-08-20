@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ActivityType } from "@prisma/generated/enums";
+import { ActivityType, ContentType, XpReason } from "@prisma/generated/enums";
 import { BookReviewFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -60,6 +61,13 @@ export class BookReviewService {
       userId: createBookReviewDto.userId,
       bookReviewId: bookReview.id,
       metadata: { ...bookReview },
+    });
+
+    await this.queueService.toXpJob({
+      userId: createBookReviewDto.userId,
+      reason: XpReason.ReviewAdded,
+      contentType: ContentType.Book,
+      sourceKey: XP_SOURCE_KEYS.review(ContentType.Book, createBookReviewDto.bookId),
     });
   }
 

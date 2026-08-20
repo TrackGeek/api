@@ -8,6 +8,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { GetNotificationsByUserDto } from "../dto/get-notifications.dto";
 import {
   CreateCommentNotificationDto,
+  CreateProgressionNotificationDto,
   CreateReactionNotificationDto,
   CreateSystemNotificationDto,
 } from "../dto/notification.dto";
@@ -21,6 +22,8 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   gameRelease: true,
   reopenedCompleted: true,
   sequelAdded: true,
+  levelUp: true,
+  mission: true,
 };
 
 const PREFERENCE_SELECT = {
@@ -31,6 +34,8 @@ const PREFERENCE_SELECT = {
   gameRelease: true,
   reopenedCompleted: true,
   sequelAdded: true,
+  levelUp: true,
+  mission: true,
 } as const;
 
 const REACTION_TARGETS = {
@@ -99,6 +104,18 @@ export class NotificationService {
         recipientId,
         metadata: { ...metadata },
       })),
+    });
+  }
+
+  // Level-up e missão concluída. Respeitam a preferência do usuário e usam
+  // titleKey/descriptionKey, resolvidos por i18n no cliente.
+  async createProgressionNotification({ recipientId, type, metadata }: CreateProgressionNotificationDto) {
+    const category = type === NotificationType.LevelUp ? "levelUp" : "mission";
+
+    if (!(await this.isCategoryEnabled(recipientId, category))) return;
+
+    await this.databaseService.notification.create({
+      data: { type, recipientId, metadata: { ...metadata } },
     });
   }
 

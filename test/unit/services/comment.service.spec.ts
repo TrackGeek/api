@@ -5,6 +5,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 const mockCommentCreate = vi.fn();
 const mockCommentFindUnique = vi.fn();
 const mockToCommentNotificationJob = vi.fn();
+const mockToXpJob = vi.fn();
 
 const mockDatabaseService = {
   comment: {
@@ -15,6 +16,7 @@ const mockDatabaseService = {
 
 const mockQueueService = {
   toCommentNotificationJob: mockToCommentNotificationJob,
+  toXpJob: mockToXpJob,
 };
 
 describe("CommentService", () => {
