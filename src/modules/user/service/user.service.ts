@@ -103,6 +103,7 @@ export class UserService {
           include: {
             setupPhotos: { orderBy: { position: "asc" } },
             setupItems: { orderBy: { position: "asc" } },
+            links: { orderBy: { position: "asc" } },
           },
         },
         _count: {

@@ -13,6 +13,7 @@ import { CoinModule } from "./modules/coin/coin.module";
 import { CommentModule } from "./modules/comment/comment.module";
 import { CompanyModule } from "./modules/company/company.module";
 import { CosmeticModule } from "./modules/cosmetic/cosmetic.module";
+import { DiscordModule } from "./modules/discord/discord.module";
 import { FavoriteModule } from "./modules/favorite/favorite.module";
 import { GameModule } from "./modules/game/game.module";
 import { ListModule } from "./modules/list/list.module";
@@ -79,6 +80,7 @@ import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
     MissionModule,
     CoinModule,
     CosmeticModule,
+    DiscordModule,
   ],
   providers: [
     {

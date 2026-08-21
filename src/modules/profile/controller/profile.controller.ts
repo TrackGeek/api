@@ -17,9 +17,12 @@ import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { imageConfig } from "@/shared/infra/upload/upload.config";
 import { AddSetupPhotoDto } from "../dto/add-setup-photo.dto";
+import { CreateProfileLinkDto } from "../dto/create-profile-link.dto";
 import { CreateSetupItemDto } from "../dto/create-setup-item.dto";
+import { ReorderProfileLinksDto } from "../dto/reorder-profile-links.dto";
 import { ReorderSetupItemsDto } from "../dto/reorder-setup-items.dto";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
+import { UpdateProfileLinkDto } from "../dto/update-profile-link.dto";
 import { UpdateSetupItemDto } from "../dto/update-setup-item.dto";
 import { ProfileService } from "../service/profile.service";
 
@@ -115,5 +118,46 @@ export class ProfileController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSetupItem(@Session() session: UserSession, @Param("itemId", new ParseUUIDPipe()) itemId: string) {
     await this.profileService.deleteSetupItem(session.user.id, itemId);
+  }
+
+  @Post("/link")
+  @HttpCode(HttpStatus.CREATED)
+  async createProfileLink(@Session() session: UserSession, @Body() body: CreateProfileLinkDto) {
+    const link = await this.profileService.createProfileLink({
+      ...body,
+      userId: session.user.id,
+    });
+
+    return { link };
+  }
+
+  @Patch("/links/order")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async reorderProfileLinks(@Session() session: UserSession, @Body() body: ReorderProfileLinksDto) {
+    await this.profileService.reorderProfileLinks({
+      ...body,
+      userId: session.user.id,
+    });
+  }
+
+  @Patch("/link/:linkId")
+  async updateProfileLink(
+    @Session() session: UserSession,
+    @Param("linkId", new ParseUUIDPipe()) linkId: string,
+    @Body() body: UpdateProfileLinkDto,
+  ) {
+    const link = await this.profileService.updateProfileLink({
+      ...body,
+      linkId,
+      userId: session.user.id,
+    });
+
+    return { link };
+  }
+
+  @Delete("/link/:linkId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteProfileLink(@Session() session: UserSession, @Param("linkId", new ParseUUIDPipe()) linkId: string) {
+    await this.profileService.deleteProfileLink(session.user.id, linkId);
   }
 }
