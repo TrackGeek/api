@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import { XpReason } from "@prisma/generated/enums";
 import { ReactionFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -28,6 +30,12 @@ export class ReactionService {
     });
 
     await this.queueService.toReactionNotificationJob({ reactionId: reaction.id });
+
+    await this.queueService.toXpJob({
+      userId,
+      reason: XpReason.ReactionAdded,
+      sourceKey: XP_SOURCE_KEYS.reaction(reaction.id),
+    });
   }
 
   async deleteReaction(deleteReactionDto: DeleteReactionDto) {

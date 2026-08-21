@@ -50,6 +50,7 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "country-to-currency": "^3.0.1",
+    "discord.js": "^14.27.0",
     "dotenv": "^17.4.1",
     "emoji-regex": "^10.6.0",
     "graphql": "^16.13.2",

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsObject, IsUUID } from "class-validator";
+import { NotificationType } from "@prisma/generated/enums";
+import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsObject, IsUUID } from "class-validator";
 
 // Shape of Notification.metadata when type is System. Kept open on purpose — what the system sends
 // is not settled yet, so anything beyond these fields rides along untouched.
@@ -40,4 +41,21 @@ export class CreateReactionNotificationDto {
   @IsUUID("7")
   @ApiProperty({ type: "string", format: "uuid" })
   readonly reactionId: string;
+}
+
+export class CreateProgressionNotificationDto {
+  @IsNotEmpty()
+  @IsUUID("7")
+  @ApiProperty({ type: "string", format: "uuid" })
+  readonly recipientId: string;
+
+  @IsEnum(NotificationType)
+  @IsNotEmpty()
+  @ApiProperty({ enum: [NotificationType.LevelUp, NotificationType.MissionCompleted] })
+  readonly type: typeof NotificationType.LevelUp | typeof NotificationType.MissionCompleted;
+
+  @IsObject()
+  @IsNotEmpty()
+  @ApiProperty({ type: "object", additionalProperties: true })
+  readonly metadata: SystemNotificationMetadata;
 }

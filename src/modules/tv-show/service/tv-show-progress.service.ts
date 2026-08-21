@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { ProgressStatus } from "@prisma/generated/enums";
+import { ContentType, ProgressStatus } from "@prisma/generated/enums";
 import { TvShowProgressFindManyArgs } from "@prisma/generated/models";
-import { activityTypeFromProgressStatus } from "@/modules/activity/activity.utils";
+import { activityTypeFromProgressStatus, xpReasonFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -80,6 +81,17 @@ export class TVShowProgressService {
         userId,
         tvShowProgressId: tvShowProgress.id,
         metadata: { ...tvShowProgress },
+      });
+    }
+
+    const xpReason = xpReasonFromProgressStatus(status);
+
+    if (xpReason) {
+      await this.queueService.toXpJob({
+        userId,
+        reason: xpReason,
+        contentType: ContentType.TVShow,
+        sourceKey: XP_SOURCE_KEYS.progress(xpReason, ContentType.TVShow, tvShowId),
       });
     }
 

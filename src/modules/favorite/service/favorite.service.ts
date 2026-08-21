@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ActivityType } from "@prisma/generated/enums";
+import { ActivityType, ContentType, FavoriteType, XpReason } from "@prisma/generated/enums";
 import { FavoriteFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -119,6 +120,19 @@ export class FavoriteService {
       favoriteId: favorite.id,
       metadata: { ...favorite },
     });
+
+    // Um favorito referencia exatamente uma entidade. Favorito de pessoa conta
+    // XP, mas não pertence a nenhuma mídia — vai sem contentType.
+    const mediaId = Object.values(entityIds).find((id): id is string => Boolean(id));
+
+    if (mediaId) {
+      await this.queueService.toXpJob({
+        userId,
+        reason: XpReason.FavoriteAdded,
+        ...(type !== FavoriteType.Person && { contentType: type as unknown as ContentType }),
+        sourceKey: XP_SOURCE_KEYS.favorite(type, mediaId),
+      });
+    }
   }
 
   async getFavoritesByUserId(getFavoritesByUserIdDto: GetFavoritesByUserIdDto) {

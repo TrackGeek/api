@@ -69,6 +69,13 @@ model User {
   notificationsSent      Notification[]          @relation("NotificationActor")
   notificationPreference NotificationPreference?
   statusTransitionLogs   StatusTransitionLog[]
+  xp                     UserXp?
+  wallet                 UserWallet?
+  contentXp              UserContentXp[]
+  xpLedger               XpLedger[]
+  coinLedger             CoinLedger[]
+  missions               UserMission[]
+  cosmetics              UserCosmetic[]
 
   @@unique([email])
   @@unique([username])
@@ -149,6 +156,9 @@ model Profile {
   id           String        @id @default(uuid(7))
   userId       String        @unique
   color        String?       @default("#10b981")
+  avatarFrame  String?
+  title        String?
+  bannerEffect String?
   language     String?       @default("en-US")
   timezone     String?
   watchRegion  String?       @default("US")
@@ -164,6 +174,7 @@ model Profile {
   notifications Notification[]
   setupPhotos   SetupPhoto[]
   setupItems    SetupItem[]
+  links         ProfileLink[]
 }
 
 model SetupPhoto {
@@ -179,12 +190,33 @@ model SetupPhoto {
   @@index([profileId])
 }
 
+enum SetupItemType {
+  COMPONENT
+  TITLE
+  DIVIDER
+}
+
 model SetupItem {
-  id        String   @id @default(uuid(7))
+  id        String        @id @default(uuid(7))
   profileId String
-  name      String
+  type      SetupItemType @default(COMPONENT)
+  name      String?
   brand     String?
   link      String?
+  position  Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model ProfileLink {
+  id        String   @id @default(uuid(7))
+  profileId String
+  label     String
+  url       String
   position  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -202,6 +234,7 @@ model Medal {
   updatedAt DateTime @updatedAt
 
   userMedals UserMedal[]
+  missions   Mission[]
 
   @@unique([name])
 }
@@ -347,6 +380,8 @@ enum NotificationType {
   NewChapterReleased
   NewGameReleased
   SequelAdded
+  LevelUp
+  MissionCompleted
 }
 
 model Notification {
@@ -398,6 +433,8 @@ model NotificationPreference {
   gameRelease       Boolean  @default(true)
   reopenedCompleted Boolean  @default(true)
   sequelAdded       Boolean  @default(true)
+  levelUp           Boolean  @default(true)
+  mission           Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -417,6 +454,8 @@ enum ActivityType {
   Watched
   Followed
   MedalEarned
+  LevelUp
+  MissionCompleted
 }
 
 model Activity {
@@ -1404,4 +1443,180 @@ model CatchupAuditLog {
 
   @@index([runId])
   @@index([action, createdAt])
+}
+
+enum XpReason {
+  EpisodeWatched
+  ProgressStarted
+  ProgressCompleted
+  ReviewAdded
+  ListCreated
+  ListItemAdded
+  FavoriteAdded
+  Followed
+  CommentAdded
+  ReactionAdded
+  StreakBonus
+  MissionCompleted
+}
+
+model UserXp {
+  id             String    @id @default(uuid(7))
+  userId         String    @unique
+  totalXp        Int       @default(0)
+  level          Int       @default(1)
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastActiveDate DateTime? @db.Date
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([level])
+}
+
+model UserContentXp {
+  id          String      @id @default(uuid(7))
+  userId      String
+  contentType ContentType
+  xp          Int         @default(0)
+  level       Int         @default(1)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentType])
+}
+
+model XpLedger {
+  id          String       @id @default(uuid(7))
+  userId      String
+  reason      XpReason
+  contentType ContentType?
+  amount      Int
+  sourceKey   String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceKey])
+  @@index([userId, createdAt])
+  @@index([userId, reason, createdAt])
+}
+
+enum MissionMetric {
+  EpisodesWatched
+  ProgressCompleted
+  ReviewsWritten
+  FavoritesAdded
+  ListsCreated
+  ListItemsAdded
+  UsersFollowed
+  CommentsWritten
+  LevelReached
+  StreakReached
+  ContentTypesReviewed
+}
+
+enum MissionTier {
+  Bronze
+  Silver
+  Gold
+  Platinum
+}
+
+model Mission {
+  id          String        @id @default(uuid(7))
+  key         String        @unique
+  metric      MissionMetric
+  contentType ContentType?
+  target      Int
+  xpReward    Int           @default(0)
+  coinReward  Int           @default(0)
+  cosmeticKey String?
+  medalId     String?
+  tier        MissionTier   @default(Bronze)
+  position    Int           @default(0)
+  hidden      Boolean       @default(false)
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  medal        Medal?        @relation(fields: [medalId], references: [id], onDelete: SetNull)
+  userMissions UserMission[]
+
+  @@index([metric, active])
+  @@index([active, tier, position])
+}
+
+model UserMission {
+  id          String    @id @default(uuid(7))
+  userId      String
+  missionId   String
+  progress    Int       @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([userId, completedAt])
+}
+
+enum CoinReason {
+  LevelUp
+  MissionCompleted
+  AdminGrant
+  Purchase
+}
+
+model UserWallet {
+  id             String   @id @default(uuid(7))
+  userId         String   @unique
+  balance        Int      @default(0)
+  lifetimeEarned Int      @default(0)
+  lifetimeSpent  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CoinLedger {
+  id        String     @id @default(uuid(7))
+  userId    String
+  reason    CoinReason
+  amount    Int
+  sourceKey String
+  metadata  Json?
+  createdAt DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceKey])
+  @@index([userId, createdAt])
+}
+
+enum CosmeticType {
+  ProfileColor
+  AvatarFrame
+  ProfileTitle
+  BannerEffect
+}
+
+model UserCosmetic {
+  id        String       @id @default(uuid(7))
+  userId    String
+  type      CosmeticType
+  key       String
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, key])
 }

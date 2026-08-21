@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { CATCHUP_AUDIT_ACTIONS } from "../constants/catchup.constants";
-import { createEmptyRunStats, CatchupRunStats, NormalizedRelease } from "../types/catchup.types";
+import { CatchupRunStats, createEmptyRunStats, NormalizedRelease } from "../types/catchup.types";
 import { CatchupAuditService } from "./catchup-audit.service";
 import { CatchupNotificationService } from "./catchup-notification.service";
 import { CatchupRunService } from "./catchup-run.service";
