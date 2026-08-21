@@ -8,13 +8,17 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { UploadService } from "@/shared/infra/upload/upload.service";
 import { AddSetupPhotoDto } from "../dto/add-setup-photo.dto";
 import { CreateProfileDto } from "../dto/create-profile.dto";
+import { CreateProfileLinkDto } from "../dto/create-profile-link.dto";
 import { CreateSetupItemDto } from "../dto/create-setup-item.dto";
+import { ReorderProfileLinksDto } from "../dto/reorder-profile-links.dto";
 import { ReorderSetupItemsDto } from "../dto/reorder-setup-items.dto";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
+import { UpdateProfileLinkDto } from "../dto/update-profile-link.dto";
 import { UpdateSetupItemDto } from "../dto/update-setup-item.dto";
 
 const MAX_SETUP_PHOTOS = 10;
 const MAX_SETUP_ITEMS = 30;
+const MAX_PROFILE_LINKS = 10;
 
 @Injectable()
 export class ProfileService {
@@ -220,6 +224,70 @@ export class ProfileService {
     await this.databaseService.setupItem.delete({ where: { id: item.id } });
   }
 
+  async createProfileLink(createProfileLinkDto: CreateProfileLinkDto) {
+    const profileId = await this.getProfileId(createProfileLinkDto.userId);
+
+    const links = await this.databaseService.profileLink.count({ where: { profileId } });
+
+    if (links >= MAX_PROFILE_LINKS) {
+      throw new AppException(ERROR_CODES.PROFILE_LINK_LIMIT_REACHED);
+    }
+
+    return this.databaseService.profileLink.create({
+      data: {
+        profileId,
+        label: createProfileLinkDto.label,
+        url: createProfileLinkDto.url,
+        position: links,
+      },
+    });
+  }
+
+  async updateProfileLink(updateProfileLinkDto: UpdateProfileLinkDto) {
+    const link = await this.findOwnedProfileLink(updateProfileLinkDto.userId, updateProfileLinkDto.linkId);
+
+    return this.databaseService.profileLink.update({
+      where: { id: link.id },
+      data: {
+        ...(updateProfileLinkDto.label !== undefined && { label: updateProfileLinkDto.label }),
+        ...(updateProfileLinkDto.url !== undefined && { url: updateProfileLinkDto.url }),
+      },
+    });
+  }
+
+  async reorderProfileLinks(reorderProfileLinksDto: ReorderProfileLinksDto): Promise<void> {
+    const profileId = await this.getProfileId(reorderProfileLinksDto.userId);
+
+    const links = await this.databaseService.profileLink.findMany({
+      where: { profileId },
+      select: { id: true },
+    });
+
+    const ownedIds = new Set(links.map((link) => link.id));
+    const isSameSet =
+      reorderProfileLinksDto.linkIds.length === ownedIds.size &&
+      reorderProfileLinksDto.linkIds.every((linkId) => ownedIds.has(linkId));
+
+    if (!isSameSet) {
+      throw new AppException(ERROR_CODES.PROFILE_LINK_NOT_FOUND);
+    }
+
+    await this.databaseService.$transaction(
+      reorderProfileLinksDto.linkIds.map((linkId, position) =>
+        this.databaseService.profileLink.update({
+          where: { id: linkId },
+          data: { position },
+        }),
+      ),
+    );
+  }
+
+  async deleteProfileLink(userId: string, linkId: string): Promise<void> {
+    const link = await this.findOwnedProfileLink(userId, linkId);
+
+    await this.databaseService.profileLink.delete({ where: { id: link.id } });
+  }
+
   private async getProfileId(userId: string): Promise<string> {
     const profile = await this.databaseService.profile.findUnique({
       where: { userId },
@@ -246,5 +314,20 @@ export class ProfileService {
     }
 
     return item;
+  }
+
+  private async findOwnedProfileLink(userId: string, linkId: string) {
+    const profileId = await this.getProfileId(userId);
+
+    const link = await this.databaseService.profileLink.findFirst({
+      where: { id: linkId, profileId },
+      select: { id: true },
+    });
+
+    if (!link) {
+      throw new AppException(ERROR_CODES.PROFILE_LINK_NOT_FOUND);
+    }
+
+    return link;
   }
 }

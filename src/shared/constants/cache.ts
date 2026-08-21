@@ -208,4 +208,9 @@ export const CACHE_KEYS = {
     prefix: (ip: string) => `currency:ip:${ip}`,
     expiration: 3600 * 24,
   },
+
+  DISCORD_PRESENCE: {
+    prefix: (discordId: string) => `discord:presence:${discordId}`,
+    expiration: 300,
+  },
 } as const;

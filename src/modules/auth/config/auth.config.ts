@@ -63,6 +63,7 @@ export function getAuthConfig(params: AuthConfigParams) {
     account: {
       accountLinking: {
         enabled: true,
+        allowDifferentEmails: true,
         updateUserInfoOnLink: false,
         // https://github.com/TrackGeek/api/pull/43#discussion_r2875336763
         trustedProviders: [

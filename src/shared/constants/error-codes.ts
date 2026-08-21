@@ -219,6 +219,14 @@ export const ERROR_CODES = {
     code: "SETUP_ITEM_LIMIT_REACHED",
     status: 409,
   },
+  PROFILE_LINK_NOT_FOUND: {
+    code: "PROFILE_LINK_NOT_FOUND",
+    status: 404,
+  },
+  PROFILE_LINK_LIMIT_REACHED: {
+    code: "PROFILE_LINK_LIMIT_REACHED",
+    status: 409,
+  },
   REVIEW_NOT_FOUND: {
     code: "REVIEW_NOT_FOUND",
     status: 404,
