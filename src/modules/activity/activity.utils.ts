@@ -1,4 +1,4 @@
-import { ActivityType, ProgressStatus } from "@prisma/generated/enums";
+import { ActivityType, ProgressStatus, XpReason } from "@prisma/generated/enums";
 
 const STARTED_STATUSES: ProgressStatus[] = [
   ProgressStatus.Watching,
@@ -27,6 +27,20 @@ export function activityTypeFromProgressStatus(status: ProgressStatus): Activity
 
   if (STARTED_STATUSES.includes(status)) {
     return ActivityType.ProgressStarted;
+  }
+
+  return null;
+}
+
+// Só começar e completar valem XP. Pausar e dropar não pagam nada, e como o
+// sourceKey é fixo por mídia, alternar entre statuses não paga duas vezes.
+export function xpReasonFromProgressStatus(status: ProgressStatus): XpReason | null {
+  if (status === ProgressStatus.Completed) {
+    return XpReason.ProgressCompleted;
+  }
+
+  if (STARTED_STATUSES.includes(status)) {
+    return XpReason.ProgressStarted;
   }
 
   return null;

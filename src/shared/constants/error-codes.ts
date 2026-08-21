@@ -295,4 +295,36 @@ export const ERROR_CODES = {
     code: "USER_USERNAME_ALREADY_EXISTS",
     status: 409,
   },
+  COSMETIC_NOT_FOUND: {
+    code: "COSMETIC_NOT_FOUND",
+    status: 404,
+  },
+  COSMETIC_LOCKED: {
+    code: "COSMETIC_LOCKED",
+    status: 403,
+  },
+  COSMETIC_NOT_PURCHASABLE: {
+    code: "COSMETIC_NOT_PURCHASABLE",
+    status: 400,
+  },
+  COSMETIC_ALREADY_OWNED: {
+    code: "COSMETIC_ALREADY_OWNED",
+    status: 409,
+  },
+  INSUFFICIENT_BALANCE: {
+    code: "INSUFFICIENT_BALANCE",
+    status: 409,
+  },
+  MISSION_NOT_FOUND: {
+    code: "MISSION_NOT_FOUND",
+    status: 404,
+  },
+  MISSION_KEY_ALREADY_EXISTS: {
+    code: "MISSION_KEY_ALREADY_EXISTS",
+    status: 409,
+  },
+  FORBIDDEN_ROLE: {
+    code: "FORBIDDEN_ROLE",
+    status: 403,
+  },
 } as const;

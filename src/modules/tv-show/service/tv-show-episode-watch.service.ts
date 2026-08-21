@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { WatchEpisodeStatus } from "@prisma/generated/enums";
+import { ContentType, WatchEpisodeStatus, XpReason } from "@prisma/generated/enums";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
@@ -77,6 +78,17 @@ export class TVShowEpisodeWatchService {
 
     if (watchedEpisodes.length > 0) {
       await this.queueService.toWatchedActivityJob({ userId, tvShowId, episodes: watchedEpisodes });
+    }
+
+    // Um job por episódio: o sourceKey é por episódio, então remarcar o mesmo
+    // episódio nunca paga de novo.
+    for (const episode of watchedEpisodes) {
+      await this.queueService.toXpJob({
+        userId,
+        reason: XpReason.EpisodeWatched,
+        contentType: ContentType.TVShow,
+        sourceKey: XP_SOURCE_KEYS.episode(ContentType.TVShow, tvShowId, episode),
+      });
     }
   }
 

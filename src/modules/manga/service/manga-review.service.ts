@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ActivityType } from "@prisma/generated/enums";
+import { ActivityType, ContentType, XpReason } from "@prisma/generated/enums";
 import { MangaReviewFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
@@ -62,6 +63,13 @@ export class MangaReviewService {
       userId: createMangaReviewDto.userId,
       mangaReviewId: mangaReview.id,
       metadata: { ...mangaReview },
+    });
+
+    await this.queueService.toXpJob({
+      userId: createMangaReviewDto.userId,
+      reason: XpReason.ReviewAdded,
+      contentType: ContentType.Manga,
+      sourceKey: XP_SOURCE_KEYS.review(ContentType.Manga, createMangaReviewDto.mangaId),
     });
   }
 

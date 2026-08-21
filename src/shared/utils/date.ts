@@ -40,3 +40,17 @@ export function endOfDayInTimeZone(date: Date, timeZone: string): Date {
 export function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * MS_PER_DAY);
 }
+
+export function startOfUtcDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+// Chave YYYY-MM-DD do dia UTC. Usada como sourceKey de streak e como corte do teto diário.
+export function utcDayKey(date: Date): string {
+  return startOfUtcDay(date).toISOString().slice(0, 10);
+}
+
+// Dias inteiros entre dois instantes, comparando meia-noite UTC de cada um.
+export function diffUtcDays(from: Date, to: Date): number {
+  return Math.round((startOfUtcDay(to).getTime() - startOfUtcDay(from).getTime()) / MS_PER_DAY);
+}

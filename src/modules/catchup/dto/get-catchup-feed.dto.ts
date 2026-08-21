@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
+import { CatchupMediaType } from "@prisma/generated/enums";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, Max, Min } from "class-validator";
-import { CatchupMediaType } from "@prisma/generated/enums";
 import { OffsetPaginationParamsDto } from "@/shared/infra/database/dtos/offset-pagination.dto";
 
 export class GetCatchupFeedDto extends OffsetPaginationParamsDto {

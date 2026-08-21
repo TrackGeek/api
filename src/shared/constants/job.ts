@@ -23,3 +23,5 @@ export const PAYMENT_FAILED_JOB = "payment-failed-job";
 export const CATCHUP_DAILY_JOB = "catchup-daily-job";
 
 export const CATCHUP_DAILY_SCHEDULER_ID = "catchup-daily-scheduler";
+
+export const XP_JOB = "xp-job";
