@@ -6,6 +6,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-show-episode-watch.dto";
 import { DeleteAllTVShowEpisodeWatchDto } from "../dto/delete-all-tv-show-episode-watch.dto";
 import { DeleteTVShowEpisodeWatchDto } from "../dto/delete-tv-show-episode-watch.dto";
@@ -19,10 +20,17 @@ export class TVShowEpisodeWatchService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateTVShowEpisodeWatch(createOrUpdateTVShowEpisodeWatchDto: CreateOrUpdateTVShowEpisodeWatchDto) {
     const { tvShowId, userId, episodes } = createOrUpdateTVShowEpisodeWatchDto;
+
+    await this.mediaReleaseService.assertEpisodeStatusesAllowed(
+      "tv",
+      tvShowId,
+      episodes.map(({ status }) => status),
+    );
 
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { id: tvShowId },
@@ -93,6 +101,8 @@ export class TVShowEpisodeWatchService {
   }
 
   async watchAllEpisodesOfTVShow({ tvShowId, userId }: WatchAllEpisodesOfTVShowDto) {
+    await this.mediaReleaseService.assertEpisodeStatusesAllowed("tv", tvShowId, [WatchEpisodeStatus.Completed]);
+
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { id: tvShowId },
       select: { seasons: true },

@@ -5,6 +5,7 @@ import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateAnimeEpisodeWatchDto } from "../dto/create-or-update-anime-episode-watch.dto";
 import { DeleteAllAnimeEpisodeWatchDto } from "../dto/delete-all-anime-episode-watch.dto";
 import { DeleteAnimeEpisodeWatchDto } from "../dto/delete-anime-episode-watch.dto";
@@ -18,10 +19,17 @@ export class AnimeEpisodeWatchService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateAnimeEpisodeWatch(createOrUpdateAnimeEpisodeWatchDto: CreateOrUpdateAnimeEpisodeWatchDto) {
     const { animeId, userId, episodes } = createOrUpdateAnimeEpisodeWatchDto;
+
+    await this.mediaReleaseService.assertEpisodeStatusesAllowed(
+      "anime",
+      animeId,
+      episodes.map(({ status }) => status),
+    );
 
     const anime = await this.databaseService.anime.findUnique({
       where: { id: animeId },
@@ -90,6 +98,8 @@ export class AnimeEpisodeWatchService {
   }
 
   async watchAllAnimeEpisodes({ animeId, userId }: WatchAllAnimeEpisodesDto) {
+    await this.mediaReleaseService.assertEpisodeStatusesAllowed("anime", animeId, [WatchEpisodeStatus.Completed]);
+
     const anime = await this.databaseService.anime.findUnique({
       where: { id: animeId },
       select: { numberOfEpisodes: true },

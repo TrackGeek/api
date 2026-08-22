@@ -239,6 +239,10 @@ export const ERROR_CODES = {
     code: "PROGRESS_NOT_FOUND",
     status: 404,
   },
+  MEDIA_NOT_RELEASED: {
+    code: "MEDIA_NOT_RELEASED",
+    status: 409,
+  },
   INVALID_GAME_PLATFORMS: {
     code: "INVALID_GAME_PLATFORMS",
     status: 400,

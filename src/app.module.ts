@@ -37,6 +37,7 @@ import { IntegrationsModule } from "./shared/infra/integrations/integrations.mod
 import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
+import { MediaReleaseModule } from "./shared/media-release/media-release.module";
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
     QueueModule,
     DatabaseModule,
     MediaFilterModule,
+    MediaReleaseModule,
     AuthModule,
     ActivityModule,
     CacheModule,

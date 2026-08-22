@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
 
@@ -18,10 +19,13 @@ export class BookProgressService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
     private readonly mediaFilterService: MediaFilterService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateBookProgress(createOrUpdateBookProgressDto: CreateOrUpdateBookProgressDto) {
     const { bookId, userId, status, readCount, chaptersRead, completedAt, startedAt } = createOrUpdateBookProgressDto;
+
+    await this.mediaReleaseService.assertProgressStatusAllowed("book", bookId, status);
 
     const bookProgress = await this.databaseService.bookProgress.upsert({
       where: {
