@@ -30,4 +30,4 @@ COPY --chown=node:node package.json prisma.config.ts ./
 COPY --chown=node:node prisma ./prisma
 USER node
 EXPOSE 40287
-CMD ["sh", "-c", "npm run prisma:migrate:deploy && npm run start"]
+CMD ["sh", "-c", "npm run db:migrate:deploy && npm run start"]

@@ -100,15 +100,16 @@ The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover)
 
 <samp>
 
-| Service                            | Purpose                                |
-|------------------------------------|----------------------------------------|
-| [Tenrai](https://tenrai.org)       | Anime and Manga metadata (MyAnimeList) |
-| [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata           |
-| [IGDB](https://www.igdb.com)       | Video Games metadata                   |
-| [Hardcover](https://hardcover.app) | Books metadata                         |
-| [ImgBB](https://imgbb.com)         | Image hosting for uploads              |
-| [Stripe](https://stripe.com)       | Payment processing                     |
-| [Resend](https://resend.com)       | Transactional email delivery           |
+| Service                            | Purpose                      |
+|------------------------------------|------------------------------|
+| [Anilist](https://anilist.co)      | Manga metadata               |
+| [Tenrai](https://tenrai.org)       | Anime metadata (MyAnimeList) |
+| [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata |
+| [IGDB](https://www.igdb.com)       | Video Games metadata         |
+| [Hardcover](https://hardcover.app) | Books metadata               |
+| [ImgBB](https://imgbb.com)         | Image hosting for uploads    |
+| [Stripe](https://stripe.com)       | Payment processing           |
+| [Resend](https://resend.com)       | Transactional email delivery |
 
 </samp>
 
@@ -200,9 +201,9 @@ docker compose up -d
 Run database migrations, generate the Prisma client, and seed data
 
 ```bash
-bun prisma:migrate
-bun prisma:generate
-bun prisma:seed
+bun db:migrate
+bun db:generate
+bun db:seed
 ```
 
 Start the development server
@@ -238,30 +239,30 @@ This is only for local development. In production, configure the webhook endpoin
 
 <samp>
 
-| Script                 | Description                                  |
-|------------------------|----------------------------------------------|
-| `bun dev`              | Start development server with hot reload     |
-| `bun run build`        | Build for production                         |
-| `bun start`            | Start production server                      |
-| `bun prisma:migrate`   | Run database migrations                      |
-| `bun prisma:generate`  | Generate Prisma client                       |
-| `bun prisma:seed`      | Seed the database                            |
-| `bun stripe:webhook`   | Forward Stripe events to the local webhook   |
-| `bun test:unit`        | Run unit tests (Vitest)                      |
-| `bun test:unit:watch`  | Run unit tests in watch mode                 |
-| `bun test:unit:ui`     | Run unit tests with the Vitest UI            |
-| `bun test:unit:cov`    | Run unit tests with coverage                 |
-| `bun test:e2e`         | Run end-to-end tests (Playwright)            |
-| `bun test:e2e:ui`      | Run end-to-end tests with the Playwright UI  |
-| `bun test:e2e:debug`   | Run end-to-end tests in debug mode           |
-| `bun test:load`        | Run load tests (k6)                          |
-| `bun lint`             | Run Biome linter                             |
-| `bun lint:fix`         | Run Biome linter and apply fixes             |
-| `bun check`            | Run Biome checks                             |
-| `bun check:fix`        | Run Biome checks and apply fixes             |
-| `bun format`           | Check formatting with Biome                  |
-| `bun format:fix`       | Format code with Biome                       |
-| `bun types`            | Type check with TypeScript                   |
+| Script                | Description                                  |
+|-----------------------|----------------------------------------------|
+| `bun dev`             | Start development server with hot reload     |
+| `bun run build`       | Build for production                         |
+| `bun start`           | Start production server                      |
+| `bun db:migrate`      | Run database migrations                      |
+| `bun db:generate`     | Generate Prisma client                       |
+| `bun db:seed`         | Seed the database                            |
+| `bun stripe:webhook`  | Forward Stripe events to the local webhook   |
+| `bun test:unit`       | Run unit tests (Vitest)                      |
+| `bun test:unit:watch` | Run unit tests in watch mode                 |
+| `bun test:unit:ui`    | Run unit tests with the Vitest UI            |
+| `bun test:unit:cov`   | Run unit tests with coverage                 |
+| `bun test:e2e`        | Run end-to-end tests (Playwright)            |
+| `bun test:e2e:ui`     | Run end-to-end tests with the Playwright UI  |
+| `bun test:e2e:debug`  | Run end-to-end tests in debug mode           |
+| `bun test:load`       | Run load tests (k6)                          |
+| `bun lint`            | Run Biome linter                             |
+| `bun lint:fix`        | Run Biome linter and apply fixes             |
+| `bun check`           | Run Biome checks                             |
+| `bun check:fix`       | Run Biome checks and apply fixes             |
+| `bun format`          | Check formatting with Biome                  |
+| `bun format:fix`      | Format code with Biome                       |
+| `bun types`           | Type check with TypeScript                   |
 
 </samp>
 
@@ -269,34 +270,34 @@ This is only for local development. In production, configure the webhook endpoin
 
 <samp>
 
-| Variable                     | Description                                     |
-|------------------------------|-------------------------------------------------|
-| `PORT`                       | Server port (default: `40287`)                  |
-| `NODE_ENV`                   | Runtime environment (`development`/`production`)|
-| `DATABASE_URL`               | PostgreSQL connection string                    |
-| `REDIS_URL`                  | Redis connection string                         |
-| `BETTER_AUTH_URL`            | Auth base URL                                   |
-| `BETTER_AUTH_SECRET`         | Auth secret key                                 |
-| `BETTER_AUTH_LOG_LEVEL`      | Auth log level (default: `info`)                |
-| `WEB_URL`                    | Frontend URL for CORS                           |
-| `GOOGLE_CLIENT_ID/SECRET`    | Google OAuth credentials         |
-| `DISCORD_CLIENT_ID/SECRET`   | Discord OAuth credentials        |
-| `GITHUB_CLIENT_ID/SECRET`    | GitHub OAuth credentials         |
-| `TWITCH_CLIENT_ID/SECRET`    | Twitch OAuth credentials         |
-| `KICK_CLIENT_ID/SECRET`      | Kick OAuth credentials           |
-| `TWITTER_CLIENT_ID/SECRET`   | Twitter OAuth credentials        |
-| `SLACK_CLIENT_ID/SECRET`     | Slack OAuth credentials          |
-| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth credentials      |
-| `NOTION_CLIENT_ID/SECRET`    | Notion OAuth credentials         |
-| `SPOTIFY_CLIENT_ID/SECRET`   | Spotify OAuth credentials        |
-| `RESEND_API_KEY`             | Resend API key for emails        |
-| `RESEND_FROM`                | Sender email address             |
-| `STRIPE_SECRET_KEY`          | Stripe secret key for payments   |
-| `STRIPE_WEBHOOK_SECRET`      | Stripe webhook signing secret    |
-| `IMGBB_API_KEY`              | ImgBB API key for image uploads  |
-| `HARDCOVER_API_KEY`          | Hardcover API key for books      |
-| `TMDB_API_KEY`               | TMDB API key for movies/TV shows |
-| `IGDB_CLIENT_ID/SECRET`      | IGDB credentials for games       |
+| Variable                     | Description                                      |
+|------------------------------|--------------------------------------------------|
+| `PORT`                       | Server port (default: `40287`)                   |
+| `NODE_ENV`                   | Runtime environment (`development`/`production`) |
+| `DATABASE_URL`               | PostgreSQL connection string                     |
+| `REDIS_URL`                  | Redis connection string                          |
+| `BETTER_AUTH_URL`            | Auth base URL                                    |
+| `BETTER_AUTH_SECRET`         | Auth secret key                                  |
+| `BETTER_AUTH_LOG_LEVEL`      | Auth log level (default: `info`)                 |
+| `WEB_URL`                    | Frontend URL for CORS                            |
+| `GOOGLE_CLIENT_ID/SECRET`    | Google OAuth credentials                         |
+| `DISCORD_CLIENT_ID/SECRET`   | Discord OAuth credentials                        |
+| `GITHUB_CLIENT_ID/SECRET`    | GitHub OAuth credentials                         |
+| `TWITCH_CLIENT_ID/SECRET`    | Twitch OAuth credentials                         |
+| `KICK_CLIENT_ID/SECRET`      | Kick OAuth credentials                           |
+| `TWITTER_CLIENT_ID/SECRET`   | Twitter OAuth credentials                        |
+| `SLACK_CLIENT_ID/SECRET`     | Slack OAuth credentials                          |
+| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth credentials                      |
+| `NOTION_CLIENT_ID/SECRET`    | Notion OAuth credentials                         |
+| `SPOTIFY_CLIENT_ID/SECRET`   | Spotify OAuth credentials                        |
+| `RESEND_API_KEY`             | Resend API key for emails                        |
+| `RESEND_FROM`                | Sender email address                             |
+| `STRIPE_SECRET_KEY`          | Stripe secret key for payments                   |
+| `STRIPE_WEBHOOK_SECRET`      | Stripe webhook signing secret                    |
+| `IMGBB_API_KEY`              | ImgBB API key for image uploads                  |
+| `HARDCOVER_API_KEY`          | Hardcover API key for books                      |
+| `TMDB_API_KEY`               | TMDB API key for movies/TV shows                 |
+| `IGDB_CLIENT_ID/SECRET`      | IGDB credentials for games                       |
 
 </samp>
 

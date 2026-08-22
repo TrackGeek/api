@@ -12,7 +12,7 @@ const isDev = nodeEnv === "development";
 
 if (!nodeEnv || ["development", "production"].indexOf(nodeEnv) === -1) {
   console.log(
-    "NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run prisma:seed",
+    "NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run db:seed",
   );
 
   process.exit(1);
