@@ -22,8 +22,6 @@ export type CompletedMission = {
 export class MissionService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  // Chamado depois de um grantXp bem-sucedido. Avança tanto as métricas de
-  // contador quanto as derivadas afetadas pelo evento, e devolve o que fechou.
   async advanceForXpReason(
     userId: string,
     reason: XpReason,
@@ -53,8 +51,6 @@ export class MissionService {
     metric: MissionMetric,
     contentType: ContentType | null,
   ): Promise<CompletedMission[]> {
-    // Missão sem contentType conta em todas as mídias; missão com contentType só
-    // conta quando o evento é daquela mídia.
     const missions = await this.databaseService.mission.findMany({
       where: {
         metric,
@@ -125,8 +121,6 @@ export class MissionService {
       return xp?.longestStreak ?? 0;
     }
 
-    // LevelReached: missão com contentType mede o level daquela mídia; sem
-    // contentType, mede o level global.
     if (contentType) {
       const content = await this.databaseService.userContentXp.findUnique({
         where: { userId_contentType: { userId, contentType } },
@@ -168,7 +162,6 @@ export class MissionService {
       const progress = Math.min(userMission?.progress ?? 0, mission.target);
       const completedAt = userMission?.completedAt ?? null;
 
-      // Missão secreta só revela metric/target/recompensa depois de concluída.
       if (mission.hidden && !completedAt) {
         return {
           id: mission.id,
@@ -207,7 +200,6 @@ export class MissionService {
     };
   }
 
-  // Resumo enxuto para o payload do perfil: contagem e as últimas concluídas.
   async getMissionSummaryByUserId(userId: string, recent = 5) {
     const [total, completed, latest] = await Promise.all([
       this.databaseService.mission.count({ where: { active: true } }),

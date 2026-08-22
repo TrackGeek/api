@@ -42,9 +42,6 @@ interface GeoProvider {
   parse: (data: any) => string | null;
 }
 
-// Providers are asked only for a country code — the country-to-currency map does the rest, so a
-// provider that drops its `currency` field (as ipapi.co and ipwho.is have) costs nothing here.
-// Tried in order; the first one that answers with a country wins.
 const GEO_PROVIDERS: GeoProvider[] = [
   {
     name: "ipwho.is",
@@ -109,9 +106,6 @@ export class StripeService {
     return customerId;
   }
 
-  /**
-   * Pra usar tem que criar o produto no Stripe com o nome "Donate" e ativar ele. O ID do produto é usado para criar os preços.
-   */
   async donateProduct(): Promise<Stripe.Product> {
     const donateProduct = await this.client.products
       .list({ active: true, limit: 100 })

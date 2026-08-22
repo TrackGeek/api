@@ -5,7 +5,6 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { ROLES_KEY } from "@/shared/decorators/roles.decorator";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 
-// Roda depois do AuthGuard, que é quem popula request.session.
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

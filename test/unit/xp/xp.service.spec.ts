@@ -81,7 +81,6 @@ describe("XpService", () => {
     it("o teto diário corta o excedente", async () => {
       const { amount, dailyCap } = XP_RULES[XpReason.EpisodeWatched];
 
-      // Faltam 2 XP para o teto: a concessão de 5 é cortada em 2.
       mockXpLedgerAggregate.mockResolvedValueOnce({ _sum: { amount: (dailyCap as number) - 2 } });
       mockUserXpUpsert.mockResolvedValueOnce({ totalXp: dailyCap as number, level: 1 });
 

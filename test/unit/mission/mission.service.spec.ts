@@ -120,7 +120,6 @@ describe("MissionService", () => {
       const mission = buildMission({ metric: MissionMetric.ContentTypesReviewed, target: 6 });
       const userMissionId = faker.string.uuid();
 
-      // Primeira chamada: métrica de contador (ReviewsWritten). Segunda: a derivada.
       mockMissionFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([mission]);
       mockXpLedgerFindMany.mockResolvedValueOnce(
         [
