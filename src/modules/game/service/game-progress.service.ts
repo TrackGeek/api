@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 
@@ -18,11 +19,14 @@ export class GameProgressService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
     private readonly mediaFilterService: MediaFilterService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateGameProgress(createOrUpdateGameProgressDto: CreateOrUpdateGameProgressDto) {
     const { gameId, userId, status, playCount, completion, hoursPlayed, platforms, notes, completedAt, startedAt } =
       createOrUpdateGameProgressDto;
+
+    await this.mediaReleaseService.assertProgressStatusAllowed("game", gameId, status);
 
     const playedPlatforms = platforms && (await this.resolveGamePlatforms(gameId, platforms));
 

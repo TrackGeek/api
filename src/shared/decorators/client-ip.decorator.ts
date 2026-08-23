@@ -22,8 +22,6 @@ function normalizeIp(ip: string): string {
 }
 
 function extractIp(req: Request): string {
-  // `req.ip` already resolves X-Forwarded-For according to the `trust proxy` hop count set in
-  // main.ts, so a forged header from a non-trusted hop is ignored. Never parse the header by hand.
   if (req.ip) return normalizeIp(req.ip);
 
   const realIp = req.headers["x-real-ip"];

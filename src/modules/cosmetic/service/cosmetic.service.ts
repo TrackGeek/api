@@ -53,8 +53,6 @@ export class CosmeticService {
     };
   }
 
-  // Checagem no cliente é só UX: a cor só entra no perfil se passar por aqui.
-  // Qualquer hex é livre (custom color); só gradientes exigem posse.
   async assertProfileColorUnlocked(userId: string, value: string) {
     if (HEX_COLOR_REGEX.test(value)) return;
 
@@ -75,8 +73,6 @@ export class CosmeticService {
     }
   }
 
-  // Para os tipos equipados por key (moldura, título, efeito de banner).
-  // "none" é o estado desequipado e passa sempre.
   async assertCosmeticUnlocked(userId: string, type: CosmeticType, key: string) {
     if (key === "none") return;
 
@@ -128,7 +124,6 @@ export class CosmeticService {
         tx,
       );
 
-      // null = sourceKey já pago: uma compra concorrente ganhou a corrida.
       if (!spent) {
         throw new AppException(ERROR_CODES.COSMETIC_ALREADY_OWNED);
       }

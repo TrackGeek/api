@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -19,11 +20,14 @@ import { imageConfig } from "@/shared/infra/upload/upload.config";
 import { AddSetupPhotoDto } from "../dto/add-setup-photo.dto";
 import { CreateProfileLinkDto } from "../dto/create-profile-link.dto";
 import { CreateSetupItemDto } from "../dto/create-setup-item.dto";
+import { CreateWatchLinkDto } from "../dto/create-watch-link.dto";
 import { ReorderProfileLinksDto } from "../dto/reorder-profile-links.dto";
 import { ReorderSetupItemsDto } from "../dto/reorder-setup-items.dto";
+import { ReorderWatchLinksDto } from "../dto/reorder-watch-links.dto";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { UpdateProfileLinkDto } from "../dto/update-profile-link.dto";
 import { UpdateSetupItemDto } from "../dto/update-setup-item.dto";
+import { UpdateWatchLinkDto } from "../dto/update-watch-link.dto";
 import { ProfileService } from "../service/profile.service";
 
 @ApiTags("Profile")
@@ -159,5 +163,53 @@ export class ProfileController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteProfileLink(@Session() session: UserSession, @Param("linkId", new ParseUUIDPipe()) linkId: string) {
     await this.profileService.deleteProfileLink(session.user.id, linkId);
+  }
+
+  @Get("/watch-links")
+  async getWatchLinks(@Session() session: UserSession) {
+    const watchLinks = await this.profileService.getWatchLinks(session.user.id);
+
+    return { watchLinks };
+  }
+
+  @Post("/watch-link")
+  @HttpCode(HttpStatus.CREATED)
+  async createWatchLink(@Session() session: UserSession, @Body() body: CreateWatchLinkDto) {
+    const watchLink = await this.profileService.createWatchLink({
+      ...body,
+      userId: session.user.id,
+    });
+
+    return { watchLink };
+  }
+
+  @Patch("/watch-links/order")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async reorderWatchLinks(@Session() session: UserSession, @Body() body: ReorderWatchLinksDto) {
+    await this.profileService.reorderWatchLinks({
+      ...body,
+      userId: session.user.id,
+    });
+  }
+
+  @Patch("/watch-link/:linkId")
+  async updateWatchLink(
+    @Session() session: UserSession,
+    @Param("linkId", new ParseUUIDPipe()) linkId: string,
+    @Body() body: UpdateWatchLinkDto,
+  ) {
+    const watchLink = await this.profileService.updateWatchLink({
+      ...body,
+      linkId,
+      userId: session.user.id,
+    });
+
+    return { watchLink };
+  }
+
+  @Delete("/watch-link/:linkId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteWatchLink(@Session() session: UserSession, @Param("linkId", new ParseUUIDPipe()) linkId: string) {
+    await this.profileService.deleteWatchLink(session.user.id, linkId);
   }
 }

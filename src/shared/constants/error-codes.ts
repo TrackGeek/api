@@ -227,6 +227,14 @@ export const ERROR_CODES = {
     code: "PROFILE_LINK_LIMIT_REACHED",
     status: 409,
   },
+  WATCH_LINK_NOT_FOUND: {
+    code: "WATCH_LINK_NOT_FOUND",
+    status: 404,
+  },
+  WATCH_LINK_LIMIT_REACHED: {
+    code: "WATCH_LINK_LIMIT_REACHED",
+    status: 409,
+  },
   REVIEW_NOT_FOUND: {
     code: "REVIEW_NOT_FOUND",
     status: 404,
@@ -238,6 +246,10 @@ export const ERROR_CODES = {
   PROGRESS_NOT_FOUND: {
     code: "PROGRESS_NOT_FOUND",
     status: 404,
+  },
+  MEDIA_NOT_RELEASED: {
+    code: "MEDIA_NOT_RELEASED",
+    status: 409,
   },
   INVALID_GAME_PLATFORMS: {
     code: "INVALID_GAME_PLATFORMS",

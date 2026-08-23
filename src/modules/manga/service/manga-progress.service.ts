@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateMangaProgressDto } from "../dto/create-or-update-manga-progress.dto";
 import { GetMangaProgressDto } from "../dto/get-manga-progressesdto";
 
@@ -18,10 +19,13 @@ export class MangaProgressService {
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
     private readonly mediaFilterService: MediaFilterService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateMangaProgress(createOrUpdateMangaProgressDto: CreateOrUpdateMangaProgressDto) {
     const { mangaId, userId, status, chaptersRead, readCount, completedAt, startedAt } = createOrUpdateMangaProgressDto;
+
+    await this.mediaReleaseService.assertProgressStatusAllowed("manga", mangaId, status);
 
     const manga = await this.databaseService.manga.findUnique({
       where: { id: mangaId },

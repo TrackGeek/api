@@ -3,6 +3,7 @@ import { CosmeticType, SetupItemType } from "@prisma/generated/enums";
 import { CosmeticService } from "@/modules/cosmetic/service/cosmetic.service";
 import { HEX_COLOR_REGEX } from "@/shared/constants/cosmetics";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
+import { MAX_WATCH_LINKS } from "@/shared/constants/watch-link";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { UploadService } from "@/shared/infra/upload/upload.service";
@@ -10,11 +11,14 @@ import { AddSetupPhotoDto } from "../dto/add-setup-photo.dto";
 import { CreateProfileDto } from "../dto/create-profile.dto";
 import { CreateProfileLinkDto } from "../dto/create-profile-link.dto";
 import { CreateSetupItemDto } from "../dto/create-setup-item.dto";
+import { CreateWatchLinkDto } from "../dto/create-watch-link.dto";
 import { ReorderProfileLinksDto } from "../dto/reorder-profile-links.dto";
 import { ReorderSetupItemsDto } from "../dto/reorder-setup-items.dto";
+import { ReorderWatchLinksDto } from "../dto/reorder-watch-links.dto";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { UpdateProfileLinkDto } from "../dto/update-profile-link.dto";
 import { UpdateSetupItemDto } from "../dto/update-setup-item.dto";
+import { UpdateWatchLinkDto } from "../dto/update-watch-link.dto";
 
 const MAX_SETUP_PHOTOS = 10;
 const MAX_SETUP_ITEMS = 30;
@@ -288,6 +292,83 @@ export class ProfileService {
     await this.databaseService.profileLink.delete({ where: { id: link.id } });
   }
 
+  async getWatchLinks(userId: string) {
+    const profileId = await this.getProfileId(userId);
+
+    return this.databaseService.watchLink.findMany({
+      where: { profileId },
+      orderBy: { position: "asc" },
+    });
+  }
+
+  async createWatchLink(createWatchLinkDto: CreateWatchLinkDto) {
+    const profileId = await this.getProfileId(createWatchLinkDto.userId);
+
+    const links = await this.databaseService.watchLink.count({ where: { profileId } });
+
+    if (links >= MAX_WATCH_LINKS) {
+      throw new AppException(ERROR_CODES.WATCH_LINK_LIMIT_REACHED);
+    }
+
+    return this.databaseService.watchLink.create({
+      data: {
+        profileId,
+        label: createWatchLinkDto.label,
+        url: createWatchLinkDto.url,
+        contentTypes: createWatchLinkDto.contentTypes,
+        enabled: createWatchLinkDto.enabled ?? true,
+        position: links,
+      },
+    });
+  }
+
+  async updateWatchLink(updateWatchLinkDto: UpdateWatchLinkDto) {
+    const link = await this.findOwnedWatchLink(updateWatchLinkDto.userId, updateWatchLinkDto.linkId);
+
+    return this.databaseService.watchLink.update({
+      where: { id: link.id },
+      data: {
+        ...(updateWatchLinkDto.label !== undefined && { label: updateWatchLinkDto.label }),
+        ...(updateWatchLinkDto.url !== undefined && { url: updateWatchLinkDto.url }),
+        ...(updateWatchLinkDto.contentTypes !== undefined && { contentTypes: updateWatchLinkDto.contentTypes }),
+        ...(updateWatchLinkDto.enabled !== undefined && { enabled: updateWatchLinkDto.enabled }),
+      },
+    });
+  }
+
+  async reorderWatchLinks(reorderWatchLinksDto: ReorderWatchLinksDto): Promise<void> {
+    const profileId = await this.getProfileId(reorderWatchLinksDto.userId);
+
+    const links = await this.databaseService.watchLink.findMany({
+      where: { profileId },
+      select: { id: true },
+    });
+
+    const ownedIds = new Set(links.map((link) => link.id));
+    const isSameSet =
+      reorderWatchLinksDto.linkIds.length === ownedIds.size &&
+      reorderWatchLinksDto.linkIds.every((linkId) => ownedIds.has(linkId));
+
+    if (!isSameSet) {
+      throw new AppException(ERROR_CODES.WATCH_LINK_NOT_FOUND);
+    }
+
+    await this.databaseService.$transaction(
+      reorderWatchLinksDto.linkIds.map((linkId, position) =>
+        this.databaseService.watchLink.update({
+          where: { id: linkId },
+          data: { position },
+        }),
+      ),
+    );
+  }
+
+  async deleteWatchLink(userId: string, linkId: string): Promise<void> {
+    const link = await this.findOwnedWatchLink(userId, linkId);
+
+    await this.databaseService.watchLink.delete({ where: { id: link.id } });
+  }
+
   private async getProfileId(userId: string): Promise<string> {
     const profile = await this.databaseService.profile.findUnique({
       where: { userId },
@@ -326,6 +407,21 @@ export class ProfileService {
 
     if (!link) {
       throw new AppException(ERROR_CODES.PROFILE_LINK_NOT_FOUND);
+    }
+
+    return link;
+  }
+
+  private async findOwnedWatchLink(userId: string, linkId: string) {
+    const profileId = await this.getProfileId(userId);
+
+    const link = await this.databaseService.watchLink.findFirst({
+      where: { id: linkId, profileId },
+      select: { id: true },
+    });
+
+    if (!link) {
+      throw new AppException(ERROR_CODES.WATCH_LINK_NOT_FOUND);
     }
 
     return link;

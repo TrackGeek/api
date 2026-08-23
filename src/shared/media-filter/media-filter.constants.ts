@@ -2,11 +2,6 @@ export const MEDIA_TYPES = ["anime", "manga", "tv", "movie", "game", "book"] as 
 
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
-/**
- * Provider-agnostic release state. Every provider ships its own status vocabulary
- * (MAL, AniList, TMDB, IGDB, Hardcover), so everything is normalized to this enum
- * before it reaches the API surface.
- */
 export enum MediaReleaseState {
   Unreleased = "Unreleased",
   Ongoing = "Ongoing",
@@ -15,7 +10,6 @@ export enum MediaReleaseState {
   Cancelled = "Cancelled",
 }
 
-/** Sortable columns exposed by every `GET /{type}/progress` endpoint. */
 export enum ProgressSortBy {
   Name = "name",
   AddedAt = "addedAt",
@@ -28,7 +22,6 @@ export enum ProgressSortOrder {
   Desc = "desc",
 }
 
-/** Display order used when returning the states available in a user's library. */
 export const MEDIA_RELEASE_STATE_ORDER: MediaReleaseState[] = [
   MediaReleaseState.Ongoing,
   MediaReleaseState.Finished,
@@ -39,7 +32,6 @@ export const MEDIA_RELEASE_STATE_ORDER: MediaReleaseState[] = [
 
 type RawStatusesByState = Partial<Record<MediaReleaseState, string[]>>;
 
-/** Raw provider status strings stored on each media table, grouped by normalized state. */
 export const RAW_STATUSES_BY_STATE: Record<MediaType, RawStatusesByState> = {
   anime: {
     [MediaReleaseState.Ongoing]: ["Currently Airing"],
@@ -67,10 +59,9 @@ export const RAW_STATUSES_BY_STATE: Record<MediaType, RawStatusesByState> = {
   game: {
     [MediaReleaseState.Ongoing]: ["Alpha", "Beta", "Early Access"],
     [MediaReleaseState.Finished]: ["Released"],
-    [MediaReleaseState.Unreleased]: ["Not Released", "Offline"],
+    [MediaReleaseState.Unreleased]: ["Not Released", "Offline", "Rumored"],
     [MediaReleaseState.Cancelled]: ["Cancelled", "Canceled", "Delisted"],
   },
-  // Hardcover exposes no release status, so book states are derived from the release date.
   book: {},
 };
 
@@ -92,12 +83,10 @@ export function rawStatusesForStates(mediaType: MediaType, states: MediaReleaseS
   return states.flatMap((state) => RAW_STATUSES_BY_STATE[mediaType][state] ?? []);
 }
 
-/** A media is "released" once it left the unreleased state. */
 export function unreleasedRawStatuses(mediaType: MediaType): string[] {
   return RAW_STATUSES_BY_STATE[mediaType][MediaReleaseState.Unreleased] ?? [];
 }
 
-/** `false` for providers without a release status — those fall back to the release date. */
 export function hasReleaseStatusColumn(mediaType: MediaType): boolean {
   return Object.keys(RAW_STATUSES_BY_STATE[mediaType]).length > 0;
 }

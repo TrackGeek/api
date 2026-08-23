@@ -12,7 +12,7 @@ const isDev = nodeEnv === "development";
 
 if (!nodeEnv || ["development", "production"].indexOf(nodeEnv) === -1) {
   console.log(
-    "NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run prisma:seed",
+    "NODE_ENV is not defined.\n\nPlease set it to 'development' or 'production'.\n\nExample: NODE_ENV=development bun run db:seed",
   );
 
   process.exit(1);
@@ -44,7 +44,6 @@ export async function populateMedals(prisma: PrismaClient) {
         name: "staff",
         imageUrl: "https://i.ibb.co/99PS2x8m/logo.png",
       },
-      // Marcos de level, concedidos automaticamente pelo XpProcessor.
       {
         name: "level-10",
         imageUrl: "https://i.ibb.co/99PS2x8m/logo.png",
@@ -70,7 +69,6 @@ export async function populateMedals(prisma: PrismaClient) {
   }
 }
 
-// Recompensa por tier. Manter em tabela evita valores soltos linha a linha.
 const MISSION_TIER_REWARD: Record<MissionTier, { xpReward: number; coinReward: number }> = {
   [MissionTier.Bronze]: { xpReward: 50, coinReward: 5 },
   [MissionTier.Silver]: { xpReward: 150, coinReward: 15 },
@@ -88,8 +86,6 @@ type MissionSeed = {
   hidden?: boolean;
 };
 
-// Catálogo inicial. Depois daqui, o CRUD admin (/admin/missions) é a fonte da
-// verdade — o seed usa skipDuplicates para nunca sobrescrever ajuste manual.
 const MISSION_CATALOG: MissionSeed[] = [
   { key: "watch_10_episodes", metric: MissionMetric.EpisodesWatched, target: 10, tier: MissionTier.Bronze },
   { key: "watch_100_episodes", metric: MissionMetric.EpisodesWatched, target: 100, tier: MissionTier.Silver },

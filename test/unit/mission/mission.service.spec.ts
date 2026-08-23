@@ -51,7 +51,7 @@ describe("MissionService", () => {
   });
 
   describe("advanceForXpReason", () => {
-    it("incrementa a missão de contador e não fecha antes da meta", async () => {
+    it("increment the mission of counter and doesn't close before the target", async () => {
       const mission = buildMission({ target: 10 });
 
       mockMissionFindMany.mockResolvedValueOnce([mission]);
@@ -65,7 +65,7 @@ describe("MissionService", () => {
       );
     });
 
-    it("fecha a missão quando a meta é batida", async () => {
+    it("close the mission when the target is beated", async () => {
       const mission = buildMission({ target: 10 });
       const userMissionId = faker.string.uuid();
 
@@ -79,7 +79,7 @@ describe("MissionService", () => {
       expect(completed[0]?.mission.id).toBe(mission.id);
     });
 
-    it("missão já concluída não fecha de novo", async () => {
+    it("mission already completed doesn't close again", async () => {
       mockMissionFindMany.mockResolvedValueOnce([buildMission({ target: 10 })]);
       mockUserMissionUpsert.mockResolvedValueOnce({ id: faker.string.uuid(), progress: 20, completedAt: new Date() });
 
@@ -89,7 +89,7 @@ describe("MissionService", () => {
       expect(mockUserMissionUpdate).not.toHaveBeenCalled();
     });
 
-    it("evento sem contentType só alimenta missões globais", async () => {
+    it("event without contentType just feed global missions", async () => {
       await service.advanceForXpReason(userId, XpReason.Followed, null);
 
       expect(mockMissionFindMany).toHaveBeenCalledWith({
@@ -97,7 +97,7 @@ describe("MissionService", () => {
       });
     });
 
-    it("evento de uma mídia alimenta a missão global e a daquela mídia", async () => {
+    it("event of a media feeds the global mission and the one for that media", async () => {
       await service.advanceForXpReason(userId, XpReason.EpisodeWatched, ContentType.Anime);
 
       expect(mockMissionFindMany).toHaveBeenCalledWith({
@@ -109,18 +109,17 @@ describe("MissionService", () => {
       });
     });
 
-    it("reason sem métrica mapeada não toca em missão nenhuma", async () => {
+    it("reason without metric mapped doesn't touch any mission", async () => {
       const completed = await service.advanceForXpReason(userId, XpReason.MissionCompleted, null);
 
       expect(completed).toEqual([]);
       expect(mockMissionFindMany).not.toHaveBeenCalled();
     });
 
-    it("ContentTypesReviewed fecha com as 6 mídias", async () => {
+    it("ContentTypesReviewed close with 6 content types", async () => {
       const mission = buildMission({ metric: MissionMetric.ContentTypesReviewed, target: 6 });
       const userMissionId = faker.string.uuid();
 
-      // Primeira chamada: métrica de contador (ReviewsWritten). Segunda: a derivada.
       mockMissionFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([mission]);
       mockXpLedgerFindMany.mockResolvedValueOnce(
         [
@@ -141,7 +140,7 @@ describe("MissionService", () => {
       expect(mockUserMissionUpsert).toHaveBeenCalledWith(expect.objectContaining({ update: { progress: 6 } }));
     });
 
-    it("StreakReached mede o maior streak, não o atual", async () => {
+    it("StreakReached fit the best streak, not the actual", async () => {
       mockMissionFindMany.mockResolvedValueOnce([buildMission({ metric: MissionMetric.StreakReached, target: 30 })]);
       mockUserXpFindUnique.mockResolvedValueOnce({ currentStreak: 2, longestStreak: 12 });
       mockUserMissionUpsert.mockResolvedValueOnce({ id: faker.string.uuid(), progress: 12, completedAt: null });
@@ -153,7 +152,7 @@ describe("MissionService", () => {
   });
 
   describe("advanceLevelReached", () => {
-    it("mede o level global quando a missão não tem contentType", async () => {
+    it("fit the global level when the mission doesn't have contentType", async () => {
       mockMissionFindMany.mockResolvedValueOnce([buildMission({ metric: MissionMetric.LevelReached, target: 10 })]);
       mockUserXpFindUnique.mockResolvedValueOnce({ level: 7 });
       mockUserMissionUpsert.mockResolvedValueOnce({ id: faker.string.uuid(), progress: 7, completedAt: null });
@@ -164,7 +163,7 @@ describe("MissionService", () => {
       expect(mockUserMissionUpsert).toHaveBeenCalledWith(expect.objectContaining({ update: { progress: 7 } }));
     });
 
-    it("mede o level da mídia quando a missão tem contentType", async () => {
+    it("fit media level when the mission has contentType", async () => {
       mockMissionFindMany.mockResolvedValueOnce([
         buildMission({ metric: MissionMetric.LevelReached, target: 5, contentType: ContentType.Game }),
       ]);

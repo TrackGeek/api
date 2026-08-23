@@ -6,6 +6,7 @@ import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateTVShowEpisodeWatchDto } from "../dto/create-or-update-tv-show-episode-watch.dto";
 import { DeleteAllTVShowEpisodeWatchDto } from "../dto/delete-all-tv-show-episode-watch.dto";
 import { DeleteTVShowEpisodeWatchDto } from "../dto/delete-tv-show-episode-watch.dto";
@@ -19,10 +20,17 @@ export class TVShowEpisodeWatchService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly queueService: QueueService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateTVShowEpisodeWatch(createOrUpdateTVShowEpisodeWatchDto: CreateOrUpdateTVShowEpisodeWatchDto) {
     const { tvShowId, userId, episodes } = createOrUpdateTVShowEpisodeWatchDto;
+
+    await this.mediaReleaseService.assertEpisodeStatusesAllowed(
+      "tv",
+      tvShowId,
+      episodes.map(({ status }) => status),
+    );
 
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { id: tvShowId },
@@ -70,8 +78,6 @@ export class TVShowEpisodeWatchService {
       );
     }
 
-    // Manual watching feeds a single per-series Watched activity (range in
-    // metadata); bulk "watch all" / series completion stays silent.
     const watchedEpisodes = episodes
       .filter(({ status }) => WATCHED_STATUSES.includes(status))
       .map(({ episode }) => episode);
@@ -80,8 +86,6 @@ export class TVShowEpisodeWatchService {
       await this.queueService.toWatchedActivityJob({ userId, tvShowId, episodes: watchedEpisodes });
     }
 
-    // Um job por episódio: o sourceKey é por episódio, então remarcar o mesmo
-    // episódio nunca paga de novo.
     for (const episode of watchedEpisodes) {
       await this.queueService.toXpJob({
         userId,
@@ -93,6 +97,8 @@ export class TVShowEpisodeWatchService {
   }
 
   async watchAllEpisodesOfTVShow({ tvShowId, userId }: WatchAllEpisodesOfTVShowDto) {
+    await this.mediaReleaseService.assertEpisodeStatusesAllowed("tv", tvShowId, [WatchEpisodeStatus.Completed]);
+
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { id: tvShowId },
       select: { seasons: true },
@@ -109,8 +115,6 @@ export class TVShowEpisodeWatchService {
     const seasons = tvShow.seasons as unknown as TMDBTVShowSeason[];
     const batchSize = 50;
 
-    // Bulk mark (series completion / "watch all"): intentionally emits no
-    // Watched activities — those only come from manual, one-by-one watching.
     for (const season of seasons) {
       const episodeNumbers = Array.from({ length: season.numberOfEpisodes }, (_, i) => i + 1);
 

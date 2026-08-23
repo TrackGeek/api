@@ -43,8 +43,6 @@ export type StreakTouchResult = {
 export class XpService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  // Retorna null quando nada foi concedido: sourceKey repetido (idempotência) ou
-  // teto diário já esgotado. Quem chama usa isso para não disparar efeito nenhum.
   async grantXp(grantXpDto: GrantXpDto): Promise<XpGrantResult | null> {
     const { userId, reason, sourceKey, contentType = null, metadata, skipDailyCap = false } = grantXpDto;
 
@@ -76,8 +74,6 @@ export class XpService {
           update: { totalXp: { increment: amount } },
         });
 
-        // O upsert de create já devolve o total final; o de update devolve o
-        // valor pós-incremento, então em ambos os casos totalXp está correto.
         const previousLevel = levelFromXp(xp.totalXp - amount);
         const level = levelFromXp(xp.totalXp);
 
@@ -119,14 +115,12 @@ export class XpService {
         } satisfies XpGrantResult;
       })
       .catch((error: { code?: string }) => {
-        // sourceKey repetido: esse evento já foi pago alguma vez. Silencioso de propósito.
         if (error?.code === UNIQUE_VIOLATION) return null;
 
         throw error;
       });
   }
 
-  // Soma o que já foi concedido hoje naquele reason e corta o excedente.
   private async applyDailyCap(
     tx: Pick<DatabaseService, "xpLedger">,
     userId: string,
@@ -147,9 +141,6 @@ export class XpService {
     return Math.max(0, Math.min(requested, cap - used));
   }
 
-  // Avança o streak no primeiro evento de cada dia UTC. Sem cron: a quebra é
-  // detectada preguiçosamente quando o usuário volta. Retorna null se o dia já
-  // foi contabilizado.
   async touchStreak(userId: string): Promise<StreakTouchResult | null> {
     const now = new Date();
     const today = startOfUtcDay(now);
@@ -176,8 +167,6 @@ export class XpService {
     };
   }
 
-  // Medalhas de marco de level. Devolve só as concedidas agora, para o chamador
-  // enfileirar as activities correspondentes.
   async grantMilestoneMedals(userId: string, previousLevel: number, level: number) {
     const crossed = LEVEL_MILESTONES.filter((milestone) => milestone > previousLevel && milestone <= level);
 
@@ -199,8 +188,6 @@ export class XpService {
     return granted;
   }
 
-  // Concede uma medalha ignorando quem já tem. Retorna null nesse caso, para o
-  // chamador não emitir activity duplicada.
   async grantMedal(userId: string, medalId: string) {
     return this.databaseService.userMedal.create({ data: { userId, medalId } }).catch((error: { code?: string }) => {
       if (error?.code === UNIQUE_VIOLATION) return null;
@@ -217,8 +204,6 @@ export class XpService {
 
     const totalXp = xp?.totalXp ?? 0;
 
-    // Streak parado em um dia anterior a ontem já está quebrado — só ainda não
-    // foi zerado no banco, porque a atualização é preguiçosa.
     const stale = xp?.lastActiveDate ? diffUtcDays(xp.lastActiveDate, new Date()) > 1 : true;
 
     return {

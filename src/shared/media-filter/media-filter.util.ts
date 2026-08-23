@@ -10,7 +10,6 @@ import {
 
 type Where = Record<string, any>;
 
-/** Matches nothing — used when the requested states cannot exist for the media type. */
 const MATCHES_NOTHING: Where = { id: { in: [] } };
 
 const startOfYear = (year: number) => new Date(Date.UTC(year, 0, 1));
@@ -19,22 +18,16 @@ const yearRange = (column: string, year: number): Where => ({
   [column]: { gte: startOfYear(year), lt: startOfYear(year + 1) },
 });
 
-/** `genres` holds a JSON array of strings — Postgres `@>` handles the containment. */
 const genreInStringArray = (column: string) => (genre: string) => ({ [column]: { array_contains: [genre] } });
 
-/** `genres`/`taggings` hold a JSON array of objects — `@>` matches partial objects. */
 const genreInObjectArray = (column: string, key: string) => (genre: string) => ({
   [column]: { array_contains: [{ [key]: genre }] },
 });
 
 interface MediaFilterFields {
-  /** Name of the media relation on the progress model. */
   relation: string;
-  /** Column holding the display title, used by the search filter. */
   titleColumn: string;
-  /** Column holding the raw provider release status, or `null` when the provider has none. */
   statusColumn: string | null;
-  /** Sortable release columns, most significant first. Empty when the provider only stores it inside JSON. */
   releaseColumns: string[];
   genre: (genre: string) => Where;
   year: (year: number) => Where;
@@ -99,12 +92,6 @@ const MEDIA_FILTER_FIELDS: Record<MediaType, MediaFilterFields> = {
   },
 };
 
-/** Media types whose release date lives in a sortable column. */
-export function supportsReleaseDateSort(mediaType: MediaType): boolean {
-  return MEDIA_FILTER_FIELDS[mediaType].releaseColumns.length > 0;
-}
-
-/** Books carry no release status, so "released" is decided by the release date/year. */
 function bookReleasedWhere(released: boolean): Where {
   const now = new Date();
   const currentYear = now.getUTCFullYear();
@@ -147,16 +134,11 @@ function releasedWhere(mediaType: MediaType, statusColumn: string | null, releas
 
   if (unreleased.length === 0) return released ? {} : MATCHES_NOTHING;
 
-  // `NOT IN` drops NULL rows in SQL, so unknown statuses are explicitly kept as released.
   return released
     ? { OR: [{ [statusColumn]: { notIn: unreleased } }, { [statusColumn]: null }] }
     : { [statusColumn]: { in: unreleased } };
 }
 
-/**
- * Builds the `where` fragment applied to the media relation of a progress query.
- * Returns `undefined` when no media-level filter was requested.
- */
 export function buildMediaWhere(mediaType: MediaType, filters: ProgressFilterParamsDto): Where | undefined {
   const fields = MEDIA_FILTER_FIELDS[mediaType];
   const clauses: Where[] = [];
@@ -186,10 +168,6 @@ export function buildMediaWhere(mediaType: MediaType, filters: ProgressFilterPar
   return applicable.length > 0 ? { AND: applicable } : undefined;
 }
 
-/**
- * Builds the `orderBy` applied to a progress listing. Every branch ends on the uuid v7 `id`
- * so rows keep a stable order across pages when the sorted column has duplicates.
- */
 export function buildProgressOrderBy(mediaType: MediaType, filters: ProgressFilterParamsDto): Where[] {
   const { relation, titleColumn, releaseColumns } = MEDIA_FILTER_FIELDS[mediaType];
   const sortBy = filters.sortBy ?? ProgressSortBy.AddedAt;
@@ -204,7 +182,6 @@ export function buildProgressOrderBy(mediaType: MediaType, filters: ProgressFilt
     return [{ updatedAt: sort }, byId];
   }
 
-  // Manga only stores its start date inside `published`, which Prisma cannot order by path.
   if (sortBy === ProgressSortBy.ReleaseDate && releaseColumns.length > 0) {
     return [
       ...releaseColumns.map((column) => ({ [relation]: { [column]: { sort, nulls: "last" } } })),

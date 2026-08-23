@@ -24,8 +24,6 @@ export type CoinSpendResult = {
 export class CoinService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  // Append-only: o saldo em UserWallet é sempre derivado do CoinLedger e nunca
-  // escrito fora daqui. Retorna null quando o sourceKey já foi pago.
   async grantCoins(grantCoinsDto: GrantCoinsDto): Promise<CoinGrantResult | null> {
     const { userId, reason, sourceKey, amount, metadata } = grantCoinsDto;
 
@@ -58,17 +56,12 @@ export class CoinService {
       });
   }
 
-  // Débito com as mesmas garantias do grant: sourceKey repetido retorna null
-  // sem tocar no saldo. Aceita um client de transação para compor com quem
-  // precisa debitar e criar outra coisa atomicamente (ex.: compra na loja).
   async spendCoins(spendCoinsDto: SpendCoinsDto, tx?: Prisma.TransactionClient): Promise<CoinSpendResult | null> {
     const { userId, reason, sourceKey, amount, metadata } = spendCoinsDto;
 
     if (amount <= 0) return null;
 
     const run = async (client: Prisma.TransactionClient) => {
-      // Ledger negativo primeiro: o unique de sourceKey estoura antes de
-      // qualquer decremento, então retry nunca debita duas vezes.
       await client.coinLedger.create({
         data: {
           userId,
@@ -79,9 +72,6 @@ export class CoinService {
         },
       });
 
-      // UPDATE condicional atômico: o WHERE balance >= amount faz parte da
-      // mesma instrução, então concorrentes serializam no row lock do próprio
-      // UPDATE e o saldo nunca fica negativo.
       const updated = await client.userWallet.updateMany({
         where: { userId, balance: { gte: amount } },
         data: { balance: { decrement: amount }, lifetimeSpent: { increment: amount } },

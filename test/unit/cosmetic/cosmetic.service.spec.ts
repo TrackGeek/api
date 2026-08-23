@@ -47,7 +47,7 @@ describe("CosmeticService", () => {
     mockProfileFindUnique.mockResolvedValue(null);
   });
 
-  it("item comprado aparece destravado e possuído no catálogo", async () => {
+  it("purchased items appear unlocked and owned in the catalog", async () => {
     mockUserCosmeticFindMany.mockResolvedValue([{ type: CosmeticType.AvatarFrame, key: "glow" }]);
 
     const catalog = await service.getCatalog(userId);
@@ -59,7 +59,7 @@ describe("CosmeticService", () => {
     expect(neon).toMatchObject({ unlocked: false, owned: false });
   });
 
-  it("catálogo marca o cosmético equipado no perfil", async () => {
+  it("catalog marks the cosmetic equipped in the profile", async () => {
     mockProfileFindUnique.mockResolvedValue({
       color: "#10b981",
       avatarFrame: null,
@@ -74,34 +74,34 @@ describe("CosmeticService", () => {
     expect(catalog.avatarFrames.find((item) => item.key === "none")).toMatchObject({ equipped: true });
   });
 
-  it("cores de missão ficam livres no catálogo sem missão completa", async () => {
+  it("profile colors remain unlocked in the catalog without a completed mission", async () => {
     const catalog = await service.getCatalog(userId);
 
     expect(catalog.profileColors.find((item) => item.key === "otaku")).toMatchObject({ unlocked: true });
     expect(catalog.profileColors.find((item) => item.key === "dusk")).toMatchObject({ unlocked: false });
   });
 
-  it("assertProfileColorUnlocked aceita qualquer hex custom", async () => {
+  it("assertProfileColorUnlocked accepts any custom hex", async () => {
     await expect(service.assertProfileColorUnlocked(userId, faker.color.rgb())).resolves.toBeUndefined();
   });
 
-  it("assertProfileColorUnlocked rejeita string que não é hex nem gradiente", async () => {
+  it("assertProfileColorUnlocked rejects string that has not hex or gradient", async () => {
     await expect(service.assertProfileColorUnlocked(userId, faker.string.alphanumeric(10))).rejects.toBeInstanceOf(
       AppException,
     );
   });
 
-  it("assertProfileColorUnlocked rejeita gradiente não possuído", async () => {
+  it("assertProfileColorUnlocked rejects unowned gradient", async () => {
     await expect(service.assertProfileColorUnlocked(userId, "gradient:dusk")).rejects.toBeInstanceOf(AppException);
   });
 
-  it("assertProfileColorUnlocked aceita gradiente possuído", async () => {
+  it("assertProfileColorUnlocked accepts owned gradient", async () => {
     mockUserCosmeticFindMany.mockResolvedValue([{ type: CosmeticType.ProfileColor, key: "dusk" }]);
 
     await expect(service.assertProfileColorUnlocked(userId, "gradient:dusk")).resolves.toBeUndefined();
   });
 
-  it("compra de gradiente debita o preço do catálogo", async () => {
+  it("buying a gradient debits the price of the catalog", async () => {
     mockUserCosmeticFindUnique.mockResolvedValue(null);
     mockSpendCoins.mockResolvedValue({ amount: 200, balance: 0 });
     mockGetWalletByUserId.mockResolvedValue({ balance: 0, lifetimeEarned: 200, lifetimeSpent: 200 });
@@ -114,29 +114,29 @@ describe("CosmeticService", () => {
     });
   });
 
-  it("assertCosmeticUnlocked rejeita key fora do catálogo", async () => {
+  it("assertCosmeticUnlocked rejects key outside the catalog", async () => {
     await expect(
       service.assertCosmeticUnlocked(userId, CosmeticType.AvatarFrame, faker.string.alphanumeric(10)),
     ).rejects.toBeInstanceOf(AppException);
   });
 
-  it("assertCosmeticUnlocked rejeita item comprável não possuído", async () => {
+  it("assertCosmeticUnlocked rejects unowned purchasable items", async () => {
     await expect(service.assertCosmeticUnlocked(userId, CosmeticType.ProfileTitle, "legend")).rejects.toBeInstanceOf(
       AppException,
     );
   });
 
-  it("assertCosmeticUnlocked aceita item possuído", async () => {
+  it("assertCosmeticUnlocked accepts already owned", async () => {
     mockUserCosmeticFindMany.mockResolvedValue([{ type: CosmeticType.ProfileTitle, key: "legend" }]);
 
     await expect(service.assertCosmeticUnlocked(userId, CosmeticType.ProfileTitle, "legend")).resolves.toBeUndefined();
   });
 
-  it("assertCosmeticUnlocked sempre aceita none", async () => {
+  it("assertCosmeticUnlocked always accepts none", async () => {
     await expect(service.assertCosmeticUnlocked(userId, CosmeticType.BannerEffect, "none")).resolves.toBeUndefined();
   });
 
-  it("não vende item que não é de compra", async () => {
+  it("doesn't sell item that is not for sale", async () => {
     await expect(
       service.purchaseCosmetic(userId, { type: CosmeticType.ProfileColor, key: "emerald" }),
     ).rejects.toBeInstanceOf(AppException);
@@ -144,7 +144,7 @@ describe("CosmeticService", () => {
     expect(mockSpendCoins).not.toHaveBeenCalled();
   });
 
-  it("não vende item já possuído", async () => {
+  it("doesn't sell item that is already owned", async () => {
     mockUserCosmeticFindUnique.mockResolvedValue({ id: faker.string.uuid() });
 
     await expect(
@@ -154,7 +154,7 @@ describe("CosmeticService", () => {
     expect(mockSpendCoins).not.toHaveBeenCalled();
   });
 
-  it("compra debita o preço do catálogo e grava o inventário na mesma transação", async () => {
+  it("buy debit the price of catalog and save the inventory on same transaction", async () => {
     mockUserCosmeticFindUnique.mockResolvedValue(null);
     mockSpendCoins.mockResolvedValue({ amount: 100, balance: 50 });
     mockGetWalletByUserId.mockResolvedValue({ balance: 50, lifetimeEarned: 150, lifetimeSpent: 100 });
@@ -177,7 +177,7 @@ describe("CosmeticService", () => {
     expect(result.cosmetic).toMatchObject({ key: "glow", owned: true, unlocked: true });
   });
 
-  it("corrida perdida no sourceKey vira já possuído", async () => {
+  it("run lost on sourceKey turns into already owned", async () => {
     mockUserCosmeticFindUnique.mockResolvedValue(null);
     mockSpendCoins.mockResolvedValue(null);
 

@@ -14,9 +14,6 @@ import { QueueService } from "../queue.service";
 
 export type XpJobData = GrantXpDto;
 
-// Orquestra tudo que acontece em volta de uma concessão de XP: missões, coins,
-// medalhas, activity, notificação e streak. Os services continuam puros (só
-// DatabaseService), o que evita dependência circular com o QueueModule.
 @Processor(XP_QUEUE, { concurrency: 5 })
 export class XpProcessor extends WorkerHost {
   private readonly logger = new Logger(XpProcessor.name);
@@ -39,8 +36,6 @@ export class XpProcessor extends WorkerHost {
     const data = job.data as XpJobData;
     const result = await this.xpService.grantXp(data);
 
-    // null = sourceKey repetido ou teto diário esgotado. Nada aconteceu, nada
-    // pra propagar (nem missão, nem streak).
     if (!result) return;
 
     const completed = await this.missionService.advanceForXpReason(data.userId, result.reason, result.contentType);
@@ -55,7 +50,6 @@ export class XpProcessor extends WorkerHost {
       await this.handleMissionCompleted(data.userId, entry);
     }
 
-    // StreakBonus é ele próprio uma concessão de XP: reentrar aqui viraria laço.
     if (data.reason !== XpReason.StreakBonus) {
       const streak = await this.xpService.touchStreak(data.userId);
 
@@ -72,7 +66,6 @@ export class XpProcessor extends WorkerHost {
   }
 
   private async handleLevelUp(userId: string, previousLevel: number, level: number, totalXp: number) {
-    // Um salto pode cruzar mais de um level de uma vez; cada um paga o seu.
     for (let crossed = previousLevel + 1; crossed <= level; crossed++) {
       await this.coinService.grantCoins({
         userId,

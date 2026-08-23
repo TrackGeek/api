@@ -8,19 +8,12 @@ export type CosmeticUnlock =
 
 export type Cosmetic = {
   key: string;
-  // Hex para ProfileColor (Profile.color guarda o hex); igual à key nos demais
-  // tipos, cujo visual vive no web mapeado pela key.
   value: string;
   unlock: CosmeticUnlock;
 };
 
-// A cor default do Profile (schema.prisma: Profile.color) precisa estar sempre
-// destravada, senão um usuário novo já nasce com um valor inválido.
 export const DEFAULT_PROFILE_COLOR = "#10b981";
 
-// Cores sólidas são todas livres: o perfil aceita qualquer hex (custom color),
-// então o catálogo de sólidas existe só como preset de UX. Gradientes são os
-// únicos itens pagos deste tipo e vivem em Profile.color como `gradient:<key>`.
 export const PROFILE_GRADIENT_PREFIX = "gradient:";
 
 export const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
@@ -98,13 +91,11 @@ export const COSMETICS_BY_KEY = Object.fromEntries(
   Object.entries(COSMETIC_CATALOGS).map(([type, items]) => [type, new Map(items.map((item) => [item.key, item]))]),
 ) as Record<CosmeticType, Map<string, Cosmetic>>;
 
-// Profile.color guarda o hex, então a validação de cor busca pelo value.
 export const PROFILE_COLORS_BY_VALUE = new Map(PROFILE_COLORS.map((cosmetic) => [cosmetic.value, cosmetic]));
 
 export type CosmeticUnlockState = {
   level: number;
   completedMissionKeys: Set<string>;
-  // Chaves compostas `${type}:${key}` das compras do usuário.
   ownedKeys: Set<string>;
 };
 

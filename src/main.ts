@@ -17,7 +17,6 @@ function resolveTrustProxy(): number | string | boolean {
 
   const hops = Number(value);
 
-  // A non-numeric value is an IP/CIDR allow-list, which Express accepts as-is.
   return Number.isNaN(hops) ? value : hops;
 }
 

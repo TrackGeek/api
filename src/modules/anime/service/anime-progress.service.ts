@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
@@ -20,10 +21,13 @@ export class AnimeProgressService {
     private readonly queueService: QueueService,
     private readonly animeEpisodeWatchService: AnimeEpisodeWatchService,
     private readonly mediaFilterService: MediaFilterService,
+    private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
   async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
     const { animeId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
+
+    await this.mediaReleaseService.assertProgressStatusAllowed("anime", animeId, status);
 
     const animeProgress = await this.databaseService.animeProgress.upsert({
       where: {

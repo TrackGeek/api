@@ -45,7 +45,7 @@ describe("XpService", () => {
   });
 
   describe("grantXp", () => {
-    it("concede o valor da tabela e devolve o level recalculado", async () => {
+    it("concede the value of table and return the level recalculated", async () => {
       const amount = XP_RULES[XpReason.ReviewAdded].amount;
 
       mockUserXpUpsert.mockResolvedValueOnce({ totalXp: amount, level: 1 });
@@ -63,7 +63,7 @@ describe("XpService", () => {
       expect(mockXpLedgerCreate).toHaveBeenCalledOnce();
     });
 
-    it("o mesmo sourceKey duas vezes paga uma só", async () => {
+    it("the same sourceKey two times paid only one time", async () => {
       const sourceKey = `episode:Anime:${faker.string.uuid()}:1`;
 
       mockUserXpUpsert.mockResolvedValueOnce({ totalXp: 5, level: 1 });
@@ -78,10 +78,9 @@ describe("XpService", () => {
       expect(second).toBeNull();
     });
 
-    it("o teto diário corta o excedente", async () => {
+    it("the daily cap cuts the excess", async () => {
       const { amount, dailyCap } = XP_RULES[XpReason.EpisodeWatched];
 
-      // Faltam 2 XP para o teto: a concessão de 5 é cortada em 2.
       mockXpLedgerAggregate.mockResolvedValueOnce({ _sum: { amount: (dailyCap as number) - 2 } });
       mockUserXpUpsert.mockResolvedValueOnce({ totalXp: dailyCap as number, level: 1 });
 
@@ -95,7 +94,7 @@ describe("XpService", () => {
       expect(result?.amount).toBe(2);
     });
 
-    it("teto esgotado não escreve no ledger", async () => {
+    it("the daily cap is exceeded and does not write to the ledger", async () => {
       mockXpLedgerAggregate.mockResolvedValueOnce({ _sum: { amount: XP_RULES[XpReason.EpisodeWatched].dailyCap } });
 
       const result = await service.grantXp({
@@ -108,7 +107,7 @@ describe("XpService", () => {
       expect(mockXpLedgerCreate).not.toHaveBeenCalled();
     });
 
-    it("skipDailyCap ignora o teto (backfill)", async () => {
+    it("skipDailyCap ignores the daily cap (backfill)", async () => {
       mockUserXpUpsert.mockResolvedValueOnce({ totalXp: 5, level: 1 });
 
       const result = await service.grantXp({
@@ -122,7 +121,7 @@ describe("XpService", () => {
       expect(mockXpLedgerAggregate).not.toHaveBeenCalled();
     });
 
-    it("marca leveledUp quando o total cruza o limiar", async () => {
+    it("marks leveledUp when the total crosses the threshold", async () => {
       const amount = XP_RULES[XpReason.ReviewAdded].amount;
       const totalXp = xpForLevel(4) + 1;
 
@@ -142,7 +141,7 @@ describe("XpService", () => {
   });
 
   describe("touchStreak", () => {
-    it("conta ontem → hoje como sequência", async () => {
+    it("counts yesterday → today as a sequence", async () => {
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
       mockUserXpFindUnique.mockResolvedValueOnce({ lastActiveDate: yesterday, currentStreak: 3, longestStreak: 5 });
@@ -153,7 +152,7 @@ describe("XpService", () => {
       expect(result?.longestStreak).toBe(5);
     });
 
-    it("reseta quando há buraco na sequência", async () => {
+    it("resets when has a gap on sequence", async () => {
       const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
       mockUserXpFindUnique.mockResolvedValueOnce({ lastActiveDate: lastWeek, currentStreak: 9, longestStreak: 9 });
@@ -164,7 +163,7 @@ describe("XpService", () => {
       expect(result?.longestStreak).toBe(9);
     });
 
-    it("não conta duas vezes no mesmo dia", async () => {
+    it("does not count twice on the same day", async () => {
       mockUserXpFindUnique.mockResolvedValueOnce({ lastActiveDate: new Date(), currentStreak: 2, longestStreak: 2 });
 
       const result = await service.touchStreak(userId);
@@ -173,7 +172,7 @@ describe("XpService", () => {
       expect(mockUserXpUpsert).not.toHaveBeenCalled();
     });
 
-    it("o bônus cresce com a sequência e satura", async () => {
+    it("the bonus grows with the sequence and saturates", async () => {
       const at3 = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
       mockUserXpFindUnique.mockResolvedValueOnce({ lastActiveDate: at3, currentStreak: 2, longestStreak: 2 });
@@ -191,7 +190,7 @@ describe("XpService", () => {
   });
 
   describe("grantMilestoneMedals", () => {
-    it("concede só as medalhas dos marcos cruzados agora", async () => {
+    it("grants only the badges from milestones marked now", async () => {
       mockMedalFindMany.mockResolvedValueOnce([{ id: faker.string.uuid(), name: "level-10" }]);
       mockUserMedalCreate.mockResolvedValueOnce({ id: faker.string.uuid() });
 
@@ -201,14 +200,14 @@ describe("XpService", () => {
       expect(mockMedalFindMany).toHaveBeenCalledWith({ where: { name: { in: ["level-10"] } } });
     });
 
-    it("não consulta nada quando nenhum marco foi cruzado", async () => {
+    it("does not query anything when no milestone has been crossed", async () => {
       const granted = await service.grantMilestoneMedals(userId, 11, 12);
 
       expect(granted).toEqual([]);
       expect(mockMedalFindMany).not.toHaveBeenCalled();
     });
 
-    it("quem já tem a medalha não recebe de novo", async () => {
+    it("who have a badge doesn't receive again", async () => {
       mockMedalFindMany.mockResolvedValueOnce([{ id: faker.string.uuid(), name: "level-25" }]);
       mockUserMedalCreate.mockRejectedValueOnce(uniqueViolation);
 

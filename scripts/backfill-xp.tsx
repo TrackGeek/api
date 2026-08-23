@@ -2,7 +2,15 @@ import "dotenv/config";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-
+import { contentLevelFromXp, levelFromXp } from "@/modules/xp/service/xp-level.util";
+import { XP_REASON_TO_MISSION_METRIC } from "@/shared/constants/mission";
+import {
+  COINS_PER_LEVEL,
+  LEVEL_MILESTONE_MEDAL_NAMES,
+  LEVEL_MILESTONES,
+  XP_RULES,
+  XP_SOURCE_KEYS,
+} from "@/shared/constants/xp";
 import {
   CoinReason,
   ContentType,
@@ -12,24 +20,6 @@ import {
   WatchEpisodeStatus,
   XpReason,
 } from "../prisma/generated/client";
-import { contentLevelFromXp, levelFromXp } from "../src/modules/xp/service/xp-level.util";
-import { XP_REASON_TO_MISSION_METRIC } from "../src/shared/constants/mission";
-import {
-  COINS_PER_LEVEL,
-  LEVEL_MILESTONE_MEDAL_NAMES,
-  LEVEL_MILESTONES,
-  XP_RULES,
-  XP_SOURCE_KEYS,
-} from "../src/shared/constants/xp";
-
-// Reconstrói o histórico de progressão a partir das tabelas de origem, com os
-// MESMOS sourceKeys do runtime — @@unique([userId, sourceKey]) torna o script
-// idempotente por construção: rodar duas vezes não paga nada duas vezes.
-//
-// Ignora teto diário de propósito (é backfill, não farming) e não gera
-// activities nem notificações — nada de spam retroativo no feed.
-//
-// Usage: bun run scripts/backfill-xp.tsx
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -148,8 +138,6 @@ async function collectProgressRows(): Promise<LedgerRow[]> {
       const mediaId = entry[source.idField] as string;
       const createdAt = entry.createdAt as Date;
 
-      // Título completado quase sempre passou por "started" antes; o estado
-      // intermediário se perdeu, então o backfill paga as duas linhas.
       rows.push(
         row(
           userId,
@@ -281,7 +269,6 @@ async function collectSocialRows(): Promise<LedgerRow[]> {
 
     if (!mediaId) continue;
 
-    // ListItem não tem createdAt próprio; a data da lista é o melhor proxy.
     rows.push(
       row(
         item.list.userId,
@@ -318,8 +305,6 @@ async function collectSocialRows(): Promise<LedgerRow[]> {
   return rows;
 }
 
-// Recalcula UserXp/UserContentXp inteiros a partir do ledger. Streak fica
-// intocado: histórico de streak não é reconstruível.
 async function recomputeTotals() {
   const [globalSums, contentSums] = await Promise.all([
     prisma.xpLedger.groupBy({ by: ["userId"], _sum: { amount: true } }),
@@ -361,7 +346,6 @@ const METRIC_TO_XP_REASON = Object.fromEntries(
   Object.entries(XP_REASON_TO_MISSION_METRIC).map(([reason, metric]) => [metric, reason as XpReason]),
 ) as Partial<Record<MissionMetric, XpReason>>;
 
-// Mede o progresso de uma missão para todos os usuários de uma vez.
 async function measureMission(mission: {
   metric: MissionMetric;
   contentType: ContentType | null;
@@ -419,13 +403,9 @@ async function measureMission(mission: {
     return progressByUser;
   }
 
-  // StreakReached: histórico de streak não existe no backfill.
   return progressByUser;
 }
 
-// Sincroniza progresso e fecha missões batidas. Retorna as recém-fechadas para
-// o chamador pagar XP/coins/medalha. Loop no chamador: fechar missão paga XP,
-// que pode subir level, que pode fechar missão de LevelReached.
 async function syncMissions() {
   const missions = await prisma.mission.findMany({ where: { active: true } });
 
@@ -562,7 +542,6 @@ async function backfillCoins() {
     inserted += result.count;
   }
 
-  // Carteira derivada do ledger, nunca escrita por fora.
   const sums = await prisma.coinLedger.groupBy({ by: ["userId"], _sum: { amount: true } });
 
   for (const entry of sums) {
@@ -611,8 +590,6 @@ async function main() {
 
   console.log(`Recomputed totals for ${users} users.`);
 
-  // Fechar missão paga XP, que pode subir level, que fecha missão de
-  // LevelReached — itera até estabilizar (na prática 2-3 voltas).
   let totalClosed = 0;
 
   for (let pass = 1; pass <= 5; pass++) {

@@ -9,9 +9,6 @@ const STARTED_STATUSES: ProgressStatus[] = [
   ProgressStatus.Rereading,
 ];
 
-// Maps a progress status to the activity it should emit.
-// Started (Watching/Playing/Reading and their repeat variants), Completed,
-// Paused and Dropped generate activities; every other status returns null.
 export function activityTypeFromProgressStatus(status: ProgressStatus): ActivityType | null {
   if (status === ProgressStatus.Completed) {
     return ActivityType.ProgressCompleted;
@@ -32,8 +29,6 @@ export function activityTypeFromProgressStatus(status: ProgressStatus): Activity
   return null;
 }
 
-// Só começar e completar valem XP. Pausar e dropar não pagam nada, e como o
-// sourceKey é fixo por mídia, alternar entre statuses não paga duas vezes.
 export function xpReasonFromProgressStatus(status: ProgressStatus): XpReason | null {
   if (status === ProgressStatus.Completed) {
     return XpReason.ProgressCompleted;
