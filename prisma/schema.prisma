@@ -175,6 +175,7 @@ model Profile {
   setupPhotos   SetupPhoto[]
   setupItems    SetupItem[]
   links         ProfileLink[]
+  watchLinks    WatchLink[]
 }
 
 model SetupPhoto {
@@ -220,6 +221,22 @@ model ProfileLink {
   position  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model WatchLink {
+  id           String        @id @default(uuid(7))
+  profileId    String
+  label        String
+  url          String
+  contentTypes ContentType[] @default([Anime, TVShow, Movie])
+  enabled      Boolean       @default(true)
+  position     Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 

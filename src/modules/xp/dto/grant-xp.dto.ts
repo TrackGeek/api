@@ -13,7 +13,6 @@ export class GrantXpDto {
   @ApiProperty({ enum: XpReason })
   readonly reason: XpReason;
 
-  // Chave de idempotência. Ver XP_SOURCE_KEYS em shared/constants/xp.ts.
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
@@ -24,15 +23,12 @@ export class GrantXpDto {
   @ApiPropertyOptional({ enum: ContentType })
   readonly contentType?: ContentType;
 
-  // Sobrescreve o valor da tabela XP_RULES. Usado por MissionCompleted, cujo
-  // valor vem da linha da missão no banco.
   @IsOptional()
   @IsInt()
   @Min(0)
   @ApiPropertyOptional()
   readonly amount?: number;
 
-  // Ignora o teto diário. Só o backfill usa.
   @IsOptional()
   readonly skipDailyCap?: boolean;
 

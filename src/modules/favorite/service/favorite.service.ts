@@ -121,8 +121,6 @@ export class FavoriteService {
       metadata: { ...favorite },
     });
 
-    // Um favorito referencia exatamente uma entidade. Favorito de pessoa conta
-    // XP, mas não pertence a nenhuma mídia — vai sem contentType.
     const mediaId = Object.values(entityIds).find((id): id is string => Boolean(id));
 
     if (mediaId) {

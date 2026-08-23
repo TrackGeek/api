@@ -78,8 +78,6 @@ export class TVShowEpisodeWatchService {
       );
     }
 
-    // Manual watching feeds a single per-series Watched activity (range in
-    // metadata); bulk "watch all" / series completion stays silent.
     const watchedEpisodes = episodes
       .filter(({ status }) => WATCHED_STATUSES.includes(status))
       .map(({ episode }) => episode);
@@ -88,8 +86,6 @@ export class TVShowEpisodeWatchService {
       await this.queueService.toWatchedActivityJob({ userId, tvShowId, episodes: watchedEpisodes });
     }
 
-    // Um job por episódio: o sourceKey é por episódio, então remarcar o mesmo
-    // episódio nunca paga de novo.
     for (const episode of watchedEpisodes) {
       await this.queueService.toXpJob({
         userId,
@@ -119,8 +115,6 @@ export class TVShowEpisodeWatchService {
     const seasons = tvShow.seasons as unknown as TMDBTVShowSeason[];
     const batchSize = 50;
 
-    // Bulk mark (series completion / "watch all"): intentionally emits no
-    // Watched activities — those only come from manual, one-by-one watching.
     for (const season of seasons) {
       const episodeNumbers = Array.from({ length: season.numberOfEpisodes }, (_, i) => i + 1);
 

@@ -227,6 +227,14 @@ export const ERROR_CODES = {
     code: "PROFILE_LINK_LIMIT_REACHED",
     status: 409,
   },
+  WATCH_LINK_NOT_FOUND: {
+    code: "WATCH_LINK_NOT_FOUND",
+    status: 404,
+  },
+  WATCH_LINK_LIMIT_REACHED: {
+    code: "WATCH_LINK_LIMIT_REACHED",
+    status: 409,
+  },
   REVIEW_NOT_FOUND: {
     code: "REVIEW_NOT_FOUND",
     status: 404,

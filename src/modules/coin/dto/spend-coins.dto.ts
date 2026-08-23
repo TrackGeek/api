@@ -13,13 +13,11 @@ export class SpendCoinsDto {
   @ApiProperty({ enum: CoinReason })
   readonly reason: CoinReason;
 
-  // Chave de idempotência, mesma ideia do GrantCoinsDto.
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
   readonly sourceKey: string;
 
-  // Valor positivo a debitar; a linha do ledger é gravada negativa.
   @IsInt()
   @IsNotEmpty()
   @ApiProperty()

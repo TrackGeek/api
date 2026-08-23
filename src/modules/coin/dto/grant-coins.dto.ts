@@ -13,7 +13,6 @@ export class GrantCoinsDto {
   @ApiProperty({ enum: CoinReason })
   readonly reason: CoinReason;
 
-  // Chave de idempotência, mesma ideia do XpLedger.
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
