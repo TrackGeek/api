@@ -246,7 +246,21 @@ export class DailyReleaseIngestorService {
         eventType: ReleaseEventType.NewGameReleased,
         externalId: game.igdbId,
         title: refreshed?.name ?? game.name,
-        releaseAt: refreshed?.firstReleaseDate ?? game.firstReleaseDate,
+      const releaseAt = refreshed?.firstReleaseDate ?? game.firstReleaseDate;
+      if (!releaseAt || !this.isWithin(releaseAt, window)) {
+        continue;
+      }
+
+      releases.push({
+        source: ReleaseSource.Igdb,
+        mediaType: CatchupMediaType.Game,
+        eventType: ReleaseEventType.NewGameReleased,
+        externalId: game.igdbId,
+        title: refreshed?.name ?? game.name,
+        releaseAt,
+        kind: refreshed?.gameStatus ?? game.gameStatus,
+        payload: { igdbId: game.igdbId, gameId: game.id },
+      });
         kind: refreshed?.gameStatus ?? game.gameStatus,
         payload: { igdbId: game.igdbId, gameId: game.id },
       });
