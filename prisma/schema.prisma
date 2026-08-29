@@ -41,6 +41,7 @@ model User {
   twoFactor              TwoFactor?
   sessions               Session[]
   accounts               Account[]
+  passkeys               Passkey[]
   comments               Comment[]
   reactions              Reaction[]
   followers              Following[]             @relation("UserFollowing")
@@ -141,6 +142,25 @@ model TwoFactor {
 
   @@index([secret])
   @@index([userId])
+}
+
+model Passkey {
+  id           String   @id
+  name         String?
+  publicKey    String
+  credentialID String
+  counter      Int      @default(0)
+  deviceType   String
+  backedUp     Boolean  @default(false)
+  transports   String?
+  aaguid       String?
+  userId       String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialID])
 }
 
 enum ContentType {
