@@ -32,11 +32,9 @@ const SOURCE_FIELDS = [
   "tvShowEpisodeWatchId",
   "followingId",
   "userMedalId",
+  "gameScreenshotId",
 ] as const;
 
-// Polymorphic media selects — same field mapping used by favorite.service.ts:
-// anime/manga -> title + imageUrl, tvShow -> name + posterUrl,
-// movie -> title + posterUrl, game -> name + coverUrl, book -> title + imageUrl.
 const ANIME_SELECT = { select: { id: true, malId: true, title: true, imageUrl: true } };
 const MANGA_SELECT = { select: { id: true, anilistId: true, malId: true, title: true, imageUrl: true } };
 const TVSHOW_SELECT = { select: { id: true, tmdbId: true, name: true, posterUrl: true } };
@@ -44,11 +42,8 @@ const MOVIE_SELECT = { select: { id: true, tmdbId: true, title: true, posterUrl:
 const GAME_SELECT = { select: { id: true, igdbId: true, name: true, coverUrl: true } };
 const BOOK_SELECT = { select: { id: true, hardcoverId: true, title: true, imageUrl: true } };
 
-// Only favorites can point at a person — ListItem has no such relation, so this
-// stays out of POLY_MEDIA.
 const PERSON_SELECT = { select: { id: true, slug: true, name: true, imageUrl: true } };
 
-// Every one of the 6 media relations (favorite/listItem are polymorphic — one is non-null).
 const POLY_MEDIA = {
   anime: ANIME_SELECT,
   manga: MANGA_SELECT,
@@ -87,9 +82,7 @@ const INCLUDE = {
       },
     },
   },
-  // Actor.
   user: USER_SELECT,
-  // Reviews — each with its own criteria fields + media relation.
   animeReview: {
     select: {
       id: true,
@@ -162,21 +155,28 @@ const INCLUDE = {
       book: BOOK_SELECT,
     },
   },
-  // Progress — status + media.
   animeProgress: { select: { id: true, status: true, anime: ANIME_SELECT } },
   mangaProgress: { select: { id: true, status: true, manga: MANGA_SELECT } },
   tvShowProgress: { select: { id: true, status: true, tvShow: TVSHOW_SELECT } },
   movieProgress: { select: { id: true, status: true, movie: MOVIE_SELECT } },
   gameProgress: { select: { id: true, status: true, game: GAME_SELECT } },
   bookProgress: { select: { id: true, status: true, book: BOOK_SELECT } },
-  // Watched episodes are now a single per-series activity holding a range in
-  // metadata; the media is referenced directly by the anime/tvShow relation.
   anime: ANIME_SELECT,
   tvShow: TVSHOW_SELECT,
-  // Lists / favorites (polymorphic media).
   list: { select: { id: true, name: true } },
   listItem: { select: { id: true, ...POLY_MEDIA } },
   favorite: { select: { id: true, type: true, ...POLY_MEDIA, person: PERSON_SELECT } },
+  gameScreenshot: {
+    select: {
+      id: true,
+      url: true,
+      type: true,
+      provider: true,
+      description: true,
+      isSpoiler: true,
+      game: GAME_SELECT,
+    },
+  },
   // Social.
   following: { select: { id: true, following: USER_SELECT } },
   userMedal: { select: { id: true, medal: { select: { id: true, name: true, imageUrl: true } } } },
@@ -199,8 +199,6 @@ export class ActivityService {
       return acc;
     }, {});
 
-    // 1 activity per source: replace any existing activity referencing the same
-    // source row (progress status transitions, watch upsert re-fires, etc.).
     if (Object.keys(source).length > 0) {
       await this.databaseService.activity.deleteMany({ where: source });
     }
@@ -215,10 +213,6 @@ export class ActivityService {
     });
   }
 
-  // One Watched activity per (user, series) per 1h window, carrying an episode
-  // range in metadata. Watching more episodes of the same series within the
-  // window extends the existing activity in place (keeps its id/reactions);
-  // after the window closes, the next episode starts a fresh activity.
   async syncWatchedActivity(syncWatchedActivityDto: SyncWatchedActivityDto) {
     const WINDOW_MS = 60 * 60 * 1000;
     const { userId, animeId, tvShowId, episodes } = syncWatchedActivityDto;
@@ -339,10 +333,6 @@ export class ActivityService {
     return { ...pagination, items };
   }
 
-  // Collapse consecutive activities of the same (userId, type) inside a 1h window
-  // into a single group with a count, so the feed can render "favorited 3 animes".
-  // Watched is never merged here — it's already a single per-series activity
-  // (see syncWatchedActivity), so each one stands as its own group.
   private groupActivities(items: any[]) {
     const WINDOW_MS = 60 * 60 * 1000;
     const groups: any[] = [];
@@ -354,6 +344,8 @@ export class ActivityService {
         item.type !== "Watched" &&
         last.type === item.type &&
         last.userId === item.userId &&
+        (item.type !== ActivityType.ScreenshotAdded ||
+          last.items[0]?.gameScreenshot?.game?.id === item.gameScreenshot?.game?.id) &&
         new Date(last.createdAt).getTime() - new Date(item.createdAt).getTime() <= WINDOW_MS;
 
       if (sameGroup) {

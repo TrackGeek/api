@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { CatchupMediaType, ReleaseEventType, ReleaseSource } from "@prisma/generated/enums";
+import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { addDays, endOfDayInTimeZone, startOfDayInTimeZone } from "@/shared/utils/date";
@@ -230,20 +231,55 @@ export class DailyReleaseIngestorService {
   private async ingestGameReleases(window: ReleaseWindow): Promise<RawExternalRelease[]> {
     const games = await this.databaseService.game.findMany({
       where: { firstReleaseDate: { gte: window.start, lte: window.end } },
-      select: { id: true, igdbId: true, name: true, firstReleaseDate: true, gameStatus: true },
+      select: { id: true, igdbId: true, name: true, firstReleaseDate: true, gameStatus: true, lastRefreshedAt: true },
       take: this.catchupFlagsService.batchSize,
     });
 
-    return games.map((game) => ({
-      source: ReleaseSource.Igdb,
-      mediaType: CatchupMediaType.Game,
-      eventType: ReleaseEventType.NewGameReleased,
-      externalId: game.igdbId,
-      title: game.name,
-      releaseAt: game.firstReleaseDate,
-      kind: game.gameStatus,
-      payload: { igdbId: game.igdbId, gameId: game.id },
-    }));
+    const releases: RawExternalRelease[] = [];
+
+    for (const game of games) {
+      const refreshed = await this.refreshReleasedGame(game);
+
+      releases.push({
+        source: ReleaseSource.Igdb,
+        mediaType: CatchupMediaType.Game,
+        eventType: ReleaseEventType.NewGameReleased,
+        externalId: game.igdbId,
+        title: refreshed?.name ?? game.name,
+        releaseAt: refreshed?.firstReleaseDate ?? game.firstReleaseDate,
+        kind: refreshed?.gameStatus ?? game.gameStatus,
+        payload: { igdbId: game.igdbId, gameId: game.id },
+      });
+    }
+
+    return releases;
+  }
+
+  private async refreshReleasedGame(game: {
+    igdbId: number;
+    lastRefreshedAt: Date | null;
+  }): Promise<{ name?: string | null; firstReleaseDate?: Date | null; gameStatus?: string | null } | null> {
+    if (game.lastRefreshedAt && Date.now() - game.lastRefreshedAt.getTime() < REFRESH_INTERVAL_MS) {
+      return null;
+    }
+
+    try {
+      const details = await this.integrationsService.igdb.getGameById(game.igdbId);
+
+      const updated = await this.databaseService.game.update({
+        where: { igdbId: game.igdbId },
+        data: { ...(details as any), lastRefreshedAt: new Date() },
+        select: { name: true, firstReleaseDate: true, gameStatus: true },
+      });
+
+      return updated;
+    } catch (error: any) {
+      this.logger.warn(`Skipped game refresh during catch-up | igdbId=${game.igdbId} error=${error.message}`);
+
+      return null;
+    } finally {
+      await this.delay();
+    }
   }
 
   private async ingestSequels(window: ReleaseWindow): Promise<RawExternalRelease[]> {

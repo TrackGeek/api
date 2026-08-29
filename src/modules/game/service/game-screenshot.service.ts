@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { GameMediaType } from "@prisma/generated/enums";
+import { ActivityType, GameMediaType } from "@prisma/generated/enums";
 import { GameScreenshotFindManyArgs } from "@prisma/generated/models";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { QueueService } from "@/shared/infra/queue/queue.service";
 import { parseVideoUrl } from "@/shared/utils/video-url";
 import { CreateGameScreenshotDto } from "../dto/create-game-screenshot.dto";
 import { DeleteGameScreenshotDto } from "../dto/delete-game-screenshot.dto";
@@ -19,7 +20,10 @@ const GAME_SELECT = {
 
 @Injectable()
 export class GameScreenshotService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async getGameScreenshots(getGameScreenshotsDto: GetGameScreenshotsDto) {
     const screenshots = await this.databaseService.offsetPagination<GameScreenshotFindManyArgs>({
@@ -56,7 +60,7 @@ export class GameScreenshotService {
       throw new AppException(ERROR_CODES.INVALID_VIDEO_URL);
     }
 
-    return this.databaseService.gameScreenshot.create({
+    const screenshot = await this.databaseService.gameScreenshot.create({
       data: {
         url: video?.url ?? createGameScreenshotDto.url,
         type,
@@ -70,6 +74,15 @@ export class GameScreenshotService {
         game: { select: GAME_SELECT },
       },
     });
+
+    await this.queueService.toActivityJob({
+      type: ActivityType.ScreenshotAdded,
+      userId: createGameScreenshotDto.userId,
+      gameScreenshotId: screenshot.id,
+      metadata: { ...screenshot },
+    });
+
+    return screenshot;
   }
 
   async updateGameScreenshot(updateGameScreenshotDto: UpdateGameScreenshotDto) {
