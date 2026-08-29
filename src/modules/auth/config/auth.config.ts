@@ -1,4 +1,5 @@
 import type { BetterAuthOptions } from "@better-auth/core";
+import { passkey } from "@better-auth/passkey";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ActivityType } from "@prisma/generated/enums";
@@ -28,6 +29,10 @@ export function getAuthConfig(params: AuthConfigParams) {
     params as Required<AuthConfigParams>;
 
   const authLogLevel = configService.get<"debug" | "info" | "warn" | "error">("BETTER_AUTH_LOG_LEVEL") ?? "info";
+
+  const webUrl = configService.get<string>("WEB_URL") ?? "";
+  const passkeyRpId =
+    configService.get<string>("PASSKEY_RP_ID") ?? (URL.canParse(webUrl) ? new URL(webUrl).hostname : "localhost");
 
   return {
     appName: "TrackGeek",
@@ -202,6 +207,15 @@ export function getAuthConfig(params: AuthConfigParams) {
           amount: 10,
           length: 10,
           storeBackupCodes: "encrypted",
+        },
+      }),
+      passkey({
+        rpID: passkeyRpId,
+        rpName: "TrackGeek",
+        origin: webUrl || null,
+        authenticatorSelection: {
+          residentKey: "preferred",
+          userVerification: "preferred",
         },
       }),
       customSession(async (data) => {

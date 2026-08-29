@@ -95,6 +95,10 @@ export class CreateActivityDto {
   readonly userMedalId?: string;
 
   @IsOptional()
+  @IsUUID("7")
+  readonly gameScreenshotId?: string;
+
+  @IsOptional()
   @ApiPropertyOptional({ type: "object", additionalProperties: true })
   readonly metadata?: ActivityMetadata;
 }

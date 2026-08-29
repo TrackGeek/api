@@ -1,4 +1,4 @@
-import { GameMediaType, GameVideoProvider } from "@prisma/generated/enums";
+import { ActivityType, GameMediaType, GameVideoProvider } from "@prisma/generated/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameScreenshotService } from "@/modules/game/service/game-screenshot.service";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -9,6 +9,8 @@ const mockGameScreenshotCreate = vi.fn();
 const mockGameScreenshotFindUnique = vi.fn();
 const mockGameScreenshotUpdate = vi.fn();
 const mockGameScreenshotDelete = vi.fn();
+
+const mockToActivityJob = vi.fn();
 
 const mockDatabaseService = {
   offsetPagination: mockOffsetPagination,
@@ -23,12 +25,16 @@ const mockDatabaseService = {
   },
 };
 
+const mockQueueService = {
+  toActivityJob: mockToActivityJob,
+};
+
 describe("GameScreenshotService", () => {
   let service: GameScreenshotService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new GameScreenshotService(mockDatabaseService as any);
+    service = new GameScreenshotService(mockDatabaseService as any, mockQueueService as any);
   });
 
   describe("getGameScreenshots", () => {
@@ -123,6 +129,25 @@ describe("GameScreenshotService", () => {
             userId: "user-1",
             gameId: "game-1",
           },
+        }),
+      );
+    });
+
+    it("should publish a ScreenshotAdded activity for the new screenshot", async () => {
+      mockGameFindUnique.mockResolvedValueOnce({ id: "game-1" });
+      mockGameScreenshotCreate.mockResolvedValueOnce({ id: "screenshot-1" });
+
+      await service.createGameScreenshot({
+        url: "https://example.com/img.png",
+        gameId: "game-1",
+        userId: "user-1",
+      });
+
+      expect(mockToActivityJob).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: ActivityType.ScreenshotAdded,
+          userId: "user-1",
+          gameScreenshotId: "screenshot-1",
         }),
       );
     });

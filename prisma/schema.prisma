@@ -41,6 +41,7 @@ model User {
   twoFactor              TwoFactor?
   sessions               Session[]
   accounts               Account[]
+  passkeys               Passkey[]
   comments               Comment[]
   reactions              Reaction[]
   followers              Following[]             @relation("UserFollowing")
@@ -141,6 +142,25 @@ model TwoFactor {
 
   @@index([secret])
   @@index([userId])
+}
+
+model Passkey {
+  id           String   @id
+  name         String?
+  publicKey    String
+  credentialID String
+  counter      Int      @default(0)
+  deviceType   String
+  backedUp     Boolean  @default(false)
+  transports   String?
+  aaguid       String?
+  userId       String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialID])
 }
 
 enum ContentType {
@@ -473,6 +493,7 @@ enum ActivityType {
   MedalEarned
   LevelUp
   MissionCompleted
+  ScreenshotAdded
 }
 
 model Activity {
@@ -501,6 +522,7 @@ model Activity {
   tvShowEpisodeWatchId String?
   followingId          String?
   userMedalId          String?
+  gameScreenshotId     String?
   animeId              String?
   tvShowId             String?
 
@@ -525,6 +547,7 @@ model Activity {
   tvShowEpisodeWatch TvShowEpisodeWatch? @relation(fields: [tvShowEpisodeWatchId], references: [id], onDelete: Cascade)
   following          Following?          @relation(fields: [followingId], references: [id], onDelete: Cascade)
   userMedal          UserMedal?          @relation(fields: [userMedalId], references: [id], onDelete: Cascade)
+  gameScreenshot     GameScreenshot?     @relation(fields: [gameScreenshotId], references: [id], onDelete: Cascade)
   anime              Anime?              @relation(fields: [animeId], references: [id], onDelete: Cascade)
   tvShow             TvShow?             @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
@@ -1187,8 +1210,9 @@ model GameScreenshot {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game       Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  activities Activity[]
 
   @@index([userId, gameId])
 }
