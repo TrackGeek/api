@@ -58,8 +58,8 @@ export const RAW_STATUSES_BY_STATE: Record<MediaType, RawStatusesByState> = {
   },
   game: {
     [MediaReleaseState.Ongoing]: ["Alpha", "Beta", "Early Access"],
-    [MediaReleaseState.Finished]: ["Released"],
-    [MediaReleaseState.Unreleased]: ["Not Released", "Offline", "Rumored"],
+    [MediaReleaseState.Finished]: ["Released", "Offline"],
+    [MediaReleaseState.Unreleased]: ["Not Released", "Rumored"],
     [MediaReleaseState.Cancelled]: ["Cancelled", "Canceled", "Delisted"],
   },
   book: {},
