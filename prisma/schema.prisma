@@ -488,6 +488,7 @@ enum ActivityType {
   ProgressCompleted
   ProgressPaused
   ProgressDropped
+  ProgressPlanned
   Watched
   Followed
   MedalEarned
