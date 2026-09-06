@@ -23,6 +23,7 @@ import { MovieModule } from "./modules/movie/movie.module";
 import { NotificationModule } from "./modules/notification/notification.module";
 import { PaymentModule } from "./modules/payment/payment.module";
 import { PersonModule } from "./modules/person/person.module";
+import { PostModule } from "./modules/post/post.module";
 import { ProfileModule } from "./modules/profile/profile.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
 import { TVShowModule } from "./modules/tv-show/tv-show.module";
@@ -64,6 +65,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     UserModule,
     ProfileModule,
     CommentModule,
+    PostModule,
     ReactionModule,
     NotificationModule,
     GameModule,

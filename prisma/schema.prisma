@@ -77,6 +77,7 @@ model User {
   coinLedger             CoinLedger[]
   missions               UserMission[]
   cosmetics              UserCosmetic[]
+  posts                  Post[]
 
   @@unique([email])
   @@unique([username])
@@ -488,12 +489,41 @@ enum ActivityType {
   ProgressCompleted
   ProgressPaused
   ProgressDropped
+  ProgressPlanned
   Watched
   Followed
   MedalEarned
   LevelUp
   MissionCompleted
   ScreenshotAdded
+  PostCreated
+}
+
+model Post {
+  id        String   @id @default(uuid(7))
+  userId    String
+  content   String
+  isSpoiler Boolean  @default(false)
+  animeId   String?
+  mangaId   String?
+  tvShowId  String?
+  movieId   String?
+  gameId    String?
+  bookId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime      Anime?     @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  manga      Manga?     @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  tvShow     TvShow?    @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  movie      Movie?     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  game       Game?      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book       Book?      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Activity {
@@ -523,6 +553,7 @@ model Activity {
   followingId          String?
   userMedalId          String?
   gameScreenshotId     String?
+  postId               String?
   animeId              String?
   tvShowId             String?
 
@@ -548,6 +579,7 @@ model Activity {
   following          Following?          @relation(fields: [followingId], references: [id], onDelete: Cascade)
   userMedal          UserMedal?          @relation(fields: [userMedalId], references: [id], onDelete: Cascade)
   gameScreenshot     GameScreenshot?     @relation(fields: [gameScreenshotId], references: [id], onDelete: Cascade)
+  post               Post?               @relation(fields: [postId], references: [id], onDelete: Cascade)
   anime              Anime?              @relation(fields: [animeId], references: [id], onDelete: Cascade)
   tvShow             TvShow?             @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
@@ -624,6 +656,7 @@ model Game {
   listItems       ListItem[]
   comments        Comment[]
   releaseEvents   ReleaseEvent[]
+  posts           Post[]
 }
 
 model Book {
@@ -667,6 +700,7 @@ model Book {
   favorites              Favorite[]
   listItems              ListItem[]
   comments               Comment[]
+  posts                  Post[]
 }
 
 model Anime {
@@ -719,6 +753,7 @@ model Anime {
   comments           Comment[]
   activities         Activity[]
   releaseEvents      ReleaseEvent[]
+  posts              Post[]
 }
 
 model Manga {
@@ -761,6 +796,7 @@ model Manga {
   listItems       ListItem[]
   comments        Comment[]
   releaseEvents   ReleaseEvent[]
+  posts           Post[]
 }
 
 model TvShow {
@@ -812,6 +848,7 @@ model TvShow {
   comments            Comment[]
   activities          Activity[]
   releaseEvents       ReleaseEvent[]
+  posts               Post[]
 
   @@map("TVShow")
 }
@@ -856,6 +893,7 @@ model Movie {
   favorites       Favorite[]
   listItems       ListItem[]
   comments        Comment[]
+  posts           Post[]
 }
 
 model Person {

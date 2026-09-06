@@ -33,6 +33,7 @@ const SOURCE_FIELDS = [
   "followingId",
   "userMedalId",
   "gameScreenshotId",
+  "postId",
 ] as const;
 
 const ANIME_SELECT = { select: { id: true, malId: true, title: true, imageUrl: true } };
@@ -177,7 +178,16 @@ const INCLUDE = {
       game: GAME_SELECT,
     },
   },
-  // Social.
+  post: {
+    select: {
+      id: true,
+      content: true,
+      isSpoiler: true,
+      createdAt: true,
+      updatedAt: true,
+      ...POLY_MEDIA,
+    },
+  },
   following: { select: { id: true, following: USER_SELECT } },
   userMedal: { select: { id: true, medal: { select: { id: true, name: true, imageUrl: true } } } },
 };
@@ -341,7 +351,8 @@ export class ActivityService {
       const last = groups[groups.length - 1];
       const sameGroup =
         last &&
-        item.type !== "Watched" &&
+        item.type !== ActivityType.Watched &&
+        item.type !== ActivityType.PostCreated &&
         last.type === item.type &&
         last.userId === item.userId &&
         (item.type !== ActivityType.ScreenshotAdded ||

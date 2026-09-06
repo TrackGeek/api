@@ -431,7 +431,6 @@ export class IGDBService {
       const whereConditions = [
         query ? `name ~ *"${query}"*` : null,
         `game_type = (${IGDB_PLAYABLE_GAME_TYPES.join(",")})`,
-        "version_parent = null",
         gameMode ? `game_modes.slug = "${gameMode}"` : null,
         genreSlugs ? `genres.slug = (${genreSlugs.map((genre) => `"${genre}"`).join(",")})` : null,
         platformSlugs ? `platforms.slug = (${platformSlugs.map((slug) => `"${slug}"`).join(",")})` : null,

@@ -22,6 +22,10 @@ export function activityTypeFromProgressStatus(status: ProgressStatus): Activity
     return ActivityType.ProgressDropped;
   }
 
+  if (status === ProgressStatus.Planning) {
+    return ActivityType.ProgressPlanned;
+  }
+
   if (STARTED_STATUSES.includes(status)) {
     return ActivityType.ProgressStarted;
   }
