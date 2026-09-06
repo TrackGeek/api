@@ -934,3 +934,41 @@ GET {{apiUrl}}/game/filter
 
 ### 117. Book Filters
 GET {{apiUrl}}/book/filter
+
+### 118. Create Post
+POST {{apiUrl}}/post
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "content": "Just finished a 40 hour run and I have thoughts. **Long write-up below.**",
+  "isSpoiler": false,
+  "mediaType": "Game",
+  "mediaExternalId": 1020
+}
+
+### 118.1 Create Post (no attached media)
+POST {{apiUrl}}/post
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "content": "What should I watch next?"
+}
+
+### 119. Get Post
+GET {{apiUrl}}/post/019ce334-c8ac-7883-949d-948f53218272
+
+### 120. Update Post
+PATCH {{apiUrl}}/post/019ce334-c8ac-7883-949d-948f53218272
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "content": "Edited: my full review is now on my profile.",
+  "isSpoiler": true
+}
+
+### 121. Delete Post
+DELETE {{apiUrl}}/post/019ce334-c8ac-7883-949d-948f53218272
+Authorization: Bearer {{login.response.body.token}}

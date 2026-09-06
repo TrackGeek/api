@@ -75,6 +75,10 @@ export const ERROR_CODES = {
     code: "COMMENT_NOT_FOUND",
     status: 404,
   },
+  POST_NOT_FOUND: {
+    code: "POST_NOT_FOUND",
+    status: 404,
+  },
   REACTION_NOT_FOUND: {
     code: "REACTION_NOT_FOUND",
     status: 404,

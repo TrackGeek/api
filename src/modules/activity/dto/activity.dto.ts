@@ -99,6 +99,10 @@ export class CreateActivityDto {
   readonly gameScreenshotId?: string;
 
   @IsOptional()
+  @IsUUID("7")
+  readonly postId?: string;
+
+  @IsOptional()
   @ApiPropertyOptional({ type: "object", additionalProperties: true })
   readonly metadata?: ActivityMetadata;
 }
