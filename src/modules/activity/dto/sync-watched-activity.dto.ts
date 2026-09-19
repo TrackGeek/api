@@ -1,4 +1,4 @@
-import { ArrayNotEmpty, IsArray, IsInt, IsPositive, IsUUID, ValidateIf } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsInt, IsOptional, IsPositive, IsUUID, Min, ValidateIf } from "class-validator";
 
 export class SyncWatchedActivityDto {
   @IsUUID("7")
@@ -11,6 +11,11 @@ export class SyncWatchedActivityDto {
   @ValidateIf((dto: SyncWatchedActivityDto) => !dto.animeId)
   @IsUUID("7")
   readonly tvShowId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  readonly season?: number;
 
   @IsArray()
   @ArrayNotEmpty()

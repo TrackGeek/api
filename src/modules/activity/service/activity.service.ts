@@ -225,16 +225,17 @@ export class ActivityService {
 
   async syncWatchedActivity(syncWatchedActivityDto: SyncWatchedActivityDto) {
     const WINDOW_MS = 60 * 60 * 1000;
-    const { userId, animeId, tvShowId, episodes } = syncWatchedActivityDto;
+    const { userId, animeId, tvShowId, season, episodes } = syncWatchedActivityDto;
 
     if (episodes.length === 0) return;
 
     const min = Math.min(...episodes);
     const max = Math.max(...episodes);
     const seriesWhere = animeId ? { animeId } : { tvShowId };
+    const seasonWhere = season == null ? {} : { metadata: { path: ["season"], equals: season } };
 
     const recent = await this.databaseService.activity.findFirst({
-      where: { userId, type: ActivityType.Watched, ...seriesWhere },
+      where: { userId, type: ActivityType.Watched, ...seriesWhere, ...seasonWhere },
       orderBy: { createdAt: "desc" },
     });
 
@@ -248,6 +249,7 @@ export class ActivityService {
             from: Math.min(meta.from ?? min, min),
             to: Math.max(meta.to ?? max, max),
             count: (meta.count ?? 0) + episodes.length,
+            ...(season != null && { season }),
           },
         },
       });
@@ -260,7 +262,7 @@ export class ActivityService {
         type: ActivityType.Watched,
         userId,
         ...seriesWhere,
-        metadata: { from: min, to: max, count: episodes.length },
+        metadata: { from: min, to: max, count: episodes.length, ...(season != null && { season }) },
       },
     });
   }

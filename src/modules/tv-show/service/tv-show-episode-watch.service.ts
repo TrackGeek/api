@@ -78,12 +78,22 @@ export class TVShowEpisodeWatchService {
       );
     }
 
-    const watchedEpisodes = episodes
-      .filter(({ status }) => WATCHED_STATUSES.includes(status))
-      .map(({ episode }) => episode);
+    const watched = episodes.filter(({ status }) => WATCHED_STATUSES.includes(status));
+    const watchedEpisodes = watched.map(({ episode }) => episode);
+    const episodesBySeason = new Map<number, number[]>();
 
-    if (watchedEpisodes.length > 0) {
-      await this.queueService.toWatchedActivityJob({ userId, tvShowId, episodes: watchedEpisodes });
+    for (const { season, episode } of watched) {
+      const current = episodesBySeason.get(season);
+
+      if (current) {
+        current.push(episode);
+      } else {
+        episodesBySeason.set(season, [episode]);
+      }
+    }
+
+    for (const [season, seasonEpisodes] of episodesBySeason) {
+      await this.queueService.toWatchedActivityJob({ userId, tvShowId, season, episodes: seasonEpisodes });
     }
 
     for (const episode of watchedEpisodes) {
