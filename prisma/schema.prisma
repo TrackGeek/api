@@ -47,6 +47,7 @@ model User {
   followers              Following[]             @relation("UserFollowing")
   following              Following[]             @relation("UserFollowers")
   activities             Activity[]
+  activityDayCounts      ActivityDayCount[]
   animeEpisodesWatches   AnimeEpisodeWatch[]
   lists                  List[]
   tvshowEpisodesWatches  TvShowEpisodeWatch[]
@@ -589,6 +590,18 @@ model Activity {
   @@index([type])
   @@index([userId, type, animeId])
   @@index([userId, type, tvShowId])
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+}
+
+model ActivityDayCount {
+  userId String
+  date   DateTime @db.Date
+  count  Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, date])
 }
 
 model Game {

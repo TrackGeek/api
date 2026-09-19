@@ -3,7 +3,6 @@ import { ContentType, MissionMetric, MissionTier } from "@prisma/generated/enums
 import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, Min } from "class-validator";
 
 export class CreateMissionDto {
-  // Chave i18n: missions:{key}.name / .description. O banco não guarda texto.
   @IsNotEmpty()
   @IsString()
   @Matches(/^[a-z0-9_]+$/, { message: "key must be lower_snake_case" })

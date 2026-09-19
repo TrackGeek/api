@@ -11,6 +11,8 @@ import {
 } from "@/modules/notification/dto/notification.dto";
 import { GrantXpDto } from "@/modules/xp/dto/grant-xp.dto";
 import {
+  ACTIVITY_CLEANUP_JOB,
+  ACTIVITY_CLEANUP_SCHEDULER_ID,
   ACTIVITY_JOB,
   CATCHUP_DAILY_JOB,
   CATCHUP_DAILY_SCHEDULER_ID,
@@ -44,6 +46,7 @@ type QueueName =
 type JobName =
   | typeof ACTIVITY_JOB
   | typeof WATCHED_ACTIVITY_JOB
+  | typeof ACTIVITY_CLEANUP_JOB
   | typeof NOTIFICATION_SYSTEM_JOB
   | typeof NOTIFICATION_COMMENT_JOB
   | typeof NOTIFICATION_REACTION_JOB
@@ -57,6 +60,8 @@ type JobName =
   | typeof XP_JOB;
 
 const DEFAULT_CATCHUP_CRON = "0 4 * * *";
+
+const DEFAULT_ACTIVITY_CLEANUP_CRON = "0 5 * * 1";
 
 @Injectable()
 export class QueueService implements OnModuleInit {
@@ -78,6 +83,7 @@ export class QueueService implements OnModuleInit {
 
   async onModuleInit() {
     await this.scheduleDailyCatchup();
+    await this.scheduleWeeklyActivityCleanup();
   }
 
   async scheduleDailyCatchup() {
@@ -95,6 +101,27 @@ export class QueueService implements OnModuleInit {
     } catch (error: any) {
       this.logger.error(`Failed to register daily catch-up scheduler | error=${error.message}`);
     }
+  }
+
+  async scheduleWeeklyActivityCleanup() {
+    const pattern = this.configService.get<string>("ACTIVITY_CLEANUP_CRON") ?? DEFAULT_ACTIVITY_CLEANUP_CRON;
+    const tz = this.configService.get<string>("ACTIVITY_CLEANUP_TIMEZONE") ?? "UTC";
+
+    try {
+      await this.activityQueue.upsertJobScheduler(
+        ACTIVITY_CLEANUP_SCHEDULER_ID,
+        { pattern, tz },
+        { name: ACTIVITY_CLEANUP_JOB, data: {} },
+      );
+
+      this.logger.log(`Weekly activity cleanup scheduler registered | pattern=${pattern} tz=${tz}`);
+    } catch (error: any) {
+      this.logger.error(`Failed to register weekly activity cleanup scheduler | error=${error.message}`);
+    }
+  }
+
+  async toActivityCleanupJob() {
+    await this.addJob(ACTIVITY_QUEUE, ACTIVITY_CLEANUP_JOB, {});
   }
 
   async toCatchupDailyJob(runDate?: string) {
