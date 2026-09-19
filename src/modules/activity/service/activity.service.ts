@@ -1,6 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+import { Prisma } from "@prisma/generated/client";
 import { ActivityType } from "@prisma/generated/enums";
 import { ActivityFindManyArgs } from "@prisma/generated/models";
+import {
+  ACTIVITY_CLEANUP_BATCH_SIZE,
+  ACTIVITY_RETENTION_DAYS,
+  ACTIVITY_RETENTION_KEPT_PER_USER,
+  AUTOMATED_ACTIVITY_TYPES,
+} from "@/shared/constants/activity";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
@@ -194,6 +201,8 @@ const INCLUDE = {
 
 @Injectable()
 export class ActivityService {
+  private readonly logger = new Logger(ActivityService.name);
+
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createActivity(createActivityDto: CreateActivityDto) {
@@ -265,6 +274,71 @@ export class ActivityService {
         metadata: { from: min, to: max, count: episodes.length, ...(season != null && { season }) },
       },
     });
+  }
+
+  async cleanupAutomatedActivities(now = new Date()) {
+    const cutoff = new Date(now);
+
+    cutoff.setDate(cutoff.getDate() - ACTIVITY_RETENTION_DAYS);
+
+    const automatedTypes = Prisma.join(AUTOMATED_ACTIVITY_TYPES.map((type) => Prisma.sql`${type}::"ActivityType"`));
+
+    let deleted = 0;
+    let deletedInBatch = 0;
+
+    do {
+      const [{ deleted: batchTotal }] = await this.databaseService.$queryRaw<[{ deleted: number }]>`
+        WITH affected AS (
+          SELECT DISTINCT a."userId"
+          FROM "Activity" a
+          WHERE a."type" IN (${automatedTypes})
+            AND a."createdAt" < ${cutoff}
+        ),
+        boundary AS (
+          SELECT affected."userId", kept."createdAt" AS "keptFrom", kept."id" AS "keptId"
+          FROM affected
+          CROSS JOIN LATERAL (
+            SELECT a."createdAt", a."id"
+            FROM "Activity" a
+            WHERE a."userId" = affected."userId"
+            ORDER BY a."createdAt" DESC, a."id" DESC
+            OFFSET ${ACTIVITY_RETENTION_KEPT_PER_USER - 1}
+            LIMIT 1
+          ) kept
+        ),
+        expired AS (
+          SELECT a."id"
+          FROM "Activity" a
+          JOIN boundary ON boundary."userId" = a."userId"
+          WHERE a."type" IN (${automatedTypes})
+            AND a."createdAt" < ${cutoff}
+            AND (a."createdAt", a."id") < (boundary."keptFrom", boundary."keptId")
+          LIMIT ${ACTIVITY_CLEANUP_BATCH_SIZE}
+        ),
+        removed AS (
+          DELETE FROM "Activity"
+          WHERE "id" IN (SELECT "id" FROM expired)
+          RETURNING "userId", "createdAt"
+        ),
+        archived AS (
+          INSERT INTO "ActivityDayCount" ("userId", "date", "count")
+          SELECT removed."userId", removed."createdAt"::date, count(*)::int
+          FROM removed
+          GROUP BY removed."userId", removed."createdAt"::date
+          ON CONFLICT ("userId", "date")
+          DO UPDATE SET "count" = "ActivityDayCount"."count" + EXCLUDED."count"
+          RETURNING 1
+        )
+        SELECT (SELECT count(*) FROM removed)::int AS deleted
+      `;
+
+      deletedInBatch = batchTotal;
+      deleted += deletedInBatch;
+    } while (deletedInBatch === ACTIVITY_CLEANUP_BATCH_SIZE);
+
+    this.logger.log(`Automated activity cleanup done | deleted=${deleted} cutoff=${cutoff.toISOString()}`);
+
+    return deleted;
   }
 
   async getActivitiesByUserId(getActivitiesByUserIdDto: GetActivitiesByUserDto, friendIds: string[] = []) {
@@ -392,20 +466,31 @@ export class ActivityService {
     startDate.setHours(0, 0, 0, 0);
     startDate.setDate(startDate.getDate() - 364);
 
-    const activities = await this.databaseService.activity.findMany({
-      where: {
-        userId,
-        createdAt: {
-          gte: startDate,
+    const [activities, archivedDays] = await Promise.all([
+      this.databaseService.activity.findMany({
+        where: {
+          userId,
+          createdAt: {
+            gte: startDate,
+          },
         },
-      },
-      select: {
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
+        select: {
+          createdAt: true,
+        },
+      }),
+      this.databaseService.activityDayCount.findMany({
+        where: {
+          userId,
+          date: {
+            gte: startDate,
+          },
+        },
+        select: {
+          date: true,
+          count: true,
+        },
+      }),
+    ]);
 
     const groupedByDate = new Map<string, number>();
 
@@ -416,12 +501,20 @@ export class ActivityService {
       groupedByDate.set(date, currentCount + 1);
     }
 
+    for (const { date, count } of archivedDays) {
+      const day = date.toISOString().split("T")[0];
+      const currentCount = groupedByDate.get(day) ?? 0;
+
+      groupedByDate.set(day, currentCount + count);
+    }
+
+    const items = [...groupedByDate.entries()]
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
     return {
-      total: activities.length,
-      items: [...groupedByDate.entries()].map(([date, count]) => ({
-        date,
-        count,
-      })),
+      total: items.reduce((sum, item) => sum + item.count, 0),
+      items,
     };
   }
 }

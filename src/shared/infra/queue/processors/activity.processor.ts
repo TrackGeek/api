@@ -4,7 +4,7 @@ import { Job } from "bullmq";
 import { CreateActivityDto } from "@/modules/activity/dto/activity.dto";
 import { SyncWatchedActivityDto } from "@/modules/activity/dto/sync-watched-activity.dto";
 import { ActivityService } from "@/modules/activity/service/activity.service";
-import { ACTIVITY_JOB, WATCHED_ACTIVITY_JOB } from "@/shared/constants/job";
+import { ACTIVITY_CLEANUP_JOB, ACTIVITY_JOB, WATCHED_ACTIVITY_JOB } from "@/shared/constants/job";
 import { ACTIVITY_QUEUE } from "@/shared/constants/queue";
 
 export type ActivityJobData = CreateActivityDto;
@@ -26,6 +26,12 @@ export class ActivityProcessor extends WorkerHost {
 
     if (job.name === WATCHED_ACTIVITY_JOB) {
       await this.activityService.syncWatchedActivity(job.data as SyncWatchedActivityDto);
+
+      return;
+    }
+
+    if (job.name === ACTIVITY_CLEANUP_JOB) {
+      await this.activityService.cleanupAutomatedActivities();
 
       return;
     }
