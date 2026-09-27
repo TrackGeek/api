@@ -10,6 +10,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
+import { animeEpisodeProgress } from "@/shared/utils/episode-progress";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
@@ -148,6 +149,7 @@ export class AnimeProgressService {
               malId: true,
               imageUrl: true,
               title: true,
+              numberOfEpisodes: true,
             },
           },
           user: {
@@ -168,7 +170,22 @@ export class AnimeProgressService {
       this.mediaFilterService.countProgressByStatus("animeProgress", where),
     ]);
 
-    return { animeProgresses, statusCounts };
+    const watches = animeProgresses.items.length
+      ? await this.databaseService.animeEpisodeWatch.findMany({
+          where: {
+            OR: animeProgresses.items.map((row) => ({ userId: row.userId, animeId: row.animeId })),
+            status: "Completed",
+          },
+          select: { userId: true, animeId: true, episode: true },
+        })
+      : [];
+
+    const items = animeProgresses.items.map((row) => {
+      const rowWatches = watches.filter((watch) => watch.userId === row.userId && watch.animeId === row.animeId);
+      return { ...row, episodeProgress: animeEpisodeProgress(row.anime.numberOfEpisodes, rowWatches) };
+    });
+
+    return { animeProgresses: { ...animeProgresses, items }, statusCounts };
   }
 
   async getAnimeProgressFilters(userId: string) {
