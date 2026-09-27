@@ -58,6 +58,7 @@ describe("DailyReleaseIngestorService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    vi.setSystemTime(runDate);
 
     service = new DailyReleaseIngestorService(
       mockDatabaseService as any,

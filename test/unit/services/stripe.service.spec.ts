@@ -100,3 +100,31 @@ describe("StripeService.getUserCurrency", () => {
     await expect(service.getUserCurrency(publicIp)).resolves.toBe(DEFAULT_CURRENCY);
   });
 });
+
+describe("StripeService.cancelSubscriptionsForAccountDeletion", () => {
+  it("cancels every billable subscription and skips terminal subscriptions", async () => {
+    const service = buildService();
+    const cancel = vi.fn().mockResolvedValue({});
+    const list = vi.fn().mockReturnValue(
+      (async function* () {
+        yield { id: "active", status: "active" };
+        yield { id: "trial", status: "trialing" };
+        yield { id: "past-due", status: "past_due" };
+        yield { id: "cancelled", status: "canceled" };
+        yield { id: "expired", status: "incomplete_expired" };
+      })(),
+    );
+    vi.spyOn(service, "client", "get").mockReturnValue({ subscriptions: { list, cancel } } as any);
+    await service.cancelSubscriptionsForAccountDeletion("cus_1");
+    expect(cancel.mock.calls.map(([id]) => id)).toEqual(["active", "trial", "past-due"]);
+    expect(list).toHaveBeenCalledWith({ customer: "cus_1", status: "all", limit: 100 });
+  });
+
+  it("does not contact Stripe without a customer", async () => {
+    const service = buildService();
+    const list = vi.fn();
+    vi.spyOn(service, "client", "get").mockReturnValue({ subscriptions: { list } } as any);
+    await service.cancelSubscriptionsForAccountDeletion(null);
+    expect(list).not.toHaveBeenCalled();
+  });
+});

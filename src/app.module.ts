@@ -4,6 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { AccountInactivityModule } from "./modules/account-inactivity/account-inactivity.module";
 import { ActivityModule } from "./modules/activity/activity.module";
 import { AnimeModule } from "./modules/anime/anime.module";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -63,6 +64,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     IntegrationsModule,
     UploadModule,
     UserModule,
+    AccountInactivityModule,
     ProfileModule,
     CommentModule,
     PostModule,

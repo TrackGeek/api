@@ -29,6 +29,17 @@ export class UserService {
     private readonly queueService: QueueService,
   ) {}
 
+  async recordActivity(userId: string) {
+    const now = new Date();
+    await this.databaseService.user.updateMany({
+      where: {
+        id: userId,
+        OR: [{ lastActiveAt: { lt: new Date(now.getTime() - 60 * 60 * 1000) } }, { inactivityWarnedAt: { not: null } }],
+      },
+      data: { lastActiveAt: now, inactivityWarnedAt: null, inactivityDeletionAt: null },
+    });
+  }
+
   async updateUser(updateUserDto: UpdateUserDto) {
     const existingUserWithUsername = await this.databaseService.user.findUnique({
       where: { username: updateUserDto.username },

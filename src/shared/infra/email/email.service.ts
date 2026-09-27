@@ -27,6 +27,27 @@ export class EmailService {
     return template(variables);
   }
 
+  async sendInactivityWarningEmail(data: {
+    name: string;
+    email: string;
+    url: string;
+    deletionDate: string;
+    idempotencyKey: string;
+  }) {
+    const result = await this.resendService.send(
+      {
+        from: this.configService.getOrThrow<string>("RESEND_FROM"),
+        to: data.email,
+        subject: "Sign in to keep your TrackGeek account",
+        html: this.getHtmlTemplate("inactivity-warning-email", data),
+      },
+      { idempotencyKey: data.idempotencyKey },
+    );
+    if (result.error || !result.data?.id) {
+      throw new Error(`Inactivity warning email failed: ${result.error?.message ?? "missing email ID"}`);
+    }
+  }
+
   async sendMagicLinkEmail(magicLinkEmailDto: MagicLinkEmailDto) {
     await this.resendService.send({
       from: this.configService.get<string>("RESEND_FROM")!,
