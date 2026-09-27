@@ -497,6 +497,7 @@ enum ActivityType {
   ProgressDropped
   ProgressPlanned
   Watched
+  ChaptersRead
   Followed
   MedalEarned
   LevelUp
@@ -595,6 +596,7 @@ model Activity {
   @@index([type])
   @@index([userId, type, animeId])
   @@index([userId, type, tvShowId])
+  @@index([userId, type, mangaProgressId])
   @@index([userId, createdAt])
   @@index([type, createdAt])
 }

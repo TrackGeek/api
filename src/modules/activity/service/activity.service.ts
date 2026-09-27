@@ -208,6 +208,11 @@ export class ActivityService {
   async createActivity(createActivityDto: CreateActivityDto) {
     const { type, userId, metadata } = createActivityDto;
 
+    if (type === ActivityType.ChaptersRead) {
+      await this.syncChaptersReadActivity(createActivityDto);
+      return;
+    }
+
     const source = SOURCE_FIELDS.reduce<Record<string, string>>((acc, field) => {
       const value = createActivityDto[field];
 
@@ -219,7 +224,9 @@ export class ActivityService {
     }, {});
 
     if (Object.keys(source).length > 0) {
-      await this.databaseService.activity.deleteMany({ where: source });
+      await this.databaseService.activity.deleteMany({
+        where: { ...source, ...(source.mangaProgressId && { type: { not: ActivityType.ChaptersRead } }) },
+      });
     }
 
     await this.databaseService.activity.create({
@@ -228,6 +235,46 @@ export class ActivityService {
         userId,
         ...source,
         ...(metadata && { metadata: { ...metadata } }),
+      },
+    });
+  }
+
+  private async syncChaptersReadActivity({ userId, mangaProgressId, metadata }: CreateActivityDto) {
+    const from = metadata?.from;
+    const to = metadata?.to;
+
+    if (!mangaProgressId || !Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < from) return;
+
+    const recent = await this.databaseService.activity.findFirst({
+      where: { userId, type: ActivityType.ChaptersRead, mangaProgressId },
+      orderBy: { createdAt: "desc" },
+    });
+    const meta = (recent?.metadata ?? {}) as { from?: number; to?: number };
+
+    if (
+      recent &&
+      Date.now() - recent.createdAt.getTime() <= 60 * 60 * 1000 &&
+      meta.from != null &&
+      meta.to != null &&
+      from <= meta.to + 1 &&
+      to >= meta.from - 1
+    ) {
+      const mergedFrom = Math.min(meta.from, from);
+      const mergedTo = Math.max(meta.to, to);
+
+      await this.databaseService.activity.update({
+        where: { id: recent.id },
+        data: { metadata: { from: mergedFrom, to: mergedTo, count: mergedTo - mergedFrom + 1 } },
+      });
+      return;
+    }
+
+    await this.databaseService.activity.create({
+      data: {
+        type: ActivityType.ChaptersRead,
+        userId,
+        mangaProgressId,
+        metadata: { from, to, count: to - from + 1 },
       },
     });
   }
@@ -428,6 +475,7 @@ export class ActivityService {
       const sameGroup =
         last &&
         item.type !== ActivityType.Watched &&
+        item.type !== ActivityType.ChaptersRead &&
         item.type !== ActivityType.PostCreated &&
         last.type === item.type &&
         last.userId === item.userId &&

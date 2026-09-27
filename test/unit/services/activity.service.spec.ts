@@ -1,3 +1,4 @@
+import { ActivityType } from "@prisma/generated/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ActivityService } from "@/modules/activity/service/activity.service";
 import { ACTIVITY_CLEANUP_BATCH_SIZE } from "@/shared/constants/activity";
@@ -7,7 +8,14 @@ describe("ActivityService", () => {
   let databaseService: {
     $queryRaw: ReturnType<typeof vi.fn>;
     user: { findUnique: ReturnType<typeof vi.fn> };
-    activity: { findMany: ReturnType<typeof vi.fn> };
+    activity: {
+      findMany: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+      deleteMany: ReturnType<typeof vi.fn>;
+    };
+    offsetPagination: ReturnType<typeof vi.fn>;
     activityDayCount: { findMany: ReturnType<typeof vi.fn> };
   };
   let activityService: ActivityService;
@@ -16,10 +24,98 @@ describe("ActivityService", () => {
     databaseService = {
       $queryRaw: vi.fn(),
       user: { findUnique: vi.fn() },
-      activity: { findMany: vi.fn() },
+      activity: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
+      offsetPagination: vi.fn(),
       activityDayCount: { findMany: vi.fn() },
     };
     activityService = new ActivityService(databaseService as unknown as DatabaseService);
+  });
+
+  describe("chapter activities", () => {
+    const input = {
+      type: ActivityType.ChaptersRead,
+      userId: "user-1",
+      mangaProgressId: "progress-1",
+      metadata: { id: "progress-1", from: 2, to: 6, count: 5 },
+    };
+
+    it("creates a chapter range without deleting status activities", async () => {
+      await activityService.createActivity(input);
+
+      expect(databaseService.activity.create).toHaveBeenCalledWith({
+        data: { ...input, metadata: { from: 2, to: 6, count: 5 } },
+      });
+      expect(databaseService.activity.deleteMany).not.toHaveBeenCalled();
+      expect(databaseService.activity.findFirst).toHaveBeenCalledWith({
+        where: { userId: "user-1", type: ActivityType.ChaptersRead, mangaProgressId: "progress-1" },
+        orderBy: { createdAt: "desc" },
+      });
+    });
+
+    it("merges recent chapters while retaining the activity and its reactions", async () => {
+      databaseService.activity.findFirst.mockResolvedValue({
+        id: "activity-1",
+        createdAt: new Date(),
+        metadata: { from: 1, to: 2, count: 2 },
+      });
+
+      await activityService.createActivity(input);
+
+      expect(databaseService.activity.update).toHaveBeenCalledWith({
+        where: { id: "activity-1" },
+        data: { metadata: { from: 1, to: 6, count: 6 } },
+      });
+      expect(databaseService.activity.create).not.toHaveBeenCalled();
+    });
+
+    it("does not double-count a repeated chapter range", async () => {
+      databaseService.activity.findFirst.mockResolvedValue({
+        id: "activity-1",
+        createdAt: new Date(),
+        metadata: { from: 2, to: 6, count: 5 },
+      });
+
+      await activityService.createActivity(input);
+
+      expect(databaseService.activity.update).toHaveBeenCalledWith({
+        where: { id: "activity-1" },
+        data: { metadata: { from: 2, to: 6, count: 5 } },
+      });
+    });
+
+    it("creates a separate event after the one-hour window", async () => {
+      databaseService.activity.findFirst.mockResolvedValue({
+        id: "activity-1",
+        createdAt: new Date(Date.now() - 3_600_001),
+        metadata: { from: 1, to: 1 },
+      });
+
+      await activityService.createActivity(input);
+
+      expect(databaseService.activity.create).toHaveBeenCalled();
+      expect(databaseService.activity.update).not.toHaveBeenCalled();
+    });
+
+    it("preserves chapter events when a manga status changes", async () => {
+      await activityService.createActivity({ ...input, type: ActivityType.ProgressCompleted });
+
+      expect(databaseService.activity.deleteMany).toHaveBeenCalledWith({
+        where: { mangaProgressId: "progress-1", type: { not: ActivityType.ChaptersRead } },
+      });
+    });
+
+    it("keeps chapter events for different manga in separate feed groups", async () => {
+      databaseService.offsetPagination.mockResolvedValue({
+        items: [
+          { ...input, id: "activity-1", createdAt: new Date() },
+          { ...input, id: "activity-2", mangaProgressId: "progress-2", createdAt: new Date() },
+        ],
+      });
+
+      const result = await activityService.getActivities({ page: 1, itemsPerPage: 20 });
+
+      expect(result.items).toHaveLength(2);
+    });
   });
 
   describe("cleanupAutomatedActivities", () => {

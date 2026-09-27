@@ -7,6 +7,17 @@ export const AUTOMATED_ACTIVITY_TYPES = [
   ActivityType.ProgressDropped,
   ActivityType.ProgressPlanned,
   ActivityType.ScreenshotAdded,
+  ActivityType.ChaptersRead,
+  ActivityType.Followed,
+  ActivityType.FavoriteAdded,
+  ActivityType.LevelUp,
+  ActivityType.AccountCreated,
+  ActivityType.ListCreated,
+  ActivityType.ListItemAdded,
+  ActivityType.MedalEarned,
+  ActivityType.MissionCompleted,
+  ActivityType.ReviewAdded,
+  ActivityType.Watched
 ] as const;
 
 export const ACTIVITY_RETENTION_DAYS = 30;
