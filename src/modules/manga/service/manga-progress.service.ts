@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ContentType } from "@prisma/generated/enums";
+import { ActivityType, ContentType } from "@prisma/generated/enums";
 import { MangaProgressFindManyArgs } from "@prisma/generated/models";
 import { activityTypeFromProgressStatus, xpReasonFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -38,6 +38,11 @@ export class MangaProgressService {
     if (chaptersRead && manga.numberOfChapters && chaptersRead > manga.numberOfChapters) {
       throw new AppException(ERROR_CODES.INVALID_CHAPTERS_READ);
     }
+
+    const previousProgress = await this.databaseService.mangaProgress.findUnique({
+      where: { userId_mangaId: { userId, mangaId } },
+      select: { status: true, chaptersRead: true },
+    });
 
     const mangaProgress = await this.databaseService.mangaProgress.upsert({
       where: {
@@ -90,12 +95,28 @@ export class MangaProgressService {
 
     const activityType = activityTypeFromProgressStatus(status);
 
-    if (activityType) {
+    if (activityType && previousProgress?.status !== status) {
       await this.queueService.toActivityJob({
         type: activityType,
         userId,
         mangaProgressId: mangaProgress.id,
         metadata: { ...mangaProgress },
+      });
+    }
+
+    const previousChaptersRead = previousProgress?.chaptersRead ?? 0;
+
+    if (chaptersRead != null && chaptersRead > previousChaptersRead) {
+      await this.queueService.toActivityJob({
+        type: ActivityType.ChaptersRead,
+        userId,
+        mangaProgressId: mangaProgress.id,
+        metadata: {
+          id: mangaProgress.id,
+          from: previousChaptersRead + 1,
+          to: chaptersRead,
+          count: chaptersRead - previousChaptersRead,
+        },
       });
     }
 
@@ -152,6 +173,7 @@ export class MangaProgressService {
               anilistId: true,
               malId: true,
               imageUrl: true,
+              numberOfChapters: true,
               title: true,
             },
           },

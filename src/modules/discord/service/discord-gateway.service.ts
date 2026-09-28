@@ -9,7 +9,7 @@ import {
   type Guild,
   type Presence,
   type PresenceStatus,
-  type PresenceStatusData
+  type PresenceStatusData,
 } from "discord.js";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { CacheService } from "@/shared/infra/cache/cache.service";
@@ -55,7 +55,7 @@ export class DiscordGatewayService implements OnModuleInit, OnModuleDestroy {
       this.ready = true;
 
       this.logger.log(`Discord bot logged in as ${client.user.tag}`);
-      
+
       setInterval(() => {
         const randomActivity = [
           { name: "🎮 with your backlog", type: ActivityType.Playing },
@@ -65,16 +65,16 @@ export class DiscordGatewayService implements OnModuleInit, OnModuleDestroy {
           { name: "🏆 for XP and missions", type: ActivityType.Playing },
           { name: "🚀 games, anime, movies & more", type: ActivityType.Playing },
         ];
-        
+
         const randomStatus = ["online", "idle", "dnd"] as PresenceStatusData[];
-        
+
         const activity = randomActivity[Math.floor(Math.random() * randomActivity.length)];
         const status = randomStatus[Math.floor(Math.random() * randomStatus.length)];
 
         this.client.user?.setPresence({
           activities: [activity],
-          status
-        })
+          status,
+        });
       }, 1000 * 5);
 
       void this.warmupPresences();

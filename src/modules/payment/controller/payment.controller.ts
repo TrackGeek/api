@@ -40,6 +40,13 @@ export class PaymentController {
     return { payments };
   }
 
+  @Get("/donors")
+  async getDonors() {
+    const donors = await this.paymentService.getDonors();
+
+    return { donors };
+  }
+
   @Get("/detail/:paymentId")
   async getPaymentDetail(@Param("paymentId") paymentId: string) {
     const payment = await this.paymentService.getPaymentById(paymentId);

@@ -219,6 +219,7 @@ export function getAuthConfig(params: AuthConfigParams) {
         },
       }),
       customSession(async (data) => {
+        await userService.recordActivity(data.session.userId);
         const user = await userService.getUserById(data.session.userId);
 
         return {
@@ -243,6 +244,13 @@ export function getAuthConfig(params: AuthConfigParams) {
       }),
     ],
     databaseHooks: {
+      session: {
+        create: {
+          after: async (session) => {
+            await userService.recordActivity(session.userId);
+          },
+        },
+      },
       user: {
         create: {
           before: async (user) => {

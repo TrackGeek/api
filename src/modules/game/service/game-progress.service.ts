@@ -162,12 +162,23 @@ export class GameProgressService {
   }
 
   async getGameProgress(getGameProgressDto: GetGameProgressDto) {
-    const mediaWhere = buildMediaWhere("game", getGameProgressDto);
+    const mediaFilters = buildMediaWhere("game", getGameProgressDto);
+    const platformFilters = getGameProgressDto.availablePlatforms?.length
+      ? { OR: getGameProgressDto.availablePlatforms.map((slug) => ({ platforms: { array_contains: [{ slug }] } })) }
+      : undefined;
+    const mediaWhere =
+      mediaFilters || platformFilters
+        ? { AND: [mediaFilters, platformFilters].filter((filter) => filter !== undefined) }
+        : undefined;
 
     const where = {
       ...(getGameProgressDto.gameId && { gameId: getGameProgressDto.gameId }),
       ...(getGameProgressDto.userId && { userId: getGameProgressDto.userId }),
       ...(mediaWhere && { game: mediaWhere }),
+      ...(getGameProgressDto.completion?.length && { completion: { in: getGameProgressDto.completion } }),
+      ...(getGameProgressDto.selectedPlatforms?.length && {
+        platforms: { hasSome: getGameProgressDto.selectedPlatforms },
+      }),
     };
 
     const [gameProgresses, statusCounts] = await Promise.all([
@@ -211,6 +222,29 @@ export class GameProgressService {
   }
 
   async getGameProgressFilters(userId: string) {
-    return this.mediaFilterService.getFilterOptions("game", userId);
+    const [filters, progresses] = await Promise.all([
+      this.mediaFilterService.getFilterOptions("game", userId),
+      this.databaseService.gameProgress.findMany({
+        where: { userId },
+        select: { platforms: true, game: { select: { platforms: true } } },
+      }),
+    ]);
+    const available = new Map<string, string>();
+    const selected = new Set<string>();
+    for (const progress of progresses) {
+      for (const slug of progress.platforms) selected.add(slug);
+      const platforms = progress.game.platforms;
+      if (!Array.isArray(platforms)) continue;
+      for (const platform of platforms) {
+        if (!platform || typeof platform !== "object" || Array.isArray(platform)) continue;
+        if (typeof platform.slug !== "string") continue;
+        available.set(platform.slug, typeof platform.name === "string" ? platform.name : platform.slug);
+      }
+    }
+    const toOptions = (slugs: Iterable<string>) =>
+      [...slugs]
+        .map((slug) => ({ slug, name: available.get(slug) ?? slug }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    return { ...filters, availablePlatforms: toOptions(available.keys()), selectedPlatforms: toOptions(selected) };
   }
 }

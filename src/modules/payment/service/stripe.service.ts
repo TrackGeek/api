@@ -345,6 +345,18 @@ export class StripeService {
     };
   }
 
+  async cancelSubscriptionsForAccountDeletion(customerId: string | null) {
+    if (!customerId) return;
+    for await (const subscription of this.client.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 100,
+    })) {
+      if (subscription.status === "canceled" || subscription.status === "incomplete_expired") continue;
+      await this.client.subscriptions.cancel(subscription.id, { prorate: false });
+    }
+  }
+
   async cancelCurrentSubscription(userId: string) {
     const subscription = await this.getCurrentSubscription(userId);
 

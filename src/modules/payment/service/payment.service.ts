@@ -112,6 +112,22 @@ export class PaymentService {
     return { id: session.id, url: session.url };
   }
 
+  async getDonors() {
+    return this.databaseService.user.findMany({
+      where: {
+        username: { not: null },
+        payments: { some: { status: PaymentStatus.Succeeded, value: { gt: 0 } } },
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        profile: { select: { avatarUrl: true } },
+      },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+    });
+  }
+
   async getPayments(getPaymentsDto: GetPaymentsDto) {
     const payments = await this.databaseService.offsetPagination<PaymentFindManyArgs>({
       model: "payment",

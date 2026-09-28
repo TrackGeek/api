@@ -21,21 +21,24 @@ enum UserTier {
 }
 
 model User {
-  id               String    @id
-  name             String
-  email            String
-  emailVerified    Boolean   @default(false)
-  image            String?
-  username         String?
-  displayUsername  String?
-  tier             UserTier?
-  tierStartedAt    DateTime?
-  role             UserRole  @default(User)
-  twoFactorEnabled Boolean   @default(false)
-  stripeCustomerId String?
-  accumulatedMoney Int       @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                   String    @id
+  name                 String
+  email                String
+  emailVerified        Boolean   @default(false)
+  image                String?
+  username             String?
+  displayUsername      String?
+  tier                 UserTier?
+  tierStartedAt        DateTime?
+  role                 UserRole  @default(User)
+  twoFactorEnabled     Boolean   @default(false)
+  stripeCustomerId     String?
+  lastActiveAt         DateTime  @default(now())
+  inactivityWarnedAt   DateTime?
+  inactivityDeletionAt DateTime?
+  accumulatedMoney     Int       @default(0)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   profile                Profile?
   twoFactor              TwoFactor?
@@ -82,6 +85,8 @@ model User {
 
   @@unique([email])
   @@unique([username])
+  @@index([lastActiveAt, inactivityWarnedAt])
+  @@index([inactivityDeletionAt])
 }
 
 model Session {
@@ -492,6 +497,7 @@ enum ActivityType {
   ProgressDropped
   ProgressPlanned
   Watched
+  ChaptersRead
   Followed
   MedalEarned
   LevelUp
@@ -590,6 +596,7 @@ model Activity {
   @@index([type])
   @@index([userId, type, animeId])
   @@index([userId, type, tvShowId])
+  @@index([userId, type, mangaProgressId])
   @@index([userId, createdAt])
   @@index([type, createdAt])
 }

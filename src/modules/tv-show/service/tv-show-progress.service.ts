@@ -6,10 +6,12 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { XP_SOURCE_KEYS } from "@/shared/constants/xp";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import type { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
+import { tvEpisodeProgress } from "@/shared/utils/episode-progress";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
@@ -149,7 +151,10 @@ export class TVShowProgressService {
               id: true,
               tmdbId: true,
               posterUrl: true,
+              firstAirDate: true,
               name: true,
+              numberOfEpisodes: true,
+              seasons: true,
             },
           },
           user: {
@@ -170,7 +175,29 @@ export class TVShowProgressService {
       this.mediaFilterService.countProgressByStatus("tvShowProgress", where),
     ]);
 
-    return { tvShowProgresses, statusCounts };
+    const watches = tvShowProgresses.items.length
+      ? await this.databaseService.tvShowEpisodeWatch.findMany({
+          where: {
+            OR: tvShowProgresses.items.map((row) => ({ userId: row.userId, tvShowId: row.tvShowId })),
+            status: "Completed",
+          },
+          select: { userId: true, tvShowId: true, episode: true, season: true },
+        })
+      : [];
+
+    const items = tvShowProgresses.items.map((row) => {
+      const rowWatches = watches.filter((watch) => watch.userId === row.userId && watch.tvShowId === row.tvShowId);
+      return {
+        ...row,
+        episodeProgress: tvEpisodeProgress(
+          (row.tvShow.seasons ?? []) as TMDBTVShowSeason[],
+          rowWatches,
+          row.tvShow.numberOfEpisodes,
+        ),
+      };
+    });
+
+    return { tvShowProgresses: { ...tvShowProgresses, items }, statusCounts };
   }
 
   async getTVShowProgressFilters(userId: string) {

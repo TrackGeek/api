@@ -1,6 +1,9 @@
 ### Variables
 @apiUrl = http://localhost:40287
 
+### Get donation contributors
+GET {{apiUrl}}/payment/donors
+
 ### 3. Login to trackgeek-api
 # @name login
 POST {{apiUrl}}/auth/sign-in/email
