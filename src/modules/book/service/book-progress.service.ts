@@ -138,6 +138,7 @@ export class BookProgressService {
               id: true,
               hardcoverId: true,
               imageUrl: true,
+              numberOfPages: true,
               title: true,
             },
           },

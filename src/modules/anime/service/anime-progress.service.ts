@@ -148,6 +148,7 @@ export class AnimeProgressService {
               id: true,
               malId: true,
               imageUrl: true,
+              year: true,
               title: true,
               numberOfEpisodes: true,
             },

@@ -1,8 +1,42 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsUUID } from "class-validator";
+import { Transform } from "class-transformer";
+import { ArrayMaxSize, IsArray, IsIn, IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
 import { ProgressFilterParamsDto } from "@/shared/media-filter/dtos/progress-filter.dto";
 
+const toArray = ({ value }: { value: unknown }) =>
+  typeof value === "string"
+    ? value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : value;
+
 export class GetGameProgressDto extends ProgressFilterParamsDto {
+  @IsOptional()
+  @Transform(toArray)
+  @IsArray()
+  @IsIn(["mainStory", "mainStoryPlusExtras", "100%", "endless"], { each: true })
+  @ApiPropertyOptional({ type: [String] })
+  readonly completion?: string[];
+
+  @IsOptional()
+  @Transform(toArray)
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  @ApiPropertyOptional({ type: [String] })
+  readonly selectedPlatforms?: string[];
+
+  @IsOptional()
+  @Transform(toArray)
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  @ApiPropertyOptional({ type: [String] })
+  readonly availablePlatforms?: string[];
+
   @IsUUID()
   @IsOptional()
   @ApiProperty({

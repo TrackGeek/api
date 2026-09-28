@@ -134,6 +134,7 @@ export class MovieProgressService {
               imdbId: true,
               tmdbId: true,
               posterUrl: true,
+              releaseDate: true,
               title: true,
             },
           },

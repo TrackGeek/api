@@ -173,6 +173,7 @@ export class MangaProgressService {
               anilistId: true,
               malId: true,
               imageUrl: true,
+              numberOfChapters: true,
               title: true,
             },
           },

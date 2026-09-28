@@ -151,6 +151,7 @@ export class TVShowProgressService {
               id: true,
               tmdbId: true,
               posterUrl: true,
+              firstAirDate: true,
               name: true,
               numberOfEpisodes: true,
               seasons: true,
