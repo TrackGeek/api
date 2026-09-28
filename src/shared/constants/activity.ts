@@ -17,7 +17,7 @@ export const AUTOMATED_ACTIVITY_TYPES = [
   ActivityType.MedalEarned,
   ActivityType.MissionCompleted,
   ActivityType.ReviewAdded,
-  ActivityType.Watched
+  ActivityType.Watched,
 ] as const;
 
 export const ACTIVITY_RETENTION_DAYS = 30;
