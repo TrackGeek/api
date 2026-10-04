@@ -5,6 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { ActivityType } from "@prisma/generated/enums";
 import * as bcrypt from "bcrypt";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { createAuthMiddleware } from "better-auth/api";
 import { bearer, customSession, lastLoginMethod, magicLink, openAPI, twoFactor, username } from "better-auth/plugins";
 import uuid from "uuid";
 import type { StripeService } from "@/modules/payment/service/stripe.service";
@@ -52,6 +53,13 @@ export function getAuthConfig(params: AuthConfigParams) {
     basePath: "/auth",
     baseURL: configService.get<string>("BETTER_AUTH_URL"),
     secret: configService.get<string>("BETTER_AUTH_SECRET"),
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== "/passkey/generate-register-options" && ctx.path !== "/passkey/verify-registration") return;
+
+        ctx.context.sessionConfig = { ...ctx.context.sessionConfig, freshAge: 0 };
+      }),
+    },
     trustedOrigins: [
       configService.get<string>("WEB_URL"),
       "com.trackgeek.net.mobile.ios://auth/callback",
