@@ -287,6 +287,10 @@ export const ERROR_CODES = {
     code: "TV_SHOW_SEASONS_NOT_FOUND",
     status: 404,
   },
+  STRIPE_NOT_CONFIGURED: {
+    code: "STRIPE_NOT_CONFIGURED",
+    status: 503,
+  },
   STRIPE_WEBHOOK_ERROR: {
     code: "STRIPE_WEBHOOK_ERROR",
     status: 400,

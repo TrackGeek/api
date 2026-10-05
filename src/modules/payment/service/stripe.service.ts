@@ -63,7 +63,7 @@ const GEO_FAILURE_CACHE_EXPIRATION = 300;
 export class StripeService {
   private readonly logger = new Logger(StripeService.name);
 
-  private stripe: Stripe;
+  private readonly stripe?: Stripe;
 
   constructor(
     private readonly configService: ConfigService,
@@ -74,13 +74,14 @@ export class StripeService {
     private readonly httpService: HttpService,
     private readonly cacheService: CacheService,
   ) {
-    const token = this.configService.get<string>("STRIPE_SECRET_KEY") as string;
+    const token = this.configService.get<string>("STRIPE_SECRET_KEY")?.trim();
     const apiVersion = "2026-02-25.clover";
 
-    this.stripe = new Stripe(token, { apiVersion });
+    if (token) this.stripe = new Stripe(token, { apiVersion });
   }
 
   get client(): Stripe {
+    if (!this.stripe) throw new AppException(ERROR_CODES.STRIPE_NOT_CONFIGURED);
     return this.stripe;
   }
 
@@ -228,6 +229,8 @@ export class StripeService {
   }
 
   async getPrices(clientIp?: ClientIpType): Promise<Price[]> {
+    if (!this.stripe) return [];
+
     const userCurrency = await this.getUserCurrency(clientIp);
     const donateProduct = await this.donateProduct();
 
