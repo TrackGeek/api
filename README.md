@@ -292,8 +292,8 @@ This is only for local development. In production, configure the webhook endpoin
 | `SPOTIFY_CLIENT_ID/SECRET`   | Spotify OAuth credentials                        |
 | `RESEND_API_KEY`             | Resend API key for emails                        |
 | `RESEND_FROM`                | Sender email address                             |
-| `STRIPE_SECRET_KEY`          | Stripe secret key for payments                   |
-| `STRIPE_WEBHOOK_SECRET`      | Stripe webhook signing secret                    |
+| `STRIPE_SECRET_KEY`          | Optional; enables Stripe payments                |
+| `STRIPE_WEBHOOK_SECRET`      | Required only when using Stripe webhooks          |
 | `IMGBB_API_KEY`              | ImgBB API key for image uploads                  |
 | `HARDCOVER_API_KEY`          | Hardcover API key for books                      |
 | `TMDB_API_KEY`               | TMDB API key for movies/TV shows                 |
@@ -312,4 +312,3 @@ See `CONTRIBUTING.md` for ways to get started.
 Please adhere to this project's `code of conduct`.
 
 </samp>
-

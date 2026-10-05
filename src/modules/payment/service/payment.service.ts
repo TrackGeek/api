@@ -19,6 +19,7 @@ export class PaymentService {
   ) {}
 
   async createPayment(dto: CreatePaymentDto) {
+    const stripe = this.stripeService.client;
     const { userId, frequency, value, clientIp } = dto;
 
     const user = await this.databaseService.user.findUnique({
@@ -83,7 +84,7 @@ export class PaymentService {
 
     const valueToEur = await this.stripeService.convertCurrency(value, currency, DEFAULT_CURRENCY);
 
-    const session = await this.stripeService.client.checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       mode: isSubscription ? "subscription" : "payment",
       customer: stripeCustomerId,
       success_url: `${this.configService.get<string>("WEB_URL")}/donate/success?sessionId={CHECKOUT_SESSION_ID}`,

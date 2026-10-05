@@ -1,4 +1,12 @@
 export const ERROR_CODES = {
+  ANILIST_USER_NOT_FOUND: {
+    code: "ANILIST_USER_NOT_FOUND",
+    status: 404,
+  },
+  ANILIST_PRIVATE_LIBRARY: {
+    code: "ANILIST_PRIVATE_LIBRARY",
+    status: 403,
+  },
   USER_NOT_FOUND: {
     code: "USER_NOT_FOUND",
     status: 404,
@@ -278,6 +286,10 @@ export const ERROR_CODES = {
   TV_SHOW_SEASONS_NOT_FOUND: {
     code: "TV_SHOW_SEASONS_NOT_FOUND",
     status: 404,
+  },
+  STRIPE_NOT_CONFIGURED: {
+    code: "STRIPE_NOT_CONFIGURED",
+    status: 503,
   },
   STRIPE_WEBHOOK_ERROR: {
     code: "STRIPE_WEBHOOK_ERROR",

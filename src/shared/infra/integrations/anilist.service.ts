@@ -932,6 +932,10 @@ export class AnilistService {
         throw new AppException(ERROR_CODES.MANGA_NOT_FOUND);
       }
 
+      if (error?.response?.status === 429) {
+        throw new AppException(ERROR_CODES.RATE_LIMIT_EXCEEDED);
+      }
+
       this.logger.error("Failed to fetch data from AniList API", error);
 
       throw new AppException(ERROR_CODES.ANILIST_SERVICE_UNAVAILABLE);

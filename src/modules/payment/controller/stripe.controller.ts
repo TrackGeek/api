@@ -61,12 +61,15 @@ export class StripeController {
 
   @Post("/webhook")
   async webhook(@Req() req: RawBodyRequest<Request>, @Headers("stripe-signature") signature: string) {
-    const stripeWebhookSecret = this.configService.get<string>("STRIPE_WEBHOOK_SECRET") as string;
+    const client = this.stripeService.client;
+    const stripeWebhookSecret = this.configService.get<string>("STRIPE_WEBHOOK_SECRET")?.trim();
+
+    if (!stripeWebhookSecret) throw new AppException(ERROR_CODES.STRIPE_NOT_CONFIGURED);
 
     let event: Stripe.Event;
 
     try {
-      event = this.stripeService.client.webhooks.constructEvent(req.rawBody as Buffer, signature, stripeWebhookSecret);
+      event = client.webhooks.constructEvent(req.rawBody as Buffer, signature, stripeWebhookSecret);
     } catch (error: any) {
       this.logger.error("Stripe webhook signature verification failed.", error);
 

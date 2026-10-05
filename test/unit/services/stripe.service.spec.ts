@@ -1,6 +1,9 @@
 import { of, throwError } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { StripeController } from "@/modules/payment/controller/stripe.controller";
+import { PaymentService } from "@/modules/payment/service/payment.service";
 import { StripeService } from "@/modules/payment/service/stripe.service";
+import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
 import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
 
@@ -14,16 +17,74 @@ const mockCacheService = { get: mockCacheGet, set: mockCacheSet };
 
 const publicIp: ClientIpType = { address: "8.8.8.8", isLocal: false };
 
-function buildService(): StripeService {
+function buildService(databaseService: Record<string, unknown> = {}): StripeService {
   return new StripeService(
     mockConfigService as any,
-    {} as any,
+    databaseService as any,
     {} as any,
     {} as any,
     mockHttpService as any,
     mockCacheService as any,
   );
 }
+
+describe("StripeService optional configuration", () => {
+  it.each([undefined, "", "   "])("starts without a usable key (%j) and returns no prices", async (key) => {
+    mockConfigService.get.mockReturnValueOnce(key);
+    const service = buildService();
+    const client = vi.spyOn(service, "client", "get");
+
+    await expect(service.getPrices(publicIp)).resolves.toEqual([]);
+    expect(client).not.toHaveBeenCalled();
+    expect(() => service.client).toThrow(expect.objectContaining({ status: 503 }));
+  });
+
+  it("keeps Stripe available when a key is configured", () => {
+    expect(buildService().client.checkout.sessions.create).toBeTypeOf("function");
+  });
+
+  it("allows subscription lookup and account deletion without a Stripe customer", async () => {
+    mockConfigService.get.mockReturnValueOnce(undefined);
+    const service = buildService({ user: { findUnique: vi.fn().mockResolvedValue({ stripeCustomerId: null }) } });
+
+    await expect(service.getCurrentSubscription("user_1")).resolves.toBeNull();
+    await expect(service.cancelSubscriptionsForAccountDeletion(null)).resolves.toBeUndefined();
+  });
+
+  it("rejects checkout before reading or changing database records when disabled", async () => {
+    mockConfigService.get.mockReturnValueOnce(undefined);
+    const findUnique = vi.fn();
+    const payment = new PaymentService(buildService(), {} as any, { user: { findUnique } } as any);
+
+    await expect(payment.createPayment({ userId: "user_1" } as any)).rejects.toMatchObject({
+      status: 503,
+      response: { code: ERROR_CODES.STRIPE_NOT_CONFIGURED },
+    });
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
+  it("reports unavailable Stripe for webhooks without attempting signature verification", async () => {
+    mockConfigService.get.mockReturnValueOnce(undefined);
+    const controller = new StripeController(buildService(), mockConfigService as any);
+
+    await expect(controller.webhook({ rawBody: Buffer.from("{}") } as any, "signature")).rejects.toMatchObject({
+      status: 503,
+      response: { code: ERROR_CODES.STRIPE_NOT_CONFIGURED },
+    });
+  });
+
+  it("requires a webhook secret only for webhook requests", async () => {
+    const service = buildService();
+    const constructEvent = vi.fn();
+    vi.spyOn(service, "client", "get").mockReturnValue({ webhooks: { constructEvent } } as any);
+    const controller = new StripeController(service, { get: vi.fn().mockReturnValue("") } as any);
+
+    await expect(controller.webhook({ rawBody: Buffer.from("{}") } as any, "signature")).rejects.toMatchObject({
+      status: 503,
+    });
+    expect(constructEvent).not.toHaveBeenCalled();
+  });
+});
 
 describe("StripeService.getUserCurrency", () => {
   let service: StripeService;
