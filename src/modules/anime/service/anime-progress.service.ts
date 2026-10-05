@@ -25,7 +25,10 @@ export class AnimeProgressService {
     private readonly mediaReleaseService: MediaReleaseService,
   ) {}
 
-  async createOrUpdateAnimeProgress(createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto) {
+  async createOrUpdateAnimeProgress(
+    createOrUpdateAnimeProgressDto: CreateOrUpdateAnimeProgressDto,
+    options: { markAllEpisodes?: boolean } = {},
+  ) {
     const { animeId, userId, status, watchCount, completedAt, startedAt } = createOrUpdateAnimeProgressDto;
 
     await this.mediaReleaseService.assertProgressStatusAllowed("anime", animeId, status);
@@ -98,7 +101,7 @@ export class AnimeProgressService {
       });
     }
 
-    if (status === ProgressStatus.Completed) {
+    if (status === ProgressStatus.Completed && options.markAllEpisodes !== false) {
       await this.animeEpisodeWatchService.watchAllAnimeEpisodes({ animeId, userId });
     }
   }

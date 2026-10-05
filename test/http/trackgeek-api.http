@@ -26,6 +26,25 @@ GET {{apiUrl}}/user/username/{{login.response.body.user.username}}
 ### 7.1 Search user by username
 GET {{apiUrl}}/user/search?query=jhon
 
+### Collect public AniList snapshot without importing
+# @name anilistSnapshot
+GET {{apiUrl}}/import/anilist/snapshot?username=Kuriel
+
+### Import reviewed AniList snapshot
+# @name anilistImport
+POST {{apiUrl}}/import/anilist/jobs
+Content-Type: application/json
+
+{
+  "snapshotId": "{{anilistSnapshot.response.body.snapshotId}}"
+}
+
+### AniList import report
+GET {{apiUrl}}/import/anilist/jobs/{{anilistImport.response.body.jobId}}
+
+### AniList failed entries with source data
+GET {{apiUrl}}/import/anilist/jobs/{{anilistImport.response.body.jobId}}/failures
+
 ### 7.2 Search user by name
 GET {{apiUrl}}/user/search?query=jane%20doe
 

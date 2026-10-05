@@ -1,4 +1,12 @@
 export const ERROR_CODES = {
+  ANILIST_USER_NOT_FOUND: {
+    code: "ANILIST_USER_NOT_FOUND",
+    status: 404,
+  },
+  ANILIST_PRIVATE_LIBRARY: {
+    code: "ANILIST_PRIVATE_LIBRARY",
+    status: 403,
+  },
   USER_NOT_FOUND: {
     code: "USER_NOT_FOUND",
     status: 404,

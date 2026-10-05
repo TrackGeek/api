@@ -17,6 +17,7 @@ import { CosmeticModule } from "./modules/cosmetic/cosmetic.module";
 import { DiscordModule } from "./modules/discord/discord.module";
 import { FavoriteModule } from "./modules/favorite/favorite.module";
 import { GameModule } from "./modules/game/game.module";
+import { ImportModule } from "./modules/import/import.module";
 import { ListModule } from "./modules/list/list.module";
 import { MangaModule } from "./modules/manga/manga.module";
 import { MissionModule } from "./modules/mission/mission.module";
@@ -62,6 +63,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     ActivityModule,
     CacheModule,
     IntegrationsModule,
+    ImportModule,
     UploadModule,
     UserModule,
     AccountInactivityModule,
