@@ -293,13 +293,14 @@ export class BookService {
       throw new AppException(ERROR_CODES.BOOK_ALREADY_REFRESHED);
     }
 
-    const hardcoverBook = await this.integrationsService.hardcover.getBookByHardcoverId(refreshBookDto.hardcoverId);
+    const hardcoverBook = await this.integrationsService.hardcover.getBookByHardcoverId(
+      refreshBookDto.hardcoverId,
+      true,
+    );
 
     await this.databaseService.book.update({
       where: { hardcoverId: refreshBookDto.hardcoverId },
-      data: hardcoverBook as unknown as BookUpdateInput,
+      data: { ...hardcoverBook, lastRefreshedAt: new Date() } as unknown as BookUpdateInput,
     });
-
-    await this.getBookByHardcoverId(refreshBookDto.hardcoverId);
   }
 }

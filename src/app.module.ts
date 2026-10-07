@@ -52,7 +52,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
       ],
     }),
     JwtModule.register({ global: true }),
-    HttpModule.register({ global: true }),
+    HttpModule.register({ global: true, timeout: 30_000 }),
     HealthModule,
     EmailModule,
     QueueModule,

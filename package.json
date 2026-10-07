@@ -1,6 +1,9 @@
 {
   "name": "trackgeek-api",
   "scripts": {
+    "prepare": "[ ! -e .git ] || bun run hooks:install",
+    "hooks:install": "git config --local core.hooksPath .githooks",
+    "verify": "bun run format:fix && bun run types && bun run build",
     "types": "tsc --noEmit",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",

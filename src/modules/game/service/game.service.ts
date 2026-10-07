@@ -291,14 +291,12 @@ export class GameService {
       throw new AppException(ERROR_CODES.GAME_ALREADY_REFRESHED);
     }
 
-    const igdbGame = await this.integrationsService.igdb.getGameById(refreshGameDto.igdbId);
+    const igdbGame = await this.integrationsService.igdb.getGameById(refreshGameDto.igdbId, true);
 
     await this.databaseService.game.update({
       where: { igdbId: refreshGameDto.igdbId },
-      data: igdbGame as unknown as GameUpdateInput,
+      data: { ...igdbGame, lastRefreshedAt: new Date() } as unknown as GameUpdateInput,
     });
-
-    await this.getGameByIgdbId(refreshGameDto.igdbId);
   }
 
   async resetGameTracking({ userId, gameId }: { userId: string; gameId: string }) {

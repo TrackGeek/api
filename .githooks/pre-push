@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+if ! command -v bun >/dev/null 2>&1; then
+  PATH="${BUN_INSTALL:-${HOME:-}/.bun}/bin:${PATH:-}"
+  export PATH
+fi
+
+if ! command -v bun >/dev/null 2>&1; then
+  printf '%s\n' "Push blocked: Bun was not found. Install Bun or set BUN_INSTALL to its installation directory." >&2
+  exit 1
+fi
+
+bun run verify </dev/null
+
+if [ -n "$(git status --porcelain)" ]; then
+  printf '%s\n' "Push blocked: commit or stash local changes, including formatting changes, then retry." >&2
+  exit 1
+fi
