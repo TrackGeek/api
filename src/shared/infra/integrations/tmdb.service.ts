@@ -901,9 +901,11 @@ export class TMDBService {
     }
   }
 
-  async getMovieById(tmdbId: number): Promise<TMDBMovieDetails> {
+  async getMovieById(tmdbId: number, forceRefresh = false): Promise<TMDBMovieDetails> {
     try {
-      const cachedMovie = await this.cacheService.get<TMDBMovieDetails>(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(tmdbId));
+      const cachedMovie = forceRefresh
+        ? null
+        : await this.cacheService.get<TMDBMovieDetails>(CACHE_KEYS.TMDB_MOVIE_BY_ID.prefix(tmdbId));
 
       if (cachedMovie) {
         return cachedMovie;
@@ -1194,9 +1196,11 @@ export class TMDBService {
     }
   }
 
-  async getTVShowById(tmdbId: number): Promise<TMDBTVShowDetails> {
+  async getTVShowById(tmdbId: number, forceRefresh = false): Promise<TMDBTVShowDetails> {
     try {
-      const cachedTVShow = await this.cacheService.get<TMDBTVShowDetails>(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(tmdbId));
+      const cachedTVShow = forceRefresh
+        ? null
+        : await this.cacheService.get<TMDBTVShowDetails>(CACHE_KEYS.TMDB_TV_SHOW_BY_ID.prefix(tmdbId));
 
       if (cachedTVShow) {
         return cachedTVShow;
@@ -1329,11 +1333,11 @@ export class TMDBService {
     }
   }
 
-  async getTVShowSeasonsById(id: number): Promise<TMDBTVShowSeason[]> {
+  async getTVShowSeasonsById(id: number, forceRefresh = false): Promise<TMDBTVShowSeason[]> {
     try {
-      const cachedTVShow = await this.cacheService.get<TMDBTVShowSeason[]>(
-        CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id),
-      );
+      const cachedTVShow = forceRefresh
+        ? null
+        : await this.cacheService.get<TMDBTVShowSeason[]>(CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(id));
 
       if (cachedTVShow) {
         return cachedTVShow;
@@ -1376,11 +1380,17 @@ export class TMDBService {
     }
   }
 
-  async getTVShowSeasonEpisdoesById(tmdbId: number, seasonId: number): Promise<TMDBTVShowSeasonEpisode[]> {
+  async getTVShowSeasonEpisdoesById(
+    tmdbId: number,
+    seasonId: number,
+    forceRefresh = false,
+  ): Promise<TMDBTVShowSeasonEpisode[]> {
     try {
-      const cachedEpisodes = await this.cacheService.get<TMDBTVShowSeasonEpisode[]>(
-        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonId),
-      );
+      const cachedEpisodes = forceRefresh
+        ? null
+        : await this.cacheService.get<TMDBTVShowSeasonEpisode[]>(
+            CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tmdbId, seasonId),
+          );
 
       if (cachedEpisodes) {
         return cachedEpisodes;

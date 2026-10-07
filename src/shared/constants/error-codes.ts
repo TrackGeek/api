@@ -120,7 +120,7 @@ export const ERROR_CODES = {
     status: 404,
   },
   TV_SHOW_ALREADY_REFRESHED: {
-    code: "TVSHOW_ALREADY_REFRESHED",
+    code: "TV_SHOW_ALREADY_REFRESHED",
     status: 409,
   },
   MOVIE_NOT_FOUND: {

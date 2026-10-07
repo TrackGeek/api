@@ -667,11 +667,11 @@ export class HardcoverService {
     }
   }
 
-  async getBookByHardcoverId(hardcoverId: number): Promise<HardcoverBookDetails> {
+  async getBookByHardcoverId(hardcoverId: number, forceRefresh = false): Promise<HardcoverBookDetails> {
     try {
-      const cachedBook = await this.cacheService.get<HardcoverBookDetails>(
-        CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(hardcoverId),
-      );
+      const cachedBook = forceRefresh
+        ? null
+        : await this.cacheService.get<HardcoverBookDetails>(CACHE_KEYS.HARDCOVER_BOOK_BY_ID.prefix(hardcoverId));
 
       if (cachedBook) {
         return cachedBook;

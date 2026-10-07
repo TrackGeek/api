@@ -885,11 +885,13 @@ export class IGDBService {
     }
   }
 
-  async getGameById(id: number): Promise<IGDBGameDetails> {
+  async getGameById(id: number, forceRefresh = false): Promise<IGDBGameDetails> {
     const accessToken = await this.getAccessToken();
 
     try {
-      const cachedGame = await this.cacheService.get<IGDBGameDetails>(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id));
+      const cachedGame = forceRefresh
+        ? null
+        : await this.cacheService.get<IGDBGameDetails>(CACHE_KEYS.IGDB_GAME_BY_ID.prefix(id));
 
       if (cachedGame) {
         return cachedGame;

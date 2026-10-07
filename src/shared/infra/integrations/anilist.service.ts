@@ -517,10 +517,10 @@ export class AnilistService {
     return tags;
   }
 
-  async getMangaById(anilistId: number): Promise<AnilistMangaDetails> {
-    const cachedManga = await this.cacheService.get<AnilistMangaDetails>(
-      CACHE_KEYS.ANILIST_MANGA_BY_ID.prefix(anilistId),
-    );
+  async getMangaById(anilistId: number, forceRefresh = false): Promise<AnilistMangaDetails> {
+    const cachedManga = forceRefresh
+      ? null
+      : await this.cacheService.get<AnilistMangaDetails>(CACHE_KEYS.ANILIST_MANGA_BY_ID.prefix(anilistId));
 
     if (cachedManga) {
       return cachedManga;

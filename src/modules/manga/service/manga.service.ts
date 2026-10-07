@@ -258,12 +258,12 @@ export class MangaService {
       throw new AppException(ERROR_CODES.MANGA_ALREADY_REFRESHED);
     }
 
-    await this.saveManga(await this.fetchFromAnilist(refreshMangaDto.anilistId));
+    await this.saveManga(await this.fetchFromAnilist(refreshMangaDto.anilistId, true));
   }
 
-  private async fetchFromAnilist(id: number) {
+  private async fetchFromAnilist(id: number, forceRefresh = false) {
     try {
-      return await this.integrationsService.anilist.getMangaById(id);
+      return await this.integrationsService.anilist.getMangaById(id, forceRefresh);
     } catch (error) {
       if (error instanceof AppException && error.getStatus() === ERROR_CODES.MANGA_NOT_FOUND.status) {
         return this.integrationsService.anilist.getMangaByMalId(id);

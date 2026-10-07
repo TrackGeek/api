@@ -14,12 +14,7 @@ import {
   DEFAULT_PAGINATION_PAGE,
 } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
-import {
-  TMDBSort,
-  TMDBTVShowOrderBy,
-  TMDBTVShowSeason,
-  TMDBTVShowSeasonEpisode,
-} from "@/shared/infra/integrations/tmdb.service";
+import { TMDBSort, TMDBTVShowOrderBy, TMDBTVShowSeasonEpisode } from "@/shared/infra/integrations/tmdb.service";
 import {
   compareBy,
   getTgScoredContent,
@@ -38,6 +33,8 @@ export interface ReviewedTVShowSortable {
   firstAirDate: Date | null;
   tgReviewScore: number;
 }
+
+const TV_SHOW_REFRESH_BATCH_SIZE = 4;
 
 const TV_SHOW_ORDER_BY_VALUE: Record<TMDBTVShowOrderBy, (tvShow: ReviewedTVShowSortable) => number | string | null> = {
   [TMDBTVShowOrderBy.Name]: (tvShow) => tvShow.name.toLowerCase(),
@@ -312,7 +309,6 @@ export class TVShowService {
       where: { tmdbId: refreshTVShowDto.tmdbId },
       select: {
         lastRefreshedAt: true,
-        seasons: true,
       },
     });
 
@@ -324,49 +320,37 @@ export class TVShowService {
       throw new AppException(ERROR_CODES.TV_SHOW_ALREADY_REFRESHED);
     }
 
-    const existingSeasons = (tvShow.seasons ?? []) as unknown as TMDBTVShowSeason[];
-
-    for (const season of existingSeasons) {
-      const episodesCacheKey = CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(
-        refreshTVShowDto.tmdbId,
-        season.seasonNumber,
-      );
-
-      if (await this.cacheService.exists(episodesCacheKey)) {
-        await this.cacheService.delete(episodesCacheKey);
-      }
-    }
-
     const [tmdbTVShow, tmdbSeasons] = await Promise.all([
-      this.integrationsService.tmdb.getTVShowById(refreshTVShowDto.tmdbId),
-      this.integrationsService.tmdb.getTVShowSeasonsById(refreshTVShowDto.tmdbId),
+      this.integrationsService.tmdb.getTVShowById(refreshTVShowDto.tmdbId, true),
+      this.integrationsService.tmdb.getTVShowSeasonsById(refreshTVShowDto.tmdbId, true),
     ]);
 
     const tmdbEpisodes: Awaited<ReturnType<typeof this.integrationsService.tmdb.getTVShowSeasonEpisdoesById>> = [];
 
-    for (const season of tmdbSeasons) {
-      const episodes = await this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(
-        refreshTVShowDto.tmdbId,
-        season.seasonNumber,
+    for (let index = 0; index < tmdbSeasons.length; index += TV_SHOW_REFRESH_BATCH_SIZE) {
+      const batch = tmdbSeasons.slice(index, index + TV_SHOW_REFRESH_BATCH_SIZE);
+      const episodes = await Promise.all(
+        batch.map((season) =>
+          this.integrationsService.tmdb.getTVShowSeasonEpisdoesById(refreshTVShowDto.tmdbId, season.seasonNumber, true),
+        ),
       );
 
-      await this.cacheService.set(
-        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(refreshTVShowDto.tmdbId, season.seasonNumber),
-        episodes,
-        CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.expiration,
-      );
+      tmdbEpisodes.push(...episodes.flat());
 
-      tmdbEpisodes.push(...episodes);
-
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (index + TV_SHOW_REFRESH_BATCH_SIZE < tmdbSeasons.length) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      }
     }
 
     await this.databaseService.tvShow.update({
       where: { tmdbId: refreshTVShowDto.tmdbId },
-      data: { ...tmdbTVShow, seasons: tmdbSeasons, episodes: tmdbEpisodes } as unknown as TvShowUpdateInput,
+      data: {
+        ...tmdbTVShow,
+        seasons: tmdbSeasons,
+        episodes: tmdbEpisodes,
+        lastRefreshedAt: new Date(),
+      } as unknown as TvShowUpdateInput,
     });
-
-    await this.getTVShowByTmdbId(refreshTVShowDto.tmdbId);
   }
 
   async resetTVShowTracking({ userId, tvShowId }: ResetTVShowTrackingDto) {

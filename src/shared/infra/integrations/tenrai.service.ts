@@ -511,9 +511,11 @@ export class TenraiService {
     }
   }
 
-  async getAnimeById(id: number): Promise<TenraiAnimeDetails> {
+  async getAnimeById(id: number, forceRefresh = false): Promise<TenraiAnimeDetails> {
     try {
-      const cachedAnime = await this.cacheService.get<TenraiAnimeDetails>(CACHE_KEYS.TENRAI_ANIME_BY_ID.prefix(id));
+      const cachedAnime = forceRefresh
+        ? null
+        : await this.cacheService.get<TenraiAnimeDetails>(CACHE_KEYS.TENRAI_ANIME_BY_ID.prefix(id));
 
       if (cachedAnime) {
         return cachedAnime;
@@ -721,13 +723,13 @@ export class TenraiService {
     }
   }
 
-  async getAnimeEpisodesById({
-    malId,
-    page = DEFAULT_PAGINATION_PAGE,
-  }: TenraiAnimeEpisodeOptions): Promise<TenraiPagination<TenraiAnimeEpisode>> {
+  async getAnimeEpisodesById(
+    { malId, page = DEFAULT_PAGINATION_PAGE }: TenraiAnimeEpisodeOptions,
+    forceRefresh = false,
+  ): Promise<TenraiPagination<TenraiAnimeEpisode>> {
     try {
       const cacheKey = CACHE_KEYS.TENRAI_ANIME_EPISODES_BY_ID.prefix({ malId, page });
-      const cached = await this.cacheService.get<TenraiPagination<TenraiAnimeEpisode>>(cacheKey);
+      const cached = forceRefresh ? null : await this.cacheService.get<TenraiPagination<TenraiAnimeEpisode>>(cacheKey);
 
       if (cached) {
         return cached;

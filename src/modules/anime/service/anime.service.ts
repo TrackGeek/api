@@ -355,14 +355,14 @@ export class AnimeService {
         page: Number(pageKey),
       };
 
-      const episodes = await this.integrationsService.tenrai.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto);
+      const episodes = await this.integrationsService.tenrai.getAnimeEpisodesById(getAnimeEpisodesByMalIdDto, true);
 
       tenraiEpisodes[pageKey] = episodes;
 
       await new Promise((resolve) => setTimeout(resolve, 800));
     }
 
-    const tenraiAnime = await this.integrationsService.tenrai.getAnimeById(refreshAnimeDto.malId);
+    const tenraiAnime = await this.integrationsService.tenrai.getAnimeById(refreshAnimeDto.malId, true);
     const tenraiRelations = await this.integrationsService.tenrai.getAnimeRelationsById(refreshAnimeDto.malId);
 
     await this.databaseService.anime.update({
@@ -371,9 +371,8 @@ export class AnimeService {
         ...tenraiAnime,
         relations: tenraiRelations,
         episodes: tenraiEpisodes,
+        lastRefreshedAt: new Date(),
       } as unknown as AnimeUpdateInput,
     });
-
-    await this.getAnimeByMalId(refreshAnimeDto.malId);
   }
 }

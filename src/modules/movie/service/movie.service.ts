@@ -289,7 +289,7 @@ export class MovieService {
       throw new AppException(ERROR_CODES.MOVIE_ALREADY_REFRESHED);
     }
 
-    const tmdbMovie = await this.integrationsService.tmdb.getMovieById(movie.tmdbId);
+    const tmdbMovie = await this.integrationsService.tmdb.getMovieById(movie.tmdbId, true);
 
     await this.databaseService.movie.update({
       where: { tmdbId: refreshMovieDto.id },
@@ -297,9 +297,8 @@ export class MovieService {
         ...tmdbMovie,
         budget: String(tmdbMovie.budget),
         revenue: String(tmdbMovie.revenue),
+        lastRefreshedAt: new Date(),
       } as unknown as MovieUpdateInput,
     });
-
-    await this.getMovieByTmdbId(refreshMovieDto.id);
   }
 }
