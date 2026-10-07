@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+bun run verify </dev/null
+
+if [ -n "$(git status --porcelain)" ]; then
+  printf '%s\n' "Push blocked: commit or stash local changes, including formatting changes, then retry." >&2
+  exit 1
+fi

@@ -263,8 +263,16 @@ This is only for local development. In production, configure the webhook endpoin
 | `bun format`          | Check formatting with Biome                  |
 | `bun format:fix`      | Format code with Biome                       |
 | `bun types`           | Type check with TypeScript                   |
+| `bun run verify`      | Format, type check, and build before pushing |
+| `bun run hooks:install` | Install the repository Git hooks           |
 
 </samp>
+
+## Git hooks
+
+`bun install` installs the versioned `pre-push` hook automatically when this directory contains a Git checkout. For an existing checkout, run `bun run hooks:install` once.
+
+Every push runs `bun run format:fix`, `bun run types`, and `bun run build` in that order. Any failure stops the remaining commands and blocks the push. The working tree must be clean after verification; commit or stash local changes, including any formatting changes, before retrying. The hook never stages or commits files automatically.
 
 ## <samp>Environment Variables</samp>
 
