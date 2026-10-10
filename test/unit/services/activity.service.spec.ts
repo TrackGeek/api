@@ -31,11 +31,11 @@ describe("ActivityService", () => {
     activityService = new ActivityService(databaseService as unknown as DatabaseService);
   });
 
-  describe("chapter activities", () => {
+  describe.each(["mangaProgressId", "bookProgressId"] as const)("chapter activities for %s", (progressField) => {
     const input = {
       type: ActivityType.ChaptersRead,
       userId: "user-1",
-      mangaProgressId: "progress-1",
+      [progressField]: "progress-1",
       metadata: { id: "progress-1", from: 2, to: 6, count: 5 },
     };
 
@@ -47,7 +47,7 @@ describe("ActivityService", () => {
       });
       expect(databaseService.activity.deleteMany).not.toHaveBeenCalled();
       expect(databaseService.activity.findFirst).toHaveBeenCalledWith({
-        where: { userId: "user-1", type: ActivityType.ChaptersRead, mangaProgressId: "progress-1" },
+        where: { userId: "user-1", type: ActivityType.ChaptersRead, [progressField]: "progress-1" },
         orderBy: { createdAt: "desc" },
       });
     });
@@ -96,19 +96,19 @@ describe("ActivityService", () => {
       expect(databaseService.activity.update).not.toHaveBeenCalled();
     });
 
-    it("preserves chapter events when a manga status changes", async () => {
+    it("preserves chapter events when a progress status changes", async () => {
       await activityService.createActivity({ ...input, type: ActivityType.ProgressCompleted });
 
       expect(databaseService.activity.deleteMany).toHaveBeenCalledWith({
-        where: { mangaProgressId: "progress-1", type: { not: ActivityType.ChaptersRead } },
+        where: { [progressField]: "progress-1", type: { not: ActivityType.ChaptersRead } },
       });
     });
 
-    it("keeps chapter events for different manga in separate feed groups", async () => {
+    it("keeps chapter events for different progress records in separate feed groups", async () => {
       databaseService.offsetPagination.mockResolvedValue({
         items: [
           { ...input, id: "activity-1", createdAt: new Date() },
-          { ...input, id: "activity-2", mangaProgressId: "progress-2", createdAt: new Date() },
+          { ...input, id: "activity-2", [progressField]: "progress-2", createdAt: new Date() },
         ],
       });
 
