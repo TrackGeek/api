@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ContentType } from "@prisma/generated/enums";
+import { ActivityType, ContentType } from "@prisma/generated/enums";
 import { BookProgressFindManyArgs } from "@prisma/generated/models";
 import { activityTypeFromProgressStatus, xpReasonFromProgressStatus } from "@/modules/activity/activity.utils";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -23,9 +23,22 @@ export class BookProgressService {
   ) {}
 
   async createOrUpdateBookProgress(createOrUpdateBookProgressDto: CreateOrUpdateBookProgressDto) {
-    const { bookId, userId, status, readCount, chaptersRead, completedAt, startedAt } = createOrUpdateBookProgressDto;
+    const {
+      bookId,
+      userId,
+      status,
+      readCount,
+      chaptersRead: pagesRead,
+      completedAt,
+      startedAt,
+    } = createOrUpdateBookProgressDto;
 
     await this.mediaReleaseService.assertProgressStatusAllowed("book", bookId, status);
+
+    const previousProgress = await this.databaseService.bookProgress.findUnique({
+      where: { userId_bookId: { userId, bookId } },
+      select: { status: true, chaptersRead: true },
+    });
 
     const bookProgress = await this.databaseService.bookProgress.upsert({
       where: {
@@ -36,7 +49,7 @@ export class BookProgressService {
       },
       update: {
         status,
-        chaptersRead,
+        chaptersRead: pagesRead,
         readCount,
         completedAt,
         startedAt,
@@ -46,7 +59,7 @@ export class BookProgressService {
         userId,
         status,
         readCount,
-        chaptersRead,
+        chaptersRead: pagesRead,
         completedAt,
         startedAt,
       },
@@ -77,12 +90,28 @@ export class BookProgressService {
 
     const activityType = activityTypeFromProgressStatus(status);
 
-    if (activityType) {
+    if (activityType && previousProgress?.status !== status) {
       await this.queueService.toActivityJob({
         type: activityType,
         userId,
         bookProgressId: bookProgress.id,
         metadata: { ...bookProgress },
+      });
+    }
+
+    const previousPagesRead = previousProgress?.chaptersRead ?? 0;
+
+    if (pagesRead != null && pagesRead > previousPagesRead) {
+      await this.queueService.toActivityJob({
+        type: ActivityType.ChaptersRead,
+        userId,
+        bookProgressId: bookProgress.id,
+        metadata: {
+          id: bookProgress.id,
+          from: previousPagesRead + 1,
+          to: pagesRead,
+          count: pagesRead - previousPagesRead,
+        },
       });
     }
 

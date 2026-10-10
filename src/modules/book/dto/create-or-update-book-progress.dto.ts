@@ -15,6 +15,7 @@ export class CreateOrUpdateBookProgressDto {
   @IsInt()
   @IsPositive()
   @ApiPropertyOptional({
+    description: "Number of pages read",
     type: "integer",
     minimum: 1,
   })

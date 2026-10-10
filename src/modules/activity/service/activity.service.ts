@@ -225,7 +225,10 @@ export class ActivityService {
 
     if (Object.keys(source).length > 0) {
       await this.databaseService.activity.deleteMany({
-        where: { ...source, ...(source.mangaProgressId && { type: { not: ActivityType.ChaptersRead } }) },
+        where: {
+          ...source,
+          ...((source.mangaProgressId || source.bookProgressId) && { type: { not: ActivityType.ChaptersRead } }),
+        },
       });
     }
 
@@ -239,14 +242,15 @@ export class ActivityService {
     });
   }
 
-  private async syncChaptersReadActivity({ userId, mangaProgressId, metadata }: CreateActivityDto) {
+  private async syncChaptersReadActivity({ userId, mangaProgressId, bookProgressId, metadata }: CreateActivityDto) {
     const from = metadata?.from;
     const to = metadata?.to;
+    const progressSource = mangaProgressId ? { mangaProgressId } : bookProgressId ? { bookProgressId } : null;
 
-    if (!mangaProgressId || !Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < from) return;
+    if (!progressSource || !Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < from) return;
 
     const recent = await this.databaseService.activity.findFirst({
-      where: { userId, type: ActivityType.ChaptersRead, mangaProgressId },
+      where: { userId, type: ActivityType.ChaptersRead, ...progressSource },
       orderBy: { createdAt: "desc" },
     });
     const meta = (recent?.metadata ?? {}) as { from?: number; to?: number };
@@ -273,7 +277,7 @@ export class ActivityService {
       data: {
         type: ActivityType.ChaptersRead,
         userId,
-        mangaProgressId,
+        ...progressSource,
         metadata: { from, to, count: to - from + 1 },
       },
     });
