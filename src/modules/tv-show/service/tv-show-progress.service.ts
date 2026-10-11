@@ -101,7 +101,7 @@ export class TVShowProgressService {
       });
     }
 
-    if (status === ProgressStatus.Completed) {
+    if (status === ProgressStatus.Completed && createOrUpdateTVShowProgressDto.markAllEpisodes !== false) {
       await this.tvShowEpisodeWatchService.watchAllEpisodesOfTVShow({ tvShowId, userId });
     }
   }

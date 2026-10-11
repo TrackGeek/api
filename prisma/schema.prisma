@@ -1106,6 +1106,7 @@ model BookProgress {
   id           String         @id @default(uuid(7))
   status       ProgressStatus
   chaptersRead Int?
+  totalPages   Int?
   readCount    Int?
   startedAt    DateTime?
   completedAt  DateTime?

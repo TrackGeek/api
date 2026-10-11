@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ProgressStatus } from "@prisma/generated/enums";
 import { Transform, Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, Max, Min } from "class-validator";
 
 export class CreateOrUpdateBookProgressDto {
   @IsEnum(ProgressStatus)
@@ -13,20 +13,33 @@ export class CreateOrUpdateBookProgressDto {
 
   @IsOptional()
   @IsInt()
-  @IsPositive()
+  @Min(0)
+  @Max(2147483647)
   @ApiPropertyOptional({
     description: "Number of pages read",
     type: "integer",
-    minimum: 1,
+    minimum: 0,
   })
   readonly chaptersRead?: number;
 
   @IsOptional()
   @IsInt()
   @IsPositive()
+  @Max(2147483647)
   @ApiPropertyOptional({
+    description: "Total pages in the user's edition, defaulting to Hardcover when first saved",
     type: "integer",
     minimum: 1,
+    maximum: 2147483647,
+  })
+  readonly totalPages?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @ApiPropertyOptional({
+    type: "integer",
+    minimum: 0,
   })
   readonly readCount?: number;
 

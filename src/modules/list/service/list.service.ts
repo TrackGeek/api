@@ -21,6 +21,10 @@ import { GetListsContainingItemDto } from "../dto/get-lists-containing-item.dto"
 import { RemoveItemFromListDto } from "../dto/remove-item-from-list.dto";
 import { UpdateListDto } from "../dto/update-list.dto";
 
+const LIST_ITEM_ORDER_BY = [{ position: { sort: "asc", nulls: "last" } }, { id: "asc" }] satisfies NonNullable<
+  ListItemFindManyArgs["orderBy"]
+>;
+
 const LIST_PREVIEW_INCLUDE = {
   user: {
     select: {
@@ -40,6 +44,7 @@ const LIST_PREVIEW_INCLUDE = {
   },
   listItems: {
     take: 4,
+    orderBy: LIST_ITEM_ORDER_BY,
     include: {
       anime: {
         select: {
@@ -418,6 +423,7 @@ export class ListService {
       itemsPerPage: getItemsByListIdDto.itemsPerPage,
       page: getItemsByListIdDto.page,
       where: { listId: getItemsByListIdDto.listId },
+      orderBy: LIST_ITEM_ORDER_BY,
       include: {
         anime: {
           select: {
