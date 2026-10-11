@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ProgressStatus } from "@prisma/generated/enums";
 import { Transform, Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
 export class CreateOrUpdateTVShowProgressDto {
   @IsEnum(ProgressStatus)
@@ -10,6 +10,11 @@ export class CreateOrUpdateTVShowProgressDto {
     enum: ProgressStatus,
   })
   readonly status: ProgressStatus;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ type: "boolean", default: true })
+  readonly markAllEpisodes?: boolean;
 
   @IsOptional()
   @IsInt()

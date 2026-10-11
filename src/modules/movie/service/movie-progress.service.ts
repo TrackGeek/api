@@ -23,7 +23,7 @@ export class MovieProgressService {
   ) {}
 
   async createOrUpdateMovieProgress(createOrUpdateMovieProgressDto: CreateOrUpdateMovieProgressDto) {
-    const { movieId, userId, status, watchCount } = createOrUpdateMovieProgressDto;
+    const { movieId, userId, status, watchCount, startedAt, completedAt } = createOrUpdateMovieProgressDto;
 
     await this.mediaReleaseService.assertProgressStatusAllowed("movie", movieId, status);
 
@@ -37,12 +37,16 @@ export class MovieProgressService {
       update: {
         status,
         watchCount,
+        startedAt,
+        completedAt,
       },
       create: {
         movieId,
         userId,
         status,
         watchCount,
+        startedAt,
+        completedAt,
       },
       include: {
         movie: {

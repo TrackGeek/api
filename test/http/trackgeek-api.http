@@ -486,6 +486,7 @@ Authorization: Bearer {{login.response.body.token}}
   "watchCount": 1,
   "startedAt": "2026-01-01T00:00:00Z",
   "completedAt": "2026-03-30T00:00:00Z",
+  "markAllEpisodes": true,
   "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb"
 }
 
@@ -510,8 +511,9 @@ Authorization: Bearer {{login.response.body.token}}
 {
   "tvShowId": "019d4443-46e5-75aa-b589-bcf8562520cb",
   "episodes": [
-    { "season": 1, "episode": 1, "status": "Watched" },
-    { "season": 1, "episode": 2, "status": "Watched" }
+    { "season": 0, "episode": 1, "status": "Completed" },
+    { "season": 1, "episode": 1, "status": "Completed" },
+    { "season": 1, "episode": 2, "status": "Completed" }
   ]
 }
 
