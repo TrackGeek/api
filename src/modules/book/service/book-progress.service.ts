@@ -29,6 +29,7 @@ export class BookProgressService {
       status,
       readCount,
       chaptersRead: pagesRead,
+      totalPages: requestedTotalPages,
       completedAt,
       startedAt,
     } = createOrUpdateBookProgressDto;
@@ -37,8 +38,30 @@ export class BookProgressService {
 
     const previousProgress = await this.databaseService.bookProgress.findUnique({
       where: { userId_bookId: { userId, bookId } },
-      select: { status: true, chaptersRead: true },
+      select: { status: true, chaptersRead: true, totalPages: true },
     });
+
+    let totalPages = requestedTotalPages ?? previousProgress?.totalPages;
+
+    if (totalPages == null) {
+      const book = await this.databaseService.book.findUnique({
+        where: { id: bookId },
+        select: { numberOfPages: true },
+      });
+
+      totalPages = book?.numberOfPages && book.numberOfPages > 0 ? book.numberOfPages : undefined;
+    }
+
+    const currentPagesRead = pagesRead ?? previousProgress?.chaptersRead;
+
+    if (
+      (pagesRead != null || requestedTotalPages != null) &&
+      totalPages != null &&
+      currentPagesRead != null &&
+      currentPagesRead > totalPages
+    ) {
+      throw new AppException(ERROR_CODES.INVALID_PAGES_READ);
+    }
 
     const bookProgress = await this.databaseService.bookProgress.upsert({
       where: {
@@ -50,6 +73,7 @@ export class BookProgressService {
       update: {
         status,
         chaptersRead: pagesRead,
+        totalPages,
         readCount,
         completedAt,
         startedAt,
@@ -60,6 +84,7 @@ export class BookProgressService {
         status,
         readCount,
         chaptersRead: pagesRead,
+        totalPages,
         completedAt,
         startedAt,
       },
