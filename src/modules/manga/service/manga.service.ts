@@ -171,6 +171,14 @@ export class MangaService {
     };
   }
 
+  async getMangaByMalId(malId: number) {
+    const manga = await this.databaseService.manga.findUnique({ where: { malId } });
+
+    if (manga?.anilistId) return manga;
+
+    return this.saveManga(await this.integrationsService.anilist.getMangaByMalId(malId));
+  }
+
   async getMangaByAnilistId(anilistId: number) {
     const manga =
       (await this.databaseService.manga.findUnique({ where: { anilistId } })) ??

@@ -1,20 +1,19 @@
 import { ProgressStatus } from "@prisma/generated/enums";
-import { Transform, Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
+import { Type } from "class-transformer";
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, Min } from "class-validator";
 
 export class CreateOrUpdateMangaProgressDto {
   @IsEnum(ProgressStatus)
-  @Transform(({ value, obj }) => (obj.completedAt ? ProgressStatus.Completed : value))
   readonly status: ProgressStatus;
 
   @IsOptional()
   @IsInt()
-  @IsPositive()
+  @Min(0)
   readonly chaptersRead?: number;
 
   @IsOptional()
   @IsInt()
-  @IsPositive()
+  @Min(0)
   readonly readCount?: number;
 
   @Type(() => Date)

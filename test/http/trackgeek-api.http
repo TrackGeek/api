@@ -326,6 +326,9 @@ GET {{apiUrl}}/manga/top?filter=favorite&rating=pg13
 ### 46. Manga Detail
 GET {{apiUrl}}/manga/detail/42
 
+### 46.1 Manga Detail by MyAnimeList ID
+GET {{apiUrl}}/manga/detail/mal/11
+
 ### 47. Manga Relation
 GET {{apiUrl}}/manga/detail/42/relation
 

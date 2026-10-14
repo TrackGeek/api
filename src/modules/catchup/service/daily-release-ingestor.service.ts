@@ -101,7 +101,7 @@ export class DailyReleaseIngestorService {
 
     for (const anime of animes) {
       try {
-        const details = await this.integrationsService.tenrai.getAnimeById(anime.malId);
+        const details = await this.integrationsService.tenrai.getAnimeById(anime.malId, true);
 
         await this.databaseService.anime.update({
           where: { malId: anime.malId },

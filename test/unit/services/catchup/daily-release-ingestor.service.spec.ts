@@ -7,8 +7,15 @@ const mockGameFindMany = vi.fn();
 const mockGameUpdate = vi.fn();
 const mockGetGameById = vi.fn();
 const mockAuditRecord = vi.fn();
+const mockAnimeFindMany = vi.fn();
+const mockAnimeUpdate = vi.fn();
+const mockGetAnimeById = vi.fn();
 
 const mockDatabaseService = {
+  anime: {
+    findMany: mockAnimeFindMany,
+    update: mockAnimeUpdate,
+  },
   game: {
     findMany: mockGameFindMany,
     update: mockGameUpdate,
@@ -16,6 +23,9 @@ const mockDatabaseService = {
 };
 
 const mockIntegrationsService = {
+  tenrai: {
+    getAnimeById: mockGetAnimeById,
+  },
   igdb: {
     getGameById: mockGetGameById,
   },
@@ -59,6 +69,8 @@ describe("DailyReleaseIngestorService", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(runDate);
+    mockCatchupFlagsService.flags.animeEpisodeNotificationsEnabled = false;
+    mockCatchupFlagsService.flags.gamesReleaseNotificationsEnabled = true;
 
     service = new DailyReleaseIngestorService(
       mockDatabaseService as any,
@@ -70,6 +82,46 @@ describe("DailyReleaseIngestorService", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  describe("ingestAnimeEpisodes", () => {
+    beforeEach(() => {
+      mockCatchupFlagsService.flags.animeEpisodeNotificationsEnabled = true;
+      mockCatchupFlagsService.flags.gamesReleaseNotificationsEnabled = false;
+      mockAnimeFindMany.mockResolvedValue([
+        { id: "beerus", malId: 63367, title: "Dragon Ball Super: Beerus", numberOfEpisodes: null },
+      ]);
+    });
+
+    it("saves current source data instead of renewing the cooldown with cached upcoming data", async () => {
+      const stale = { title: "Dragon Ball Super: Beerus", status: "Not yet aired", numberOfEpisodes: null };
+      const fresh = { ...stale, status: "Currently Airing", numberOfEpisodes: 1, type: "TV" };
+      mockGetAnimeById.mockImplementation(async (_malId, forceRefresh) => (forceRefresh ? fresh : stale));
+
+      const releases = await fetchReleases(service);
+
+      expect(mockAnimeUpdate).toHaveBeenCalledWith({
+        where: { malId: 63367 },
+        data: { ...fresh, lastRefreshedAt: runDate },
+      });
+      expect(releases).toEqual([
+        expect.objectContaining({
+          mediaType: CatchupMediaType.Anime,
+          eventType: ReleaseEventType.NewEpisodeReleased,
+          externalId: 63367,
+          unitNumber: 1,
+        }),
+      ]);
+    });
+
+    it("does not advance the refresh time when the anime source fails", async () => {
+      mockGetAnimeById.mockRejectedValueOnce(new Error("tenrai down"));
+
+      const releases = await fetchReleases(service);
+
+      expect(mockAnimeUpdate).not.toHaveBeenCalled();
+      expect(releases).toEqual([]);
+    });
   });
 
   describe("ingestGameReleases", () => {

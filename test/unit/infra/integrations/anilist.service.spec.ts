@@ -118,6 +118,22 @@ describe("AnilistService", () => {
     });
   });
 
+  describe("getMangaByMalId", () => {
+    it("queries the MAL identifier and returns the corresponding AniList manga", async () => {
+      mockHttpService.post.mockReturnValue(of({ data: { data: { Media: mangaDetails } } }));
+
+      const result = await service.getMangaByMalId(11);
+
+      expect(result.anilistId).toBe(30013);
+      expect(result.malId).toBe(11);
+      expect(mockHttpService.post).toHaveBeenCalledWith(
+        "https://graphql.anilist.co",
+        { query: expect.stringContaining("Media(idMal: $idMal, type: MANGA)"), variables: { idMal: 11 } },
+        expect.any(Object),
+      );
+    });
+  });
+
   describe("getMangaById", () => {
     it("should return cached manga when cache hit", async () => {
       const cached = { anilistId: 30013, title: "Naruto" };
