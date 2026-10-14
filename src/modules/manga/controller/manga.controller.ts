@@ -52,6 +52,13 @@ export class MangaController {
     return { manga };
   }
 
+  @Get("/detail/mal/:malId")
+  async getMangaByMalId(@Param("malId", new ParseIntPipe()) malId: number) {
+    const manga = await this.mangaService.getMangaByMalId(malId);
+
+    return { manga };
+  }
+
   @Get("/detail/:anilistId/relation")
   async getMangaRelationsByAnilistId(@Param("anilistId", new ParseIntPipe()) anilistId: number) {
     const relations = await this.mangaService.getMangaRelationsByAnilistId(anilistId);
