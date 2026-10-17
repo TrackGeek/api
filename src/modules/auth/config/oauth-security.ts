@@ -129,4 +129,9 @@ export async function bindOAuthResponse(ctx: GenericEndpointContext, database: D
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
   }
+  if (ctx.body?.grant_type === "refresh_token" && typeof ctx.body.refresh_token === "string") {
+    await ctx.context.internalAdapter.deleteVerificationByIdentifier(
+      `trackgeek:refresh-resource:${hashOAuthToken(ctx.body.refresh_token)}`,
+    );
+  }
 }
