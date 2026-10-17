@@ -28,7 +28,7 @@ export class McpServerService {
           inputSchema: tool.schema,
           annotations: {
             readOnlyHint: !write,
-            destructiveHint: false,
+            destructiveHint: write,
             idempotentHint: true,
             openWorldHint: tool.scope === null,
           },
