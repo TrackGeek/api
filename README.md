@@ -53,6 +53,12 @@ The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover)
 - Custom lists for organizing media collections;
 - Favorites system.
 
+**Developer Integrations**
+- TrackGeek OAuth authorization with PKCE, per-application scopes, consent, rotating refresh tokens, and revocation;
+- Scoped REST API at `/integrations/v1` for other interfaces and bots;
+- Remote MCP server at `/mcp` for media discovery and personal tracking through AI clients;
+- Application registration and authorized application management in Settings → Connections.
+
 **User Management**
 - OAuth authentication with 10 social providers (Google, GitHub, Discord, Twitch, Kick, Twitter, Slack, Microsoft, Notion, Spotify);
 - Magic link and password-based authentication;
@@ -286,6 +292,8 @@ Every push runs `bun run format:fix`, `bun run types`, and `bun run build` in th
 | `REDIS_URL`                  | Redis connection string                          |
 | `BETTER_AUTH_URL`            | Auth base URL                                    |
 | `BETTER_AUTH_SECRET`         | Auth secret key                                  |
+| `OAUTH_ALLOW_DYNAMIC_REGISTRATION` | Allow public OAuth client registration for MCP clients (default: `true`) |
+| `MCP_ALLOWED_ORIGINS`        | Additional browser origins allowed to call MCP, comma-separated |
 | `BETTER_AUTH_LOG_LEVEL`      | Auth log level (default: `info`)                 |
 | `WEB_URL`                    | Frontend URL for CORS                            |
 | `GOOGLE_CLIENT_ID/SECRET`    | Google OAuth credentials                         |

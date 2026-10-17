@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MovieProgressService } from "@/modules/movie/service/movie-progress.service";
 
 describe("MovieProgressService", () => {
-  const db = { movieProgress: { upsert: vi.fn() } };
+  const db = { movieProgress: { findUnique: vi.fn(), upsert: vi.fn() } };
   const queue = { toActivityJob: vi.fn(), toXpJob: vi.fn() };
   const release = { assertProgressStatusAllowed: vi.fn() };
   const service = new MovieProgressService(db as any, queue as any, {} as any, release as any);

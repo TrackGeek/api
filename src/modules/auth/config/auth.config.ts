@@ -13,6 +13,8 @@ import type { ProfileService } from "@/modules/profile/service/profile.service";
 import type { UserService } from "@/modules/user/service/user.service";
 import type { DatabaseService } from "@/shared/infra/database/database.service";
 import type { QueueService } from "@/shared/infra/queue/queue.service";
+import { getOAuthPlugins } from "./oauth.config";
+import { bindOAuthResponse, validateOAuthRequest } from "./oauth-security";
 
 interface AuthConfigParams {
   configService?: ConfigService;
@@ -53,12 +55,16 @@ export function getAuthConfig(params: AuthConfigParams) {
     basePath: "/auth",
     baseURL: configService.get<string>("BETTER_AUTH_URL"),
     secret: configService.get<string>("BETTER_AUTH_SECRET"),
+    disabledPaths: ["/token", "/oauth2/delete-consent", "/oauth2/update-consent"],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        await validateOAuthRequest(ctx, configService, databaseService);
+
         if (ctx.path !== "/passkey/generate-register-options" && ctx.path !== "/passkey/verify-registration") return;
 
         ctx.context.sessionConfig = { ...ctx.context.sessionConfig, freshAge: 0 };
       }),
+      after: createAuthMiddleware((ctx) => bindOAuthResponse(ctx, databaseService)),
     },
     trustedOrigins: [
       configService.get<string>("WEB_URL"),
@@ -201,6 +207,7 @@ export function getAuthConfig(params: AuthConfigParams) {
       },
     },
     plugins: [
+      ...getOAuthPlugins(configService),
       openAPI({ path: "/docs" }),
       bearer(),
       username(),

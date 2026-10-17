@@ -27,6 +27,11 @@ export class MovieProgressService {
 
     await this.mediaReleaseService.assertProgressStatusAllowed("movie", movieId, status);
 
+    const previousProgress = await this.databaseService.movieProgress.findUnique({
+      where: { userId_movieId: { userId, movieId } },
+      select: { status: true },
+    });
+
     const movieProgress = await this.databaseService.movieProgress.upsert({
       where: {
         userId_movieId: {
@@ -76,7 +81,7 @@ export class MovieProgressService {
 
     const activityType = activityTypeFromProgressStatus(status);
 
-    if (activityType) {
+    if (activityType && previousProgress?.status !== status) {
       await this.queueService.toActivityJob({
         type: activityType,
         userId,

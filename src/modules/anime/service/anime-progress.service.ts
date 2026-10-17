@@ -33,6 +33,11 @@ export class AnimeProgressService {
 
     await this.mediaReleaseService.assertProgressStatusAllowed("anime", animeId, status);
 
+    const previousProgress = await this.databaseService.animeProgress.findUnique({
+      where: { userId_animeId: { userId, animeId } },
+      select: { status: true },
+    });
+
     const animeProgress = await this.databaseService.animeProgress.upsert({
       where: {
         userId_animeId: {
@@ -81,7 +86,7 @@ export class AnimeProgressService {
 
     const activityType = activityTypeFromProgressStatus(status);
 
-    if (activityType) {
+    if (activityType && previousProgress?.status !== status) {
       await this.queueService.toActivityJob({
         type: activityType,
         userId,

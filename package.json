@@ -30,8 +30,10 @@
   },
   "dependencies": {
     "@better-auth/core": "~1.6.30",
+    "@better-auth/oauth-provider": "1.6.30",
     "@better-auth/passkey": "~1.6.30",
     "@faker-js/faker": "^10.5.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@nestjs-redis/client": "^1.4.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.5",
@@ -70,7 +72,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "stripe": "^20.4.1",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",

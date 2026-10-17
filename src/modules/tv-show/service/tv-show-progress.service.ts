@@ -31,6 +31,11 @@ export class TVShowProgressService {
 
     await this.mediaReleaseService.assertProgressStatusAllowed("tv", tvShowId, status);
 
+    const previousProgress = await this.databaseService.tvShowProgress.findUnique({
+      where: { userId_tvShowId: { userId, tvShowId } },
+      select: { status: true },
+    });
+
     const tvShowProgress = await this.databaseService.tvShowProgress.upsert({
       where: {
         userId_tvShowId: {
@@ -81,7 +86,7 @@ export class TVShowProgressService {
 
     const activityType = activityTypeFromProgressStatus(status);
 
-    if (activityType) {
+    if (activityType && previousProgress?.status !== status) {
       await this.queueService.toActivityJob({
         type: activityType,
         userId,
