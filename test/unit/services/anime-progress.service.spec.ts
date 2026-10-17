@@ -6,7 +6,9 @@ describe("AnimeProgressService", () => {
   it.each([true, false])(
     "marks all episodes on completion only when markAllEpisodes is %s",
     async (markAllEpisodes) => {
-      const database = { animeProgress: { upsert: vi.fn().mockResolvedValue({ id: "progress" }) } };
+      const database = {
+        animeProgress: { findUnique: vi.fn(), upsert: vi.fn().mockResolvedValue({ id: "progress" }) },
+      };
       const queue = { toActivityJob: vi.fn(), toXpJob: vi.fn() };
       const episodes = { watchAllAnimeEpisodes: vi.fn() };
       const release = { assertProgressStatusAllowed: vi.fn() };

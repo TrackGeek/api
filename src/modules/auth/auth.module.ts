@@ -24,6 +24,7 @@ import { getAuthConfig } from "./config/auth.config";
         queueService: QueueService,
         stripeService: StripeService,
       ) => ({
+        disableTrustedOriginsCors: true,
         auth: betterAuth(
           getAuthConfig({
             configService,

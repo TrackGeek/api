@@ -30,6 +30,11 @@ export class GameProgressService {
 
     const playedPlatforms = platforms && (await this.resolveGamePlatforms(gameId, platforms));
 
+    const previousProgress = await this.databaseService.gameProgress.findUnique({
+      where: { userId_gameId: { userId, gameId } },
+      select: { status: true },
+    });
+
     const gameProgress = await this.databaseService.gameProgress.upsert({
       where: {
         userId_gameId: {
@@ -86,7 +91,7 @@ export class GameProgressService {
 
     const activityType = activityTypeFromProgressStatus(status);
 
-    if (activityType) {
+    if (activityType && previousProgress?.status !== status) {
       await this.queueService.toActivityJob({
         type: activityType,
         userId,

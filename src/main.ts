@@ -23,13 +23,23 @@ function resolveTrustProxy(): number | string | boolean {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
-    cors: {
-      origin: process.env.WEB_URL,
-      credentials: true,
-    },
   });
 
   app.set("trust proxy", resolveTrustProxy());
+
+  app.enableCors((request, callback) => {
+    const path = request.url.split("?")[0];
+    const oauthResource =
+      path.startsWith("/.well-known/") ||
+      path === "/mcp" ||
+      path.startsWith("/integrations/v1/") ||
+      /^\/auth\/(jwks|oauth2\/(token|register|revoke|introspect))$/.test(path);
+    callback(null, {
+      origin: oauthResource ? true : process.env.WEB_URL,
+      credentials: !oauthResource || request.headers.origin === process.env.WEB_URL,
+      exposedHeaders: ["WWW-Authenticate", "Mcp-Session-Id", "MCP-Protocol-Version"],
+    });
+  });
 
   app.use(
     bodyParser.json({

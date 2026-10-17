@@ -34,11 +34,20 @@ export class TVShowEpisodeWatchService {
 
     const tvShow = await this.databaseService.tvShow.findUnique({
       where: { id: tvShowId },
-      select: { id: true, numberOfEpisodes: true },
+      select: { id: true, numberOfEpisodes: true, seasons: true },
     });
 
     if (!tvShow) {
       throw new AppException(ERROR_CODES.TV_SHOW_NOT_FOUND);
+    }
+
+    const seasons = (tvShow.seasons ?? []) as unknown as TMDBTVShowSeason[];
+    if (seasons.length > 0) {
+      const invalidEpisode = episodes.find(({ season, episode }) => {
+        const selectedSeason = seasons.find((item) => item.seasonNumber === season);
+        return !selectedSeason || episode > selectedSeason.numberOfEpisodes;
+      });
+      if (invalidEpisode) throw new AppException(ERROR_CODES.EPISODE_NOT_FOUND);
     }
 
     if (tvShow.numberOfEpisodes) {

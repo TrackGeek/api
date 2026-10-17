@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TVShowProgressService } from "@/modules/tv-show/service/tv-show-progress.service";
 
 describe("TVShowProgressService", () => {
-  const db = { tvShowProgress: { upsert: vi.fn() } };
+  const db = { tvShowProgress: { findUnique: vi.fn(), upsert: vi.fn() } };
   const queue = { toActivityJob: vi.fn(), toXpJob: vi.fn() };
   const episodes = { watchAllEpisodesOfTVShow: vi.fn() };
   const release = { assertProgressStatusAllowed: vi.fn() };

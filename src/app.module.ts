@@ -20,6 +20,7 @@ import { GameModule } from "./modules/game/game.module";
 import { ImportModule } from "./modules/import/import.module";
 import { ListModule } from "./modules/list/list.module";
 import { MangaModule } from "./modules/manga/manga.module";
+import { McpModule } from "./modules/mcp/mcp.module";
 import { MissionModule } from "./modules/mission/mission.module";
 import { MovieModule } from "./modules/movie/movie.module";
 import { NotificationModule } from "./modules/notification/notification.module";
@@ -89,6 +90,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     CoinModule,
     CosmeticModule,
     DiscordModule,
+    McpModule,
   ],
   providers: [
     {

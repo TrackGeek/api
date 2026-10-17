@@ -82,6 +82,11 @@ model User {
   missions               UserMission[]
   cosmetics              UserCosmetic[]
   posts                  Post[]
+  oauthClients           OAuthClient[]
+  oauthConsents          OAuthConsent[]
+  oauthAccessTokens      OAuthAccessToken[]
+  oauthRefreshTokens     OAuthRefreshToken[]
+  oauthRevocations       OAuthRevocation[]
 
   @@unique([email])
   @@unique([username])
@@ -99,7 +104,9 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oauthAccessTokens  OAuthAccessToken[]
+  oauthRefreshTokens OAuthRefreshToken[]
 
   @@unique([token])
   @@index([userId])
@@ -680,8 +687,8 @@ model Game {
 }
 
 model Book {
-  id                     String         @id @default(uuid(7))
-  hardcoverId            Int            @unique
+  id                     String              @id @default(uuid(7))
+  hardcoverId            Int                 @unique
   hardcoverReviewScore   Float?
   title                  String
   contributions          Json?
@@ -712,15 +719,20 @@ model Book {
   slug                   String
   state                  String?
   editions               Json?
-  lastRefreshedAt        DateTime       @default(now())
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  lastRefreshedAt        DateTime            @default(now())
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
   bookProgresses         BookProgress[]
   bookReviews            BookReview[]
   favorites              Favorite[]
   listItems              ListItem[]
   comments               Comment[]
   posts                  Post[]
+  oauthClients           OAuthClient[]
+  oauthConsents          OAuthConsent[]
+  oauthAccessTokens      OAuthAccessToken[]
+  oauthRefreshTokens     OAuthRefreshToken[]
+  oauthRevocations       OAuthRevocation[]
 }
 
 model Anime {
@@ -1719,4 +1731,132 @@ model UserCosmetic {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, type, key])
+}
+
+model Jwks {
+  id         String    @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime
+  expiresAt  DateTime?
+}
+
+model OAuthClient {
+  id                      String              @id
+  clientId                String              @unique
+  clientSecret            String?
+  disabled                Boolean             @default(false)
+  skipConsent             Boolean?
+  enableEndSession        Boolean?
+  subjectType             String?
+  scopes                  String[]            @default([])
+  userId                  String?
+  createdAt               DateTime?
+  updatedAt               DateTime?
+  name                    String?
+  uri                     String?
+  icon                    String?
+  contacts                String[]            @default([])
+  tos                     String?
+  policy                  String?
+  softwareId              String?
+  softwareVersion         String?
+  softwareStatement       String?
+  redirectUris            String[]
+  postLogoutRedirectUris  String[]            @default([])
+  tokenEndpointAuthMethod String?
+  grantTypes              String[]            @default([])
+  responseTypes           String[]            @default([])
+  public                  Boolean?
+  type                    String?
+  requirePKCE             Boolean?
+  referenceId             String?
+  metadata                Json?
+  user                    User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consents                OAuthConsent[]
+  accessTokens            OAuthAccessToken[]
+  refreshTokens           OAuthRefreshToken[]
+  revocations             OAuthRevocation[]
+  book                    Book?               @relation(fields: [bookId], references: [id])
+  bookId                  String?
+
+  @@index([userId])
+}
+
+model OAuthRefreshToken {
+  id           String             @id
+  token        String             @unique
+  clientId     String
+  sessionId    String?
+  userId       String
+  referenceId  String?
+  expiresAt    DateTime
+  createdAt    DateTime
+  revoked      DateTime?
+  authTime     DateTime?
+  scopes       String[]
+  client       OAuthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  session      Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessTokens OAuthAccessToken[]
+  book         Book?              @relation(fields: [bookId], references: [id])
+  bookId       String?
+
+  @@index([clientId])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model OAuthAccessToken {
+  id          String             @id
+  token       String             @unique
+  clientId    String
+  sessionId   String?
+  userId      String?
+  referenceId String?
+  refreshId   String?
+  expiresAt   DateTime
+  createdAt   DateTime
+  scopes      String[]
+  client      OAuthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  session     Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refresh     OAuthRefreshToken? @relation(fields: [refreshId], references: [id], onDelete: Cascade)
+  book        Book?              @relation(fields: [bookId], references: [id])
+  bookId      String?
+
+  @@index([clientId])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([refreshId])
+}
+
+model OAuthConsent {
+  id          String      @id
+  clientId    String
+  userId      String?
+  referenceId String?
+  scopes      String[]
+  createdAt   DateTime
+  updatedAt   DateTime
+  client      OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book?       @relation(fields: [bookId], references: [id])
+  bookId      String?
+
+  @@index([clientId])
+  @@index([userId])
+}
+
+model OAuthRevocation {
+  id        String      @id @default(uuid(7))
+  userId    String
+  clientId  String
+  revokedAt DateTime
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client    OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  book      Book?       @relation(fields: [bookId], references: [id])
+  bookId    String?
+
+  @@unique([userId, clientId])
 }
