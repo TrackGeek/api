@@ -210,6 +210,78 @@ export class HardcoverService {
     private readonly cacheService: CacheService,
   ) {}
 
+  async getLocalizedBookCovers(hardcoverIds: number[], language: string) {
+    const cacheKey = CACHE_KEYS.HARDCOVER_BOOK_COVER;
+    const covers = new Map<number, { editionId: number; imageUrl: string } | null>();
+    const cached = await Promise.all(
+      hardcoverIds.map(async (id) => ({
+        id,
+        value: await this.cacheService.get<{ cover: { editionId: number; imageUrl: string } | null }>(
+          cacheKey.prefix(id, language),
+        ),
+      })),
+    );
+    const missing = cached.filter(({ value }) => !value).map(({ id }) => id);
+    for (const { id, value } of cached) {
+      if (value) covers.set(id, value.cover);
+    }
+    if (!missing.length) return covers;
+
+    const response = await firstValueFrom(
+      this.httpService.post(
+        this.HARDCOVER_API_URL,
+        {
+          query: `query LocalizedBookCovers($ids: [Int!]!, $language: String!, $limit: Int!) {
+            books(where: {id: {_in: $ids}}, limit: $limit) {
+              id
+              editions(
+                where: {language: {code2: {_eq: $language}}, image: {url: {_is_null: false, _neq: ""}}}
+                order_by: [{users_count: desc_nulls_last}, {id: asc}]
+                limit: 1
+              ) { id image { url } }
+            }
+          }`,
+          variables: { ids: missing, language, limit: missing.length },
+        },
+        { headers: { Authorization: `Bearer ${this.configService.get<string>("HARDCOVER_API_KEY")}` } },
+      ),
+    );
+    if (response.data.errors || !response.data.data?.books) {
+      throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+    }
+    const books: { id: number; editions: { id: number; image: { url: string } | null }[] }[] = response.data.data.books;
+    await Promise.all(
+      missing.map(async (id) => {
+        const edition = books.find((book) => book.id === id)?.editions[0];
+        const cover = edition?.image?.url ? { editionId: edition.id, imageUrl: edition.image.url } : null;
+        covers.set(id, cover);
+        await this.cacheService.set(cacheKey.prefix(id, language), { cover }, cacheKey.expiration);
+      }),
+    );
+    return covers;
+  }
+
+  async getBookEditionCover(hardcoverId: number, editionId: number): Promise<string | null> {
+    const response = await firstValueFrom(
+      this.httpService.post(
+        this.HARDCOVER_API_URL,
+        {
+          query: `query BookEditionCover($bookId: Int!, $editionId: Int!) {
+            editions(where: {book_id: {_eq: $bookId}, id: {_eq: $editionId}}, limit: 1) {
+              image { url }
+            }
+          }`,
+          variables: { bookId: hardcoverId, editionId },
+        },
+        { headers: { Authorization: `Bearer ${this.configService.get<string>("HARDCOVER_API_KEY")}` } },
+      ),
+    );
+    if (response.data.errors || !response.data.data?.editions) {
+      throw new AppException(ERROR_CODES.HARDCOVER_SERVICE_UNAVAILABLE);
+    }
+    return response.data.data.editions[0]?.image?.url || null;
+  }
+
   async searchBooks({
     query,
     page = DEFAULT_PAGINATION_PAGE,
