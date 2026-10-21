@@ -10,6 +10,7 @@ import { slugify } from "@/shared/utils/string";
 import { CacheService } from "../cache/cache.service";
 
 const TMDB_COMPANY_MEDIA_MAX_PAGES = 3;
+const TMDB_LOCALIZATION_BATCH_SIZE = 6;
 
 export interface IGDBPagination<I> {
   total: number | null;
@@ -363,6 +364,17 @@ export interface TMDBPersonDetails {
 
 export type TMDBWatchMediaType = "movie" | "tv";
 
+export interface TMDBMediaReference {
+  mediaType: TMDBWatchMediaType;
+  tmdbId: number;
+}
+
+export interface TMDBLocalizedMedia {
+  title: string | null;
+  overview: string | null;
+  posterUrl: string | null;
+}
+
 export const TMDB_WATCH_PROVIDER_OFFERS = ["flatrate", "free", "ads", "rent", "buy"] as const;
 
 export type TMDBWatchProviderOffer = (typeof TMDB_WATCH_PROVIDER_OFFERS)[number];
@@ -405,7 +417,48 @@ export class TMDBService {
     private readonly cacheService: CacheService,
   ) {}
 
-  /** Genre filters arrive as display names from the UI, but TMDB only matches numeric ids. */
+  async getLocalizedMedia(references: TMDBMediaReference[], locale: string): Promise<Map<string, TMDBLocalizedMedia>> {
+    const localized = new Map<string, TMDBLocalizedMedia>();
+    const match = /^([a-z]{2})(?:[-_]([a-z]{2}))?$/i.exec(locale.trim());
+    if (!match) return localized;
+    const language = [match[1].toLowerCase(), match[2]?.toUpperCase()].filter(Boolean).join("-");
+    const unique = [
+      ...new Map(references.map((reference) => [`${reference.mediaType}:${reference.tmdbId}`, reference])),
+    ];
+
+    for (let index = 0; index < unique.length; index += TMDB_LOCALIZATION_BATCH_SIZE) {
+      await Promise.all(
+        unique.slice(index, index + TMDB_LOCALIZATION_BATCH_SIZE).map(async ([key, reference]) => {
+          try {
+            const cacheKey = CACHE_KEYS.TMDB_LOCALIZED_MEDIA.prefix(reference.mediaType, reference.tmdbId, language);
+            const cached = await this.cacheService.get<TMDBLocalizedMedia>(cacheKey);
+            if (cached) {
+              localized.set(key, cached);
+              return;
+            }
+            const { data } = await firstValueFrom(
+              this.httpService.get(`${this.TMDB_API_URL}/${reference.mediaType}/${reference.tmdbId}`, {
+                params: { language },
+                timeout: 5000,
+                headers: { Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}` },
+              }),
+            );
+            const media: TMDBLocalizedMedia = {
+              title: (reference.mediaType === "movie" ? data.title : data.name)?.trim() || null,
+              overview: data.overview?.trim() || null,
+              posterUrl: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
+            };
+            localized.set(key, media);
+            await this.cacheService.set(cacheKey, media, CACHE_KEYS.TMDB_LOCALIZED_MEDIA.expiration);
+          } catch (error) {
+            this.logger.warn(`Could not localize ${key} for ${language}`, error);
+          }
+        }),
+      );
+    }
+    return localized;
+  }
+
   private toGenreIds(values: string[] | undefined, catalog: { id: number; name: string }[]): number[] | undefined {
     if (!values?.length) return undefined;
 
