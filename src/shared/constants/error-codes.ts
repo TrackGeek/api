@@ -111,6 +111,10 @@ export const ERROR_CODES = {
     code: "USER_NOT_FOLLOWING",
     status: 400,
   },
+  INVALID_BOOK_COVER: {
+    code: "INVALID_BOOK_COVER",
+    status: 422,
+  },
   BOOK_NOT_FOUND: {
     code: "BOOK_NOT_FOUND",
     status: 404,

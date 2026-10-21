@@ -1,5 +1,6 @@
 import { of, throwError } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { TMDBService } from "@/shared/infra/integrations/tmdb.service";
 
@@ -23,6 +24,93 @@ describe("TMDBService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     service = new TMDBService(mockHttpService as any, mockConfigService as any, mockCacheService as any);
+  });
+
+  describe("getLocalizedMedia", () => {
+    it("requests regional translations and posters, deduplicating media without mixing movie and TV ids", async () => {
+      mockCacheService.get.mockResolvedValue(null);
+      mockHttpService.get.mockImplementation((url: string) =>
+        of({
+          data: url.includes("/movie/")
+            ? { title: "Filme", overview: "Sinopse do filme", poster_path: "/movie-pt.jpg" }
+            : { name: "Série", overview: "Sinopse da série", poster_path: "/tv-pt.jpg" },
+        }),
+      );
+      const result = await service.getLocalizedMedia(
+        [
+          { mediaType: "movie", tmdbId: 1 },
+          { mediaType: "tv", tmdbId: 1 },
+          { mediaType: "movie", tmdbId: 1 },
+        ],
+        "pt-BR",
+      );
+      expect(mockHttpService.get).toHaveBeenCalledTimes(2);
+      expect(mockHttpService.get).toHaveBeenCalledWith(
+        "https://api.themoviedb.org/3/movie/1",
+        expect.objectContaining({ params: { language: "pt-BR" } }),
+      );
+      expect(result.get("movie:1")).toEqual({
+        title: "Filme",
+        overview: "Sinopse do filme",
+        posterUrl: "https://image.tmdb.org/t/p/w500/movie-pt.jpg",
+      });
+      expect(result.get("tv:1")?.title).toBe("Série");
+      expect(mockCacheService.set).toHaveBeenCalledWith(
+        CACHE_KEYS.TMDB_LOCALIZED_MEDIA.prefix("tv", 1, "pt-BR"),
+        result.get("tv:1"),
+        CACHE_KEYS.TMDB_LOCALIZED_MEDIA.expiration,
+      );
+    });
+
+    it("isolates cached translations by locale and normalizes regional codes", async () => {
+      const cache = new Map([
+        [
+          CACHE_KEYS.TMDB_LOCALIZED_MEDIA.prefix("movie", 1, "pt-PT"),
+          { title: "Título português", overview: "Sinopse PT", posterUrl: "pt.jpg" },
+        ],
+        [
+          CACHE_KEYS.TMDB_LOCALIZED_MEDIA.prefix("movie", 1, "pt-BR"),
+          { title: "Título brasileiro", overview: "Sinopse BR", posterUrl: "br.jpg" },
+        ],
+        [
+          CACHE_KEYS.TMDB_LOCALIZED_MEDIA.prefix("movie", 1, "en-US"),
+          { title: "English title", overview: "Overview", posterUrl: "en.jpg" },
+        ],
+      ]);
+      mockCacheService.get.mockImplementation(async (key: string) => cache.get(key) ?? null);
+      const reference = [{ mediaType: "movie" as const, tmdbId: 1 }];
+      expect((await service.getLocalizedMedia(reference, "pt_pt")).get("movie:1")?.title).toBe("Título português");
+      expect((await service.getLocalizedMedia(reference, "pt-BR")).get("movie:1")?.title).toBe("Título brasileiro");
+      expect((await service.getLocalizedMedia(reference, "en-US")).get("movie:1")?.title).toBe("English title");
+      expect(mockHttpService.get).not.toHaveBeenCalled();
+    });
+
+    it("keeps successful localizations when another title fails and leaves missing fields available for fallback", async () => {
+      mockCacheService.get.mockResolvedValue(null);
+      mockHttpService.get.mockImplementation((url: string) =>
+        url.includes("/movie/")
+          ? throwError(() => new Error("TMDB unavailable"))
+          : of({ data: { name: "Série", overview: "  ", poster_path: null } }),
+      );
+      const result = await service.getLocalizedMedia(
+        [
+          { mediaType: "movie", tmdbId: 1 },
+          { mediaType: "tv", tmdbId: 1 },
+        ],
+        "pt-PT",
+      );
+      expect(result.has("movie:1")).toBe(false);
+      expect(result.get("tv:1")).toEqual({ title: "Série", overview: null, posterUrl: null });
+      expect(mockCacheService.set).toHaveBeenCalledTimes(1);
+    });
+
+    it("ignores invalid locales without calling TMDB or cache", async () => {
+      expect(await service.getLocalizedMedia([{ mediaType: "movie", tmdbId: 1 }], "invalid-language")).toEqual(
+        new Map(),
+      );
+      expect(mockHttpService.get).not.toHaveBeenCalled();
+      expect(mockCacheService.get).not.toHaveBeenCalled();
+    });
   });
 
   describe("searchMovies", () => {

@@ -731,6 +731,24 @@ Authorization: Bearer {{login.response.body.token}}
 ### 92. Book Detail
 GET {{apiUrl}}/book/detail/328491
 
+### 92.1 Set personal book cover
+PUT {{apiUrl}}/book/cover/328491
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "editionId": 18408277
+}
+
+### 92.2 Reset personal book cover
+DELETE {{apiUrl}}/book/cover/328491
+Authorization: Bearer {{login.response.body.token}}
+
+### 92.3 Localized book covers
+GET {{apiUrl}}/book/detail/328491
+X-TrackGeek-Language: pt-PT
+Authorization: Bearer {{login.response.body.token}}
+
 ### 93. Create Book Review
 POST {{apiUrl}}/book/review
 Content-Type: application/json

@@ -17,6 +17,10 @@ export const CACHE_KEYS = {
     prefix: (filters: Record<string, any>) => `hardcover:top:book:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
+  HARDCOVER_BOOK_COVER: {
+    prefix: (hardcoverId: number, language: string) => `hardcover:cover:book:${hardcoverId}:${language}`,
+    expiration: 3600 * 24,
+  },
   HARDCOVER_BOOK_BY_ID: {
     prefix: (hardcoverId: number) => `hardcover:detail:book:${hardcoverId}`,
     expiration: 3600 * 24 * 7,
@@ -182,6 +186,10 @@ export const CACHE_KEYS = {
   TMDB_PERSON_BY_ID: {
     prefix: (tmdbId: number) => `tmdb:detail:person:id:${tmdbId}`,
     expiration: 3600 * 24 * 7,
+  },
+  TMDB_LOCALIZED_MEDIA: {
+    prefix: (mediaType: string, tmdbId: number, locale: string) => `tmdb:localized:${mediaType}:${tmdbId}:${locale}`,
+    expiration: 3600 * 24,
   },
   TMDB_COMPANY_BY_ID: {
     prefix: (companyId: number) => `tmdb:detail:company:id:${companyId}`,
