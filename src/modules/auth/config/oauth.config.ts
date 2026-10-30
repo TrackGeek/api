@@ -1,7 +1,6 @@
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { ConfigService } from "@nestjs/config";
 import { jwt } from "better-auth/plugins";
-import { z } from "zod";
 import { hashOAuthToken } from "../utils/hash-oauth-token";
 
 export const INTEGRATION_SCOPES = ["profile:read", "library:read", "progress:write"] as const;
@@ -29,7 +28,11 @@ export function getOAuthPlugins(
     loginPage: `${web}/oauth/authorize`,
     consentPage: `${web}/oauth/authorize`,
     scopes: [...OAUTH_SCOPES],
-    validAudiences: [urls.api, urls.mcp],
+    resources: [
+      { identifier: urls.api, allowedScopes: [...OAUTH_SCOPES] },
+      { identifier: urls.mcp, allowedScopes: [...OAUTH_SCOPES] },
+    ],
+    enforcePerClientResources: false,
     grantTypes: ["authorization_code", "refresh_token"],
     accessTokenExpiresIn: 600,
     codeExpiresIn: 300,
@@ -48,12 +51,5 @@ export function getOAuthPlugins(
       oauthRefreshToken: { modelName: "oAuthRefreshToken" },
     },
   });
-  Object.assign(provider.endpoints.oauth2Authorize.options, {
-    query: provider.endpoints.oauth2Authorize.options.query.extend({
-      resource: z.string(),
-      trackgeekAuthorizationIssuedAt: z.number().optional(),
-    }),
-  });
-
   return [jwt({ jwt: { issuer: urls.issuer }, disableSettingJwtHeader: true }), provider];
 }

@@ -29,9 +29,9 @@
     "start": "NODE_ENV=production node dist/src/main"
   },
   "dependencies": {
-    "@better-auth/core": "~1.6.30",
-    "@better-auth/oauth-provider": "1.6.30",
-    "@better-auth/passkey": "~1.6.30",
+    "@better-auth/core": "~1.7.7",
+    "@better-auth/oauth-provider": "~1.7.7",
+    "@better-auth/passkey": "~1.7.7",
     "@faker-js/faker": "^10.5.0",
     "@modelcontextprotocol/sdk": "1.32.1",
     "@nestjs-redis/client": "^1.4.0",
@@ -51,7 +51,7 @@
     "@thallesp/nestjs-better-auth": "^2.7.0",
     "axios": "1.19.0",
     "bcrypt": "^6.0.0",
-    "better-auth": "~1.6.30",
+    "better-auth": "~1.7.7",
     "bullmq": "^5.75.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",

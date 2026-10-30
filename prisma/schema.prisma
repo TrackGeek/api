@@ -1741,6 +1741,8 @@ model Jwks {
   privateKey String
   createdAt  DateTime
   expiresAt  DateTime?
+  alg        String?
+  crv        String?
 }
 
 model OAuthClient {
@@ -1774,11 +1776,20 @@ model OAuthClient {
   requirePKCE             Boolean?
   referenceId             String?
   metadata                Json?
+  clientDiscoveryId       String?
+  clientCredentialsScopes String[]            @default([])
+  backchannelLogoutUri    String?
+  backchannelLogoutSessionRequired Boolean?
+  applicationType         String?
+  jwks                    String?
+  jwksUri                 String?
+  dpopBoundAccessTokens   Boolean?            @default(false)
   user                    User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   consents                OAuthConsent[]
   accessTokens            OAuthAccessToken[]
   refreshTokens           OAuthRefreshToken[]
   revocations             OAuthRevocation[]
+  clientResources         OauthClientResource[]
   book                    Book?               @relation(fields: [bookId], references: [id])
   bookId                  String?
 
@@ -1797,6 +1808,13 @@ model OAuthRefreshToken {
   revoked      DateTime?
   authTime     DateTime?
   scopes       String[]
+  authorizationCodeId     String?
+  resources               String[]
+  requestedUserInfoClaims String[]
+  rotatedAt               DateTime?
+  rotationReplayResponse  String?
+  rotationReplayExpiresAt DateTime?
+  confirmation            Json?
   client       OAuthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   session      Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1820,6 +1838,11 @@ model OAuthAccessToken {
   expiresAt   DateTime
   createdAt   DateTime
   scopes      String[]
+  authorizationCodeId     String?
+  resources               String[]
+  requestedUserInfoClaims String[]
+  revoked                 DateTime?
+  confirmation            Json?
   client      OAuthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   session     Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1839,6 +1862,8 @@ model OAuthConsent {
   userId      String?
   referenceId String?
   scopes      String[]
+  resources               String[]
+  requestedUserInfoClaims String[]
   createdAt   DateTime
   updatedAt   DateTime
   client      OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
@@ -1861,6 +1886,43 @@ model OAuthRevocation {
   bookId    String?
 
   @@unique([userId, clientId])
+}
+
+model OauthResource {
+  id                            String                @id
+  identifier                    String                @unique
+  name                          String
+  accessTokenTtl                Int?
+  refreshTokenTtl               Int?
+  signingAlgorithm              String?
+  signingKeyId                  String?
+  allowedScopes                 String[]              @default([])
+  customClaims                  Json?
+  dpopBoundAccessTokensRequired Boolean?              @default(false)
+  disabled                      Boolean?              @default(false)
+  createdAt                     DateTime?
+  updatedAt                     DateTime?
+  policyVersion                 Int?                  @default(1)
+  metadata                      Json?
+  clientResources               OauthClientResource[]
+}
+
+model OauthClientResource {
+  id           String        @id
+  clientId     String
+  client       OAuthClient   @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  resourceId   String
+  resource     OauthResource @relation(fields: [resourceId], references: [identifier], onDelete: Cascade)
+  metadata     Json?
+  createdAt    DateTime?
+
+  @@index([clientId])
+  @@index([resourceId])
+}
+
+model OauthClientAssertion {
+  id        String   @id
+  expiresAt DateTime
 }
 
 model BookCoverPreference {

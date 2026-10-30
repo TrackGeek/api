@@ -37,6 +37,9 @@ async function setup() {
     oAuthConsent: [],
     oAuthAccessToken: [],
     oAuthRefreshToken: [],
+    oauthResource: [],
+    oauthClientResource: [],
+    oauthClientAssertion: [],
   };
   const settings = { BETTER_AUTH_URL: ORIGIN, WEB_URL: WEB };
   const config = { get: (key: keyof typeof settings) => settings[key] } as ConfigService;
@@ -325,6 +328,7 @@ describe("OAuth and MCP integration", () => {
       .send({
         client_name: "MCP client",
         redirect_uris: ["http://127.0.0.1:6789/callback"],
+        application_type: "native",
         token_endpoint_auth_method: "none",
         grant_types: ["authorization_code", "refresh_token"],
       });

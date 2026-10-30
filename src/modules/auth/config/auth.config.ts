@@ -116,10 +116,6 @@ export function getAuthConfig(params: AuthConfigParams) {
           type: "string",
           required: false,
         },
-        profile: {
-          type: "json",
-          required: false,
-        },
       },
       deleteUser: {
         enabled: true,
