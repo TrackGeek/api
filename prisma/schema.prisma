@@ -44,6 +44,7 @@ model User {
   twoFactor              TwoFactor?
   sessions               Session[]
   accounts               Account[]
+  psnAccount             PsnAccount?
   passkeys               Passkey[]
   comments               Comment[]
   reactions              Reaction[]
@@ -131,6 +132,20 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PsnAccount {
+  id           String   @id @default(uuid(7))
+  userId       String   @unique
+  accountId    String
+  onlineId     String
+  avatarUrl    String?
+  refreshToken String
+  expired      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Verification {
