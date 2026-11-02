@@ -1018,3 +1018,27 @@ Authorization: Bearer {{login.response.body.token}}
 ### 121. Delete Post
 DELETE {{apiUrl}}/post/019ce334-c8ac-7883-949d-948f53218272
 Authorization: Bearer {{login.response.body.token}}
+
+### 122. Get PSN Trophies by User Id
+GET {{apiUrl}}/psn/trophies/{{login.response.body.user.id}}
+
+### 122.1 Refresh PSN Trophies
+POST {{apiUrl}}/psn/trophies/refresh
+Authorization: Bearer {{login.response.body.token}}
+
+### 122.2 Get PSN Account Status
+GET {{apiUrl}}/psn/account
+Authorization: Bearer {{login.response.body.token}}
+
+### 122.3 Link PSN Account
+PUT {{apiUrl}}/psn/account
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "npsso": "aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789aBcDeFgHiJkLmNoPqRsTuVwXyZ01"
+}
+
+### 122.4 Unlink PSN Account
+DELETE {{apiUrl}}/psn/account
+Authorization: Bearer {{login.response.body.token}}

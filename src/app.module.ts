@@ -28,6 +28,7 @@ import { PaymentModule } from "./modules/payment/payment.module";
 import { PersonModule } from "./modules/person/person.module";
 import { PostModule } from "./modules/post/post.module";
 import { ProfileModule } from "./modules/profile/profile.module";
+import { PsnModule } from "./modules/psn/psn.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
 import { TVShowModule } from "./modules/tv-show/tv-show.module";
 import { UserModule } from "./modules/user/user.module";
@@ -90,6 +91,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     CoinModule,
     CosmeticModule,
     DiscordModule,
+    PsnModule,
     McpModule,
   ],
   providers: [

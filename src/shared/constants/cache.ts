@@ -221,4 +221,17 @@ export const CACHE_KEYS = {
     prefix: (discordId: string) => `discord:presence:${discordId}`,
     expiration: 300,
   },
+
+  PSN_ACCESS_TOKEN: {
+    prefix: (userId: string) => `psn:token:${userId}`,
+    expiration: 3600,
+  },
+  PSN_TROPHIES: {
+    prefix: (userId: string) => `psn:trophies:${userId}`,
+    expiration: 3600 * 6,
+  },
+  PSN_TROPHIES_REFRESH: {
+    prefix: (userId: string) => `psn:trophies:refresh:${userId}`,
+    expiration: 300,
+  },
 } as const;

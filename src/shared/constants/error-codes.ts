@@ -171,6 +171,22 @@ export const ERROR_CODES = {
     code: "ANILIST_SERVICE_UNAVAILABLE",
     status: 503,
   },
+  PSN_SERVICE_UNAVAILABLE: {
+    code: "PSN_SERVICE_UNAVAILABLE",
+    status: 503,
+  },
+  PSN_INVALID_NPSSO: {
+    code: "PSN_INVALID_NPSSO",
+    status: 400,
+  },
+  PSN_ACCOUNT_NOT_LINKED: {
+    code: "PSN_ACCOUNT_NOT_LINKED",
+    status: 404,
+  },
+  PSN_TROPHIES_ALREADY_REFRESHED: {
+    code: "PSN_TROPHIES_ALREADY_REFRESHED",
+    status: 409,
+  },
   ANIME_ALREADY_REFRESHED: {
     code: "ANIME_ALREADY_REFRESHED",
     status: 409,

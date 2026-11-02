@@ -1,0 +1,3 @@
+export const PSN_RECENT_TITLES_LIMIT = 5;
+
+export const PSN_TOKEN_EXPIRATION_MARGIN_SECONDS = 60;
