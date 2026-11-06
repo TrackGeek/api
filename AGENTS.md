@@ -29,7 +29,7 @@ NestJS + Prisma (Postgres via `@prisma/adapter-pg`) + Redis/BullMQ. Bootstrap in
 
 ### External integrations (`src/shared/infra/integrations`)
 
-`IntegrationsModule` is `@Global`. Services: `TMDBService` (movies/tv), `IGDBService` (games), `AnilistService` + `TenraiService` (anime/manga), `HardcoverService` (books), `IMGBBService` (image hosting), plus `IntegrationsService`. Media detail is fetched from these, cached, and persisted to Prisma; `refresh*` endpoints re-pull from the source.
+`IntegrationsModule` is `@Global`. Services: `TMDBService` (movies/tv), `IGDBService` (games), `AnilistService` + `TenraiService` (anime/manga), `HardcoverService` (books), `IMGBBService` and `R2Service` (image hosting), plus `IntegrationsService`. `IMAGE_STORAGE_PROVIDER` selects `imgbb` or `r2`; R2 uploads are converted to WebP. Media detail is fetched from these, cached, and persisted to Prisma; `refresh*` endpoints re-pull from the source.
 
 ### Auth
 

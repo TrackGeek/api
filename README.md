@@ -76,7 +76,7 @@ The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover)
 - Redis caching for performance optimization;
 - Rate limiting with configurable read/write throttlers;
 - Internationalization (i18n) support;
-- File uploads via ImgBB integration;
+- File uploads via ImgBB or Cloudflare R2, with WebP conversion for R2;
 - Swagger/OpenAPI documentation with Scalar API Reference.
 
 </samp>
@@ -113,7 +113,8 @@ The API integrates with external media databases (Tenrai, TMDB, IGDB, Hardcover)
 | [TMDB](https://www.themoviedb.org) | TV Shows and Movies metadata |
 | [IGDB](https://www.igdb.com)       | Video Games metadata         |
 | [Hardcover](https://hardcover.app) | Books metadata               |
-| [ImgBB](https://imgbb.com)         | Image hosting for uploads    |
+| [ImgBB](https://imgbb.com)         | Optional image hosting       |
+| [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/) | Optional S3-compatible image hosting |
 | [Stripe](https://stripe.com)       | Payment processing           |
 | [Resend](https://resend.com)       | Transactional email delivery |
 
@@ -163,7 +164,7 @@ src/
         ├── i18n/                    # Internationalization
         ├── integrations/            # External API clients (Tenrai, TMDB, IGDB, Hardcover)
         ├── queue/                   # BullMQ queue setup and processors
-        └── upload/                  # File upload service (ImgBB)
+        └── upload/                  # Provider selection and WebP conversion
 ```
 
 </samp>
@@ -310,10 +311,52 @@ Every push runs `bun run format:fix`, `bun run types`, and `bun run build` in th
 | `RESEND_FROM`                | Sender email address                             |
 | `STRIPE_SECRET_KEY`          | Optional; enables Stripe payments                |
 | `STRIPE_WEBHOOK_SECRET`      | Required only when using Stripe webhooks          |
-| `IMGBB_API_KEY`              | ImgBB API key for image uploads                  |
+| `IMAGE_STORAGE_PROVIDER`     | Image provider: `imgbb` (default) or `r2`        |
+| `IMGBB_API_KEY`              | ImgBB API key when using ImgBB                   |
+| `R2_ACCOUNT_ID`              | Cloudflare account ID when using R2              |
+| `R2_ACCESS_KEY_ID`           | R2 API token access key ID                       |
+| `R2_SECRET_ACCESS_KEY`       | R2 API token secret access key                   |
+| `R2_BUCKET_NAME`             | R2 bucket name                                   |
+| `R2_PUBLIC_URL`              | Public bucket or custom-domain base URL          |
+| `R2_MAX_STORAGE_BYTES`       | Hard cap on total bucket size; uploads are refused beyond it (default: `9000000000`, under the 10 GB free tier) |
+| `IMGBB_R2_MIGRATION_MAX_IMAGES` | Maximum distinct images per migration run (default: `100`) |
+| `IMGBB_R2_MIGRATION_MAX_BYTES` | Maximum WebP bytes uploaded per run (default: `262144000`) |
+| `IMGBB_R2_MIGRATION_DELAY_MS` | Delay between ImgBB downloads (default: `2000`)  |
 | `HARDCOVER_API_KEY`          | Hardcover API key for books                      |
 | `TMDB_API_KEY`               | TMDB API key for movies/TV shows                 |
 | `IGDB_CLIENT_ID/SECRET`      | IGDB credentials for games                       |
+
+</samp>
+
+## <samp>ImgBB to R2 Migration</samp>
+
+<samp>
+
+Back up PostgreSQL before applying the migration. The script updates database URLs but never deletes ImgBB images or R2 objects.
+
+Inspect candidates without network uploads or database writes:
+
+```bash
+bun run images:migrate-imgbb-r2 --dry-run
+```
+
+Apply a bounded batch:
+
+```bash
+bun run images:migrate-imgbb-r2
+```
+
+Repeat the command until the dry-run reports zero matching rows and unique URLs. A run with failed URLs exits with a non-zero status. Fix or retry those URLs in the next run.
+
+Every R2 upload (API and migration) first measures real bucket usage and is refused with `STORAGE_QUOTA_EXCEEDED` if it would pass `R2_MAX_STORAGE_BYTES`; the migration then stops cleanly. Defaults per run are 100 distinct images, 250 MiB of uploaded WebP data, and 2 seconds between ImgBB downloads. These limits only control this script; they do not account for other R2 usage in the same Cloudflare account. Tune them with environment variables or CLI flags:
+
+```bash
+bun run images:migrate-imgbb-r2 --max-images 50 --max-bytes 104857600 --delay-ms 3000
+```
+
+Additional flags: `--batch-size`, `--download-timeout-ms`, `--max-download-bytes`, `--download-attempts`, and `--webp-quality`.
+
+The migrator scans URL and image string fields plus every JSON field from Prisma models. It converts images to WebP with quality 82, preserves animated images, and replaces nested JSON references. Duplicate source URLs share a deterministic R2 key. Existing R2 objects are reused after interruptions, and conditional updates avoid overwriting rows changed concurrently.
 
 </samp>
 

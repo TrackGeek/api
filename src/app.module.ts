@@ -36,6 +36,7 @@ import { XpModule } from "./modules/xp/xp.module";
 import { HttpThrottlerGuard } from "./shared/guards/http-throttler.guard";
 import { CacheModule } from "./shared/infra/cache/cache.module";
 import { DatabaseModule } from "./shared/infra/database/database.module";
+import { DataxamasModule } from "./shared/infra/dataxamas/dataxamas.module";
 import { EmailModule } from "./shared/infra/email/email.module";
 import { HealthModule } from "./shared/infra/health/health.module";
 import { IntegrationsModule } from "./shared/infra/integrations/integrations.module";
@@ -55,6 +56,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     }),
     JwtModule.register({ global: true }),
     HttpModule.register({ global: true, timeout: 30_000 }),
+    DataxamasModule,
     HealthModule,
     EmailModule,
     QueueModule,
