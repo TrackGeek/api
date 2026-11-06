@@ -34,6 +34,7 @@
     "@better-auth/core": "~1.6.30",
     "@better-auth/oauth-provider": "1.6.30",
     "@better-auth/passkey": "~1.6.30",
+    "@dataxamas/tracker-js": "^2.8.0",
     "@faker-js/faker": "^10.5.0",
     "@modelcontextprotocol/sdk": "1.32.1",
     "@nestjs-redis/client": "^1.4.0",

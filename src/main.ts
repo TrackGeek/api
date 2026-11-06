@@ -1,3 +1,4 @@
+import { createExpressCrawlerMiddleware } from "@dataxamas/tracker-js";
 import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
@@ -6,6 +7,8 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
+import { DataxamasLogger } from "./shared/infra/dataxamas/dataxamas.logger";
+import { DataxamasService } from "./shared/infra/dataxamas/dataxamas.service";
 import { setupDocs } from "./shared/infra/docs/setup";
 
 function resolveTrustProxy(): number | string | boolean {
@@ -23,9 +26,29 @@ function resolveTrustProxy(): number | string | boolean {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
+    bufferLogs: true,
   });
 
+  app.useLogger(app.get(DataxamasLogger));
+
+  const dataxamas = app.get(DataxamasService);
+  const processLogger = new Logger("Process");
+
+  for (const event of ["uncaughtException", "unhandledRejection"] as const) {
+    process.on(event, (reason: unknown) => {
+      const error = reason instanceof Error ? reason : new Error(String(reason));
+
+      processLogger.fatal(`${event}: ${error.message}`, error.stack);
+
+      void dataxamas.flush().finally(() => process.exit(1));
+    });
+  }
+
   app.set("trust proxy", resolveTrustProxy());
+
+  if (dataxamas.crawlers) {
+    app.use(createExpressCrawlerMiddleware(dataxamas.crawlers));
+  }
 
   app.enableCors((request, callback) => {
     const path = request.url.split("?")[0];
