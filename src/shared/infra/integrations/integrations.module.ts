@@ -7,6 +7,7 @@ import { IGDBService } from "./igdb.service";
 import { IMGBBService } from "./imgbb.service";
 import { IntegrationsService } from "./integrations.service";
 import { PSNService } from "./psn.service";
+import { R2Service } from "./r2.service";
 import { TenraiService } from "./tenrai.service";
 import { TMDBService } from "./tmdb.service";
 
@@ -19,6 +20,7 @@ import { TMDBService } from "./tmdb.service";
     IGDBService,
     IMGBBService,
     PSNService,
+    R2Service,
     TenraiService,
     TMDBService,
     IntegrationsService,
@@ -30,6 +32,7 @@ import { TMDBService } from "./tmdb.service";
     IGDBService,
     IMGBBService,
     PSNService,
+    R2Service,
     TenraiService,
     TMDBService,
     IntegrationsService,
