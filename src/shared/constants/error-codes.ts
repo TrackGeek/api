@@ -19,6 +19,10 @@ export const ERROR_CODES = {
     code: "FAILED_TO_UPLOAD_IMAGE",
     status: 400,
   },
+  STORAGE_QUOTA_EXCEEDED: {
+    code: "STORAGE_QUOTA_EXCEEDED",
+    status: 507,
+  },
   RATE_LIMIT_EXCEEDED: {
     code: "RATE_LIMIT_EXCEEDED",
     status: 429,

@@ -3,7 +3,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import axios, { AxiosError } from "axios";
 import { PrismaClient } from "../../prisma/generated/client";
 import { AppException } from "../../src/shared/exceptions/app.exceptions";
-import { R2Service } from "../../src/shared/infra/integrations/r2.service";
+import { R2QuotaExceededError, R2Service } from "../../src/shared/infra/integrations/r2.service";
 import { convertImageToWebp, WEBP_CONTENT_TYPE } from "../../src/shared/infra/upload/image-converter";
 
 const IMGBB_HOSTS = new Set(["i.ibb.co", "image.ibb.co"]);
@@ -162,7 +162,10 @@ export class ImgbbR2Migration {
     try {
       for (const source of this.sources) await this.migrateSource(source);
     } catch (error) {
-      if (error instanceof ImgbbRateLimitReached) {
+      if (error instanceof R2QuotaExceededError) {
+        this.stats.limitReached = true;
+        this.logger.log("R2 storage cap reached. Free space or raise R2_MAX_STORAGE_BYTES, then run again.");
+      } else if (error instanceof ImgbbRateLimitReached) {
         this.stats.limitReached = true;
         this.logger.log("ImgBB rate limit persisted after retries. Run again later to continue.");
       } else {

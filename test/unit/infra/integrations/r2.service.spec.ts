@@ -10,12 +10,15 @@ vi.mock("@aws-sdk/client-s3", () => ({
   PutObjectCommand: class {
     constructor(readonly input: Record<string, unknown>) {}
   },
+  ListObjectsV2Command: class {
+    constructor(readonly input: Record<string, unknown>) {}
+  },
   HeadObjectCommand: class {
     constructor(readonly input: Record<string, unknown>) {}
   },
 }));
 
-import { R2Service } from "@/shared/infra/integrations/r2.service";
+import { R2QuotaExceededError, R2Service } from "@/shared/infra/integrations/r2.service";
 
 const environment: Record<string, string> = {
   R2_ACCOUNT_ID: "account-id",
@@ -33,13 +36,14 @@ describe("R2Service", () => {
   let service: R2Service;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    configService.get.mockImplementation((key: string) => environment[key]);
     service = new R2Service(configService as any);
   });
 
   it("uploads WebP objects and returns the public URL without a trailing slash", async () => {
     const body = Buffer.from("webp-data");
-    send.mockResolvedValue({});
+    send.mockResolvedValueOnce({ Contents: [], IsTruncated: false }).mockResolvedValue({});
 
     const result = await service.upload(body, {
       key: "migrations/imgbb/hash.webp",
@@ -47,14 +51,21 @@ describe("R2Service", () => {
     });
 
     expect(result).toBe("https://images.trackgeek.test/migrations/imgbb/hash.webp");
-    expect(send).toHaveBeenCalledOnce();
-    expect(send.mock.calls[0][0].input).toMatchObject({
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send.mock.calls[1][0].input).toMatchObject({
       Bucket: "trackgeek",
       Key: "migrations/imgbb/hash.webp",
       Body: body,
       ContentType: "image/webp",
       CacheControl: "public, max-age=31536000, immutable",
     });
+  });
+
+  it("refuses uploads that would pass the storage cap without writing", async () => {
+    send.mockResolvedValueOnce({ Contents: [{ Size: 8_999_999_990 }], IsTruncated: false });
+
+    await expect(service.upload(Buffer.alloc(20))).rejects.toBeInstanceOf(R2QuotaExceededError);
+    expect(send).toHaveBeenCalledOnce();
   });
 
   it("returns false only when the object does not exist", async () => {

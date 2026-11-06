@@ -318,6 +318,7 @@ Every push runs `bun run format:fix`, `bun run types`, and `bun run build` in th
 | `R2_SECRET_ACCESS_KEY`       | R2 API token secret access key                   |
 | `R2_BUCKET_NAME`             | R2 bucket name                                   |
 | `R2_PUBLIC_URL`              | Public bucket or custom-domain base URL          |
+| `R2_MAX_STORAGE_BYTES`       | Hard cap on total bucket size; uploads are refused beyond it (default: `9000000000`, under the 10 GB free tier) |
 | `IMGBB_R2_MIGRATION_MAX_IMAGES` | Maximum distinct images per migration run (default: `100`) |
 | `IMGBB_R2_MIGRATION_MAX_BYTES` | Maximum WebP bytes uploaded per run (default: `262144000`) |
 | `IMGBB_R2_MIGRATION_DELAY_MS` | Delay between ImgBB downloads (default: `2000`)  |
@@ -347,7 +348,7 @@ bun run images:migrate-imgbb-r2
 
 Repeat the command until the dry-run reports zero matching rows and unique URLs. A run with failed URLs exits with a non-zero status. Fix or retry those URLs in the next run.
 
-Defaults per run are 100 distinct images, 250 MiB of uploaded WebP data, and 2 seconds between ImgBB downloads. These limits only control this script; they do not account for other R2 usage in the same Cloudflare account. Tune them with environment variables or CLI flags:
+Every R2 upload (API and migration) first measures real bucket usage and is refused with `STORAGE_QUOTA_EXCEEDED` if it would pass `R2_MAX_STORAGE_BYTES`; the migration then stops cleanly. Defaults per run are 100 distinct images, 250 MiB of uploaded WebP data, and 2 seconds between ImgBB downloads. These limits only control this script; they do not account for other R2 usage in the same Cloudflare account. Tune them with environment variables or CLI flags:
 
 ```bash
 bun run images:migrate-imgbb-r2 --max-images 50 --max-bytes 104857600 --delay-ms 3000
