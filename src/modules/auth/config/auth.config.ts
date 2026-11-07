@@ -1,4 +1,5 @@
 import type { BetterAuthOptions } from "@better-auth/core";
+import { expo } from "@better-auth/expo";
 import { passkey } from "@better-auth/passkey";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -209,6 +210,7 @@ export function getAuthConfig(params: AuthConfigParams) {
     plugins: [
       ...getOAuthPlugins(configService),
       openAPI({ path: "/docs" }),
+      expo(),
       bearer(),
       username(),
       twoFactor({

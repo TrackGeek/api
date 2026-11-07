@@ -10,6 +10,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
+import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
 import { GetBookProgressDto } from "../dto/get-book-progress.dto";
 
@@ -214,7 +215,9 @@ export class BookProgressService {
       this.mediaFilterService.countProgressByStatus("bookProgress", where),
     ]);
 
-    return { bookProgresses, statusCounts };
+    const items = await withOverallRatings(this.databaseService, "bookReview", "bookId", bookProgresses.items);
+
+    return { bookProgresses: { ...bookProgresses, items }, statusCounts };
   }
 
   async getBookProgressFilters(userId: string) {

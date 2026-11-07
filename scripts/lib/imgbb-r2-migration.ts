@@ -7,7 +7,6 @@ import { R2QuotaExceededError, R2Service } from "../../src/shared/infra/integrat
 import { convertImageToWebp, WEBP_CONTENT_TYPE } from "../../src/shared/infra/upload/image-converter";
 
 const IMGBB_HOSTS = new Set(["i.ibb.co", "image.ibb.co"]);
-const IMAGE_FIELD_PATTERN = /(url|image|avatar|banner|cover|photo|screenshot|icon|artwork|backdrop|poster)s?$/i;
 const DEFAULT_MAX_IMAGES = 100;
 const DEFAULT_MAX_BYTES = 250 * 1024 * 1024;
 const DEFAULT_DELAY_MS = 2_000;
@@ -75,35 +74,14 @@ export function collectImgbbUrls(value: unknown): string[] {
   return [];
 }
 
-interface RuntimeModelField {
-  name: string;
-  kind: string;
-  type: string;
-}
+const MIGRATION_SOURCES: MigrationSource[] = [
+  { model: "GameScreenshot", delegate: "gameScreenshot", field: "url", type: "String" },
+  { model: "Profile", delegate: "profile", field: "avatarUrl", type: "String" },
+  { model: "Profile", delegate: "profile", field: "bannerUrl", type: "String" },
+];
 
-interface RuntimeDataModel {
-  models: Record<string, { fields: RuntimeModelField[] }>;
-}
-
-export function getMigrationSources(database: PrismaClient): MigrationSource[] {
-  const runtimeDataModel = (database as unknown as { _runtimeDataModel: RuntimeDataModel })._runtimeDataModel;
-
-  return Object.entries(runtimeDataModel.models).flatMap(([modelName, model]) => {
-    if (!model.fields.some((field) => field.name === "id")) return [];
-
-    return model.fields
-      .filter(
-        (field) =>
-          field.kind === "scalar" &&
-          (field.type === "Json" || (field.type === "String" && IMAGE_FIELD_PATTERN.test(field.name))),
-      )
-      .map((field) => ({
-        model: modelName,
-        delegate: modelName[0].toLowerCase() + modelName.slice(1),
-        field: field.name,
-        type: field.type as "String" | "Json",
-      }));
-  });
+export function getMigrationSources(): MigrationSource[] {
+  return MIGRATION_SOURCES.map((source) => ({ ...source }));
 }
 
 export function getImgbbMigrationKey(sourceUrl: string): string {
@@ -154,7 +132,7 @@ export class ImgbbR2Migration {
     this.maxDownloadBytes = options.maxDownloadBytes ?? DEFAULT_MAX_DOWNLOAD_BYTES;
     this.downloadAttempts = options.downloadAttempts ?? DEFAULT_DOWNLOAD_ATTEMPTS;
     this.webpQuality = options.webpQuality ?? 82;
-    this.sources = options.sources ?? getMigrationSources(database);
+    this.sources = options.sources ?? getMigrationSources();
     this.logger = options.logger ?? console;
   }
 
@@ -332,7 +310,6 @@ export class ImgbbR2Migration {
           timeout: this.downloadTimeoutMs,
           maxContentLength: this.maxDownloadBytes,
           maxBodyLength: this.maxDownloadBytes,
-          headers: { "User-Agent": "TrackGeek-ImgBB-R2-Migration/1.0" },
         });
         return Buffer.from(response.data);
       } catch (error) {

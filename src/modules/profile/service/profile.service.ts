@@ -6,6 +6,7 @@ import { ERROR_CODES } from "@/shared/constants/error-codes";
 import { MAX_WATCH_LINKS } from "@/shared/constants/watch-link";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { DatabaseService } from "@/shared/infra/database/database.service";
+import { cropImageToCenter } from "@/shared/infra/upload/image-converter";
 import { UploadService } from "@/shared/infra/upload/upload.service";
 import { AddSetupPhotoDto } from "../dto/add-setup-photo.dto";
 import { CreateProfileDto } from "../dto/create-profile.dto";
@@ -23,6 +24,10 @@ import { UpdateWatchLinkDto } from "../dto/update-watch-link.dto";
 const MAX_SETUP_PHOTOS = 10;
 const MAX_SETUP_ITEMS = 30;
 const MAX_PROFILE_LINKS = 10;
+const AVATAR_WIDTH = 500;
+const AVATAR_HEIGHT = 500;
+const BANNER_WIDTH = 1200;
+const BANNER_HEIGHT = 330;
 
 @Injectable()
 export class ProfileService {
@@ -91,7 +96,11 @@ export class ProfileService {
   }
 
   async updateProfileAvatar(userId: string, file: Express.Multer.File): Promise<void> {
-    const avatarUrl = await this.uploadService.uploadFromBuffer(file.buffer);
+    const avatarUrl = await this.uploadService.uploadFromBuffer(
+      await cropImageToCenter(file.buffer, AVATAR_WIDTH, AVATAR_HEIGHT).catch(() => {
+        throw new AppException(ERROR_CODES.FAILED_TO_UPLOAD_IMAGE);
+      }),
+    );
 
     await this.databaseService.profile.update({
       where: { userId },
@@ -107,7 +116,9 @@ export class ProfileService {
   }
 
   async updateProfileBanner(userId: string, file: Express.Multer.File): Promise<void> {
-    const bannerUrl = await this.uploadService.uploadFromBuffer(file.buffer);
+    const bannerUrl = await this.uploadService.uploadFromBuffer(
+      await cropImageToCenter(file.buffer, BANNER_WIDTH, BANNER_HEIGHT),
+    );
 
     await this.databaseService.profile.update({
       where: { userId },

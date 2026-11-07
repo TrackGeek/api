@@ -11,6 +11,7 @@ import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { animeEpisodeProgress } from "@/shared/utils/episode-progress";
+import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateAnimeProgressDto } from "../dto/create-or-update-anime-progress.dto";
 import { GetAnimeProgressDto } from "../dto/get-anime-progress.dto";
 import { AnimeEpisodeWatchService } from "./anime-episode-watch.service";
@@ -194,7 +195,9 @@ export class AnimeProgressService {
       return { ...row, episodeProgress: animeEpisodeProgress(row.anime.numberOfEpisodes, rowWatches) };
     });
 
-    return { animeProgresses: { ...animeProgresses, items }, statusCounts };
+    const ratedItems = await withOverallRatings(this.databaseService, "animeReview", "animeId", items);
+
+    return { animeProgresses: { ...animeProgresses, items: ratedItems }, statusCounts };
   }
 
   async getAnimeProgressFilters(userId: string) {

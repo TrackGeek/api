@@ -58,25 +58,11 @@ describe("ImgbbR2Migration", () => {
     expect(getImgbbMigrationKey(sourceUrl)).toMatch(/^migrations\/imgbb\/[a-f0-9]{64}\.webp$/);
   });
 
-  it("discovers plural image fields and arbitrary JSON payloads", () => {
-    const database = {
-      _runtimeDataModel: {
-        models: {
-          Person: {
-            fields: [
-              { name: "id", kind: "scalar", type: "String" },
-              { name: "name", kind: "scalar", type: "String" },
-              { name: "images", kind: "scalar", type: "String" },
-              { name: "rawPayload", kind: "scalar", type: "Json" },
-            ],
-          },
-        },
-      },
-    };
-
-    expect(getMigrationSources(database as any)).toEqual([
-      { model: "Person", delegate: "person", field: "images", type: "String" },
-      { model: "Person", delegate: "person", field: "rawPayload", type: "Json" },
+  it("only targets screenshots and profile avatar/banner", () => {
+    expect(getMigrationSources()).toEqual([
+      { model: "GameScreenshot", delegate: "gameScreenshot", field: "url", type: "String" },
+      { model: "Profile", delegate: "profile", field: "avatarUrl", type: "String" },
+      { model: "Profile", delegate: "profile", field: "bannerUrl", type: "String" },
     ]);
   });
 
