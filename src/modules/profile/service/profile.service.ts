@@ -97,7 +97,9 @@ export class ProfileService {
 
   async updateProfileAvatar(userId: string, file: Express.Multer.File): Promise<void> {
     const avatarUrl = await this.uploadService.uploadFromBuffer(
-      await cropImageToCenter(file.buffer, AVATAR_WIDTH, AVATAR_HEIGHT),
+      await cropImageToCenter(file.buffer, AVATAR_WIDTH, AVATAR_HEIGHT).catch(() => {
+        throw new AppException(ERROR_CODES.FAILED_TO_UPLOAD_IMAGE);
+      }),
     );
 
     await this.databaseService.profile.update({
