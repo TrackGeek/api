@@ -3,9 +3,11 @@ import { ProgressStatus } from "@prisma/generated/enums";
 import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, Max, MaxLength, Min } from "class-validator";
 
+const REPEAT_STATUSES = [ProgressStatus.Rewatching, ProgressStatus.Replaying, ProgressStatus.Rereading];
+
 export class CreateOrUpdateTVShowProgressDto {
   @IsEnum(ProgressStatus)
-  @Transform(({ value, obj }) => (obj.completedAt ? ProgressStatus.Completed : value))
+  @Transform(({ value, obj }) => (obj.completedAt && !REPEAT_STATUSES.includes(value) ? ProgressStatus.Completed : value))
   @ApiProperty({
     enum: ProgressStatus,
   })
