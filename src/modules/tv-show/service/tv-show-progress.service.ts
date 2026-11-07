@@ -12,6 +12,7 @@ import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { tvEpisodeProgress } from "@/shared/utils/episode-progress";
+import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateTVShowProgressDto } from "../dto/create-or-update-tv-show-progress.dto";
 import { GetTVShowProgressDto } from "../dto/get-tv-show-progress.dto";
 import { TVShowEpisodeWatchService } from "./tv-show-episode-watch.service";
@@ -202,7 +203,9 @@ export class TVShowProgressService {
       };
     });
 
-    return { tvShowProgresses: { ...tvShowProgresses, items }, statusCounts };
+    const ratedItems = await withOverallRatings(this.databaseService, "tvShowReview", "tvShowId", items);
+
+    return { tvShowProgresses: { ...tvShowProgresses, items: ratedItems }, statusCounts };
   }
 
   async getTVShowProgressFilters(userId: string) {

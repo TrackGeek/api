@@ -10,6 +10,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
+import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateMovieProgressDto } from "../dto/create-or-update-movie-progress.dto";
 import { GetMovieProgressDto } from "../dto/get-movie-progress.dto";
 
@@ -165,7 +166,9 @@ export class MovieProgressService {
       this.mediaFilterService.countProgressByStatus("movieProgress", where),
     ]);
 
-    return { movieProgresses, statusCounts };
+    const items = await withOverallRatings(this.databaseService, "movieReview", "movieId", movieProgresses.items);
+
+    return { movieProgresses: { ...movieProgresses, items }, statusCounts };
   }
 
   async getMovieProgressFilters(userId: string) {

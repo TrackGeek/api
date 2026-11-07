@@ -8,7 +8,9 @@ const REPEAT_STATUSES = [ProgressStatus.Rewatching, ProgressStatus.Replaying, Pr
 export class CreateOrUpdateAnimeProgressDto {
   @ApiProperty({ enum: ProgressStatus, enumName: "ProgressStatus" })
   @IsEnum(ProgressStatus)
-  @Transform(({ value, obj }) => (obj.completedAt && !REPEAT_STATUSES.includes(value) ? ProgressStatus.Completed : value))
+  @Transform(({ value, obj }) =>
+    obj.completedAt && !REPEAT_STATUSES.includes(value) ? ProgressStatus.Completed : value,
+  )
   readonly status: ProgressStatus;
 
   @ApiPropertyOptional({ type: Number, minimum: 1 })

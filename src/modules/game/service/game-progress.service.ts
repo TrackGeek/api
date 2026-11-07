@@ -10,6 +10,7 @@ import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
+import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateGameProgressDto } from "../dto/create-or-update-game-progress.dto";
 import { GetGameProgressDto } from "../dto/get-game-progress.dto";
 
@@ -223,7 +224,9 @@ export class GameProgressService {
       this.mediaFilterService.countProgressByStatus("gameProgress", where),
     ]);
 
-    return { gameProgresses, statusCounts };
+    const items = await withOverallRatings(this.databaseService, "gameReview", "gameId", gameProgresses.items);
+
+    return { gameProgresses: { ...gameProgresses, items }, statusCounts };
   }
 
   async getGameProgressFilters(userId: string) {

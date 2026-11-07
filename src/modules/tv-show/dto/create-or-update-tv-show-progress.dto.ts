@@ -7,7 +7,9 @@ const REPEAT_STATUSES = [ProgressStatus.Rewatching, ProgressStatus.Replaying, Pr
 
 export class CreateOrUpdateTVShowProgressDto {
   @IsEnum(ProgressStatus)
-  @Transform(({ value, obj }) => (obj.completedAt && !REPEAT_STATUSES.includes(value) ? ProgressStatus.Completed : value))
+  @Transform(({ value, obj }) =>
+    obj.completedAt && !REPEAT_STATUSES.includes(value) ? ProgressStatus.Completed : value,
+  )
   @ApiProperty({
     enum: ProgressStatus,
   })
