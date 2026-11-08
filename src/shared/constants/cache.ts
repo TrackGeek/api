@@ -9,6 +9,10 @@ function filtersToString(filters: Record<string, any>) {
 }
 
 export const CACHE_KEYS = {
+  REWIND_GLOBAL: {
+    prefix: "rewind:2026:global:v1",
+    expiration: 300,
+  },
   HARDCOVER_SEARCH_BOOKS: {
     prefix: (filters: Record<string, any>) => `hardcover:search:book:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,

@@ -30,6 +30,7 @@ import { PostModule } from "./modules/post/post.module";
 import { ProfileModule } from "./modules/profile/profile.module";
 import { PsnModule } from "./modules/psn/psn.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
+import { RewindModule } from "./modules/rewind/rewind.module";
 import { TVShowModule } from "./modules/tv-show/tv-show.module";
 import { UserModule } from "./modules/user/user.module";
 import { XpModule } from "./modules/xp/xp.module";
@@ -75,6 +76,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     CommentModule,
     PostModule,
     ReactionModule,
+    RewindModule,
     NotificationModule,
     GameModule,
     MovieModule,
