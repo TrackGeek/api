@@ -6,6 +6,7 @@ import { HardcoverService } from "./hardcover.service";
 import { IGDBService } from "./igdb.service";
 import { IMGBBService } from "./imgbb.service";
 import { IntegrationsService } from "./integrations.service";
+import { ProtonDbService } from "./protondb.service";
 import { PSNService } from "./psn.service";
 import { R2Service } from "./r2.service";
 import { TenraiService } from "./tenrai.service";
@@ -20,6 +21,7 @@ import { TMDBService } from "./tmdb.service";
     IGDBService,
     IMGBBService,
     PSNService,
+    ProtonDbService,
     R2Service,
     TenraiService,
     TMDBService,
@@ -32,6 +34,7 @@ import { TMDBService } from "./tmdb.service";
     IGDBService,
     IMGBBService,
     PSNService,
+    ProtonDbService,
     R2Service,
     TenraiService,
     TMDBService,

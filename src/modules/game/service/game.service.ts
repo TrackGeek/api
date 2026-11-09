@@ -12,6 +12,7 @@ import {
 } from "@/shared/infra/database/database.service";
 import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
+import { ProtonDbService } from "@/shared/infra/integrations/protondb.service";
 import {
   compareBy,
   getTgScoredContent,
@@ -43,6 +44,7 @@ export class GameService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
+    private readonly protonDbService: ProtonDbService,
   ) {}
 
   async searchGames(searchGameDto: SearchGameDto) {
@@ -236,6 +238,11 @@ export class GameService {
       });
     }
 
+    if (!game.protonDbUpdatedAt || Date.now() - game.protonDbUpdatedAt.getTime() >= 24 * 60 * 60 * 1000) {
+      const compatibility = await this.protonDbService.getGameData(game.websites);
+      game = await this.databaseService.game.update({ where: { id: game.id }, data: compatibility });
+    }
+
     const tgReviewScore = await this.databaseService.gameReview
       .aggregate({ where: { game: { igdbId } }, _avg: { overall: true } })
       .then((result) => (result._avg.overall ? parseFloat(result._avg.overall.toFixed(1)) : 0))
@@ -293,9 +300,11 @@ export class GameService {
 
     const igdbGame = await this.integrationsService.igdb.getGameById(refreshGameDto.igdbId, true);
 
+    const compatibility = await this.protonDbService.getGameData(igdbGame.websites);
+
     await this.databaseService.game.update({
       where: { igdbId: refreshGameDto.igdbId },
-      data: { ...igdbGame, lastRefreshedAt: new Date() } as unknown as GameUpdateInput,
+      data: { ...igdbGame, ...compatibility, lastRefreshedAt: new Date() } as unknown as GameUpdateInput,
     });
   }
 

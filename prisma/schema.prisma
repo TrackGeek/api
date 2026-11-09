@@ -635,6 +635,11 @@ model ActivityDayCount {
 }
 
 model Game {
+  steamAppId String?
+  protonDbTier String?
+  protonDbScore Float?
+  steamDeckCategory Int?
+  protonDbUpdatedAt DateTime?
   id                    String    @id @default(uuid(7))
   igdbId                Int       @unique
   igdbReviewScore       Float?
