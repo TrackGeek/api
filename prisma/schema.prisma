@@ -753,46 +753,48 @@ model Book {
 }
 
 model Anime {
-  id               String   @id @default(uuid(7))
-  malId            Int      @unique
-  url              String
-  imageUrl         String?
-  trailer          Json?
-  title            String
-  titles           Json?
-  type             String?
-  source           String?
-  numberOfEpisodes Int?
-  status           String?
-  isAdult          Boolean?
-  aired            Json?
-  duration         String?
-  rating           String?
-  rank             Int?
-  popularity       Int?
-  synopsis         String?
-  background       String?
-  season           String?
-  year             Int?
-  broadcast        Json?
-  producers        Json?
-  licensors        Json?
-  studios          Json?
-  genres           Json?
-  explicitGenres   Json?
-  themes           Json?
-  demographics     Json?
-  relations        Json?
-  theme            Json?
-  external         Json?
-  characters       Json?
-  cast             Json?
-  videos           Json?
-  episodes         Json?
-  malReviewScore   Float?
-  lastRefreshedAt  DateTime @default(now())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                   String    @id @default(uuid(7))
+  malId                Int       @unique
+  url                  String
+  imageUrl             String?
+  trailer              Json?
+  title                String
+  titles               Json?
+  type                 String?
+  source               String?
+  numberOfEpisodes     Int?
+  status               String?
+  isAdult              Boolean?
+  aired                Json?
+  duration             String?
+  rating               String?
+  rank                 Int?
+  popularity           Int?
+  synopsis             String?
+  background           String?
+  season               String?
+  year                 Int?
+  broadcast            Json?
+  producers            Json?
+  licensors            Json?
+  studios              Json?
+  genres               Json?
+  explicitGenres       Json?
+  themes               Json?
+  demographics         Json?
+  relations            Json?
+  theme                Json?
+  external             Json?
+  characters           Json?
+  cast                 Json?
+  videos               Json?
+  episodes             Json?
+  malReviewScore       Float?
+  lastRefreshedAt      DateTime  @default(now())
+  lastReleaseCheckedAt DateTime?
+  nextReleaseCheckAt   DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   animeEpisodesWatch AnimeEpisodeWatch[]
   animeProgresses    AnimeProgress[]
@@ -803,6 +805,8 @@ model Anime {
   activities         Activity[]
   releaseEvents      ReleaseEvent[]
   posts              Post[]
+
+  @@index([nextReleaseCheckAt])
 }
 
 model Manga {
@@ -849,45 +853,47 @@ model Manga {
 }
 
 model TvShow {
-  id                  String    @id @default(uuid(7))
-  tmdbId              Int       @unique
-  createdBy           Json?
-  episodeRuntime      Int[]
-  firstAirDate        DateTime?
-  genres              Json?
-  isAdult             Boolean?
-  tmdbReviewScore     Float?
-  homepage            String?
-  inProduction        Boolean?
-  languages           String[]
-  backdropUrl         String?
-  lastAirDate         DateTime?
-  lastEpisodeToAir    Json?
-  name                String?
-  nextEpisodeToAir    Json?
-  networks            Json?
-  numberOfEpisodes    Int?
-  numberOfSeasons     Int?
-  originCountry       String[]
-  originalLanguage    String?
-  originalName        String?
-  popularity          Int?
-  posterUrl           String?
-  productionCompanies Json?
-  productionCountries Json?
-  seasons             Json?
-  episodes            Json?
-  status              String?
-  tagline             String?
-  type                String?
-  cast                Json?
-  crew                Json?
-  trailerId           String?
-  external            Json?
-  backdrops           String[]
-  lastRefreshedAt     DateTime  @default(now())
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                   String    @id @default(uuid(7))
+  tmdbId               Int       @unique
+  createdBy            Json?
+  episodeRuntime       Int[]
+  firstAirDate         DateTime?
+  genres               Json?
+  isAdult              Boolean?
+  tmdbReviewScore      Float?
+  homepage             String?
+  inProduction         Boolean?
+  languages            String[]
+  backdropUrl          String?
+  lastAirDate          DateTime?
+  lastEpisodeToAir     Json?
+  name                 String?
+  nextEpisodeToAir     Json?
+  networks             Json?
+  numberOfEpisodes     Int?
+  numberOfSeasons      Int?
+  originCountry        String[]
+  originalLanguage     String?
+  originalName         String?
+  popularity           Int?
+  posterUrl            String?
+  productionCompanies  Json?
+  productionCountries  Json?
+  seasons              Json?
+  episodes             Json?
+  status               String?
+  tagline              String?
+  type                 String?
+  cast                 Json?
+  crew                 Json?
+  trailerId            String?
+  external             Json?
+  backdrops            String[]
+  lastRefreshedAt      DateTime  @default(now())
+  lastReleaseCheckedAt DateTime?
+  nextReleaseCheckAt   DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   tvshowEpisodesWatch TvShowEpisodeWatch[]
   tvshowProgresses    TvShowProgress[]
@@ -899,6 +905,7 @@ model TvShow {
   releaseEvents       ReleaseEvent[]
   posts               Post[]
 
+  @@index([nextReleaseCheckAt])
   @@map("TVShow")
 }
 

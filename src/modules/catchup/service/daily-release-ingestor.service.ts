@@ -1,6 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { Prisma } from "@prisma/generated/client";
 import { CatchupMediaType, ReleaseEventType, ReleaseSource } from "@prisma/generated/enums";
+import { CACHE_KEYS } from "@/shared/constants/cache";
 import { REFRESH_INTERVAL_MS } from "@/shared/constants/refresh-interval";
+import { CacheService } from "@/shared/infra/cache/cache.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { addDays, endOfDayInTimeZone, startOfDayInTimeZone } from "@/shared/utils/date";
@@ -13,6 +16,8 @@ import {
   RETURNING_TV_SHOW_STATUSES,
 } from "../constants/catchup.constants";
 import { RawExternalRelease } from "../types/catchup.types";
+import { hasMediaContentChanges } from "../utils/media-content-changes";
+import { getNextReleaseCheckAt } from "../utils/release-check-schedule";
 import { CatchupAuditService } from "./catchup-audit.service";
 import { CatchupFlagsService } from "./catchup-flags.service";
 
@@ -30,6 +35,7 @@ export class DailyReleaseIngestorService {
     private readonly integrationsService: IntegrationsService,
     private readonly catchupFlagsService: CatchupFlagsService,
     private readonly catchupAuditService: CatchupAuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   buildWindow(runDate: Date): ReleaseWindow {
@@ -92,8 +98,11 @@ export class DailyReleaseIngestorService {
 
   private async ingestAnimeEpisodes(window: ReleaseWindow): Promise<RawExternalRelease[]> {
     const animes = await this.databaseService.anime.findMany({
-      where: { status: { in: [...AIRING_ANIME_STATUSES] } },
-      select: { id: true, malId: true, title: true, numberOfEpisodes: true },
+      where: {
+        status: { in: [...AIRING_ANIME_STATUSES] },
+        OR: [{ nextReleaseCheckAt: null }, { nextReleaseCheckAt: { lte: new Date() } }],
+      },
+      orderBy: [{ nextReleaseCheckAt: { sort: "asc", nulls: "first" } }, { id: "asc" }],
       take: this.catchupFlagsService.batchSize,
     });
 
@@ -102,14 +111,39 @@ export class DailyReleaseIngestorService {
     for (const anime of animes) {
       try {
         const details = await this.integrationsService.tenrai.getAnimeById(anime.malId, true);
+        const contentChanged = hasMediaContentChanges(anime, details);
+        const previous = anime.numberOfEpisodes ?? 0;
+        const current = details.numberOfEpisodes ?? 0;
+        const episodesChanged =
+          current !== previous ||
+          details.status !== anime.status ||
+          details.status === "Currently Airing" ||
+          details.status === "RELEASING";
+
+        if (episodesChanged) {
+          const pages = new Set(["1", ...Object.keys(anime.episodes ?? {})]);
+          for (const page of pages) {
+            await this.cacheService.delete(
+              CACHE_KEYS.TENRAI_ANIME_EPISODES_BY_ID.prefix({ malId: anime.malId, page: Number(page) }),
+            );
+          }
+        }
 
         await this.databaseService.anime.update({
           where: { malId: anime.malId },
-          data: { ...(details as any), lastRefreshedAt: new Date() },
+          data: {
+            ...(details as any),
+            ...(episodesChanged ? { episodes: Prisma.JsonNull } : {}),
+            ...(contentChanged ? { lastRefreshedAt: new Date() } : {}),
+            lastReleaseCheckedAt: new Date(),
+            nextReleaseCheckAt: getNextReleaseCheckAt({
+              now: new Date(),
+              timeZone: this.catchupFlagsService.timeZone,
+              nextAirDate: details.aired?.from,
+              active: details.status !== "Not yet aired",
+            }),
+          },
         });
-
-        const previous = anime.numberOfEpisodes ?? 0;
-        const current = details.numberOfEpisodes ?? 0;
 
         for (let episode = previous + 1; episode <= current; episode++) {
           releases.push({
@@ -183,8 +217,13 @@ export class DailyReleaseIngestorService {
 
   private async ingestTvShowEpisodes(window: ReleaseWindow): Promise<RawExternalRelease[]> {
     const tvShows = await this.databaseService.tvShow.findMany({
-      where: { OR: [{ inProduction: true }, { status: { in: [...RETURNING_TV_SHOW_STATUSES] } }] },
-      select: { id: true, tmdbId: true, name: true },
+      where: {
+        AND: [
+          { OR: [{ inProduction: true }, { status: { in: [...RETURNING_TV_SHOW_STATUSES] } }] },
+          { OR: [{ nextReleaseCheckAt: null }, { nextReleaseCheckAt: { lte: new Date() } }] },
+        ],
+      },
+      orderBy: [{ nextReleaseCheckAt: { sort: "asc", nulls: "first" } }, { id: "asc" }],
       take: this.catchupFlagsService.batchSize,
     });
 
@@ -192,16 +231,49 @@ export class DailyReleaseIngestorService {
 
     for (const tvShow of tvShows) {
       try {
-        const details = await this.integrationsService.tmdb.getTVShowById(tvShow.tmdbId);
+        const details = await this.integrationsService.tmdb.getTVShowById(tvShow.tmdbId, true);
+        const contentChanged = hasMediaContentChanges(tvShow, details);
+        const lastEpisode = details.lastEpisodeToAir;
+        const previousEpisode = tvShow.lastEpisodeToAir as { seasonNumber?: number; episodeNumber?: number } | null;
+        const episodesChanged =
+          lastEpisode &&
+          (lastEpisode.seasonNumber !== previousEpisode?.seasonNumber ||
+            lastEpisode.episodeNumber !== previousEpisode?.episodeNumber);
+
+        if (episodesChanged) {
+          const storedEpisodes = (tvShow.episodes ?? []) as { seasonNumber: number }[];
+          const seasons = new Set([lastEpisode.seasonNumber, ...storedEpisodes.map((episode) => episode.seasonNumber)]);
+          for (const season of seasons) {
+            await this.cacheService.delete(CACHE_KEYS.TMDB_TV_SHOW_SEASON_EPISODES_BY_ID.prefix(tvShow.tmdbId, season));
+          }
+          await this.cacheService.delete(CACHE_KEYS.TMDB_TV_SHOW_SEASONS_BY_ID.prefix(tvShow.tmdbId));
+        }
 
         await this.databaseService.tvShow.update({
           where: { tmdbId: tvShow.tmdbId },
-          data: { ...(details as any), lastRefreshedAt: new Date() },
+          data: {
+            ...(details as any),
+            ...(episodesChanged ? { episodes: Prisma.JsonNull, seasons: Prisma.JsonNull } : {}),
+            ...(contentChanged ? { lastRefreshedAt: new Date() } : {}),
+            lastReleaseCheckedAt: new Date(),
+            nextReleaseCheckAt: getNextReleaseCheckAt({
+              now: new Date(),
+              timeZone: this.catchupFlagsService.timeZone,
+              nextAirDate: details.nextEpisodeToAir?.airDate,
+              lastAirDate: lastEpisode?.airDate,
+            }),
+          },
         });
 
-        const lastEpisode = details.lastEpisodeToAir;
+        const releaseWindow = {
+          start:
+            tvShow.lastReleaseCheckedAt && tvShow.lastReleaseCheckedAt < window.start
+              ? tvShow.lastReleaseCheckedAt
+              : window.start,
+          end: window.end,
+        };
 
-        if (!lastEpisode?.airDate || !this.isWithin(new Date(lastEpisode.airDate), window)) {
+        if (!lastEpisode?.airDate || !this.isWithin(new Date(lastEpisode.airDate), releaseWindow)) {
           continue;
         }
 
@@ -220,9 +292,9 @@ export class DailyReleaseIngestorService {
         });
       } catch (error: any) {
         this.logger.warn(`Skipped TV show during catch-up | tmdbId=${tvShow.tmdbId} error=${error.message}`);
+      } finally {
+        await this.delay();
       }
-
-      await this.delay();
     }
 
     return releases;

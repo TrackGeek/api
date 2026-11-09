@@ -349,6 +349,7 @@ export class TVShowService {
         seasons: tmdbSeasons,
         episodes: tmdbEpisodes,
         lastRefreshedAt: new Date(),
+        nextReleaseCheckAt: null,
       } as unknown as TvShowUpdateInput,
     });
   }
