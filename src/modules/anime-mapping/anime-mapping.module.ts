@@ -10,7 +10,11 @@ import { AnimeMigrationService } from "./service/anime-migration.service";
 @Module({
   imports: [AnimeModule],
   controllers: [AnimeMappingController],
-  providers: [AnimeMappingService, AnimeMigrationService, { provide: APP_INTERCEPTOR, useClass: AnimeCanonicalInterceptor }],
+  providers: [
+    AnimeMappingService,
+    AnimeMigrationService,
+    { provide: APP_INTERCEPTOR, useClass: AnimeCanonicalInterceptor },
+  ],
   exports: [AnimeMappingService],
 })
 export class AnimeMappingModule {}

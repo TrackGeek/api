@@ -35,20 +35,44 @@ export class AnimeMigrationService implements OnApplicationBootstrap, OnModuleDe
       await this.mappings.refreshIfDue();
       for (const type of ["movie", "tv"] as const) {
         const model = type === "movie" ? "movie" : "tvShow";
-        const where = type === "movie"
-          ? { OR: [{ movieProgresses: { some: {} } }, { movieReviews: { some: {} } }, { favorites: { some: {} } }, { listItems: { some: {} } }, { comments: { some: {} } }, { posts: { some: {} } }] } satisfies Prisma.MovieWhereInput
-          : { OR: [{ tvshowProgresses: { some: {} } }, { tvshowReviews: { some: {} } }, { tvshowEpisodesWatch: { some: {} } }, { favorites: { some: {} } }, { listItems: { some: {} } }, { comments: { some: {} } }, { posts: { some: {} } }] } satisfies Prisma.TvShowWhereInput;
+        const where =
+          type === "movie"
+            ? ({
+                OR: [
+                  { movieProgresses: { some: {} } },
+                  { movieReviews: { some: {} } },
+                  { favorites: { some: {} } },
+                  { listItems: { some: {} } },
+                  { comments: { some: {} } },
+                  { posts: { some: {} } },
+                ],
+              } satisfies Prisma.MovieWhereInput)
+            : ({
+                OR: [
+                  { tvshowProgresses: { some: {} } },
+                  { tvshowReviews: { some: {} } },
+                  { tvshowEpisodesWatch: { some: {} } },
+                  { favorites: { some: {} } },
+                  { listItems: { some: {} } },
+                  { comments: { some: {} } },
+                  { posts: { some: {} } },
+                ],
+              } satisfies Prisma.TvShowWhereInput);
         let cursor: string | undefined;
         do {
           const sources: { id: string; tmdbId: number }[] = await (this.database[model] as any).findMany({
             where,
             select: { id: true, tmdbId: true },
-            orderBy: { id: "asc" }, take: 100,
+            orderBy: { id: "asc" },
+            take: 100,
             ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
           });
           for (const source of sources) {
-            try { await this.migrate(type, source.id, source.tmdbId); }
-            catch (error) { this.logger.warn(`Anime migration deferred for ${type}:${source.tmdbId}: ${String(error)}`); }
+            try {
+              await this.migrate(type, source.id, source.tmdbId);
+            } catch (error) {
+              this.logger.warn(`Anime migration deferred for ${type}:${source.tmdbId}: ${String(error)}`);
+            }
           }
           cursor = sources.length === 100 ? sources[sources.length - 1].id : undefined;
         } while (cursor);
@@ -72,7 +96,9 @@ export class AnimeMigrationService implements OnApplicationBootstrap, OnModuleDe
     const episodeTargets = new Map<number, string>();
     if (type === "tv") {
       const seasons = await this.database.tvShowEpisodeWatch.findMany({
-        where: { tvShowId: sourceId }, distinct: ["season"], select: { season: true },
+        where: { tvShowId: sourceId },
+        distinct: ["season"],
+        select: { season: true },
       });
       for (const { season } of seasons) {
         for (const mapping of mappings.filter((entry) => entry.season === season)) {
@@ -80,95 +106,160 @@ export class AnimeMigrationService implements OnApplicationBootstrap, OnModuleDe
         }
       }
     }
-    await this.database.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`anime-migration:${type}:${sourceId}`}))`;
-      const sourceField = type === "movie" ? "movieId" : "tvShowId";
-      const progressModel = type === "movie" ? "movieProgress" : "tvShowProgress";
-      const reviewModel = type === "movie" ? "movieReview" : "tvShowReview";
-      const progressField = `${progressModel}Id`;
-      const reviewField = `${reviewModel}Id`;
-      const client = tx as any;
-      const progressRows = await client[progressModel].findMany({ where: { [sourceField]: sourceId } });
-      for (const source of progressRows) {
-        await this.archive(tx, progressModel, source, primaryId);
-        const target = await tx.animeProgress.upsert({
-          where: { userId_animeId: { userId: source.userId, animeId: primaryId } },
-          update: {},
-          create: {
-            userId: source.userId, animeId: primaryId, status: source.status, watchCount: source.watchCount,
-            startedAt: source.startedAt, completedAt: source.completedAt,
-            createdAt: source.createdAt, updatedAt: source.updatedAt,
-          },
-        });
-        await tx.activity.updateMany({ where: { [progressField]: source.id }, data: { [progressField]: null, animeProgressId: target.id } });
-        await client[progressModel].delete({ where: { id: source.id } });
-      }
-      const reviewRows = await client[reviewModel].findMany({ where: { [sourceField]: sourceId } });
-      for (const source of reviewRows) {
-        await this.archive(tx, reviewModel, source, primaryId);
-        const target = await tx.animeReview.upsert({
-          where: { userId_animeId: { userId: source.userId, animeId: primaryId } },
-          update: {},
-          create: {
-            userId: source.userId, animeId: primaryId, overall: source.overall,
-            summary: source.summary, notes: [source.notes, source.story].filter(Boolean).join("\n\n") || null,
-            recommended: source.recommended, createdAt: source.createdAt, updatedAt: source.updatedAt,
-          },
-        });
-        for (const reaction of await tx.reaction.findMany({ where: { [reviewField]: source.id } })) {
-          const duplicate = await tx.reaction.findUnique({ where: { userId_animeReviewId: { userId: reaction.userId, animeReviewId: target.id } } });
-          if (duplicate) {
-            await this.archive(tx, "reaction", reaction, primaryId);
-            await tx.notification.updateMany({ where: { reactionId: reaction.id }, data: { reactionId: duplicate.id } });
-            await tx.reaction.delete({ where: { id: reaction.id } });
+    await this.database.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`anime-migration:${type}:${sourceId}`}))`;
+        const sourceField = type === "movie" ? "movieId" : "tvShowId";
+        const progressModel = type === "movie" ? "movieProgress" : "tvShowProgress";
+        const reviewModel = type === "movie" ? "movieReview" : "tvShowReview";
+        const progressField = `${progressModel}Id`;
+        const reviewField = `${reviewModel}Id`;
+        const client = tx as any;
+        const progressRows = await client[progressModel].findMany({ where: { [sourceField]: sourceId } });
+        for (const source of progressRows) {
+          await this.archive(tx, progressModel, source, primaryId);
+          const target = await tx.animeProgress.upsert({
+            where: { userId_animeId: { userId: source.userId, animeId: primaryId } },
+            update: {},
+            create: {
+              userId: source.userId,
+              animeId: primaryId,
+              status: source.status,
+              watchCount: source.watchCount,
+              startedAt: source.startedAt,
+              completedAt: source.completedAt,
+              createdAt: source.createdAt,
+              updatedAt: source.updatedAt,
+            },
+          });
+          await tx.activity.updateMany({
+            where: { [progressField]: source.id },
+            data: { [progressField]: null, animeProgressId: target.id },
+          });
+          await client[progressModel].delete({ where: { id: source.id } });
+        }
+        const reviewRows = await client[reviewModel].findMany({ where: { [sourceField]: sourceId } });
+        for (const source of reviewRows) {
+          await this.archive(tx, reviewModel, source, primaryId);
+          const target = await tx.animeReview.upsert({
+            where: { userId_animeId: { userId: source.userId, animeId: primaryId } },
+            update: {},
+            create: {
+              userId: source.userId,
+              animeId: primaryId,
+              overall: source.overall,
+              summary: source.summary,
+              notes: [source.notes, source.story].filter(Boolean).join("\n\n") || null,
+              recommended: source.recommended,
+              createdAt: source.createdAt,
+              updatedAt: source.updatedAt,
+            },
+          });
+          for (const reaction of await tx.reaction.findMany({ where: { [reviewField]: source.id } })) {
+            const duplicate = await tx.reaction.findUnique({
+              where: { userId_animeReviewId: { userId: reaction.userId, animeReviewId: target.id } },
+            });
+            if (duplicate) {
+              await this.archive(tx, "reaction", reaction, primaryId);
+              await tx.notification.updateMany({
+                where: { reactionId: reaction.id },
+                data: { reactionId: duplicate.id },
+              });
+              await tx.reaction.delete({ where: { id: reaction.id } });
+            } else {
+              await tx.reaction.update({
+                where: { id: reaction.id },
+                data: { [reviewField]: null, animeReviewId: target.id, type: "AnimeReview" },
+              });
+            }
+          }
+          await tx.activity.updateMany({
+            where: { [reviewField]: source.id },
+            data: { [reviewField]: null, animeReviewId: target.id },
+          });
+          await tx.notification.updateMany({
+            where: { [reviewField]: source.id },
+            data: { [reviewField]: null, animeReviewId: target.id },
+          });
+          await client[reviewModel].delete({ where: { id: source.id } });
+        }
+        for (const favorite of await tx.favorite.findMany({ where: { [sourceField]: sourceId } })) {
+          await this.archive(tx, "favorite", favorite, primaryId);
+          const existing = await tx.favorite.findUnique({
+            where: { userId_animeId: { userId: favorite.userId, animeId: primaryId } },
+          });
+          if (existing) {
+            await tx.activity.updateMany({ where: { favoriteId: favorite.id }, data: { favoriteId: existing.id } });
+            await tx.favorite.delete({ where: { id: favorite.id } });
           } else {
-            await tx.reaction.update({ where: { id: reaction.id }, data: { [reviewField]: null, animeReviewId: target.id, type: "AnimeReview" } });
+            await tx.favorite.update({
+              where: { id: favorite.id },
+              data: { [sourceField]: null, animeId: primaryId, type: "Anime" },
+            });
           }
         }
-        await tx.activity.updateMany({ where: { [reviewField]: source.id }, data: { [reviewField]: null, animeReviewId: target.id } });
-        await tx.notification.updateMany({ where: { [reviewField]: source.id }, data: { [reviewField]: null, animeReviewId: target.id } });
-        await client[reviewModel].delete({ where: { id: source.id } });
-      }
-      for (const favorite of await tx.favorite.findMany({ where: { [sourceField]: sourceId } })) {
-        await this.archive(tx, "favorite", favorite, primaryId);
-        const existing = await tx.favorite.findUnique({ where: { userId_animeId: { userId: favorite.userId, animeId: primaryId } } });
-        if (existing) {
-          await tx.activity.updateMany({ where: { favoriteId: favorite.id }, data: { favoriteId: existing.id } });
-          await tx.favorite.delete({ where: { id: favorite.id } });
-        } else {
-          await tx.favorite.update({ where: { id: favorite.id }, data: { [sourceField]: null, animeId: primaryId, type: "Anime" } });
+        await tx.comment.updateMany({
+          where: { [sourceField]: sourceId },
+          data: { [sourceField]: null, animeId: primaryId, type: "Anime" },
+        });
+        await tx.post.updateMany({
+          where: { [sourceField]: sourceId },
+          data: { [sourceField]: null, animeId: primaryId },
+        });
+        if (type === "tv")
+          await tx.activity.updateMany({ where: { tvShowId: sourceId }, data: { tvShowId: null, animeId: primaryId } });
+        await this.migrateLists(tx, sourceField, sourceId, primaryId);
+        if (type === "tv") {
+          for (const source of await tx.tvShowEpisodeWatch.findMany({ where: { tvShowId: sourceId } })) {
+            const mapping = mappingForEpisode(mappings, source.season, source.episode);
+            const animeId = mapping ? episodeTargets.get(mapping.malId) : undefined;
+            const episode = source.episode - (mapping?.episodeOffset ?? 0);
+            if (!animeId || episode < 1) continue;
+            await this.archive(tx, "tvShowEpisodeWatch", source, animeId);
+            const target = await tx.animeEpisodeWatch.upsert({
+              where: { userId_animeId_episode: { userId: source.userId, animeId, episode } },
+              update: {},
+              create: {
+                userId: source.userId,
+                animeId,
+                episode,
+                status: source.status,
+                createdAt: source.createdAt,
+                updatedAt: source.updatedAt,
+              },
+            });
+            await tx.animeProgress.upsert({
+              where: { userId_animeId: { userId: source.userId, animeId } },
+              update: {},
+              create: {
+                userId: source.userId,
+                animeId,
+                status: progressRows.find((row: any) => row.userId === source.userId)?.status ?? "Watching",
+              },
+            });
+            await tx.activity.updateMany({
+              where: { tvShowEpisodeWatchId: source.id },
+              data: { tvShowEpisodeWatchId: null, animeEpisodeWatchId: target.id },
+            });
+            await tx.tvShowEpisodeWatch.delete({ where: { id: source.id } });
+          }
         }
-      }
-      await tx.comment.updateMany({ where: { [sourceField]: sourceId }, data: { [sourceField]: null, animeId: primaryId, type: "Anime" } });
-      await tx.post.updateMany({ where: { [sourceField]: sourceId }, data: { [sourceField]: null, animeId: primaryId } });
-      if (type === "tv") await tx.activity.updateMany({ where: { tvShowId: sourceId }, data: { tvShowId: null, animeId: primaryId } });
-      await this.migrateLists(tx, sourceField, sourceId, primaryId);
-      if (type === "tv") {
-        for (const source of await tx.tvShowEpisodeWatch.findMany({ where: { tvShowId: sourceId } })) {
-          const mapping = mappingForEpisode(mappings, source.season, source.episode);
-          const animeId = mapping ? episodeTargets.get(mapping.malId) : undefined;
-          const episode = source.episode - (mapping?.episodeOffset ?? 0);
-          if (!animeId || episode < 1) continue;
-          await this.archive(tx, "tvShowEpisodeWatch", source, animeId);
-          const target = await tx.animeEpisodeWatch.upsert({
-            where: { userId_animeId_episode: { userId: source.userId, animeId, episode } }, update: {},
-            create: { userId: source.userId, animeId, episode, status: source.status, createdAt: source.createdAt, updatedAt: source.updatedAt },
-          });
-          await tx.animeProgress.upsert({
-            where: { userId_animeId: { userId: source.userId, animeId } }, update: {},
-            create: { userId: source.userId, animeId, status: progressRows.find((row: any) => row.userId === source.userId)?.status ?? "Watching" },
-          });
-          await tx.activity.updateMany({ where: { tvShowEpisodeWatchId: source.id }, data: { tvShowEpisodeWatchId: null, animeEpisodeWatchId: target.id } });
-          await tx.tvShowEpisodeWatch.delete({ where: { id: source.id } });
-        }
-      }
-    }, { timeout: 60000 });
+      },
+      { timeout: 60000 },
+    );
   }
 
   private async archive(tx: any, sourceType: string, source: any, animeId: string) {
     await tx.animeMigrationArchive.upsert({
-      where: { sourceType_sourceId: { sourceType, sourceId: source.id } }, update: {},
-      create: { sourceType, sourceId: source.id, animeId, userId: source.userId ?? source.list.userId, payload: JSON.parse(JSON.stringify(source)) },
+      where: { sourceType_sourceId: { sourceType, sourceId: source.id } },
+      update: {},
+      create: {
+        sourceType,
+        sourceId: source.id,
+        animeId,
+        userId: source.userId ?? source.list.userId,
+        payload: JSON.parse(JSON.stringify(source)),
+      },
     });
   }
 
@@ -183,7 +274,11 @@ export class AnimeMigrationService implements OnApplicationBootstrap, OnModuleDe
         while (true) {
           const existing = await tx.list.findUnique({ where: { userId_name: { userId: list.userId, name } } });
           if (!existing || existing.type === "Anime") {
-            list = existing ?? await tx.list.create({ data: { userId: list.userId, name, type: "Anime", description: list.description } });
+            list =
+              existing ??
+              (await tx.list.create({
+                data: { userId: list.userId, name, type: "Anime", description: list.description },
+              }));
             break;
           }
           name = `${baseName} ${suffix++}`;

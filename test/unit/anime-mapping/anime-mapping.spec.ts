@@ -5,7 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAnimeMappingIndex } from "@/modules/anime-mapping/service/anime-mapping-index";
-import { AnimeMappingService, ANIME_MAPPING_REFRESH_MS, ANIME_MAPPING_URL } from "@/modules/anime-mapping/service/anime-mapping.service";
+import {
+  AnimeMappingService,
+  ANIME_MAPPING_REFRESH_MS,
+  ANIME_MAPPING_URL,
+} from "@/modules/anime-mapping/service/anime-mapping.service";
 
 vi.mock("axios", () => ({ default: { get: vi.fn() } }));
 

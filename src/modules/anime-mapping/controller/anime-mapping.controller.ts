@@ -9,7 +9,8 @@ export class AnimeMappingController {
 
   @Get("/:type/:tmdbId")
   async resolve(@Param("type") type: string, @Param("tmdbId", ParseIntPipe) tmdbId: number) {
-    if ((type !== "movie" && type !== "tv") || tmdbId < 1) throw new BadRequestException("Invalid TMDB media type or ID");
+    if ((type !== "movie" && type !== "tv") || tmdbId < 1)
+      throw new BadRequestException("Invalid TMDB media type or ID");
     return { anime: await this.mappings.resolve(type, tmdbId) };
   }
 }

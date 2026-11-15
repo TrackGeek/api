@@ -37,7 +37,8 @@ export function buildAnimeMappingIndex(entries: unknown): AnimeMappingIndex {
   if (!index.size) throw new Error("Anime mapping snapshot has no usable TMDB mappings");
   for (const values of index.values()) {
     values.sort((a, b) => {
-      const rank = (item: AnimeMapping) => item.season === 1 ? -1 : item.season === 0 ? Number.MAX_SAFE_INTEGER : item.season ?? 1;
+      const rank = (item: AnimeMapping) =>
+        item.season === 1 ? -1 : item.season === 0 ? Number.MAX_SAFE_INTEGER : (item.season ?? 1);
       return rank(a) - rank(b) || a.malId - b.malId;
     });
   }

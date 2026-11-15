@@ -5,7 +5,8 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { buildAnimeMappingIndex, type AnimeMappingIndex, type TmdbMediaType } from "./anime-mapping-index";
 
-export const ANIME_MAPPING_URL = "https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-mini.json";
+export const ANIME_MAPPING_URL =
+  "https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-mini.json";
 export const ANIME_MAPPING_REFRESH_MS = 7 * 24 * 60 * 60 * 1000;
 
 @Injectable()
@@ -53,14 +54,19 @@ export class AnimeMappingService implements OnApplicationBootstrap, OnModuleDest
   async refreshIfDue(): Promise<boolean> {
     if (this.index.size && Date.now() - this.downloadedAt < ANIME_MAPPING_REFRESH_MS) return false;
     if (this.refresh) return this.refresh;
-    this.refresh = this.download().finally(() => { this.refresh = undefined; });
+    this.refresh = this.download().finally(() => {
+      this.refresh = undefined;
+    });
     return this.refresh;
   }
 
   private async download(): Promise<boolean> {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const { data: entries } = await axios.get(ANIME_MAPPING_URL, { timeout: 30000, maxContentLength: 30 * 1024 * 1024 });
+        const { data: entries } = await axios.get(ANIME_MAPPING_URL, {
+          timeout: 30000,
+          maxContentLength: 30 * 1024 * 1024,
+        });
         const index = buildAnimeMappingIndex(entries);
         const downloadedAt = Date.now();
         await mkdir(dirname(this.file), { recursive: true });
