@@ -10,6 +10,7 @@ import {
   DEFAULT_PAGINATION_ITEMS_PER_PAGE,
   DEFAULT_PAGINATION_PAGE,
 } from "@/shared/infra/database/database.service";
+import { HowLongToBeatService } from "@/shared/infra/integrations/how-long-to-beat.service";
 import { IGDBGameOrderBy, IGDBSort } from "@/shared/infra/integrations/igdb.service";
 import { IntegrationsService } from "@/shared/infra/integrations/integrations.service";
 import { ProtonDbService } from "@/shared/infra/integrations/protondb.service";
@@ -45,6 +46,7 @@ export class GameService {
     private readonly databaseService: DatabaseService,
     private readonly integrationsService: IntegrationsService,
     private readonly protonDbService: ProtonDbService,
+    private readonly howLongToBeatService: HowLongToBeatService,
   ) {}
 
   async searchGames(searchGameDto: SearchGameDto) {
@@ -280,6 +282,12 @@ export class GameService {
     };
 
     return gameWithStats;
+  }
+
+  async getHowLongToBeat(igdbId: number) {
+    const game = await this.databaseService.game.findUnique({ where: { igdbId }, select: { websites: true } });
+    if (!game) throw new AppException(ERROR_CODES.GAME_NOT_FOUND);
+    return this.howLongToBeatService.getGameData(game.websites);
   }
 
   async refreshGame(refreshGameDto: RefreshGameDto) {

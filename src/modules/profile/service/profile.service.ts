@@ -92,6 +92,7 @@ export class ProfileService {
         watchRegion: updateProfileDto.watchRegion,
         about: updateProfileDto.about,
         contentTypes: updateProfileDto.contentTypes,
+        defaultSearchType: updateProfileDto.defaultSearchType,
       },
     });
   }

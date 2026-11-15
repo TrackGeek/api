@@ -15,6 +15,7 @@ export enum ProgressSortBy {
   AddedAt = "addedAt",
   UpdatedAt = "updatedAt",
   ReleaseDate = "releaseDate",
+  Rating = "rating",
 }
 
 export enum ProgressSortOrder {

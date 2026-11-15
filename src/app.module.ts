@@ -6,6 +6,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { AccountInactivityModule } from "./modules/account-inactivity/account-inactivity.module";
 import { ActivityModule } from "./modules/activity/activity.module";
+import { AnimeMappingModule } from "./modules/anime-mapping/anime-mapping.module";
 import { AnimeModule } from "./modules/anime/anime.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { BookModule } from "./modules/book/book.module";
@@ -86,6 +87,7 @@ import { MediaTitleModule } from "./shared/media-title/media-title.module";
     MangaModule,
     BookModule,
     AnimeModule,
+    AnimeMappingModule,
     PersonModule,
     CompanyModule,
     FavoriteModule,

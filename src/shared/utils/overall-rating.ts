@@ -13,13 +13,20 @@ export async function withOverallRatings<T extends { userId: string; status: str
 
   const reviews: { userId: string; overall: unknown; [key: string]: unknown }[] = completed.length
     ? await (databaseService[model] as any).findMany({
-        where: { OR: completed.map((item) => ({ userId: item.userId, [idField]: (item as any)[idField] })) },
+        where: {
+          userId: { in: [...new Set(completed.map((item) => item.userId))] },
+          [idField]: { in: [...new Set(completed.map((item) => (item as any)[idField]))] },
+        },
         select: { userId: true, [idField]: true, overall: true },
       })
     : [];
 
-  return items.map((item) => {
-    const review = reviews.find((row) => row.userId === item.userId && row[idField] === (item as any)[idField]);
-    return { ...item, rating: review ? Number(review.overall) : null };
-  });
+  const ratings = new Map(
+    reviews.map((review) => [JSON.stringify([review.userId, review[idField]]), Number(review.overall)]),
+  );
+
+  return items.map((item) => ({
+    ...item,
+    rating: ratings.get(JSON.stringify([item.userId, (item as any)[idField]])) ?? null,
+  }));
 }

@@ -55,6 +55,7 @@ model User {
   animeEpisodesWatches   AnimeEpisodeWatch[]
   lists                  List[]
   tvshowEpisodesWatches  TvShowEpisodeWatch[]
+  animeMigrationArchives AnimeMigrationArchive[]
   animeProgresses        AnimeProgress[]
   mangaProgresses        MangaProgress[]
   tvshowProgresses       TvShowProgress[]
@@ -211,6 +212,7 @@ model Profile {
   bannerEffect            String?
   language                String?       @default("en-US")
   animeMangaTitleLanguage String        @default("romaji")
+  defaultSearchType       ContentType   @default(Movie)
   timezone                String?
   watchRegion             String?       @default("US")
   about                   String?       @default("Hello! I'm using TrackGeek.")
@@ -1905,4 +1907,17 @@ model BookCoverPreference {
 
   @@unique([userId, bookId])
   @@index([bookId])
+}
+
+model AnimeMigrationArchive {
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid(7))
+  sourceType String
+  sourceId   String
+  animeId    String
+  payload    Json
+  createdAt  DateTime @default(now())
+
+  @@unique([sourceType, sourceId])
 }

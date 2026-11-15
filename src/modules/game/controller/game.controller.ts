@@ -58,6 +58,12 @@ export class GameController {
     return { game };
   }
 
+  @Get("/detail/:igdbId/how-long-to-beat")
+  async getHowLongToBeat(@Param("igdbId", new ParseIntPipe()) igdbId: number) {
+    const howLongToBeat = await this.gameService.getHowLongToBeat(igdbId);
+    return { howLongToBeat };
+  }
+
   @Get("/franchise/:slug")
   async getGameFranchise(@Param("slug") slug: string) {
     const franchise = await this.gameService.getGameFranchise(slug);

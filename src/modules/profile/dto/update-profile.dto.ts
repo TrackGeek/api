@@ -68,4 +68,9 @@ export class UpdateProfileDto {
   @IsEnum(ContentType, { each: true })
   @ApiPropertyOptional({ enum: ContentType, isArray: true })
   readonly contentTypes?: ContentType[];
+
+  @IsOptional()
+  @IsEnum(ContentType)
+  @ApiPropertyOptional({ enum: ContentType, default: ContentType.Movie })
+  readonly defaultSearchType?: ContentType;
 }
