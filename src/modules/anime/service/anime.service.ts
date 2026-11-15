@@ -372,6 +372,7 @@ export class AnimeService {
         relations: tenraiRelations,
         episodes: tenraiEpisodes,
         lastRefreshedAt: new Date(),
+        nextReleaseCheckAt: null,
       } as unknown as AnimeUpdateInput,
     });
   }

@@ -6,6 +6,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { AccountInactivityModule } from "./modules/account-inactivity/account-inactivity.module";
 import { ActivityModule } from "./modules/activity/activity.module";
+import { AnimeMappingModule } from "./modules/anime-mapping/anime-mapping.module";
 import { AnimeModule } from "./modules/anime/anime.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { BookModule } from "./modules/book/book.module";
@@ -30,6 +31,7 @@ import { PostModule } from "./modules/post/post.module";
 import { ProfileModule } from "./modules/profile/profile.module";
 import { PsnModule } from "./modules/psn/psn.module";
 import { ReactionModule } from "./modules/reaction/reaction.module";
+import { RewindModule } from "./modules/rewind/rewind.module";
 import { TVShowModule } from "./modules/tv-show/tv-show.module";
 import { UserModule } from "./modules/user/user.module";
 import { XpModule } from "./modules/xp/xp.module";
@@ -44,6 +46,7 @@ import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
 import { MediaReleaseModule } from "./shared/media-release/media-release.module";
+import { MediaTitleModule } from "./shared/media-title/media-title.module";
 
 @Module({
   imports: [
@@ -62,6 +65,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     QueueModule,
     DatabaseModule,
     MediaFilterModule,
+    MediaTitleModule,
     MediaReleaseModule,
     AuthModule,
     ActivityModule,
@@ -75,6 +79,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     CommentModule,
     PostModule,
     ReactionModule,
+    RewindModule,
     NotificationModule,
     GameModule,
     MovieModule,
@@ -82,6 +87,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     MangaModule,
     BookModule,
     AnimeModule,
+    AnimeMappingModule,
     PersonModule,
     CompanyModule,
     FavoriteModule,

@@ -10,6 +10,7 @@ import type { TMDBTVShowSeason } from "@/shared/infra/integrations/tmdb.service"
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { paginateProgress } from "@/shared/media-filter/progress-pagination";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { tvEpisodeProgress } from "@/shared/utils/episode-progress";
 import { withOverallRatings } from "@/shared/utils/overall-rating";
@@ -142,7 +143,7 @@ export class TVShowProgressService {
     };
 
     const [tvShowProgresses, statusCounts] = await Promise.all([
-      this.databaseService.offsetPagination<TvShowProgressFindManyArgs>({
+      paginateProgress<TvShowProgressFindManyArgs>(this.databaseService, getTVShowProgressDto, {
         model: "tvShowProgress",
         itemsPerPage: getTVShowProgressDto.itemsPerPage,
         page: getTVShowProgressDto.page,

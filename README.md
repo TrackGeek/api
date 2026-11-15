@@ -371,3 +371,11 @@ See `CONTRIBUTING.md` for ways to get started.
 Please adhere to this project's `code of conduct`.
 
 </samp>
+
+## TMDB anime mapping
+
+The API downloads Fribb's anime-list-mini.json to `ANIME_MAPPING_FILE` (default `.data/anime-list-mini.json`). Mount that path on persistent storage. The snapshot refreshes every seven days; a failed refresh keeps the previous valid snapshot and retries hourly.
+
+`GET /anime/resolve/movie/:tmdbId` and `GET /anime/resolve/tv/:tmdbId` return `{ "anime": { "type": "anime", "malId": 164, "path": "/anime/164" } }` for mapped content, or `{ "anime": null }`. Movie and TV ID namespaces are independent. Where a series maps to multiple anime, the first season takes precedence for navigation; episode migration uses each mapped season and episode offset.
+
+After database migrations deploy, existing tracking is migrated automatically at startup and hourly. Progress and review dates are preserved, source tracking is removed only inside the successful transaction, and an existing anime entry takes precedence on conflicts. Original rows, including review fields without an anime equivalent, are retained in `AnimeMigrationArchive`, linked to the user with cascading account deletion. Unmapped TV seasons remain untouched. Favorites, comments, posts, activities and review reactions follow the anime. Movie/TV custom list items move into a corresponding Anime list. Writes against mapped movie/TV IDs return HTTP 409 `MEDIA_MOVED_TO_ANIME` with the canonical anime target.

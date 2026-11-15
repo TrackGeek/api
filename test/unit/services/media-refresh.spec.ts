@@ -83,7 +83,12 @@ function setup(testCase: (typeof cases)[number]) {
   const service: any =
     testCase.model === "tvShow"
       ? new TVShowService({} as any, database as any, integrations as any, {} as any)
-      : new (testCase.Service as any)(database, integrations, {});
+      : new (testCase.Service as any)(
+          database,
+          integrations,
+          { getGameData: vi.fn().mockResolvedValue({}) },
+          { getGameData: vi.fn().mockResolvedValue(null) },
+        );
 
   return { model, source, service, dto: { [testCase.id]: 10 } };
 }

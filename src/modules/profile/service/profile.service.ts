@@ -88,9 +88,11 @@ export class ProfileService {
         bannerEffect: updateProfileDto.bannerEffect,
         language: updateProfileDto.language,
         timezone: updateProfileDto.timezone,
+        animeMangaTitleLanguage: updateProfileDto.animeMangaTitleLanguage,
         watchRegion: updateProfileDto.watchRegion,
         about: updateProfileDto.about,
         contentTypes: updateProfileDto.contentTypes,
+        defaultSearchType: updateProfileDto.defaultSearchType,
       },
     });
   }

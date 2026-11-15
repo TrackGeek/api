@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { paginateProgress } from "@/shared/media-filter/progress-pagination";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateBookProgressDto } from "../dto/create-or-update-book-progress.dto";
@@ -178,7 +179,7 @@ export class BookProgressService {
     };
 
     const [bookProgresses, statusCounts] = await Promise.all([
-      this.databaseService.offsetPagination<BookProgressFindManyArgs>({
+      paginateProgress<BookProgressFindManyArgs>(this.databaseService, getBookProgressDto, {
         model: "bookProgress",
         itemsPerPage: getBookProgressDto.itemsPerPage,
         page: getBookProgressDto.page,

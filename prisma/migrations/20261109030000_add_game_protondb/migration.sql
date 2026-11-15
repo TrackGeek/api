@@ -1,0 +1,6 @@
+ALTER TABLE "Game"
+ADD COLUMN "steamAppId" TEXT,
+ADD COLUMN "protonDbTier" TEXT,
+ADD COLUMN "protonDbScore" DOUBLE PRECISION,
+ADD COLUMN "steamDeckCategory" INTEGER,
+ADD COLUMN "protonDbUpdatedAt" TIMESTAMP(3);

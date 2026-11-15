@@ -9,6 +9,7 @@ import { DatabaseService } from "@/shared/infra/database/database.service";
 import { QueueService } from "@/shared/infra/queue/queue.service";
 import { MediaFilterService } from "@/shared/media-filter/media-filter.service";
 import { buildMediaWhere, buildProgressOrderBy } from "@/shared/media-filter/media-filter.util";
+import { paginateProgress } from "@/shared/media-filter/progress-pagination";
 import { MediaReleaseService } from "@/shared/media-release/media-release.service";
 import { withOverallRatings } from "@/shared/utils/overall-rating";
 import { CreateOrUpdateMovieProgressDto } from "../dto/create-or-update-movie-progress.dto";
@@ -128,7 +129,7 @@ export class MovieProgressService {
     };
 
     const [movieProgresses, statusCounts] = await Promise.all([
-      this.databaseService.offsetPagination<MovieProgressFindManyArgs>({
+      paginateProgress<MovieProgressFindManyArgs>(this.databaseService, getMovieProgressDto, {
         model: "movieProgress",
         itemsPerPage: getMovieProgressDto.itemsPerPage,
         page: getMovieProgressDto.page,
