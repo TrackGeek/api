@@ -1,7 +1,16 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { ContentType } from "@prisma/generated/enums";
 import { Transform } from "class-transformer";
-import { ArrayNotEmpty, ArrayUnique, IsArray, IsEnum, IsISO31661Alpha2, IsOptional, IsString } from "class-validator";
+import {
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsArray,
+  IsEnum,
+  IsIn,
+  IsISO31661Alpha2,
+  IsOptional,
+  IsString,
+} from "class-validator";
 
 export class UpdateProfileDto {
   readonly userId: string;
@@ -35,6 +44,11 @@ export class UpdateProfileDto {
   @IsString()
   @ApiPropertyOptional({ type: "string" })
   readonly timezone?: string;
+
+  @IsOptional()
+  @IsIn(["romaji", "native", "english"])
+  @ApiPropertyOptional({ enum: ["romaji", "native", "english"], default: "romaji" })
+  readonly animeMangaTitleLanguage?: "romaji" | "native" | "english";
 
   @IsOptional()
   @Transform(({ value }) => (typeof value === "string" ? value.toUpperCase() : value))

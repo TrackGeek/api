@@ -375,6 +375,7 @@ export class TenraiService {
       const items: TenraiSearchAnime[] = itemsData.map((anime: any) => ({
         malId: anime.mal_id,
         title: anime.title,
+        titles: anime.titles,
         type: anime.type,
         rating: anime.rating,
         airedFrom: anime.aired.from,
@@ -476,6 +477,7 @@ export class TenraiService {
       const items = itemsData.map((anime) => ({
         malId: anime.mal_id,
         title: anime.title,
+        titles: anime.titles,
         type: anime.type,
         rating: anime.rating,
         airedFrom: anime.aired.from,
@@ -859,6 +861,7 @@ export class TenraiService {
         .map((anime: any) => ({
           malId: anime.mal_id,
           title: anime.title,
+          titles: anime.titles,
           imageUrl: sanitizeMalImageUrl(anime.images?.jpg?.image_url),
           type: anime.type ?? null,
           airedFrom: anime.aired?.from ?? null,

@@ -45,6 +45,7 @@ import { QueueModule } from "./shared/infra/queue/queue.module";
 import { UploadModule } from "./shared/infra/upload/upload.module";
 import { MediaFilterModule } from "./shared/media-filter/media-filter.module";
 import { MediaReleaseModule } from "./shared/media-release/media-release.module";
+import { MediaTitleModule } from "./shared/media-title/media-title.module";
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { MediaReleaseModule } from "./shared/media-release/media-release.module"
     QueueModule,
     DatabaseModule,
     MediaFilterModule,
+    MediaTitleModule,
     MediaReleaseModule,
     AuthModule,
     ActivityModule,

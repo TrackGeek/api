@@ -81,7 +81,7 @@ export const CACHE_KEYS = {
   },
 
   TENRAI_SEARCH_ANIMES: {
-    prefix: (filters: Record<string, any>) => `tenrai:search:anime:${filtersToString(filters)}`,
+    prefix: (filters: Record<string, any>) => `tenrai:search:anime:titles:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   TENRAI_ANIME_GENRES: {
@@ -102,7 +102,7 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24 * 7,
   },
   TENRAI_TOP_ANIMES: {
-    prefix: (filters: Record<string, any>) => `tenrai:top:anime:${filtersToString(filters)}`,
+    prefix: (filters: Record<string, any>) => `tenrai:top:anime:titles:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   TENRAI_PERSON_BY_ID: {
@@ -115,11 +115,11 @@ export const CACHE_KEYS = {
   },
 
   ANILIST_SEARCH_MANGAS: {
-    prefix: (filters: Record<string, any>) => `anilist:search:manga:${filtersToString(filters)}`,
+    prefix: (filters: Record<string, any>) => `anilist:search:manga:titles:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   ANILIST_TOP_MANGAS: {
-    prefix: (filters: Record<string, any>) => `anilist:top:manga:${filtersToString(filters)}`,
+    prefix: (filters: Record<string, any>) => `anilist:top:manga:titles:${filtersToString(filters)}`,
     expiration: 3600 * 24 * 7,
   },
   ANILIST_MANGA_BY_ID: {

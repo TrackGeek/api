@@ -72,6 +72,7 @@ export interface AnilistTopMangaOptions {
 }
 
 export interface AnilistSearchManga {
+  titles?: AnilistTitle[];
   anilistId: number;
   malId: number | null;
   title: string;
@@ -674,6 +675,7 @@ export class AnilistService {
       anilistId: media.id,
       malId: media.idMal ?? null,
       title: this.toTitle(media),
+      titles: this.toTitles(media),
       type: this.toType(media),
       publishedFrom: this.toDate(media.startDate),
       status: STATUS_LABELS[media.status] ?? null,
