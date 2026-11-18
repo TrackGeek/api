@@ -2,8 +2,8 @@ import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy }
 import type { Prisma } from "@prisma/generated/client";
 import { AnimeService } from "@/modules/anime/service/anime.service";
 import { DatabaseService } from "@/shared/infra/database/database.service";
-import { mappingForEpisode, type TmdbMediaType } from "./anime-mapping-index";
 import { AnimeMappingService } from "./anime-mapping.service";
+import { mappingForEpisode, type TmdbMediaType } from "./anime-mapping-index";
 
 @Injectable()
 export class AnimeMigrationService implements OnApplicationBootstrap, OnModuleDestroy {
