@@ -73,6 +73,16 @@ export class CommentService {
     });
   }
 
+  async adminDeleteComment(commentId: string) {
+    const comment = await this.databaseService.comment.findUnique({ where: { id: commentId }, select: { id: true } });
+
+    if (!comment) {
+      throw new AppException(ERROR_CODES.COMMENT_NOT_FOUND);
+    }
+
+    await this.databaseService.comment.delete({ where: { id: commentId } });
+  }
+
   async getComments({ page, itemsPerPage, ...getCommentsDto }: GetCommentsDto) {
     const userSelect = {
       id: true,

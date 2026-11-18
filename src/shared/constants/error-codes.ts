@@ -411,4 +411,16 @@ export const ERROR_CODES = {
     code: "MESSAGE_ALREADY_DELETED",
     status: 409,
   },
+  REPORT_NOT_FOUND: {
+    code: "REPORT_NOT_FOUND",
+    status: 404,
+  },
+  REPORT_ALREADY_EXISTS: {
+    code: "REPORT_ALREADY_EXISTS",
+    status: 409,
+  },
+  CANNOT_REPORT_SELF: {
+    code: "CANNOT_REPORT_SELF",
+    status: 400,
+  },
 } as const;

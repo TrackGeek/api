@@ -1092,6 +1092,18 @@ Authorization: Bearer {{login.response.body.token}}
 POST {{apiUrl}}/chat/conversations/00000000-0000-0000-0000-000000000000/read
 Authorization: Bearer {{login.response.body.token}}
 
+### 124.1 Create Report
+POST {{apiUrl}}/report
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "targetType": "Message",
+  "targetId": "00000000-0000-0000-0000-000000000000",
+  "reason": "Harassment",
+  "details": "Optional details"
+}
+
 ### 125.1 Admin List Conversations
 GET {{apiUrl}}/admin/chat/conversations?search=john&page=1
 Authorization: Bearer {{login.response.body.token}}
@@ -1102,6 +1114,25 @@ Authorization: Bearer {{login.response.body.token}}
 
 ### 125.3 Admin Delete Message
 DELETE {{apiUrl}}/admin/chat/messages/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.token}}
+
+### 125.4 Admin List Reports
+GET {{apiUrl}}/admin/reports?status=Pending&targetType=Message&page=1
+Authorization: Bearer {{login.response.body.token}}
+
+### 125.5 Admin Update Report
+PATCH {{apiUrl}}/admin/reports/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "status": "Resolved",
+  "resolutionNote": "Content removed",
+  "removeContent": true
+}
+
+### 125.6 Admin Delete Comment
+DELETE {{apiUrl}}/admin/comments/00000000-0000-0000-0000-000000000000
 Authorization: Bearer {{login.response.body.token}}
 
 ### 123.9 Get Presences
