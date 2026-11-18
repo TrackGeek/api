@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import { RedisIoAdapter } from "./modules/chat/gateway/redis-io.adapter";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import { DataxamasLogger } from "./shared/infra/dataxamas/dataxamas.logger";
 import { DataxamasService } from "./shared/infra/dataxamas/dataxamas.service";
@@ -43,6 +44,12 @@ async function bootstrap() {
       void dataxamas.flush().finally(() => process.exit(1));
     });
   }
+
+  const redisIoAdapter = new RedisIoAdapter(app);
+
+  await redisIoAdapter.connectToRedis(process.env.REDIS_URL!);
+
+  app.useWebSocketAdapter(redisIoAdapter);
 
   app.set("trust proxy", resolveTrustProxy());
 

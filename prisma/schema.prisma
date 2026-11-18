@@ -34,6 +34,7 @@ model User {
   twoFactorEnabled     Boolean   @default(false)
   stripeCustomerId     String?
   lastActiveAt         DateTime  @default(now())
+  chatLastSeenAt       DateTime?
   inactivityWarnedAt   DateTime?
   inactivityDeletionAt DateTime?
   accumulatedMoney     Int       @default(0)
@@ -73,6 +74,13 @@ model User {
   favorites              Favorite[]
   userMedals             UserMedal[]
   payments               Payment[]
+  conversationsAsA       Conversation[]          @relation("ConversationUserA")
+  conversationsAsB       Conversation[]          @relation("ConversationUserB")
+  conversationReads      ConversationRead[]
+  sentMessages           Message[]               @relation("MessageSender")
+  reportsMade            Report[]                @relation("ReportReporter")
+  reportsReceived        Report[]                @relation("ReportReported")
+  reportsResolved        Report[]                @relation("ReportResolver")
   notificationsReceived  Notification[]          @relation("NotificationRecipient")
   notificationsSent      Notification[]          @relation("NotificationActor")
   notificationPreference NotificationPreference?
@@ -219,6 +227,7 @@ model Profile {
   bannerUrl               String?
   avatarUrl               String?
   contentTypes            ContentType[] @default([Anime, Manga, TVShow, Movie, Game, Book])
+  showChatPresence        Boolean       @default(true)
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 
@@ -377,6 +386,7 @@ model Comment {
   profile       Profile?       @relation(fields: [profileId], references: [id], onDelete: Cascade)
   reactions     Reaction[]
   notifications Notification[]
+  reports       Report[]
 
   @@index([animeId])
   @@index([mangaId])
@@ -638,11 +648,11 @@ model ActivityDayCount {
 }
 
 model Game {
-  steamAppId String?
-  protonDbTier String?
-  protonDbScore Float?
-  steamDeckCategory Int?
-  protonDbUpdatedAt DateTime?
+  steamAppId            String?
+  protonDbTier          String?
+  protonDbScore         Float?
+  steamDeckCategory     Int?
+  protonDbUpdatedAt     DateTime?
   id                    String    @id @default(uuid(7))
   igdbId                Int       @unique
   igdbReviewScore       Float?
@@ -711,8 +721,8 @@ model Game {
 }
 
 model Book {
-  id                     String              @id @default(uuid(7))
-  hardcoverId            Int                 @unique
+  id                     String                @id @default(uuid(7))
+  hardcoverId            Int                   @unique
   hardcoverReviewScore   Float?
   title                  String
   contributions          Json?
@@ -743,9 +753,9 @@ model Book {
   slug                   String
   state                  String?
   editions               Json?
-  lastRefreshedAt        DateTime            @default(now())
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
+  lastRefreshedAt        DateTime              @default(now())
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
   bookCoverPreferences   BookCoverPreference[]
   bookProgresses         BookProgress[]
   bookReviews            BookReview[]
@@ -1920,4 +1930,115 @@ model AnimeMigrationArchive {
   createdAt  DateTime @default(now())
 
   @@unique([sourceType, sourceId])
+}
+
+enum MessageType {
+  Text
+  Sticker
+}
+
+enum MessageDeletedBy {
+  Author
+  Admin
+}
+
+enum ReportTargetType {
+  User
+  Message
+  Comment
+}
+
+enum ReportStatus {
+  Pending
+  Resolved
+  Dismissed
+}
+
+enum ReportReason {
+  Spam
+  Harassment
+  HateSpeech
+  Inappropriate
+  Other
+}
+
+model Conversation {
+  id            String    @id @default(uuid(7))
+  userAId       String?
+  userBId       String?
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userA        User?              @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: SetNull)
+  userB        User?              @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: SetNull)
+  messages     Message[]
+  participants ConversationRead[]
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
+  @@index([lastMessageAt])
+}
+
+model ConversationRead {
+  conversationId String
+  userId         String
+  lastReadAt     DateTime
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id              String            @id @default(uuid(7))
+  conversationId  String
+  senderId        String?
+  type            MessageType       @default(Text)
+  content         String
+  deletedAt       DateTime?
+  deletedBy       MessageDeletedBy?
+  deletedByUserId String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  sender       User?        @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+  reports      Report[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+model Report {
+  id              String           @id @default(uuid(7))
+  reporterId      String?
+  targetType      ReportTargetType
+  reportedUserId  String?
+  messageId       String?
+  commentId       String?
+  contentSnapshot String?
+  reason          ReportReason
+  details         String?
+  status          ReportStatus     @default(Pending)
+  resolvedById    String?
+  resolvedAt      DateTime?
+  resolutionNote  String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  reporter     User?    @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  reportedUser User?    @relation("ReportReported", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  resolvedBy   User?    @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  message      Message? @relation(fields: [messageId], references: [id], onDelete: Restrict)
+  comment      Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([reportedUserId])
+  @@index([reporterId])
+  @@index([resolvedById])
+  @@index([messageId])
+  @@index([commentId])
 }

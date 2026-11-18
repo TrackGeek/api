@@ -395,4 +395,20 @@ export const ERROR_CODES = {
     code: "FORBIDDEN_ROLE",
     status: 403,
   },
+  CHAT_NOT_FRIENDS: {
+    code: "CHAT_NOT_FRIENDS",
+    status: 403,
+  },
+  CONVERSATION_NOT_FOUND: {
+    code: "CONVERSATION_NOT_FOUND",
+    status: 404,
+  },
+  MESSAGE_NOT_FOUND: {
+    code: "MESSAGE_NOT_FOUND",
+    status: 404,
+  },
+  MESSAGE_ALREADY_DELETED: {
+    code: "MESSAGE_ALREADY_DELETED",
+    status: 409,
+  },
 } as const;

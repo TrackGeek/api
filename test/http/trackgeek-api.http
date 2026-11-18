@@ -1042,3 +1042,68 @@ Authorization: Bearer {{login.response.body.token}}
 ### 122.4 Unlink PSN Account
 DELETE {{apiUrl}}/psn/account
 Authorization: Bearer {{login.response.body.token}}
+
+### 123.1 List Chat Friends
+GET {{apiUrl}}/chat/friends
+Authorization: Bearer {{login.response.body.token}}
+
+### 123.2 List Conversations
+GET {{apiUrl}}/chat/conversations?page=1&itemsPerPage=20
+Authorization: Bearer {{login.response.body.token}}
+
+### 123.3 Get Or Create Conversation
+POST {{apiUrl}}/chat/conversations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "userId": "user-id"
+}
+
+### 123.4 List Messages
+GET {{apiUrl}}/chat/conversations/00000000-0000-0000-0000-000000000000/messages?limit=30
+Authorization: Bearer {{login.response.body.token}}
+
+### 123.5 Send Text Message
+POST {{apiUrl}}/chat/conversations/00000000-0000-0000-0000-000000000000/messages
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Text",
+  "content": "Hello"
+}
+
+### 123.6 Send Sticker Message
+POST {{apiUrl}}/chat/conversations/00000000-0000-0000-0000-000000000000/messages
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "type": "Sticker",
+  "content": "trackgeek-logo"
+}
+
+### 123.7 Delete Own Message
+DELETE {{apiUrl}}/chat/messages/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.token}}
+
+### 123.8 Mark Conversation As Read
+POST {{apiUrl}}/chat/conversations/00000000-0000-0000-0000-000000000000/read
+Authorization: Bearer {{login.response.body.token}}
+
+### 125.1 Admin List Conversations
+GET {{apiUrl}}/admin/chat/conversations?search=john&page=1
+Authorization: Bearer {{login.response.body.token}}
+
+### 125.2 Admin List Conversation Messages
+GET {{apiUrl}}/admin/chat/conversations/00000000-0000-0000-0000-000000000000/messages?limit=30
+Authorization: Bearer {{login.response.body.token}}
+
+### 125.3 Admin Delete Message
+DELETE {{apiUrl}}/admin/chat/messages/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.token}}
+
+### 123.9 Get Presences
+GET {{apiUrl}}/presence?userIds=user-id-1,user-id-2
+Authorization: Bearer {{login.response.body.token}}

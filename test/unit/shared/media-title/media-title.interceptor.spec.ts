@@ -31,7 +31,7 @@ describe("Media title preference", () => {
     const dto = plainToInstance(UpdateProfileDto, { userId: "reader", animeMangaTitleLanguage: language });
     expect(await validate(dto)).toEqual([]);
     const database = { profile: { update: vi.fn().mockResolvedValue({}) } };
-    const service = new ProfileService(database as any, {} as any, {} as any);
+    const service = new ProfileService(database as any, {} as any, {} as any, {} as any);
     await service.updateProfile(dto);
     expect(database.profile.update).toHaveBeenCalledWith(
       expect.objectContaining({

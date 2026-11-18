@@ -5,6 +5,7 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsArray,
+  IsBoolean,
   IsEnum,
   IsIn,
   IsISO31661Alpha2,
@@ -73,4 +74,9 @@ export class UpdateProfileDto {
   @IsEnum(ContentType)
   @ApiPropertyOptional({ enum: ContentType, default: ContentType.Movie })
   readonly defaultSearchType?: ContentType;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ default: true })
+  readonly showChatPresence?: boolean;
 }

@@ -142,6 +142,7 @@ export class UserService {
         stripeCustomerId: true,
         accumulatedMoney: true,
         image: true,
+        chatLastSeenAt: true,
       },
     });
 

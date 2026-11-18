@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CosmeticType, SetupItemType } from "@prisma/generated/enums";
+import { PresenceService } from "@/modules/chat/service/presence.service";
 import { CosmeticService } from "@/modules/cosmetic/service/cosmetic.service";
 import { HEX_COLOR_REGEX } from "@/shared/constants/cosmetics";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
@@ -35,6 +36,7 @@ export class ProfileService {
     private readonly databaseService: DatabaseService,
     private readonly uploadService: UploadService,
     private readonly cosmeticService: CosmeticService,
+    private readonly presenceService: PresenceService,
   ) {}
 
   async createProfile(createProfileDto: CreateProfileDto) {
@@ -79,6 +81,14 @@ export class ProfileService {
       );
     }
 
+    const previous =
+      updateProfileDto.showChatPresence === undefined
+        ? null
+        : await this.databaseService.profile.findUnique({
+            where: { userId: updateProfileDto.userId },
+            select: { showChatPresence: true },
+          });
+
     await this.databaseService.profile.update({
       where: { userId: updateProfileDto.userId },
       data: {
@@ -93,8 +103,13 @@ export class ProfileService {
         about: updateProfileDto.about,
         contentTypes: updateProfileDto.contentTypes,
         defaultSearchType: updateProfileDto.defaultSearchType,
+        showChatPresence: updateProfileDto.showChatPresence,
       },
     });
+
+    if (previous && previous.showChatPresence !== updateProfileDto.showChatPresence) {
+      await this.presenceService.handleToggle(updateProfileDto.userId, updateProfileDto.showChatPresence!);
+    }
   }
 
   async updateProfileAvatar(userId: string, file: Express.Multer.File): Promise<void> {

@@ -11,6 +11,7 @@ import { AnimeMappingModule } from "./modules/anime-mapping/anime-mapping.module
 import { AuthModule } from "./modules/auth/auth.module";
 import { BookModule } from "./modules/book/book.module";
 import { CatchupModule } from "./modules/catchup/catchup.module";
+import { ChatModule } from "./modules/chat/chat.module";
 import { CoinModule } from "./modules/coin/coin.module";
 import { CommentModule } from "./modules/comment/comment.module";
 import { CompanyModule } from "./modules/company/company.module";
@@ -77,6 +78,7 @@ import { MediaTitleModule } from "./shared/media-title/media-title.module";
     AccountInactivityModule,
     ProfileModule,
     CommentModule,
+    ChatModule,
     PostModule,
     ReactionModule,
     RewindModule,
