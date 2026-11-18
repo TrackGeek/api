@@ -351,6 +351,10 @@ export const ERROR_CODES = {
     code: "ACTIVE_SUBSCRIPTION_EXISTS",
     status: 400,
   },
+  INVALID_CURRENCY: {
+    code: "INVALID_CURRENCY",
+    status: 400,
+  },
   USER_CANNOT_UNFOLLOW_SELF: {
     code: "USER_CANNOT_UNFOLLOW_SELF",
     status: 400,

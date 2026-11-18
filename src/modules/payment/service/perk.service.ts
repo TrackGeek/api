@@ -10,10 +10,10 @@ export class PerkService {
     private readonly stripeService: StripeService,
   ) {}
 
-  async getPerks(clientIp?: ClientIpType) {
+  async getPerks(clientIp?: ClientIpType, currency?: string) {
     const names = [UserTier.Tracker, UserTier.Archivist, UserTier.ArchiveMaster];
     const filteredPrices = [300, 500, 1500];
-    const prices = await this.stripeService.getPrices(clientIp);
+    const prices = await this.stripeService.getPrices(clientIp, currency);
 
     const perks = prices
       .filter((price) => filteredPrices.includes(price.value.original.raw))

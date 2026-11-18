@@ -30,9 +30,12 @@ export class PaymentService {
       throw new AppException(ERROR_CODES.USER_NOT_FOUND);
     }
 
+    const currency = await this.stripeService.resolveCurrency(clientIp, dto.currency);
+
     const paymentAlreadyExists = await this.databaseService.payment.findFirst({
       where: {
         value,
+        currency,
         userId,
         status: PaymentStatus.Pending,
         frequency,
@@ -73,8 +76,6 @@ export class PaymentService {
     }
 
     const donateProduct = await this.stripeService.donateProduct();
-
-    const currency = await this.stripeService.getUserCurrency(clientIp);
 
     const expiredAt = new Date();
 

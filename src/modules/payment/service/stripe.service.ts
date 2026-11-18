@@ -7,7 +7,7 @@ import { firstValueFrom } from "rxjs";
 import Stripe from "stripe";
 import { CACHE_KEYS } from "@/shared/constants/cache";
 import { ERROR_CODES } from "@/shared/constants/error-codes";
-import { DEFAULT_CURRENCY } from "@/shared/constants/payment";
+import { DEFAULT_CURRENCY, FIXED_CURRENCIES } from "@/shared/constants/payment";
 import type { ClientIpType } from "@/shared/decorators/client-ip.decorator";
 import { AppException } from "@/shared/exceptions/app.exceptions";
 import { CacheService } from "@/shared/infra/cache/cache.service";
@@ -149,6 +149,22 @@ export class StripeService {
     return currency;
   }
 
+  async resolveCurrency(clientIp?: ClientIpType, requested?: string): Promise<string> {
+    const localCurrency = await this.getUserCurrency(clientIp);
+
+    if (!requested) {
+      return localCurrency;
+    }
+
+    const allowedCurrencies = new Set<string>([...FIXED_CURRENCIES, localCurrency]);
+
+    if (!allowedCurrencies.has(requested)) {
+      throw new AppException(ERROR_CODES.INVALID_CURRENCY);
+    }
+
+    return requested;
+  }
+
   private async resolveCountryCode(ip: string): Promise<string | null> {
     for (const provider of GEO_PROVIDERS) {
       try {
@@ -228,10 +244,10 @@ export class StripeService {
     }
   }
 
-  async getPrices(clientIp?: ClientIpType): Promise<Price[]> {
+  async getPrices(clientIp?: ClientIpType, currency?: string): Promise<Price[]> {
     if (!this.stripe) return [];
 
-    const userCurrency = await this.getUserCurrency(clientIp);
+    const userCurrency = await this.resolveCurrency(clientIp, currency);
     const donateProduct = await this.donateProduct();
 
     const prices = [300, 500, 1000, 1500, 2500, 5000];
