@@ -32,8 +32,24 @@ describe("TMDBService", () => {
       mockHttpService.get.mockImplementation((url: string) =>
         of({
           data: url.includes("/movie/")
-            ? { title: "Filme", overview: "Sinopse do filme", poster_path: "/movie-pt.jpg" }
-            : { name: "Série", overview: "Sinopse da série", poster_path: "/tv-pt.jpg" },
+            ? {
+                poster_path: "/movie-pt.jpg",
+                translations: {
+                  translations: [
+                    { iso_639_1: "pt", iso_3166_1: "BR", data: { title: "Filme", overview: "Sinopse do filme" } },
+                  ],
+                },
+                images: { posters: [{ iso_639_1: "pt", file_path: "/movie-pt.jpg" }] },
+              }
+            : {
+                poster_path: "/tv-pt.jpg",
+                translations: {
+                  translations: [
+                    { iso_639_1: "pt", iso_3166_1: "BR", data: { name: "Série", overview: "Sinopse da série" } },
+                  ],
+                },
+                images: { posters: [{ iso_639_1: "pt", file_path: "/tv-pt.jpg" }] },
+              },
         }),
       );
       const result = await service.getLocalizedMedia(
@@ -47,7 +63,7 @@ describe("TMDBService", () => {
       expect(mockHttpService.get).toHaveBeenCalledTimes(2);
       expect(mockHttpService.get).toHaveBeenCalledWith(
         "https://api.themoviedb.org/3/movie/1",
-        expect.objectContaining({ params: { language: "pt-BR" } }),
+        expect.objectContaining({ params: expect.objectContaining({ language: "pt-BR" }) }),
       );
       expect(result.get("movie:1")).toEqual({
         title: "Filme",
@@ -90,7 +106,15 @@ describe("TMDBService", () => {
       mockHttpService.get.mockImplementation((url: string) =>
         url.includes("/movie/")
           ? throwError(() => new Error("TMDB unavailable"))
-          : of({ data: { name: "Série", overview: "  ", poster_path: null } }),
+          : of({
+              data: {
+                poster_path: null,
+                translations: {
+                  translations: [{ iso_639_1: "pt", iso_3166_1: "PT", data: { name: "Série", overview: "  " } }],
+                },
+                images: { posters: [] },
+              },
+            }),
       );
       const result = await service.getLocalizedMedia(
         [
@@ -102,6 +126,35 @@ describe("TMDBService", () => {
       expect(result.has("movie:1")).toBe(false);
       expect(result.get("tv:1")).toEqual({ title: "Série", overview: null, posterUrl: null });
       expect(mockCacheService.set).toHaveBeenCalledTimes(1);
+    });
+
+    it("falls back to en-US instead of pt-BR or original language when pt-PT is missing", async () => {
+      mockCacheService.get.mockResolvedValue(null);
+      mockHttpService.get.mockReturnValue(
+        of({
+          data: {
+            poster_path: "/korean.jpg",
+            translations: {
+              translations: [
+                { iso_639_1: "pt", iso_3166_1: "BR", data: { title: "Título BR", overview: "Sinopse BR" } },
+                { iso_639_1: "en", iso_3166_1: "US", data: { title: "English title", overview: "Overview" } },
+              ],
+            },
+            images: {
+              posters: [
+                { iso_639_1: "ko", file_path: "/korean.jpg" },
+                { iso_639_1: "en", file_path: "/en.jpg" },
+              ],
+            },
+          },
+        }),
+      );
+      const result = await service.getLocalizedMedia([{ mediaType: "movie", tmdbId: 1 }], "pt-PT");
+      expect(result.get("movie:1")).toEqual({
+        title: "English title",
+        overview: "Overview",
+        posterUrl: "https://image.tmdb.org/t/p/w500/en.jpg",
+      });
     });
 
     it("ignores invalid locales without calling TMDB or cache", async () => {

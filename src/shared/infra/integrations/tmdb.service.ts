@@ -421,7 +421,9 @@ export class TMDBService {
     const localized = new Map<string, TMDBLocalizedMedia>();
     const match = /^([a-z]{2})(?:[-_]([a-z]{2}))?$/i.exec(locale.trim());
     if (!match) return localized;
-    const language = [match[1].toLowerCase(), match[2]?.toUpperCase()].filter(Boolean).join("-");
+    const baseLanguage = match[1].toLowerCase();
+    const region = match[2]?.toUpperCase();
+    const language = [baseLanguage, region].filter(Boolean).join("-");
     const unique = [
       ...new Map(references.map((reference) => [`${reference.mediaType}:${reference.tmdbId}`, reference])),
     ];
@@ -438,15 +440,38 @@ export class TMDBService {
             }
             const { data } = await firstValueFrom(
               this.httpService.get(`${this.TMDB_API_URL}/${reference.mediaType}/${reference.tmdbId}`, {
-                params: { language },
+                params: {
+                  language,
+                  append_to_response: "translations,images",
+                  include_image_language: `${baseLanguage},en,null`,
+                },
                 timeout: 5000,
                 headers: { Authorization: `Bearer ${this.configService.get("TMDB_API_KEY")}` },
               }),
             );
+            const translations: any[] = data.translations?.translations ?? [];
+            const posters: any[] = data.images?.posters ?? [];
+            const titleField = reference.mediaType === "movie" ? "title" : "name";
+            const findTranslation = (lang: string, region?: string) =>
+              translations.find((item) => item.iso_639_1 === lang && (!region || item.iso_3166_1 === region));
+            const pickField = (field: string) =>
+              [findTranslation(baseLanguage, region), findTranslation("en", "US"), findTranslation("en")]
+                .map((item) => item?.data?.[field]?.trim())
+                .find(Boolean) || null;
+            const pickPoster = () => {
+              for (const lang of [baseLanguage, "en"]) {
+                const candidates = posters.filter((poster) => poster.iso_639_1 === lang);
+                const path =
+                  candidates.find((poster) => poster.file_path === data.poster_path)?.file_path ??
+                  candidates[0]?.file_path;
+                if (path) return `https://image.tmdb.org/t/p/w500${path}`;
+              }
+              return null;
+            };
             const media: TMDBLocalizedMedia = {
-              title: (reference.mediaType === "movie" ? data.title : data.name)?.trim() || null,
-              overview: data.overview?.trim() || null,
-              posterUrl: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
+              title: pickField(titleField),
+              overview: pickField("overview"),
+              posterUrl: pickPoster(),
             };
             localized.set(key, media);
             await this.cacheService.set(cacheKey, media, CACHE_KEYS.TMDB_LOCALIZED_MEDIA.expiration);

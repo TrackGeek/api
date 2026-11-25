@@ -192,7 +192,7 @@ export const CACHE_KEYS = {
     expiration: 3600 * 24 * 7,
   },
   TMDB_LOCALIZED_MEDIA: {
-    prefix: (mediaType: string, tmdbId: number, locale: string) => `tmdb:localized:${mediaType}:${tmdbId}:${locale}`,
+    prefix: (mediaType: string, tmdbId: number, locale: string) => `tmdb:localized:v2:${mediaType}:${tmdbId}:${locale}`,
     expiration: 3600 * 24,
   },
   TMDB_COMPANY_BY_ID: {
