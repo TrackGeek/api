@@ -1,9 +1,9 @@
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { buildAnimeMappingIndex, type AnimeMappingIndex, type TmdbMediaType } from "./anime-mapping-index";
+import { type AnimeMappingIndex, buildAnimeMappingIndex, type TmdbMediaType } from "./anime-mapping-index";
 
 export const ANIME_MAPPING_URL =
   "https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-mini.json";

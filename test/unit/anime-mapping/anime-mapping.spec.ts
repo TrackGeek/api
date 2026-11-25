@@ -1,15 +1,15 @@
-import { ConfigService } from "@nestjs/config";
-import axios from "axios";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { ConfigService } from "@nestjs/config";
+import axios from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAnimeMappingIndex } from "@/modules/anime-mapping/service/anime-mapping-index";
 import {
-  AnimeMappingService,
   ANIME_MAPPING_REFRESH_MS,
   ANIME_MAPPING_URL,
+  AnimeMappingService,
 } from "@/modules/anime-mapping/service/anime-mapping.service";
+import { buildAnimeMappingIndex } from "@/modules/anime-mapping/service/anime-mapping-index";
 
 vi.mock("axios", () => ({ default: { get: vi.fn() } }));
 
